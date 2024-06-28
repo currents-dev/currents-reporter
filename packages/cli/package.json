@@ -1,0 +1,107 @@
+{
+  "name": "@currents/reporter-cli",
+  "version": "0.0.0",
+  "main": "./dist/index.js",
+  "author": "Currents Software Inc",
+  "license": "GPL-3.0-or-later",
+  "description": "Currents reporter CLI",
+  "scripts": {
+    "test": "jest",
+    "rm": "rimraf dist",
+    "lint": "TIMING=1 eslint \"**/*.ts*\"",
+    "build": "tsup-node --minify --dts",
+    "dev": "tsup-node --watch --dts",
+    "release": "release-it",
+    "publish:npm": "npm run rm  && npm run build && ./publish.js"
+  },
+  "devDependencies": {
+    "@jest/reporters": "^29.7.0",
+    "@jest/types": "^29.6.3",
+    "@types/debug": "^4.1.12",
+    "@types/fs-extra": "^11.0.4",
+    "@types/getos": "^3.0.4",
+    "@types/lodash": "^4.17.5",
+    "@types/node": "^20.14.2",
+    "@types/semver": "^7.5.8",
+    "@types/tmp": "^0.2.6",
+    "@types/uuid": "^9.0.8",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.7",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@commander-js/extra-typings": "^11.1.0",
+    "@currents/commit-info": "1.0.1-beta.0",
+    "axios": "^1.7.2",
+    "axios-retry": "^4.4.0",
+    "commander": "^11.1.0",
+    "debug": "^4.3.5",
+    "dotenv": "^16.0.3",
+    "events": "^3.3.0",
+    "execa": "^8.0.1",
+    "fs-extra": "^11.2.0",
+    "getos": "^3.2.1",
+    "jest-cli": "^29.7.0",
+    "jest-config": "^29.7.0",
+    "json-stringify-safe": "^5.0.1",
+    "lodash": "^4.17.21",
+    "nanoid": "^3.3.4",
+    "pretty-ms": "^7.0.1",
+    "semver": "^7.6.0",
+    "tmp": "^0.2.3",
+    "tmp-promise": "^3.0.3",
+    "ts-pattern": "^5.2.0",
+    "uuid": "^10.0.0"
+  },
+  "bin": {
+    "currents-reporter": "./dist/bin/index.js"
+  },
+  "files": [
+    "dist",
+    "!**/*.map",
+    "!**/*/*.map"
+  ],
+  "keywords": [
+    "jest",
+    "jest dashboard",
+    "cloud dashboard",
+    "reporter",
+    "currents",
+    "tests reporter",
+    "ci"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./discovery/jest": {
+      "import": "./dist/discovery/jest/reporter.js",
+      "require": "./dist/discovery/jest/reporter.js",
+      "types": "./dist/discovery/jest/reporter.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "release-it": {
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular",
+        "header": "# Changelog",
+        "ignoreVersion": true,
+        "infile": "../../CHANGELOG.md"
+      }
+    },
+    "git": {
+      "commitMessage": "chore: release v${version}",
+      "tagName": "v${version}"
+    }
+  }
+}

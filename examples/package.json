@@ -1,0 +1,23 @@
+{
+  "name": "examples",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "test": "jest",
+    "report": "CURRENTS_API_URL=http://localhost:1234 CURRENTS_CI_BUILD_ID=$(date +%s) currents-reporter --project-id=DgTfZV --key=DsDpjPk0ITxBLTmn",
+    "test:local": "CURRENTS_API_URL=http://localhost:1234 CURRENTS_CI_BUILD_ID=$(date +%s) jest",
+    "test:staging": "CURRENTS_API_URL=https://cy-staging.currents.dev CURRENTS_CI_BUILD_ID=$(date +%s) jest",
+    "build": "echo \"No build specified\" && exit 0"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.24.3",
+    "@babel/preset-typescript": "^7.24.1",
+    "@currents/jest-reporter": "*",
+    "@currents/reporter-cli": "*",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

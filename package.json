@@ -1,0 +1,35 @@
+{
+  "name": "currents-jest-tool",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "packages/*",
+    "examples"
+  ],
+  "keywords": [
+    "jest",
+    "jest dashboard",
+    "cloud dashboard",
+    "reporter",
+    "currents",
+    "tests reporter",
+    "ci"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "eslint-config-custom": "*",
+    "prettier": "^3.3.2",
+    "turbo": "^2.0.4"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "packageManager": "npm@10.5.0"
+}

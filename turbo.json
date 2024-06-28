@@ -1,0 +1,45 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": [
+        "CURRENTS_MACHINE_ID",
+        "CURRENTS_REPORTER_CONFIG_PATH",
+        "_CURRENTS_E2E_TESTS",
+        "CURRENTS_DEBUG",
+        "DEBUG",
+        "CURRENTS_RUN_URL_FILE",
+        "CURRENTS_API_URL",
+        "CURRENTS_REMOTE_LOGGING",
+        "TF_BUILD",
+        "TF_BUILD_BUILDNUMBER",
+        "AZURE_HTTP_USER_AGENT",
+        "bamboo_buildNumber",
+        "CI_NAME",
+        "CODESHIP",
+        "GITLAB_CI",
+        "CI_SERVER_NAME",
+        "GCP_PROJECT",
+        "GCLOUD_PROJECT",
+        "GOOGLE_CLOUD_PROJECT",
+        "JENKINS_URL",
+        "JENKINS_HOME",
+        "JENKINS_VERSION",
+        "HUDSON_URL",
+        "HUDSON_HOME",
+        "WERCKER",
+        "WERCKER_MAIN_PIPELINE_STARTED",
+        "JEST_WORKER_ID"
+      ]
+    },
+
+    "lint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false
+    }
+  }
+}

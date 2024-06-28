@@ -1,0 +1,26 @@
+{
+  "lib": ["es2016"],
+  "compilerOptions": {
+    "composite": false,
+    "declarationMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "moduleResolution": "node",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "es2016",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+
+    "baseUrl": "." // This must be specified if "paths" is set
+  }
+}
