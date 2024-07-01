@@ -47,3 +47,6 @@ dist/
 screenshots
 
 .npmrc
+
+# Currents reports
+.currents-report-*

@@ -1,27 +1,14 @@
 import { Test, TestCaseResult } from "@jest/reporters";
 import type { Circus } from "@jest/types";
-import { last } from "lodash";
+import { flowRight } from "lodash";
 import crypto from "node:crypto";
+import { P, match } from "ts-pattern";
+import { TestExpectedStatus, TestState } from "../types";
 import { getRelativeFileLocation } from "./relativeFileLocation";
-
-export type TestCase = {
-  id: string;
-  test: Test;
-  invocations: TestCaseInvocation[];
-};
-
-export type TestCaseStartInfo = Circus.TestCaseStartInfo;
 
 export type TestCaseInvocationStart = {
   testCaseStartInfo: Circus.TestCaseStartInfo;
 };
-
-export type TestCaseInvocationResult = {
-  result: TestCaseResult;
-};
-
-export type TestCaseInvocation = TestCaseInvocationStart &
-  Partial<TestCaseInvocationResult>;
 
 export function getDefaultProjectId() {
   return "root";
@@ -35,7 +22,9 @@ export function getTestLocation(testResult: TestCaseResult) {
   return testResult.location;
 }
 
-export function getTestCaseFullTitle(obj: TestCaseStartInfo | TestCaseResult) {
+export function getTestCaseFullTitle(
+  obj: Circus.TestCaseStartInfo | TestCaseResult
+) {
   return [...obj.ancestorTitles, obj.title];
 }
 
@@ -46,7 +35,7 @@ export function testToSpecName(test: Test) {
 
 export function getTestCaseId(
   test: Test,
-  testCaseResult: TestCaseStartInfo | TestCaseResult
+  testCaseResult: Circus.TestCaseStartInfo | TestCaseResult
 ) {
   const title = getTestCaseFullTitle(testCaseResult);
   const specName = testToSpecName(test);
@@ -73,18 +62,8 @@ export function getTestTags(test: Test, testCaseResult: TestCaseResult) {
   return [] as string[];
 }
 
-export function getTestCaseLabel(testCase: TestCase): string {
-  return getTestCaseFullTitle(testCase.invocations[0].testCaseStartInfo)
-    .filter((i) => !!i)
-    .join(" > ");
-}
-
-export function getTestCaseWorker(invocation: TestCaseInvocation) {
-  const workerIndex = ["skip", "todo"].includes(
-    invocation.testCaseStartInfo.mode as string
-  )
-    ? -1
-    : +(process.env.JEST_WORKER_ID || 1);
+export function getWorker() {
+  const workerIndex = +(process.env.JEST_WORKER_ID || 1);
 
   return {
     workerIndex,
@@ -92,8 +71,54 @@ export function getTestCaseWorker(invocation: TestCaseInvocation) {
   };
 }
 
-export function getAttemptId(testCase: TestCase) {
-  const lastInvocation = last(testCase.invocations)!;
-  const testId = getTestCaseId(testCase.test, lastInvocation.testCaseStartInfo);
-  return lastInvocation.result ? `${testId}-${lastInvocation.result}` : testId;
+export function statusToCurrentsStatus(
+  testStatus: TestCaseResult["status"]
+): TestState {
+  switch (testStatus) {
+    case "passed":
+      return TestState.Passed;
+    case "failed":
+      return TestState.Failed;
+    case "skipped":
+    case "todo":
+    case "pending":
+    case "disabled":
+      return TestState.Pending;
+
+    // case "focused":
+
+    default:
+      return TestState.Failed;
+  }
+}
+
+export function getRawTestStatus(
+  testCaseResults: TestCaseResult[]
+): TestExpectedStatus {
+  const allStatuses = testCaseResults.map((i) => i.status);
+
+  // if all the attempts have similar status
+  if (allStatuses.every((status) => status === allStatuses[0])) {
+    return match(allStatuses[0])
+      .with(
+        P.union("disabled", "skipped", "todo", "pending"),
+        () => TestExpectedStatus.Skipped
+      )
+      .with("passed", () => TestExpectedStatus.Passed)
+      .with("failed", () => TestExpectedStatus.Failed)
+      .otherwise(() => TestExpectedStatus.Failed);
+  }
+
+  // otherwise, it is a mix of passed and failed attempts, so it is flaky
+  // and it doesn't pass the expected status
+  return TestExpectedStatus.Failed;
+}
+
+export const getTestCaseStatus = flowRight(
+  statusToCurrentsStatus,
+  getRawTestStatus
+);
+
+export function getAttemptNumber(result: TestCaseResult) {
+  return result?.invocations ?? 1;
 }

@@ -9,24 +9,28 @@ import type {
   TestResult,
 } from "@jest/reporters";
 import { Circus } from "@jest/types";
-import fs from "fs-extra";
-import { flowRight } from "lodash";
+
 import { join } from "path";
-import { P, match } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import {
   Deferred,
+  createFolder,
+  createUniqueFolder,
   debug,
   formatError,
   generateShortHash,
+  getAttemptNumber,
   getError,
   getProjectId,
+  getRawTestStatus,
   getTestCaseFullTitle,
   getTestCaseId,
+  getTestCaseStatus,
+  getWorker,
   testToSpecName,
+  writeFileAsync,
 } from "./lib";
 import { getReportConfig } from "./lib/getReportConfig";
-import { error, info } from "./logger";
+import { info } from "./logger";
 import { InstanceReport } from "./types";
 
 type WorkerInfo = {
@@ -107,14 +111,11 @@ export default class CustomReporter implements Reporter {
     );
 
     info("[currents]: Run started");
-    info(
-      "[currents]: Report directory is set to - %s",
-      this.reportDir
-    );
+    info("[currents]: Report directory is set to - %s", this.reportDir);
 
     this.instancesDir = await createFolder(join(this.reportDir, "instances"));
 
-    const reportConfig = await getReportConfig(this.globalConfig);
+    const reportConfig = getReportConfig(this.globalConfig);
     debug("Report config:", reportConfig);
 
     await writeFileAsync(
@@ -226,7 +227,7 @@ export default class CustomReporter implements Reporter {
         title: getTestCaseFullTitle(testCaseResult),
         mode: "skip",
         result: [],
-        worker: getWorker(true),
+        worker: getWorker(),
         config: test.context.config,
       };
       debug(
@@ -271,7 +272,7 @@ export default class CustomReporter implements Reporter {
             title: getTestCaseFullTitle(testResult),
             mode: "skip",
             result: [testResult],
-            worker: getWorker(true),
+            worker: getWorker(),
             config: test.context.config,
           };
           debug(
@@ -329,7 +330,7 @@ export default class CustomReporter implements Reporter {
 
             return {
               _s: getTestCaseStatus([result]),
-              attempt: getAttempt(result),
+              attempt: getAttemptNumber(result),
 
               workerIndex: testCase.worker.workerIndex,
               parallelIndex: testCase.worker.parallelIndex,
@@ -410,106 +411,4 @@ function getSpecKey(projectId: string, specName: string) {
 
 function getTestCaseKey(projectId: string, specName: string, testId: string) {
   return `${projectId}:${specName}:${testId}`;
-}
-
-function generateUniqueDirName(baseName: string): string {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const uniqueId = uuidv4();
-  return `${baseName}-${timestamp}-${uniqueId}`;
-}
-
-async function createUniqueFolder(
-  basePath: string,
-  baseName: string
-): Promise<string> {
-  const uniqueDirName = generateUniqueDirName(baseName);
-  const folderPath = join(basePath, uniqueDirName);
-
-  return createFolder(folderPath);
-}
-
-async function createFolder(folderPath: string) {
-  try {
-    await fs.ensureDir(folderPath);
-    debug("Folder created", folderPath);
-    return folderPath;
-  } catch (err) {
-    error(`Failed to create folder at ${folderPath}:`, err);
-    throw err;
-  }
-}
-
-async function writeFileAsync(
-  basePath: string,
-  fileName: string,
-  content: string
-) {
-  const filePath = join(basePath, fileName);
-
-  try {
-    await fs.writeFile(filePath, content, "utf8");
-    debug("File created", filePath);
-    return filePath;
-  } catch (err) {
-    error(`Error writing file at ${filePath}:`, err);
-    throw err;
-  }
-}
-
-export function getWorker(skipped?: boolean): WorkerInfo {
-  const workerIndex = skipped ? -1 : +(process.env.JEST_WORKER_ID || 1);
-
-  return {
-    workerIndex,
-    parallelIndex: workerIndex,
-  };
-}
-
-export function statusToCurrentsStatus(
-  testStatus: TestCaseResult["status"]
-): TestState {
-  switch (testStatus) {
-    case "passed":
-      return TestState.Passed;
-    case "failed":
-      return TestState.Failed;
-    case "skipped":
-    case "todo":
-    case "pending":
-    case "disabled":
-      return TestState.Pending;
-
-    // case "focused":
-
-    default:
-      return TestState.Failed;
-  }
-}
-
-export function getRawTestStatus(
-  testCaseResults: TestCase["result"]
-): TestExpectedStatus {
-  const allStatuses = testCaseResults.map((i) => i.status);
-
-  // if all the attempts have similar status
-  if (allStatuses.every((status) => status === allStatuses[0])) {
-    return match(allStatuses[0])
-      .with(
-        P.union("disabled", "skipped", "todo", "pending"),
-        () => TestExpectedStatus.Skipped
-      )
-      .with("passed", () => TestExpectedStatus.Passed)
-      .with("failed", () => TestExpectedStatus.Failed)
-      .otherwise(() => TestExpectedStatus.Failed);
-  }
-
-  // otherwise, it is a mix of passed and failed attempts, so it is flaky
-  // and it doesn't pass the expected status
-  return TestExpectedStatus.Failed;
-}
-
-const getTestCaseStatus = flowRight(statusToCurrentsStatus, getRawTestStatus);
-
-function getAttempt(result: TestCase["result"][0]) {
-  return result?.invocations ?? 1;
 }

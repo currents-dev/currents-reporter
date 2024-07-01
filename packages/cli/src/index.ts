@@ -3,7 +3,7 @@ import path from "path";
 import semver from "semver";
 import { Framework, RunCreationConfig, createRun as createRunApi } from "./api";
 import { getCurrentsConfig } from "./config";
-import { debug as _debug, captureDebugToFile } from "./debug";
+import { debug as _debug, captureDebugToFile, setTraceFilePath } from "./debug";
 import { FullTestSuite, createScanner } from "./discovery";
 import { getCI } from "./env/ciProvider";
 import { getGitInfo } from "./env/gitInfo";
@@ -27,11 +27,9 @@ export async function currentsReporter() {
   }
 
   const reportOptions = await resolveReportOptions(currentsConfig);
-  const debug = captureDebugToFile(
-    getTraceFilePath(reportOptions.reportDir),
-    _debug.namespace,
-    _debug.enabled
-  );
+  // set the trace file path
+  setTraceFilePath(getTraceFilePath(reportOptions.reportDir));
+  const debug = captureDebugToFile(_debug);
 
   debug("Reporter options: %o", reportOptions);
 

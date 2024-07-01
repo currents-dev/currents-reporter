@@ -1,6 +1,7 @@
 export * from "./args";
 export * from "./debug";
 export * from "./deferred";
+export * from "./fs";
 export * from "./error";
 export * from "./hash";
 export * from "./relativeFileLocation";
