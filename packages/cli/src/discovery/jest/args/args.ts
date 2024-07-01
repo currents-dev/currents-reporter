@@ -1,9 +1,7 @@
-import { yargsOptions } from "jest-cli";
 import { omit } from "lodash";
-import { hideBin } from "yargs/helpers";
-import yargs from "yargs/yargs";
 
 const ignoredOptions = [
+  "bail", // causes unexpected behaviour
   "clearCache",
   "clearMocks",
   "collectCoverage",

@@ -4,10 +4,10 @@ import { Config } from "@jest/types";
 import { getJestVersion } from "./versions";
 import { ReportConfig } from "../types";
 
-export async function getReportConfig(
+export function getReportConfig(
   config: Config.GlobalConfig
-): Promise<ReportConfig> {
-  const argv = await getJestArgv();
+): ReportConfig {
+  const argv = getJestArgv();
 
   return {
     framework: "jest",
