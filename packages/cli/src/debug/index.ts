@@ -5,6 +5,10 @@ export const debug = Debug("currents");
 
 let _traceFilePath: string | null = null;
 
+export function enableDebug() {
+  Debug.enable("currents,currents:*");
+}
+
 export function setTraceFilePath(path: string) {
   _traceFilePath = path;
 }

@@ -1,11 +1,6 @@
 import { Option } from "@commander-js/extra-typings";
 
 import { getEnvironmentVariableName } from "../config";
-import {
-  parseAutoCancelFailures,
-  parseDebug,
-  parseResetSignal,
-} from "../config/parser";
 
 export const ciBuildIdOption = new Option(
   "--ci-build-id <id>",
@@ -48,18 +43,11 @@ export const reportDirOption = new Option(
 ).env(getEnvironmentVariableName("reportDir"));
 
 export const debugOption = new Option(
-  "--debug <boolean>",
+  "--debug",
   "enable debug logs for the reporter"
 )
   .env(getEnvironmentVariableName("debug"))
-  .default(false);
-
-export const inspectOption = new Option(
-  "--inspect",
-  "enable inspect mode, run playwright with --inspect-brk flag or developments and debugging"
-)
   .default(false)
-  .hideHelp();
 
 function parseCommaSeparatedList(value: string, previous: string[] = []) {
   if (value) {

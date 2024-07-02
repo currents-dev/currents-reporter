@@ -3,7 +3,7 @@ import path from "path";
 import semver from "semver";
 import { Framework, RunCreationConfig, createRun as createRunApi } from "./api";
 import { getCurrentsConfig } from "./config";
-import { debug as _debug, captureDebugToFile, setTraceFilePath } from "./debug";
+import { debug, enableDebug, setTraceFilePath } from "./debug";
 import { FullTestSuite, createScanner } from "./discovery";
 import { getCI } from "./env/ciProvider";
 import { getGitInfo } from "./env/gitInfo";
@@ -26,10 +26,13 @@ export async function currentsReporter() {
     throw new Error("Currents config is missing!");
   }
 
+  if (currentsConfig.debug) {
+    enableDebug();
+  }
+
   const reportOptions = await resolveReportOptions(currentsConfig);
   // set the trace file path
   setTraceFilePath(getTraceFilePath(reportOptions.reportDir));
-  const debug = captureDebugToFile(_debug);
 
   debug("Reporter options: %o", reportOptions);
 
@@ -93,6 +96,7 @@ export async function currentsReporter() {
   };
 
   const machineId = nanoid.userFacingNanoid();
+  const ci = getCI(currentsConfig.ciBuildId);
 
   const instancesByGroup: Record<string, InstanceReport[]> = {};
   for await (const instanceReport of instanceReportList) {
@@ -122,6 +126,7 @@ export async function currentsReporter() {
 
     try {
       const response = await createRun({
+        ci,
         group,
         instances,
         fullTestSuite,
@@ -132,7 +137,7 @@ export async function currentsReporter() {
 
       debug("Api response: %o", response);
 
-      info("Run created: %s", response.runUrl);
+      info("[%s] Run created: %s", group, response.runUrl);
 
       const markerInfo = {
         response,
@@ -153,6 +158,7 @@ export async function currentsReporter() {
 }
 
 async function createRun({
+  ci,
   group,
   instances,
   fullTestSuite,
@@ -160,6 +166,7 @@ async function createRun({
   machineId,
   framework,
 }: {
+  ci: ReturnType<typeof getCI>;
   group: string;
   instances: InstanceReport[];
   fullTestSuite: FullTestSuite;
@@ -177,7 +184,6 @@ async function createRun({
   const { currents } = config;
 
   const platform = { ...browserInfo, ...platformInfo };
-  const ci = getCI(currents.ciBuildId);
   const payload = {
     platform,
     ci,
@@ -187,14 +193,14 @@ async function createRun({
     config,
     projectId: currents.projectId,
     recordKey: currents.recordKey,
-    ciBuildId: currents.ciBuildId,
+    ciBuildId: ci.ciBuildId.value ?? undefined,
     tags: currents.tag ?? [],
     machineId: currents.machineId ?? machineId,
     framework,
     instances,
   };
 
-  _debug(
+  debug(
     "Creating run: %o",
     mapValues(payload, (v, k) => (k === "recordKey" ? "******" : v))
   );

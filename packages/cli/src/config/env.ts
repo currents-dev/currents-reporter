@@ -4,47 +4,51 @@ export const configKey = {
   debug: {
     name: "Debug",
     env: "CURRENTS_DEBUG",
+    cli: "--debug",
   },
   ciBuildId: {
     name: "CI Build ID",
     env: "CURRENTS_CI_BUILD_ID",
+    cli: "--ci-build-id",
   },
   recordKey: {
     name: "Record Key",
     env: "CURRENTS_RECORD_KEY",
+    cli: "--key",
   },
   projectId: {
     name: "Project ID",
     env: "CURRENTS_PROJECT_ID",
+    cli: "--project-id",
   },
   tag: {
     name: "Currents Tag",
     env: "CURRENTS_TAG",
-  },
-  cancelAfterFailures: {
-    name: "Currents Cancel After Failures",
-    env: "CURRENTS_CANCEL_AFTER_FAILURES",
+    cli: "--tag",
   },
   disableTitleTags: {
     name: "Disable Title Tags",
     env: "CURRENTS_DISABLE_TITLE_TAGS",
-  },
-  testSuiteFile: {
-    name: "Test Suite File",
-    env: "CURRENTS_TEST_SUITE_FILE",
+    cli: "--disable-title-tags",
   },
   machineId: {
     name: "Machine ID",
     env: "CURRENTS_MACHINE_ID",
+    cli: "--machine-id",
   },
   reportDir: {
     name: "Report Directory",
     env: "CURRENTS_REPORT_DIR",
+    cli: "--report-dir",
   },
 } as const;
 
 export function getEnvironmentVariableName(variable: keyof typeof configKey) {
   return configKey[variable].env;
+}
+
+export function getCLIOptionName(variable: keyof typeof configKey) {
+  return configKey[variable].cli;
 }
 
 export function getConfigName(variable: keyof typeof configKey) {

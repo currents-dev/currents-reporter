@@ -5,16 +5,16 @@ const config = {
     // "default",
     ["@currents/jest-reporter", {}],
   ],
-  // projects: [
-  //   {
-  //     displayName: "spec",
-  //     testMatch: ["<rootDir>/**/*.spec.ts"],
-  //   },
-  //   {
-  //     displayName: "test",
-  //     testMatch: ["<rootDir>/**/*.test.ts"],
-  //   },
-  // ],
+  projects: [
+    {
+      displayName: "spec",
+      testMatch: ["<rootDir>/**/*.spec.ts"],
+    },
+    {
+      displayName: "test",
+      testMatch: ["<rootDir>/**/*.test.ts"],
+    },
+  ],
 };
 
 module.exports = config;

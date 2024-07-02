@@ -3,6 +3,7 @@ import { ValidationError } from "../lib/error";
 import { dim, error } from "../logger";
 
 import {
+  getCLIOptionName,
   getConfigName,
   getEnvVariables,
   getEnvironmentVariableName,
@@ -58,7 +59,7 @@ export type CurrentsConfig = {
   debug?: boolean;
 };
 
-type MandatoryCurrentsConfigKeys = "ciBuildId" | "projectId" | "recordKey";
+type MandatoryCurrentsConfigKeys = "projectId" | "recordKey";
 
 const mandatoryConfigKeys: MandatoryCurrentsConfigKeys[] = [
   "projectId",
@@ -85,9 +86,7 @@ export function setCurrentsConfig(reporterOptions?: Partial<CurrentsConfig>) {
           i
         )} is required for Currents Reporter. Use the following methods to set Currents Project ID:
 - as environment variable: ${dim(getEnvironmentVariableName(i))}
-- as reporter configuration option ${dim(i)} in ${dim("playwright.config.ts")}
-
-📖 https://currents.dev/readme/integration-with-playwright/currents-playwright`
+- as CLI flag of pwc command: ${dim(getCLIOptionName(i))}`
       );
       throw new ValidationError("Missing required config variable");
     }

@@ -7,7 +7,6 @@ import {
   ciBuildIdOption,
   debugOption,
   disableTitleTagsOption,
-  inspectOption,
   machineIdOption,
   projectOption,
   recordKeyOption,
@@ -42,7 +41,7 @@ ${dim(
 
 Provide a custom path to the report directory:
 ${dim(
-  "currents-reporter --key <record-key> --project-id <id> --ci-build-id <build-id> -- --workers 2 --timeout 10000 --shard 1/2"
+  "currents-reporter --key <record-key> --project-id <id> --ci-build-id <build-id> --report-dir <report-dir>"
 )}
 `;
 
@@ -63,7 +62,6 @@ ${currentsReporterExample}`
     .addOption(removeTagOption)
     .addOption(disableTitleTagsOption)
     .addOption(machineIdOption)
-    .addOption(inspectOption)
     .addOption(debugOption)
     .addOption(reportDirOption);
 };
