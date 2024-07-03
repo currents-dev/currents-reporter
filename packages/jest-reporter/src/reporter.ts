@@ -105,10 +105,9 @@ export default class CustomReporter implements Reporter {
 
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
-    this.reportDir = await createUniqueFolder(
-      this.rootDir,
-      this.options?.reportDir ?? ".currents-report"
-    );
+    this.reportDir = this.options?.reportDir
+      ? await createFolder(this.options?.reportDir)
+      : await createUniqueFolder(this.rootDir, ".currents-report");
 
     info("[currents]: Run started");
     info("[currents]: Report directory is set to - %s", this.reportDir);
