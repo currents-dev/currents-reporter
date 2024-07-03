@@ -2,6 +2,7 @@
   "name": "examples",
   "version": "0.0.0",
   "description": "",
+  "private": true,
   "scripts": {
     "test": "jest",
     "report": "CURRENTS_API_URL=http://localhost:1234 currents-reporter --project-id=DgTfZV --key=DsDpjPk0ITxBLTmn",
