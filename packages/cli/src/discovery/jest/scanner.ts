@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import { run } from "jest-cli";
 import tmp from "tmp";
 
-import { debug } from "../../debug";
+import { debug as _debug } from "../../debug";
 import { readJsonFile } from "../../lib";
 import { dim, error } from "../../logger";
 import { CLIArgs } from "../../types";
@@ -11,6 +11,8 @@ import { FullTestSuite } from "../types";
 import { getCLIArgs } from "./args";
 import { retryWithBackoff } from "./utils";
 import { readFileContents } from "./utils/fs";
+
+const debug = _debug.extend("jest-discovery");
 
 export async function jestScanner(
   _config: Config.GlobalConfig,

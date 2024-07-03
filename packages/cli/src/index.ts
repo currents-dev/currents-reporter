@@ -65,15 +65,21 @@ export async function currentsReporter() {
       isoDate: markerInfo.isoDate,
     });
 
-    fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
-    debug("Full test suite file detected: %s", fullTestSuiteFilePath);
+    const fullTestSuiteFileExists = await checkPathExists(
+      fullTestSuiteFilePath
+    );
+
+    if (fullTestSuiteFileExists) {
+      fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
+      debug("Full test suite file detected: %s", fullTestSuiteFilePath);
+    }
   }
 
   if (!fullTestSuite) {
     const scanner = createScanner(config);
     fullTestSuite = await scanner.getFullTestSuite();
 
-    if (fullTestSuite.length === 0) {
+    if (isEmptyTestSuite(fullTestSuite)) {
       throw new Error("Failed to discover the full test suite!");
     }
 
@@ -218,4 +224,11 @@ function getFullTestSuiteFilePath(reportDir: string) {
 
 function getTraceFilePath(reportDir: string) {
   return path.join(reportDir, `.debug-${new Date().toISOString()}.log`);
+}
+
+function isEmptyTestSuite(testSuite: FullTestSuite) {
+  return (
+    testSuite.length === 0 ||
+    testSuite.some((project) => project.tests.length === 0)
+  );
 }

@@ -6,6 +6,7 @@ import {
   TestResult,
 } from "@jest/reporters";
 import fs from "fs-extra";
+import { debug as _debug } from "../../debug";
 import {
   getDefaultProjectId,
   getProjectId,
@@ -14,10 +15,13 @@ import {
   testToSpecName,
 } from "./utils/test";
 
-import { dim } from "../../logger";
-import { FullSuiteProject, FullSuiteTest } from "../types";
+import { dim, error } from "../../logger";
+import { FullSuiteProject, FullSuiteTest, FullTestSuite } from "../types";
+
+const debug = _debug.extend("jest-discovery");
 
 export default class DiscoveryReporter implements Reporter {
+  private specsWitoutResultsCount = 0;
   private fullTestSuite: Record<
     string,
     Omit<FullSuiteProject, "tests"> & {
@@ -25,15 +29,12 @@ export default class DiscoveryReporter implements Reporter {
     }
   > = {};
 
-  onRunStart() {
+  onRunStart(results: AggregatedResult) {
+    debug("onRunStart, results: %O", results);
     console.time(dim("@currents/jest-discovery"));
   }
 
-  onTestFileResult(
-    test: Test,
-    testResult: TestResult,
-    aggregatedResult: AggregatedResult
-  ): Promise<void> | void {
+  onTestFileResult(test: Test, testResult: TestResult): Promise<void> | void {
     const projectId = getProjectId(test);
 
     if (!this.fullTestSuite[projectId]) {
@@ -45,23 +46,44 @@ export default class DiscoveryReporter implements Reporter {
     }
 
     const spec = testToSpecName(test);
-    this.fullTestSuite[projectId].tests.push(
-      ...testResult.testResults.map((tc) => ({
+    debug("onTestFileResult [%s][%s]", projectId, spec);
+
+    if (testResult.testResults.length === 0) {
+      debug(
+        "Failed to obtain spec results, error:",
         spec,
-        tags: [],
-        testId: getTestCaseId(test, tc),
-        title: getTestCaseFullTitle(tc),
-      }))
-    );
+        testResult.failureMessage
+      );
+      this.specsWitoutResultsCount += 1;
+    } else {
+      this.fullTestSuite[projectId].tests.push(
+        ...testResult.testResults.map((tc) => ({
+          spec,
+          tags: [],
+          testId: getTestCaseId(test, tc),
+          title: getTestCaseFullTitle(tc),
+        }))
+      );
+    }
   }
 
-  async onRunComplete(testContexts: Set<TestContext>): Promise<void> {
+  async onRunComplete(
+    testContexts: Set<TestContext>,
+    aggregatedResults: AggregatedResult
+  ): Promise<void> {
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     const filePath = process.env.CURRENTS_DISCOVERY_PATH;
     if (!filePath) {
       throw new Error("CURRENTS_DISCOVERY_PATH is not set");
     }
-    const fullTestSuite = this.getFullTestSuite(testContexts);
+
+    let fullTestSuite: FullTestSuite = [];
+    if (this.specsWitoutResultsCount > 0) {
+      error("Incomplete full test suite! Run the command with --debug flag.");
+    } else {
+      fullTestSuite = this.getFullTestSuite(testContexts);
+      debug("onRunComplete %s, %o", filePath, fullTestSuite);
+    }
 
     await fs.writeFile(filePath, JSON.stringify(fullTestSuite), "utf8");
 
