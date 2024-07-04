@@ -38,13 +38,11 @@
     "commander": "^11.1.0",
     "debug": "^4.3.5",
     "dotenv": "^16.0.3",
-    "events": "^3.3.0",
     "execa": "^8.0.1",
     "fs-extra": "^11.2.0",
     "getos": "^3.2.1",
     "jest-cli": "^29.7.0",
     "jest-config": "^29.7.0",
-    "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.4",
     "pretty-ms": "^7.0.1",
@@ -52,8 +50,7 @@
     "source-map-support": "^0.5.21",
     "tmp": "^0.2.3",
     "tmp-promise": "^3.0.3",
-    "ts-pattern": "^5.2.0",
-    "uuid": "^10.0.0"
+    "ts-pattern": "^5.2.0"
   },
   "bin": {
     "currents-reporter": "./dist/bin/index.js"
@@ -64,8 +61,6 @@
     "!**/*/*.map"
   ],
   "keywords": [
-    "jest",
-    "jest dashboard",
     "cloud dashboard",
     "reporter",
     "currents",

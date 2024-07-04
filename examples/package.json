@@ -6,8 +6,6 @@
   "scripts": {
     "test": "jest",
     "report": "CURRENTS_API_URL=http://localhost:1234 currents-reporter --project-id=DgTfZV --key=DsDpjPk0ITxBLTmn",
-    "test:local": "CURRENTS_API_URL=http://localhost:1234 CURRENTS_CI_BUILD_ID=$(date +%s) jest",
-    "test:staging": "CURRENTS_API_URL=https://cy-staging.currents.dev CURRENTS_CI_BUILD_ID=$(date +%s) jest",
     "build": "echo \"No build specified\" && exit 0"
   },
   "devDependencies": {
