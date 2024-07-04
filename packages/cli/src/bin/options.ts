@@ -20,17 +20,23 @@ export const projectOption = new Option(
 export const tagOption = new Option(
   "-t, --tag <tag>",
   "comma-separated tag(s) for recorded runs in Currents"
-).argParser(parseCommaSeparatedList);
+)
+  .argParser(parseCommaSeparatedList)
+  .hideHelp();
 
 export const removeTagOption = new Option(
   "--remove-title-tags",
   "remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard"
-).default(false);
+)
+  .default(false)
+  .hideHelp();
 
 export const disableTitleTagsOption = new Option(
   "--disable-title-tags",
   "disable parsing tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke` in the dashboard"
-).default(false);
+)
+  .default(false)
+  .hideHelp();
 
 export const machineIdOption = new Option(
   "--machine-id <string>",
@@ -42,12 +48,9 @@ export const reportDirOption = new Option(
   "explicit path to the report directory"
 ).env(getEnvironmentVariableName("reportDir"));
 
-export const debugOption = new Option(
-  "--debug",
-  "enable debug logs for the reporter"
-)
+export const debugOption = new Option("--debug", "enable debug logs")
   .env(getEnvironmentVariableName("debug"))
-  .default(false)
+  .default(false);
 
 function parseCommaSeparatedList(value: string, previous: string[] = []) {
   if (value) {

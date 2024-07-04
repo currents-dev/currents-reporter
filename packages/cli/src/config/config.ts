@@ -49,12 +49,12 @@ export type CurrentsConfig = {
   machineId?: string;
 
   /**
-   * Path to the report directory
+   * Path to the report directory.
    */
   reportDir?: string;
 
   /**
-   * Enable debug logs for the reporter. Optionally, specify "silent" to disable console output
+   * Enable debug logs.
    */
   debug?: boolean;
 };
