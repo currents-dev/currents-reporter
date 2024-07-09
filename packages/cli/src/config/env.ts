@@ -31,6 +31,11 @@ export const configKey = {
     env: "CURRENTS_DISABLE_TITLE_TAGS",
     cli: "--disable-title-tags",
   },
+  removeTitleTags: {
+    name: "Remove Title Tags",
+    env: "CURRENTS_REMOVE_TITLE_TAGS",
+    cli: "--remove-title-tags",
+  },
   machineId: {
     name: "Machine ID",
     env: "CURRENTS_MACHINE_ID",
@@ -69,8 +74,9 @@ export function getEnvVariables(): Partial<
     tag: process.env[configKey.tag.env]
       ? process.env[configKey.tag.env]?.split(",").map((i) => i.trim())
       : undefined,
-    disableTitleTags: process.env[configKey.disableTitleTags.env],
-    debug: process.env[configKey.debug.env],
+    disableTitleTags: !!process.env[configKey.disableTitleTags.env],
+    removeTitleTags: !!process.env[configKey.removeTitleTags.env],
+    debug: !!process.env[configKey.debug.env],
     machineId: process.env[configKey.machineId.env],
   };
 }

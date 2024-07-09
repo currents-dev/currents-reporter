@@ -2,7 +2,7 @@
 import "source-map-support/register";
 
 import { CommanderError } from "commander";
-import { setCurrentsConfig } from "../config";
+import { getCurrentsConfig, setCurrentsConfig } from "../config";
 import { debug as _debug } from "../debug";
 import { currentsReporter } from "../index";
 import { error, info, success } from "../logger";
@@ -12,8 +12,8 @@ require("dotenv").config();
 
 function runScript() {
   const cliManager = new CLIManager();
-  info("Currents config: %o", cliManager.parsedConfig);
   setCurrentsConfig(cliManager.parsedConfig);
+  info("Currents config: %o", getCurrentsConfig());
   return currentsReporter();
 }
 

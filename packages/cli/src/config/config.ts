@@ -86,7 +86,7 @@ export function setCurrentsConfig(reporterOptions?: Partial<CurrentsConfig>) {
           i
         )} is required for Currents Reporter. Use the following methods to set Currents Project ID:
 - as environment variable: ${dim(getEnvironmentVariableName(i))}
-- as CLI flag of pwc command: ${dim(getCLIOptionName(i))}`
+- as CLI flag of the command: ${dim(getCLIOptionName(i))}`
       );
       throw new ValidationError("Missing required config variable");
     }

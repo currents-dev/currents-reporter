@@ -20,23 +20,17 @@ export const projectOption = new Option(
 export const tagOption = new Option(
   "-t, --tag <tag>",
   "comma-separated tag(s) for recorded runs in Currents"
-)
-  .argParser(parseCommaSeparatedList)
-  .hideHelp();
+).argParser(parseCommaSeparatedList);
 
 export const removeTagOption = new Option(
   "--remove-title-tags",
   "remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard"
-)
-  .default(false)
-  .hideHelp();
+).default(false);
 
 export const disableTitleTagsOption = new Option(
   "--disable-title-tags",
   "disable parsing tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke` in the dashboard"
-)
-  .default(false)
-  .hideHelp();
+).default(false);
 
 export const machineIdOption = new Option(
   "--machine-id <string>",
