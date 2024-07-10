@@ -3,7 +3,7 @@
 A monorepo which contains the following packages:
 
 - `@currents/jest` - a jest reporter that writes the test results to json files in a Currents friendly manner
-- `@currents/cmd` - exposes the `currents` command which is used to discover the full test suite and upload the test results into Currents Dashboard.
+- `@currents/cmd` - exposes `currents` command which is used to discover the full test suite and upload the test results into Currents Dashboard.
 - `examples` - a private package used to test the implementation
 
 ## Testing locally
