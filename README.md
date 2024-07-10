@@ -2,8 +2,8 @@
 
 A monorepo which contains the following packages:
 
-- `@currents/jest-reporter` - a jest reporter that writes the test results to json files in a Currents friendly manner
-- `@currents/cmd` - exposes the `currents-reporter` command which is used to discover the full test suite and upload the test results into Currents Dashboard.
+- `@currents/jest` - a jest reporter that writes the test results to json files in a Currents friendly manner
+- `@currents/cmd` - exposes the `currents` command which is used to discover the full test suite and upload the test results into Currents Dashboard.
 - `examples` - a private package used to test the implementation
 
 ## Testing locally
@@ -16,10 +16,10 @@ A monorepo which contains the following packages:
 ```bash
 cd ./packages/cli &&
 npm link &&
-cd ../jest-reporter &&
+cd ../jest &&
 npm link &&
 cd ../../examples &&
-npm link @currents/jest-reporter &&
+npm link @currents/jest &&
 npm link @currents/cmd &&
 cd ../
 ```
