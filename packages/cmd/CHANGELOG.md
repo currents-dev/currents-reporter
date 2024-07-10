@@ -1,5 +1,7 @@
 # Changelog
 
+# [1.0.0-beta.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0-beta.2...${npm.name}-v1.0.0-beta.3) (2024-07-10)
+
 # [1.0.0-beta.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0-beta.1...${npm.name}-v1.0.0-beta.2) (2024-07-10)
 
 # 1.0.0-beta.1 (2024-07-10)
