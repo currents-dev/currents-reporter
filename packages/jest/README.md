@@ -30,7 +30,7 @@ const config: Config = {
 export default config;
 ```
 
-or set the `--reporters` option when running the Jest CLI
+or set the `--reporters` option when running the `jest`
 
 ```sh
 npx jest --reporters=@currents/jest
