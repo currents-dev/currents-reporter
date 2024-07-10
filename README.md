@@ -50,3 +50,7 @@ cd ./packages/name
 # npm run release --  --preRelease=beta|alpha
 npm run release
 ```
+
+## Publishing
+
+Use GitHub Actions Workflow to automatically publish new releases: https://github.com/currents-dev/currents-reporter/actions/workflows/publish.yaml
