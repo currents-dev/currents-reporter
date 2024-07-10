@@ -96,12 +96,12 @@
         "preset": "angular",
         "header": "# Changelog",
         "ignoreVersion": true,
-        "infile": "../../CHANGELOG.md"
+        "infile": "./CHANGELOG.md"
       }
     },
     "git": {
-      "commitMessage": "chore: release v${version}",
-      "tagName": "v${version}"
+      "commitMessage": "chore: release ${npm.name} v${version}",
+      "tagName": "v${version}-${npm.name}"
     }
   }
 }
