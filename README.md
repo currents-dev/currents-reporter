@@ -1,4 +1,4 @@
-# Currents reporter
+# currents-reporter
 
 A monorepo which contains the following packages:
 
@@ -8,25 +8,11 @@ A monorepo which contains the following packages:
 
 ## Testing locally
 
-1. `npm i`
-2. `npm run build`
+- `npm i`
+- `npm run build`
+- `cd ./examples`
 
-3. (Optional) Link the packages:
-
-```bash
-cd ./packages/cli &&
-npm link &&
-cd ../jest &&
-npm link &&
-cd ../../examples &&
-npm link @currents/jest &&
-npm link @currents/cmd &&
-cd ../
-```
-
-4. `cd ./examples`
-
-### Creating the report
+### Creating a report
 
 Run `npm run test` to run example spec files.
 
@@ -54,3 +40,14 @@ Run `npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT
 To enable the debug mode, prefix the command with `DEBUG=currents,currents:*` or use the `--debug` option.
 
 To provide a custom report dir path, use `CURRENTS_REPORT_DIR` env variable or `--report-dir` option.
+
+## Release
+
+```sh
+cd ./packages/jest
+
+# beta / alpha
+# npm run release -- --pre-release=beta|alpha
+npm run release
+
+```
