@@ -44,7 +44,7 @@ To provide a custom report dir path, use `CURRENTS_REPORT_DIR` env variable or `
 ## Release
 
 ```sh
-cd ./packages/jest
+cd ./packages/name
 
 # beta / alpha
 # npm run release --  --preRelease=beta|alpha
