@@ -39,7 +39,7 @@ For a custom path for the report directory, set an absolute path to the `reportD
 ```javascript
   reporters: [
     // "default",
-    ["@currents/jest-reporter", {
+    ["@currents/jest", {
         reportDir: "/home/slavic/Desktop/.jest-report"
     }],
   ],
@@ -49,7 +49,7 @@ For a custom path for the report directory, set an absolute path to the `reportD
 
 Set the `projectId`, `recordKey` and optionlly the `ciBuildId`. Run `npx currents-reporter --help` for details.
 
-Run `npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents-reporter`
+Run `npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents upload`
 
 To enable the debug mode, prefix the command with `DEBUG=currents,currents:*` or use the `--debug` option.
 
