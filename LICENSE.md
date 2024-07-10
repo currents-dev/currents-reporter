@@ -1,4 +1,4 @@
-Copyright (c) 2023 Currents Software Inc
+Copyright (c) 2024 Currents Software Inc
 All rights reserved.
 
 See individual LEGAL.txt files for attributions and additional licenses.
