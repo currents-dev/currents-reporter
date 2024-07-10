@@ -43,6 +43,6 @@ jobs:
         run: |
           git config user.name "Currents NPM Bot"
           git config user.email "npm@currents.dev"
-          npm run publish:npm --workspace ${{ github.event.inputs.package }} -- -- --tag ${{ github.event.inputs.channel }}
+          npm run publish:npm --workspace ${{ github.event.inputs.package }} -- --tag ${{ github.event.inputs.channel }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
