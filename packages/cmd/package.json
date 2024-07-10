@@ -1,10 +1,10 @@
 {
-  "name": "@currents/sdk",
-  "version": "1.0.0",
+  "name": "@currents/cmd",
+  "version": "1.0.0-beta.0",
   "main": "./dist/index.js",
   "author": "Currents Software Inc",
   "license": "GPL-3.0-or-later",
-  "description": "Currents reporter CLI",
+  "description": "Currents CLI tools",
   "scripts": {
     "test": "vitest",
     "rm": "rimraf dist",
