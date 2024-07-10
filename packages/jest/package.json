@@ -78,7 +78,7 @@
     },
     "git": {
       "commitMessage": "chore: release ${npm.name} v${version}",
-      "tagName": "v${version}-${npm.name}"
+      "tagName": "${npm.name}-v${version}"
     }
   }
 }
