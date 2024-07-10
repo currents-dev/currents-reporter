@@ -1,6 +1,14 @@
 # @currents/jest
 
-A [Jest](https://github.com/facebook/jest) reporter for [Currents](https://currents.dev) - a cloud platform for debugging, troubleshooting and analysing CI test results.
+A [Jest](https://github.com/facebook/jest) reporter for [Currents](https://currents.dev) - a cloud platform for debugging, troubleshooting and analysing CI test results:
+
+- Save jest test results to a cloud
+- Fetch git information and associated with CI builds
+- Integrate with your workflow - Slack, GitHub or GitLab PR comments and status checks
+- Flakiness, failure rate, duration and much more aggregative metrics
+- Errors and root cause tracker
+- Automated reports with test suite health metrics
+- Get access to test results via REST API and HTTP webhooks
 
 ## Setup
 
