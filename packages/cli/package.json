@@ -1,6 +1,6 @@
 {
-  "name": "@currents/reporter-cli",
-  "version": "0.0.0",
+  "name": "@currents/sdk",
+  "version": "1.0.0",
   "main": "./dist/index.js",
   "author": "Currents Software Inc",
   "license": "GPL-3.0-or-later",
@@ -55,7 +55,8 @@
     "ts-pattern": "^5.2.0"
   },
   "bin": {
-    "currents-reporter": "./dist/bin/index.js"
+    "currents": "./dist/bin/index.js",
+    "currents-cli": "./dist/bin/index.js"
   },
   "files": [
     "dist",
@@ -63,10 +64,11 @@
     "!**/*/*.map"
   ],
   "keywords": [
-    "cloud dashboard",
-    "reporter",
+    "cloud test dashboard",
+    "test reporter",
+    "test results",
     "currents",
-    "tests reporter",
+    "currents dashboard",
     "ci"
   ],
   "exports": {

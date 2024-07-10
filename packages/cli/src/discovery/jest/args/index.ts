@@ -1,7 +1,7 @@
-import { argvToString, getDiscoveryOptions } from "./args";
-import { getConfigFilePath } from "./config";
 import { isEmpty } from "lodash";
 import { CLIArgs } from "../../../types";
+import { argvToString, getDiscoveryOptions } from "./args";
+import { getConfigFilePath } from "./config";
 
 export async function getCLIArgs(
   cliArgsFromConfig: CLIArgs
@@ -19,7 +19,7 @@ export async function getCLIArgs(
     "--testNamePattern",
     testNamePattern,
     "--reporters",
-    "@currents/reporter-cli/discovery/jest",
+    "@currents/cmd/discovery/jest",
     "--shard=1/1",
     configFilePath ? `--config=${configFilePath}` : "",
     ...(cliArgsFromConfig.args as string[]),

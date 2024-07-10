@@ -1,14 +1,14 @@
 # Currents reporter
 
 A monorepo which contains the following packages:
+
 - `@currents/jest-reporter` - a jest reporter that writes the test results to json files in a Currents friendly manner
-- `@currents/reporter-cli` - exposes the `currents-reporter` command which is used to discover the full test suite and upload the test results into Currents Dashboard.
+- `@currents/cmd` - exposes the `currents-reporter` command which is used to discover the full test suite and upload the test results into Currents Dashboard.
 - `examples` - a private package used to test the implementation
 
 ## Testing locally
 
 1. `npm i`
-   
 2. `npm run build`
 
 3. (Optional) Link the packages:
@@ -20,15 +20,15 @@ cd ../jest-reporter &&
 npm link &&
 cd ../../examples &&
 npm link @currents/jest-reporter &&
-npm link @currents/reporter-cli &&
+npm link @currents/cmd &&
 cd ../
 ```
 
 4. `cd ./examples`
-   
+
 ### Creating the report
 
-Run `npm run test` to run example spec files. 
+Run `npm run test` to run example spec files.
 
 In order to test different scenarious, update the jest configuration by modifying the `jest.config.js` file or run the command with jest cli options.
 

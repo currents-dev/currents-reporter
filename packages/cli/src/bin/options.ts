@@ -4,7 +4,7 @@ import { getEnvironmentVariableName } from "../config";
 
 export const ciBuildIdOption = new Option(
   "--ci-build-id <id>",
-  "the unique identifier for a run"
+  "the unique identifier for the recorded build (run)"
 ).env(getEnvironmentVariableName("ciBuildId"));
 
 export const recordKeyOption = new Option(

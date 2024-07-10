@@ -1,19 +1,24 @@
 #! /usr/bin/env node
+
 import "source-map-support/register";
+
+import("dotenv/config");
 
 import { CommanderError } from "commander";
 import { getCurrentsConfig, setCurrentsConfig } from "../config";
-import { debug as _debug } from "../debug";
 import { currentsReporter } from "../index";
 import { error, info, success } from "../logger";
 import { CLIManager } from "./cli-config";
 
-require("dotenv").config();
-
 function runScript() {
   const cliManager = new CLIManager();
   setCurrentsConfig(cliManager.parsedConfig);
-  info("Currents config: %o", getCurrentsConfig());
+  const config = getCurrentsConfig();
+
+  info("Currents config: %o", {
+    ...config,
+    recordKey: config?.recordKey ? "*****" : undefined,
+  });
   return currentsReporter();
 }
 
