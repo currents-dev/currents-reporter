@@ -89,7 +89,8 @@
       "publish": false
     },
     "github": {
-      "release": true
+      "release": true,
+      "releaseName": "${npm.name} v${version}"
     },
     "plugins": {
       "@release-it/conventional-changelog": {
