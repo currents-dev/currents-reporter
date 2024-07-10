@@ -1,28 +1,39 @@
-# @currents/jest-reporter
+# @currents/jest
 
-A [Jest](https://github.com/facebook/jest) test results processor for generating reports for [Currents](https://currents.dev) - a cloud dashboard for debugging, troubleshooting and analysing parallel CI tests.
+A [Jest](https://github.com/facebook/jest) reporter for [Currents](https://currents.dev) - a cloud platform for debugging, troubleshooting and analysing CI test results:
 
-## Installation
+- Save jest test results to a cloud
+- Fetch git information and associated with CI builds
+- Integrate with your workflow - Slack, GitHub or GitLab PR comments and status checks
+- Flakiness, failure rate, duration and much more aggregative metrics
+- Errors and root cause tracker
+- Automated reports with test suite health metrics
+- Get access to test results via REST API and HTTP webhooks
 
-```
-$ npm install @currents/jest-reporter --save-dev
+## Setup
+
+```sh
+npm install @currents/jest --save-dev
 ```
 
 ## Usage
 
-Add the reporter to the Jest configuration:
+Add the reporter to Jest configuration:
 
-```JSON
-"reporters": [
-	"default",
-	["@currents/jest-reporter", {}]
-]
+```ts
+import type { Config } from "jest";
+
+const config: Config = {
+  reporters: ["default", ["@currents/jest"]],
+};
+
+export default config;
 ```
 
 or set the `--reporters` option when running the Jest CLI
 
-```
-$ npx jest --reporters=@currents/jest-reporter
+```sh
+npx jest --reporters=@currents/jest
 ```
 
 When the Jest command is executed in the terminal, a folder named using the pattern ".currents-report-[timestamp]-[uuidv4()]" will be created in your root directory. This folder will contain information about your tests and the configuration used to generate it.

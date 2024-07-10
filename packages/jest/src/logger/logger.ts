@@ -27,7 +27,7 @@ export const warnWithNoTrace = (...args: unknown[]) => {
 
 export const errorWithNoTrace = (...args: unknown[]) => {
   const msg = util.format(...args);
-  debug("ERRRO: ", msg);
+  debug("ERROR: ", msg);
   return log(chalk.bgRed.white(" ERROR "), msg);
 };
 

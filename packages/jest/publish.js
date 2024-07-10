@@ -18,7 +18,7 @@ if (!options.tag) {
   process.exit(1);
 }
 console.log(process.cwd());
-fs.copyFileSync("../../CHANGELOG.md", "./CHANGELOG.md");
+// fs.copyFileSync("../CHANGELOG.md", "./CHANGELOG.md");
 fs.copyFileSync("../../LICENSE.md", "./LICENSE.md");
 execSync(`npm pack --dry-run && npm publish --tag ${options.tag}`, {
   cwd: "./",
