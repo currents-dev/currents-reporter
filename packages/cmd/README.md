@@ -17,7 +17,7 @@ npm install @currents/cmd --save-dev
 npx currents upload --project-id=xxx --key=yyy
 ```
 
-ℹ️ Get familiar with [CI Build ID 📖](https://docs.currents.dev/guides/ci-build-id) before using `currents` in CI. It is **important** to set the `CI Build ID` explicitly using `--ci-build-id` option, if you are using CI sharding or multiple CI machines to parallelize your tests. If not set explicitly, the `CI Build ID` will be generated automatically if not set.
+ℹ️ Get familiar with [CI Build ID 📖](https://docs.currents.dev/guides/ci-build-id) before using `currents` in CI. It is **important** to set the `CI Build ID` explicitly using `--ci-build-id` option, if you are using CI sharding or multiple CI machines to parallelize your tests. If not set explicitly, the `CI Build ID` will be set to a random value.
 
 ## Notes
 
