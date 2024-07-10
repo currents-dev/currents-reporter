@@ -24,7 +24,6 @@
     "lint": "turbo run lint"
   },
   "devDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.18.1",
     "eslint-config-custom": "*",
     "prettier": "^3.3.2",
     "turbo": "^2.0.4"
