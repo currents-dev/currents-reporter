@@ -49,5 +49,4 @@ cd ./packages/jest
 # beta / alpha
 # npm run release --  --preRelease=beta|alpha
 npm run release
-
 ```
