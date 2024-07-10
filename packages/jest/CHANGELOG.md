@@ -1,5 +1,7 @@
 # Changelog
 
+# [1.0.0-beta.2](https://github.com/currents-dev/currents-reporter/compare/v1.0.0-beta.1...v1.0.0-beta.2) (2024-07-10)
+
 # 1.0.0-beta.1 (2024-07-10)
 
 
