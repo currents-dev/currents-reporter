@@ -73,7 +73,7 @@
         "preset": "angular",
         "header": "# Changelog",
         "ignoreVersion": true,
-        "infile": "../../CHANGELOG.md"
+        "infile": "./CHANGELOG.md"
       }
     },
     "git": {
