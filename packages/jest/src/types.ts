@@ -21,8 +21,8 @@ export type InstanceReportStats = {
   skipped: number;
   failures: number;
   flaky: number;
-  wallClockStartedAt: string | null;
-  wallClockEndedAt: string | null;
+  wallClockStartedAt: string;
+  wallClockEndedAt: string;
   wallClockDuration: number;
 };
 
