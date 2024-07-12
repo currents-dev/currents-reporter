@@ -122,3 +122,39 @@ export const getTestCaseStatus = flowRight(
 export function getAttemptNumber(result: TestCaseResult) {
   return result?.invocations ?? 1;
 }
+
+// Test that passes on a second retry is `'flaky'`
+export function isTestFlaky(testResults: TestCaseResult[]): boolean {
+  return (
+    testResults.length > 1 &&
+    testResults.some((r) => r.status === TestState.Failed) &&
+    testResults[testResults.length - 1].status === TestState.Passed
+  );
+}
+
+export function getTestModeFromResult(
+  result: TestCaseResult
+): Circus.BlockMode {
+  switch (result.status) {
+    case "skipped":
+    case "pending":
+    case "disabled":
+      return "skip";
+    case "todo":
+      return "todo";
+    default:
+      return void 0;
+  }
+}
+
+export function testModeToExpectedStatus(
+  mode: Circus.BlockMode
+): TestExpectedStatus {
+  switch (mode) {
+    case "skip":
+    case "todo":
+      return TestExpectedStatus.Skipped;
+    default:
+      return TestExpectedStatus.Passed;
+  }
+}

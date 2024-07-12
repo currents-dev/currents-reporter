@@ -25,18 +25,16 @@ import {
   getTestCaseFullTitle,
   getTestCaseId,
   getTestCaseStatus,
+  getTestModeFromResult,
   getWorker,
+  isTestFlaky,
+  testModeToExpectedStatus,
   testToSpecName,
   writeFileAsync,
 } from "./lib";
 import { getReportConfig } from "./lib/getReportConfig";
 import { info } from "./logger";
-import { InstanceReport } from "./types";
-
-type WorkerInfo = {
-  workerIndex: number;
-  parallelIndex: number;
-};
+import { InstanceReport, TestExpectedStatus, WorkerInfo } from "./types";
 
 type TestCase = {
   id: string;
@@ -59,21 +57,6 @@ type SpecInfo = {
 type ReporterOptions = {
   reportDir?: string;
 };
-
-export enum TestState {
-  Failed = "failed",
-  Passed = "passed",
-  Pending = "pending",
-  Skipped = "skipped",
-}
-
-export enum TestExpectedStatus {
-  Passed = "passed",
-  Failed = "failed",
-  TimedOut = "timedOut",
-  Skipped = "skipped",
-  Interrupted = "interrupted",
-}
 
 export default class CustomReporter implements Reporter {
   private rootDir: string;
@@ -224,7 +207,7 @@ export default class CustomReporter implements Reporter {
         id: testId,
         timestamps: [],
         title: getTestCaseFullTitle(testCaseResult),
-        mode: "skip",
+        mode: getTestModeFromResult(testCaseResult),
         result: [],
         worker: getWorker(),
         config: test.context.config,
@@ -269,7 +252,7 @@ export default class CustomReporter implements Reporter {
             id: testId,
             timestamps: [],
             title: getTestCaseFullTitle(testResult),
-            mode: "skip",
+            mode: getTestModeFromResult(testResult),
             result: [testResult],
             worker: getWorker(),
             config: test.context.config,
@@ -300,13 +283,8 @@ export default class CustomReporter implements Reporter {
           testId: testCase.id,
           title: testCase.title,
           state: status,
-          isFlaky:
-            testCase.result.length > 1 &&
-            testCase.result[testCase.result.length - 1].status ===
-              TestState.Passed,
-          expectedStatus: ["skip", "todo"].includes(testCase.mode as string)
-            ? TestExpectedStatus.Skipped
-            : TestExpectedStatus.Passed,
+          isFlaky: isTestFlaky(testCase.result),
+          expectedStatus: testModeToExpectedStatus(testCase.mode),
           timeout: 0,
           location: {
             column: 1,
