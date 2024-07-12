@@ -3,7 +3,7 @@ const config = {
   testTimeout: 10000,
   reporters: [
     // "default",
-    ["@currents/jest-reporter", {}],
+    ["@currents/jest", {}],
   ],
   projects: [
     {
