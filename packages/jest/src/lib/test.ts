@@ -132,11 +132,12 @@ export function getAttemptNumber(result: TestCaseResult) {
   return result?.invocations ?? 1;
 }
 
-// Test that passes on a second retry is `'flaky'`
+// Test that has "passed" and "failed" invocations is `'flaky'`
 export function isTestFlaky(testResults: TestCaseResult[]): boolean {
+  const statuses = testResults.map((r) => r.status);
   return (
     testResults.length > 1 &&
-    testResults.some((r) => r.status === "failed") &&
-    testResults[testResults.length - 1].status === "passed"
+    statuses.includes("failed") &&
+    statuses.includes("passed")
   );
 }
