@@ -1,17 +1,14 @@
-export enum TestState {
-  Failed = "failed",
-  Passed = "passed",
-  Pending = "pending",
-  Skipped = "skipped",
-}
+// possible currents test case statuses from reported results
+export type TestCaseStatus = "passed" | "failed" | "pending";
 
-export enum TestExpectedStatus {
-  Passed = "passed",
-  Failed = "failed",
-  TimedOut = "timedOut",
-  Skipped = "skipped",
-  Interrupted = "interrupted",
-}
+// currents values suitable for jest status
+export type TestRunnerStatus = "passed" | "failed" | "skipped";
+
+// currents values suitable for jest expected status
+export type ExpectedStatus = "passed" | "skipped";
+
+// jest test case statuses available in results
+export type JestTestCaseStatus = "pending" | "todo" | "failed" | "passed";
 
 export type InstanceReportStats = {
   suites: number;
@@ -21,8 +18,8 @@ export type InstanceReportStats = {
   skipped: number;
   failures: number;
   flaky: number;
-  wallClockStartedAt: string | null;
-  wallClockEndedAt: string | null;
+  wallClockStartedAt: string;
+  wallClockEndedAt: string;
   wallClockDuration: number;
 };
 
@@ -46,7 +43,7 @@ export type WorkerInfo = {
 };
 
 export type InstanceReportTestAttempt = {
-  _s: TestState;
+  _s: TestCaseStatus;
   attempt: number;
   workerIndex: number;
   parallelIndex: number;
@@ -55,7 +52,7 @@ export type InstanceReportTestAttempt = {
   steps: unknown[];
 
   duration: number;
-  status: TestExpectedStatus;
+  status: TestRunnerStatus;
 
   stderr?: string[];
   stdout?: string[];
@@ -68,10 +65,10 @@ export type InstanceReportTest = {
   _t: number;
   testId: string;
   title: string[];
-  state: TestState;
+  state: TestCaseStatus;
   isFlaky?: boolean;
   retries: number;
-  expectedStatus?: TestExpectedStatus;
+  expectedStatus?: ExpectedStatus;
   annotations?: unknown[];
   timeout: number;
   location: LocationSchema;

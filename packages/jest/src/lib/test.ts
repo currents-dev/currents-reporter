@@ -1,9 +1,12 @@
 import { Test, TestCaseResult } from "@jest/reporters";
 import type { Circus } from "@jest/types";
-import { flowRight } from "lodash";
 import crypto from "node:crypto";
-import { P, match } from "ts-pattern";
-import { TestExpectedStatus, TestState } from "../types";
+import {
+  ExpectedStatus,
+  JestTestCaseStatus,
+  TestCaseStatus,
+  TestRunnerStatus,
+} from "../types";
 import { getRelativeFileLocation } from "./relativeFileLocation";
 
 export type TestCaseInvocationStart = {
@@ -71,54 +74,70 @@ export function getWorker() {
   };
 }
 
-export function statusToCurrentsStatus(
-  testStatus: TestCaseResult["status"]
-): TestState {
+export function getTestCaseStatus(
+  testStatus: JestTestCaseStatus
+): TestCaseStatus {
   switch (testStatus) {
     case "passed":
-      return TestState.Passed;
+      return "passed";
     case "failed":
-      return TestState.Failed;
-    case "skipped":
-    case "todo":
+      return "failed";
     case "pending":
-    case "disabled":
-      return TestState.Pending;
-
-    // case "focused":
+    case "todo":
+      return "pending";
 
     default:
-      return TestState.Failed;
+      throw new Error("Invalid Jest test case status");
   }
 }
 
-export function getRawTestStatus(
-  testCaseResults: TestCaseResult[]
-): TestExpectedStatus {
-  const allStatuses = testCaseResults.map((i) => i.status);
+export function getTestRunnerStatus(
+  status: JestTestCaseStatus
+): TestRunnerStatus {
+  switch (status) {
+    case "passed":
+      return "passed";
+    case "failed":
+      return "failed";
+    case "pending":
+    case "todo":
+      return "skipped";
 
-  // if all the attempts have similar status
-  if (allStatuses.every((status) => status === allStatuses[0])) {
-    return match(allStatuses[0])
-      .with(
-        P.union("disabled", "skipped", "todo", "pending"),
-        () => TestExpectedStatus.Skipped
-      )
-      .with("passed", () => TestExpectedStatus.Passed)
-      .with("failed", () => TestExpectedStatus.Failed)
-      .otherwise(() => TestExpectedStatus.Failed);
+    default:
+      throw new Error("Invalid Jest test case status");
   }
-
-  // otherwise, it is a mix of passed and failed attempts, so it is flaky
-  // and it doesn't pass the expected status
-  return TestExpectedStatus.Failed;
 }
 
-export const getTestCaseStatus = flowRight(
-  statusToCurrentsStatus,
-  getRawTestStatus
-);
+export function getExpectedStatus(status: JestTestCaseStatus): ExpectedStatus {
+  switch (status) {
+    case "pending":
+    case "todo":
+      return "skipped";
+
+    default:
+      return "passed";
+  }
+}
+
+export function jestStatusFromInvocations(testResults: TestCaseResult[]) {
+  const statuses = testResults.map((r) => r.status as JestTestCaseStatus);
+  if (statuses.every((status) => status === statuses[0])) {
+    return statuses[0];
+  }
+
+  return "failed";
+}
 
 export function getAttemptNumber(result: TestCaseResult) {
   return result?.invocations ?? 1;
+}
+
+// Test that has "passed" and "failed" invocations is `'flaky'`
+export function isTestFlaky(testResults: TestCaseResult[]): boolean {
+  const statuses = testResults.map((r) => r.status);
+  return (
+    testResults.length > 1 &&
+    statuses.includes("failed") &&
+    statuses.includes("passed")
+  );
 }

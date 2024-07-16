@@ -19,30 +19,27 @@ import {
   formatError,
   generateShortHash,
   getAttemptNumber,
+  getTestCaseStatus,
   getError,
   getProjectId,
-  getRawTestStatus,
   getTestCaseFullTitle,
   getTestCaseId,
-  getTestCaseStatus,
   getWorker,
+  isTestFlaky,
+  jestStatusFromInvocations,
   testToSpecName,
   writeFileAsync,
+  getExpectedStatus,
+  getTestRunnerStatus,
 } from "./lib";
 import { getReportConfig } from "./lib/getReportConfig";
 import { info } from "./logger";
-import { InstanceReport } from "./types";
-
-type WorkerInfo = {
-  workerIndex: number;
-  parallelIndex: number;
-};
+import { InstanceReport, JestTestCaseStatus, WorkerInfo } from "./types";
 
 type TestCase = {
   id: string;
   timestamps: number[];
   title: string[];
-  mode: Circus.BlockMode;
   result: TestCaseResult[];
   worker: WorkerInfo;
   config: Test["context"]["config"];
@@ -59,21 +56,6 @@ type SpecInfo = {
 type ReporterOptions = {
   reportDir?: string;
 };
-
-export enum TestState {
-  Failed = "failed",
-  Passed = "passed",
-  Pending = "pending",
-  Skipped = "skipped",
-}
-
-export enum TestExpectedStatus {
-  Passed = "passed",
-  Failed = "failed",
-  TimedOut = "timedOut",
-  Skipped = "skipped",
-  Interrupted = "interrupted",
-}
 
 export default class CustomReporter implements Reporter {
   private rootDir: string;
@@ -147,6 +129,10 @@ export default class CustomReporter implements Reporter {
     debug("Spec execution started [%s]: %o", specName, this.specInfo[specKey]);
   }
 
+  /**
+   * Called before running a spec (prior to `before` hooks)
+   * Not called for `skipped` and `todo` specs
+   */
   async onTestCaseStart(
     test: Test,
     testCaseStartInfo: Circus.TestCaseStartInfo
@@ -177,7 +163,6 @@ export default class CustomReporter implements Reporter {
         id: testId,
         timestamps: [testCaseStartInfo.startedAt ?? new Date().getTime()],
         title: getTestCaseFullTitle(testCaseStartInfo),
-        mode: testCaseStartInfo.mode,
         result: [],
         worker: getWorker(),
         config: test.context.config,
@@ -224,7 +209,6 @@ export default class CustomReporter implements Reporter {
         id: testId,
         timestamps: [],
         title: getTestCaseFullTitle(testCaseResult),
-        mode: "skip",
         result: [],
         worker: getWorker(),
         config: test.context.config,
@@ -269,7 +253,6 @@ export default class CustomReporter implements Reporter {
             id: testId,
             timestamps: [],
             title: getTestCaseFullTitle(testResult),
-            mode: "skip",
             result: [testResult],
             worker: getWorker(),
             config: test.context.config,
@@ -293,20 +276,15 @@ export default class CustomReporter implements Reporter {
 
     const tests = Object.values(this.specInfo[specKey].testCaseList).map(
       (testCase) => {
-        const status = getTestCaseStatus(testCase.result);
+        const jestStatus = jestStatusFromInvocations(testCase.result);
 
         return {
           _t: testCase.timestamps[0] ?? testResult.perfStats.start,
           testId: testCase.id,
           title: testCase.title,
-          state: status,
-          isFlaky:
-            testCase.result.length > 1 &&
-            testCase.result[testCase.result.length - 1].status ===
-              TestState.Passed,
-          expectedStatus: ["skip", "todo"].includes(testCase.mode as string)
-            ? TestExpectedStatus.Skipped
-            : TestExpectedStatus.Passed,
+          state: getTestCaseStatus(jestStatus),
+          isFlaky: isTestFlaky(testCase.result),
+          expectedStatus: getExpectedStatus(jestStatus),
           timeout: 0,
           location: {
             column: 1,
@@ -328,7 +306,7 @@ export default class CustomReporter implements Reporter {
             );
 
             return {
-              _s: getTestCaseStatus([result]),
+              _s: getTestCaseStatus(result.status as JestTestCaseStatus),
               attempt: getAttemptNumber(result),
 
               workerIndex: testCase.worker.workerIndex,
@@ -341,7 +319,7 @@ export default class CustomReporter implements Reporter {
               steps: [],
 
               duration: testCase.result[index].duration ?? 0,
-              status: getRawTestStatus([result]),
+              status: getTestRunnerStatus(result.status as JestTestCaseStatus),
 
               stdout: [],
               stderr: result.failureMessages ?? [],
