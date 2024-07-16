@@ -43,6 +43,10 @@ type TestCase = {
   result: TestCaseResult[];
   worker: WorkerInfo;
   config: Test["context"]["config"];
+  location?: {
+    column?: number;
+    line?: number;
+  } | null;
 };
 
 type SpecInfo = {
@@ -212,6 +216,7 @@ export default class CustomReporter implements Reporter {
         result: [],
         worker: getWorker(),
         config: test.context.config,
+        location: testCaseResult.location,
       };
       debug(
         "Test case execution was skipped [%s]: %o",
@@ -244,92 +249,100 @@ export default class CustomReporter implements Reporter {
       testResult
     );
 
-    await Promise.all(
-      testResult.testResults.map(async (testResult) => {
-        const testId = getTestCaseId(test, testResult);
-        const testCaseKey = getTestCaseKey(projectId, specName, testId);
-        if (!this.specInfo[specKey].testCaseList[testCaseKey]) {
-          this.specInfo[specKey].testCaseList[testCaseKey] = {
-            id: testId,
-            timestamps: [],
-            title: getTestCaseFullTitle(testResult),
-            result: [testResult],
-            worker: getWorker(),
-            config: test.context.config,
-          };
-          debug(
-            "Spec execution completed [%s][%s], adding skipped tests: %o",
-            specName,
-            testId,
-            this.specInfo[specKey].testCaseList[testCaseKey]
-          );
-        } else {
-          await this.resultsDeferred[testCaseKey].promise;
-        }
-      })
-    );
+    testResult.testResults.forEach(async (testCaseResult) => {
+      const testId = getTestCaseId(test, testCaseResult);
+      const testCaseKey = getTestCaseKey(projectId, specName, testId);
+      if (!this.specInfo[specKey].testCaseList[testCaseKey]) {
+        this.specInfo[specKey].testCaseList[testCaseKey] = {
+          id: testId,
+          timestamps: [],
+          title: getTestCaseFullTitle(testCaseResult),
+          result: [testCaseResult],
+          worker: getWorker(),
+          config: test.context.config,
+          location: testCaseResult.location,
+        };
+
+        this.resultsDeferred[testCaseKey] = new Deferred<void>();
+        this.resultsDeferred[testCaseKey].resolve();
+
+        debug(
+          "Spec execution completed [%s][%s], adding skipped tests: %o",
+          specName,
+          testId,
+          this.specInfo[specKey].testCaseList[testCaseKey]
+        );
+      }
+    });
 
     const startTime = new Date(testResult.perfStats.start).toISOString();
     const endTime = new Date(testResult.perfStats.end).toISOString();
     const wallClockDuration =
       testResult.perfStats.end - testResult.perfStats.start;
 
-    const tests = Object.values(this.specInfo[specKey].testCaseList).map(
-      (testCase) => {
-        const jestStatus = jestStatusFromInvocations(testCase.result);
+    const tests = await Promise.all(
+      Object.values(this.specInfo[specKey].testCaseList).map(
+        async (testCase) => {
+          const testCaseKey = getTestCaseKey(projectId, specName, testCase.id);
+          await this.resultsDeferred[testCaseKey].promise;
 
-        return {
-          _t: testCase.timestamps[0] ?? testResult.perfStats.start,
-          testId: testCase.id,
-          title: testCase.title,
-          state: getTestCaseStatus(jestStatus),
-          isFlaky: isTestFlaky(testCase.result),
-          expectedStatus: getExpectedStatus(jestStatus),
-          timeout: 0,
-          location: {
-            column: 1,
-            file: specName,
-            line: 1,
-          },
-          retries: testCase.result.length + 1,
-          attempts: testCase.result.map((result, index) => {
-            const errors = (result.failureMessages ?? []).map((i) =>
-              getError(
-                formatError(
-                  testCase.config.rootDir,
-                  new Error(i),
-                  false,
-                  specName
+          const jestStatus = jestStatusFromInvocations(testCase.result);
+
+          return {
+            _t: testCase.timestamps[0] ?? testResult.perfStats.start,
+            testId: testCase.id,
+            title: testCase.title,
+            state: getTestCaseStatus(jestStatus),
+            isFlaky: isTestFlaky(testCase.result),
+            expectedStatus: getExpectedStatus(jestStatus),
+            timeout: 0,
+            location: {
+              column: testCase.location?.column ?? 1,
+              file: specName,
+              line: testCase.location?.line ?? 1,
+            },
+            retries: testCase.result.length + 1,
+            attempts: testCase.result.map((result, index) => {
+              const errors = (result.failureMessages ?? []).map((i) =>
+                getError(
+                  formatError(
+                    testCase.config.rootDir,
+                    new Error(i),
+                    false,
+                    specName
+                  ),
+                  testCase.config.rootDir
+                )
+              );
+
+              return {
+                _s: getTestCaseStatus(result.status as JestTestCaseStatus),
+                attempt: getAttemptNumber(result),
+
+                workerIndex: testCase.worker.workerIndex,
+                parallelIndex: testCase.worker.parallelIndex,
+
+                startTime:
+                  testCase.timestamps.length && testCase.timestamps[index]
+                    ? new Date(testCase.timestamps[index]).toISOString()
+                    : startTime,
+                steps: [],
+
+                duration: testCase.result[index].duration ?? 0,
+                status: getTestRunnerStatus(
+                  result.status as JestTestCaseStatus
                 ),
-                testCase.config.rootDir
-              )
-            );
 
-            return {
-              _s: getTestCaseStatus(result.status as JestTestCaseStatus),
-              attempt: getAttemptNumber(result),
+                stdout: [],
+                stderr: result.failureMessages ?? [],
 
-              workerIndex: testCase.worker.workerIndex,
-              parallelIndex: testCase.worker.parallelIndex,
-
-              startTime:
-                testCase.timestamps.length && testCase.timestamps[index]
-                  ? new Date(testCase.timestamps[index]).toISOString()
-                  : startTime,
-              steps: [],
-
-              duration: testCase.result[index].duration ?? 0,
-              status: getTestRunnerStatus(result.status as JestTestCaseStatus),
-
-              stdout: [],
-              stderr: result.failureMessages ?? [],
-
-              errors,
-              error: errors[0],
-            };
-          }),
-        };
-      }
+                errors,
+                error: errors[0],
+              };
+            }),
+          };
+        }
+      )
     );
 
     const flakyCount = tests.filter((t) => t.isFlaky).length;

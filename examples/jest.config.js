@@ -1,6 +1,5 @@
 /** @type {import('jest').Config} */
 const config = {
-  testTimeout: 10000,
   reporters: [
     // "default",
     ["@currents/jest", {}],
@@ -8,10 +7,12 @@ const config = {
   projects: [
     {
       displayName: "spec",
+      testLocationInResults: true,
       testMatch: ["<rootDir>/**/*.spec.ts"],
     },
     {
       displayName: "test",
+      testLocationInResults: true,
       testMatch: ["<rootDir>/**/*.test.ts"],
     },
   ],
