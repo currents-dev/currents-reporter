@@ -12,6 +12,7 @@ import {
   getProjectId,
   getTestCaseFullTitle,
   getTestCaseId,
+  getTestTags,
   testToSpecName,
 } from "./utils/test";
 
@@ -57,12 +58,15 @@ export default class DiscoveryReporter implements Reporter {
       this.specsWitoutResultsCount += 1;
     } else {
       this.fullTestSuite[projectId].tests.push(
-        ...testResult.testResults.map((tc) => ({
-          spec,
-          tags: [],
-          testId: getTestCaseId(test, tc),
-          title: getTestCaseFullTitle(tc),
-        }))
+        ...testResult.testResults.map((tc) => {
+          const title = getTestCaseFullTitle(tc);
+          return {
+            spec,
+            tags: getTestTags(title),
+            testId: getTestCaseId(test, tc),
+            title,
+          };
+        })
       );
     }
   }
