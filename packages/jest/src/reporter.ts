@@ -301,7 +301,7 @@ export default class CustomReporter implements Reporter {
               file: specName,
               line: testCase.location?.line ?? 1,
             },
-            retries: testCase.result.length + 1,
+            retries: testCase.result.length,
             attempts: testCase.result.map((result, index) => {
               const errors = (result.failureMessages ?? []).map((i) =>
                 getError(
