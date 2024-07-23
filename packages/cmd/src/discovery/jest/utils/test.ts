@@ -51,8 +51,14 @@ export function getTestCaseId(
   return shortenedHash;
 }
 
-export function getTestTags(test: Test, testCaseResult: TestCaseResult) {
-  return [] as string[];
+export function getTestTags(testTitle: string[]) {
+  const titleTags = (testTitle.join(" ").match(/@(\S+)/g) ?? [])
+    .filter(Boolean)
+    .map((t) => t as string);
+
+  return Array.from(
+    new Set([...titleTags].map((i) => i.trim()).map((i) => i.replace("@", "")))
+  );
 }
 
 export function getTestCaseWorker() {

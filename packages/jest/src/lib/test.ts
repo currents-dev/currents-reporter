@@ -61,10 +61,6 @@ export function getTestCaseId(
   return shortenedHash;
 }
 
-export function getTestTags(test: Test, testCaseResult: TestCaseResult) {
-  return [] as string[];
-}
-
 export function getWorker() {
   const workerIndex = +(process.env.JEST_WORKER_ID || 1);
 
