@@ -17,7 +17,8 @@ export async function getConfigFilePath(
       explicitConfigFilePath
     );
 
-    const parsedConfigObject = omit(initialConfig, [
+    const configOptionsToAvoid = [
+      // from docs: https://jestjs.io/docs/configuration
       "collectCoverage",
       "collectCoverageFrom",
       "coverageDirectory",
@@ -25,21 +26,68 @@ export async function getConfigFilePath(
       "coverageProvider",
       "coverageReporters",
       "coverageThreshold",
-      "detectLeaks",
-      "detectOpenHandles",
-      "reporters",
-      "logHeapUsage",
-      "listTests",
+      "errorOnDeprecated",
+      "forceCoverageMatch",
       "notify",
       "notifyMode",
-      "silent",
+      "openHandlesTimeout",
+      "reporters",
+      "runner",
+      "showSeed",
+      "testFailureExitCode",
       "verbose",
+      "watchPathIgnorePatterns",
+      "watchPlugins",
+      "watchman",
+
+      // from Config type
+      "bail", // causes unexpected behaviour
+      "clearCache",
+      "color",
+      "colors",
+      "debug",
+      "detectLeaks",
+      "detectOpenHandles",
+      "expand",
+      "forceExit",
+      "json",
+      "listTests",
+      "logHeapUsage",
+      "noStackTrace",
+      "outputFile",
+      "shard",
+      "showConfig",
+      "silent",
+      "testNamePattern",
+      "waitNextEventLoopTurnForUnhandledRejectionEvents",
       "watch",
       "watchAll",
-      "watchman",
-      "watchPlugins",
-      "shard",
-    ]);
+    ];
+
+    // from InitialProjectOptions type
+    const projectConfigOptionsToAvoid = [
+      "collectCoverageFrom",
+      "coverageDirectory",
+      "coveragePathIgnorePatterns",
+      "detectLeaks",
+      "detectOpenHandles",
+      "errorOnDeprecated",
+      "forceCoverageMatch",
+      "openHandlesTimeout",
+      "runner",
+      "watchPathIgnorePatterns",
+    ];
+
+    const parsedConfigObject = omit(initialConfig, configOptionsToAvoid);
+
+    if (parsedConfigObject.projects) {
+      parsedConfigObject.projects = parsedConfigObject.projects.map(
+        (project) =>
+          typeof project !== "string"
+            ? omit(project, projectConfigOptionsToAvoid)
+            : project
+      );
+    }
 
     if (
       parsedConfigObject.rootDir &&
