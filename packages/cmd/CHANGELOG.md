@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.1...${npm.name}-v1.0.2) (2024-07-25)
+
+
+### Bug Fixes
+
+* filter irrelevant options from jest configuration ([#5](https://github.com/currents-dev/currents-reporter/issues/5)) ([3031b3d](https://github.com/currents-dev/currents-reporter/commit/3031b3d78a394b0946daa1fd3ce4d2b73c32f9f3))
+
 ## [1.0.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0...${npm.name}-v1.0.1) (2024-07-23)
 
 # [1.0.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0-beta.4...${npm.name}-v1.0.0) (2024-07-16)
