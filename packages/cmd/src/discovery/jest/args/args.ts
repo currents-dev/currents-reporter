@@ -3,7 +3,6 @@ import { omit } from "lodash";
 const ignoredOptions = [
   "bail", // causes unexpected behaviour
   "clearCache",
-  "clearMocks",
   "collectCoverage",
   "collectCoverageFrom",
   "color",
@@ -29,7 +28,6 @@ const ignoredOptions = [
   "notifyMode",
   "openHandlesTimeout",
   "outputFile",
-  "prettierPath",
   "reporters",
   "runner",
   "shard",
