@@ -76,7 +76,7 @@ export async function createRun(params: RunParams) {
     const data = await compressData(JSON.stringify(params));
 
     return makeRequest<RunResponse, Buffer>({
-      url: `v2/runs`,
+      url: `v1/runs`,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
