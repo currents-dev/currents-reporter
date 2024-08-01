@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.2...${npm.name}-v1.0.3) (2024-08-01)
+
+
+### Bug Fixes
+
+* use v1/runs endpoint [CSR-1336] ([#6](https://github.com/currents-dev/currents-reporter/issues/6)) ([d9a799d](https://github.com/currents-dev/currents-reporter/commit/d9a799dbcfa4db5908a2a168ce78adc544df45b5))
+
 ## [1.0.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.1...${npm.name}-v1.0.2) (2024-07-25)
 
 
