@@ -19,18 +19,18 @@ import {
   formatError,
   generateShortHash,
   getAttemptNumber,
-  getTestCaseStatus,
   getError,
+  getExpectedStatus,
   getProjectId,
   getTestCaseFullTitle,
   getTestCaseId,
+  getTestCaseStatus,
+  getTestRunnerStatus,
   getWorker,
   isTestFlaky,
   jestStatusFromInvocations,
   testToSpecName,
   writeFileAsync,
-  getExpectedStatus,
-  getTestRunnerStatus,
 } from "./lib";
 import { getReportConfig } from "./lib/getReportConfig";
 import { info } from "./logger";
@@ -92,8 +92,8 @@ export default class CustomReporter implements Reporter {
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
     this.reportDir = this.options?.reportDir
-      ? await createFolder(this.options?.reportDir)
-      : await createUniqueFolder(this.rootDir, ".currents-report");
+      ? await createFolder(this.options.reportDir)
+      : await createUniqueFolder(this.rootDir, ".currents");
 
     info("[currents]: Run started");
     info("[currents]: Report directory is set to - %s", this.reportDir);
@@ -375,19 +375,19 @@ export default class CustomReporter implements Reporter {
       result
     );
 
-    const specReportPath = await writeFileAsync(
+    await writeFileAsync(
       this.instancesDir,
       `${generateShortHash(this.specInfo[specKey].specName)}.json`,
       JSON.stringify(result)
     );
     this.processedSpecsCount += 1;
-    info(
-      "[currents]: [%s] - spec results written to file: %s [%d/%d]",
-      specName,
-      specReportPath,
-      this.processedSpecsCount,
-      this.specsCount
-    );
+    // info(
+    //   "[currents]: [%s] - spec results written to file: %s [%d/%d]",
+    //   specName,
+    //   specReportPath,
+    //   this.processedSpecsCount,
+    //   this.specsCount
+    // );
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
