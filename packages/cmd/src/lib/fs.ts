@@ -1,7 +1,7 @@
 import fs from "fs-extra";
-import path from "path";
-import { ReportOptions } from "../types";
+import path, { join, resolve } from "path";
 import { error } from "../logger";
+import { ReportOptions } from "../types";
 
 export async function resolveReportOptions(
   options?: ReportOptions
@@ -25,13 +25,10 @@ async function findReportDir(reportDir?: string): Promise<string | null> {
     return reportDir;
   }
 
-  return getLastCreatedDirectory(process.cwd(), ".currents-report");
+  return getLastCreatedDirectory(join(process.cwd(), ".currents"));
 }
 
-async function getLastCreatedDirectory(
-  dir: string,
-  prefix: string
-): Promise<string | null> {
+async function getLastCreatedDirectory(dir: string): Promise<string | null> {
   const entries = await fs.readdir(dir);
   let latestDir: { name: string; birthtime: Date } | null = null;
 
@@ -39,14 +36,14 @@ async function getLastCreatedDirectory(
     const entryPath = path.join(dir, entry);
     const stat = await fs.stat(entryPath);
 
-    if (stat.isDirectory() && entry.startsWith(prefix)) {
+    if (stat.isDirectory()) {
       if (!latestDir || stat.birthtime > latestDir.birthtime) {
         latestDir = { name: entry, birthtime: stat.birthtime };
       }
     }
   }
 
-  return latestDir ? latestDir.name : null;
+  return latestDir ? resolve(dir, latestDir.name) : null;
 }
 
 export async function checkPathExists(path: string): Promise<boolean> {
@@ -90,10 +87,7 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
   }
 }
 
-export async function writeFileAsync(
-  filePath: string,
-  content: string
-) {
+export async function writeFileAsync(filePath: string, content: string) {
   try {
     await fs.writeFile(filePath, content, "utf8");
     return filePath;

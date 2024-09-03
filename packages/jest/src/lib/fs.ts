@@ -4,18 +4,18 @@ import { v4 as uuidv4 } from "uuid";
 import { error } from "../logger";
 import { debug } from "./debug";
 
-export function generateUniqueDirName(baseName: string): string {
+export function generateUniqueDirName(): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const uniqueId = uuidv4();
-  return `${baseName}-${timestamp}-${uniqueId}`;
+  return `${timestamp}-${uniqueId}`;
 }
 
 export async function createUniqueFolder(
   basePath: string,
   baseName: string
 ): Promise<string> {
-  const uniqueDirName = generateUniqueDirName(baseName);
-  const folderPath = join(basePath, uniqueDirName);
+  const uniqueDirName = generateUniqueDirName();
+  const folderPath = join(basePath, baseName, uniqueDirName);
 
   return createFolder(folderPath);
 }

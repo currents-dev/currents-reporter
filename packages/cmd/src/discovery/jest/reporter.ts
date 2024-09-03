@@ -22,7 +22,7 @@ import { FullSuiteProject, FullSuiteTest, FullTestSuite } from "../types";
 const debug = _debug.extend("jest-discovery");
 
 export default class DiscoveryReporter implements Reporter {
-  private specsWitoutResultsCount = 0;
+  private specsWithoutResultsCount = 0;
   private fullTestSuite: Record<
     string,
     Omit<FullSuiteProject, "tests"> & {
@@ -55,7 +55,7 @@ export default class DiscoveryReporter implements Reporter {
         spec,
         testResult.failureMessage
       );
-      this.specsWitoutResultsCount += 1;
+      this.specsWithoutResultsCount += 1;
     } else {
       this.fullTestSuite[projectId].tests.push(
         ...testResult.testResults.map((tc) => {
@@ -82,7 +82,7 @@ export default class DiscoveryReporter implements Reporter {
     }
 
     let fullTestSuite: FullTestSuite = [];
-    if (this.specsWitoutResultsCount > 0) {
+    if (this.specsWithoutResultsCount > 0) {
       error("Incomplete full test suite! Run the command with --debug flag.");
     } else {
       fullTestSuite = this.getFullTestSuite(testContexts);
