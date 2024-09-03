@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "jest",
-    "report": "CURRENTS_API_URL=http://localhost:1234 currents-reporter --project-id=DgTfZV --key=DsDpjPk0ITxBLTmn",
+    "report": "CURRENTS_API_URL=http://localhost:1234 currents --project-id=DgTfZV --key=DsDpjPk0ITxBLTmn",
     "build": "echo \"No build specified\" && exit 0"
   },
   "devDependencies": {
