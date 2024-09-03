@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.0.2](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.0.1...${npm.name}-v1.0.2) (2024-09-03)
+
 ## [1.0.1](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.0.0...${npm.name}-v1.0.1) (2024-07-23)
 
 # [1.0.0](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.0.0-beta.5...${npm.name}-v1.0.0) (2024-07-16)
