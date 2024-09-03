@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.3...${npm.name}-v1.0.4) (2024-09-03)
+
+
+### Bug Fixes
+
+* use .currents directory ([611132b](https://github.com/currents-dev/currents-reporter/commit/611132b286403fce4dcbf4343d82e9927611255d))
+* use currents instead of currents-reporter CLI command ([2617004](https://github.com/currents-dev/currents-reporter/commit/26170046044f94dffda5bc967f2ab87a72cc0d8c))
+
 ## [1.0.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.2...${npm.name}-v1.0.3) (2024-08-01)
 
 
