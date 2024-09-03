@@ -59,9 +59,7 @@
     "currents-cli": "./dist/bin/index.js"
   },
   "files": [
-    "dist",
-    "!**/*.map",
-    "!**/*/*.map"
+    "dist"
   ],
   "keywords": [
     "cloud test dashboard",
