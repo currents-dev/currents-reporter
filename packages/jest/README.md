@@ -10,6 +10,11 @@ A [Jest](https://github.com/facebook/jest) reporter for [Currents](https://curre
 - Automated reports with test suite health metrics
 - Get access to test results via REST API and HTTP webhooks
 
+## Requirements
+
+- Jest version 29.5.0+
+- NodeJS 18.20.4+
+
 ## Setup
 
 ```sh
