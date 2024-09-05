@@ -7,10 +7,11 @@ import("dotenv/config");
 import { CommanderError } from "commander";
 import { getCurrentsConfig, setCurrentsConfig } from "../config";
 import { currentsReporter } from "../index";
+import { ValidationError } from "../lib";
 import { error, info, success } from "../logger";
 import { CLIManager } from "./cli-config";
 
-function runScript() {
+async function runScript() {
   const cliManager = new CLIManager();
   setCurrentsConfig(cliManager.parsedConfig);
   const config = getCurrentsConfig();
@@ -32,6 +33,12 @@ runScript()
       error(e.message);
       process.exit(e.exitCode);
     }
+
+    if (e instanceof ValidationError) {
+      error(e.message);
+      process.exit(1);
+    }
+
     error("Script execution failed:", e);
     process.exit(1);
   });
