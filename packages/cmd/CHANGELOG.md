@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.4...${npm.name}-v1.0.5) (2024-09-09)
+
+
+### Bug Fixes
+
+* make missing config variables user-friendly ([2a2b7ab](https://github.com/currents-dev/currents-reporter/commit/2a2b7abb97cbf78546465538d7c48b97d6934bc4))
+
 ## [1.0.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.3...${npm.name}-v1.0.4) (2024-09-03)
 
 
