@@ -1,23 +1,17 @@
 import fs from "fs";
 import { CLIOptions, CurrentsConfig, cliOptionsToConfig } from "../config";
 import { debug as _debug } from "../debug";
-import { getProgram, getCurrentsReporterCommand } from "./program";
 import { createTempFile } from "./tmp-file";
 
 const debug = _debug.extend("cli");
 
-export type CurrentsProgram = ReturnType<typeof getProgram>;
-
 export class CLIManager {
-  program: CurrentsProgram;
   cliOptions: CLIOptions;
   parsedConfig: Partial<CurrentsConfig>;
   configFilePath: string | null = null;
 
-  constructor() {
-    this.program = getProgram(getCurrentsReporterCommand());
-
-    this.cliOptions = this.program.parse().opts();
+  constructor(opts: CLIOptions) {
+    this.cliOptions = opts;
     debug("CLI options: %o", this.cliOptions);
 
     this.parsedConfig = cliOptionsToConfig(this.cliOptions);

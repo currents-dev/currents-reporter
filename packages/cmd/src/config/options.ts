@@ -1,12 +1,14 @@
 import { Command } from "@commander-js/extra-typings";
 import fs from "fs";
-import { getProgram } from "../bin/program";
+import { getCurrentsUploadCommand } from "../bin/program";
 import { debug } from "../debug";
 
 import { CurrentsConfig } from "./config";
 
 type ExtractSecondTags<T> = T extends Command<any, infer U> ? U : never;
-export type CLIOptions = ExtractSecondTags<ReturnType<typeof getProgram>>;
+export type CLIOptions = ExtractSecondTags<
+  ReturnType<typeof getCurrentsUploadCommand>
+>;
 
 /**
  * Converts CLI options to Currents config.

@@ -1,6 +1,6 @@
 import { Option } from "@commander-js/extra-typings";
 
-import { getEnvironmentVariableName } from "../config";
+import { apiCommandConfigKey, getEnvironmentVariableName } from "../config";
 
 export const ciBuildIdOption = new Option(
   "--ci-build-id <id>",
@@ -45,6 +45,16 @@ export const reportDirOption = new Option(
 export const debugOption = new Option("--debug", "enable debug logs")
   .env(getEnvironmentVariableName("debug"))
   .default(false);
+
+export const apiKeyOption = new Option(
+  "--api-key <api-key>",
+  "your API Key obtained from Currents dashboard"
+).env(apiCommandConfigKey["apiKey"].env);
+
+export const branchOption = new Option(
+  "--b, --branch <branch>",
+  "branch name of the recorded run"
+);
 
 function parseCommaSeparatedList(value: string, previous: string[] = []) {
   if (value) {

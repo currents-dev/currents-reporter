@@ -48,6 +48,35 @@ export const configKey = {
   },
 } as const;
 
+export const apiCommandConfigKey = {
+  apiKey: {
+    name: "Api Key",
+    env: "CURRENTS_API_KEY",
+    cli: "--apiKey",
+  },
+  branch: {
+    name: "Run Branch",
+    cli: "--branch",
+  },
+  debug: {
+    name: "Debug",
+    env: "CURRENTS_DEBUG",
+    cli: "--debug",
+  },
+  ciBuildId: {
+    name: "CI Build ID",
+    cli: "--ci-build-id",
+  },
+  projectId: {
+    name: "Project ID",
+    cli: "--project-id",
+  },
+  tag: {
+    name: "Currents Tag",
+    cli: "--tag",
+  },
+} as const;
+
 export function getEnvironmentVariableName(variable: keyof typeof configKey) {
   return configKey[variable].env;
 }

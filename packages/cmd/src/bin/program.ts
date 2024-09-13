@@ -1,9 +1,11 @@
 import { Command } from "@commander-js/extra-typings";
 import chalk from "chalk";
-
 import { reporterVersion } from "../env/versions";
 import { dim } from "../logger";
+import { apiHandler, getLastRunHandler, uploadHandler } from "./handlers";
 import {
+  apiKeyOption,
+  branchOption,
   ciBuildIdOption,
   debugOption,
   disableTitleTagsOption,
@@ -15,14 +17,12 @@ import {
   tagOption,
 } from "./options";
 
-type CurrentsReporterCommand = Partial<
-  ReturnType<ReturnType<typeof getCurrentsReporterCommand>["opts"]>
->;
-
 const NAME = "currents";
-export const getProgram = (
-  command: Command<[], CurrentsReporterCommand> = getCurrentsReporterCommand()
-) => command.version(reporterVersion);
+export const getProgram = () =>
+  new Command(NAME)
+    .version(reporterVersion)
+    .addCommand(getCurrentsUploadCommand(), { isDefault: true })
+    .addCommand(getCurrentsAPICommand());
 
 const currentsReporterExample = `
 ----------------------------------------------------
@@ -46,9 +46,9 @@ ${dim(
 )}
 `;
 
-export const getCurrentsReporterCommand = () => {
+export const getCurrentsUploadCommand = () => {
   const command = new Command()
-    .name(NAME)
+    .name("upload")
     .command("upload")
     .showHelpAfterError("(add --help for additional information)")
     .allowUnknownOption()
@@ -64,7 +64,51 @@ ${currentsReporterExample}`
     .addOption(disableTitleTagsOption)
     .addOption(machineIdOption)
     .addOption(debugOption)
-    .addOption(reportDirOption);
+    .addOption(reportDirOption)
+    .action((options) => uploadHandler(options));
+
+  return command;
+};
+
+const currentsAPIExample = `
+----------------------------------------------------
+📖 Documentation: https://docs.currents.dev
+🤙 Support:       support@currents.dev
+----------------------------------------------------
+
+${chalk.bold("Examples")}
+
+Obtain last run data by --ci-build-id:
+${dim(`${NAME} api get-last-run --api-key <api-key> --ci-build-id --provider <provider>`)}
+
+Obtain last run data using filters:
+${dim(`${NAME} api get-last-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA --tag tagB`)}
+`;
+
+export const getLastRunCommand = () => {
+  const command = new Command()
+    .name("get-last-run")
+    .allowUnknownOption()
+    .addOption(ciBuildIdOption)
+    .addOption(projectOption)
+    .addOption(branchOption)
+    .addOption(tagOption)
+    .addOption(debugOption)
+    .action(getLastRunHandler);
+
+  return command;
+};
+
+export const getCurrentsAPICommand = () => {
+  const command = new Command()
+    .command("api")
+    .description(`Receive information from Currents API ${currentsAPIExample}`)
+    .showHelpAfterError("(add --help for additional information)")
+    .allowUnknownOption()
+    .addCommand(getLastRunCommand())
+    .addOption(apiKeyOption)
+    .addOption(debugOption)
+    .action(apiHandler);
 
   return command;
 };
