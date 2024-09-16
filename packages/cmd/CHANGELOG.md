@@ -1,5 +1,17 @@
 # Changelog
 
+# [1.1.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.5...${npm.name}-v1.1.0-beta.0) (2024-09-16)
+
+
+### Bug Fixes
+
+* tests ([112f122](https://github.com/currents-dev/currents-reporter/commit/112f122da35f389362e28401fd602a21ece315a3))
+
+
+### Features
+
+* Add the get-run command ([addf263](https://github.com/currents-dev/currents-reporter/commit/addf263272c10225970c6e50b6b5c6a91ae8a49d))
+
 ## [1.0.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.4...${npm.name}-v1.0.5) (2024-09-09)
 
 
