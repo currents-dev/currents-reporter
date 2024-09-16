@@ -1,5 +1,3 @@
-import { nanoid } from "nanoid";
-
 export * from "./error";
 export * from "./execa";
 export * from "./fs";

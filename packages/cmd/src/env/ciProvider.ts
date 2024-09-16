@@ -27,6 +27,7 @@ SOFTWARE.
 
 // import debugFn from "debug";
 // @ts-ignore
+import { userFacingNanoid } from "@lib/nano";
 import {
   camelCase,
   chain,
@@ -38,7 +39,6 @@ import {
   some,
   transform,
 } from "lodash";
-import { userFacingNanoid } from "../lib/nano";
 import { debug as _debug } from "../debug";
 import { CiProvider, CiProviderData } from "./types";
 

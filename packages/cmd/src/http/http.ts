@@ -2,17 +2,20 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import _ from "lodash";
 
 import { debug as _debug } from "../debug";
-import { getClient } from "./client";
+import { ClientType, getClient } from "./client";
 import { handleHTTPError } from "./httpErrors";
 
 const debug = _debug.extend("http");
 
 export async function makeRequest<T = any, D = any>(
+  clientType: ClientType,
   config: AxiosRequestConfig<D>,
   _getClient = getClient
 ) {
   try {
-    const res = await _getClient().request<T, AxiosResponse<T, D>>(config);
+    const res = await _getClient(clientType).request<T, AxiosResponse<T, D>>(
+      config
+    );
     debug("network response: %o", {
       ..._.omit(res, "request", "config"),
       url: res.config.url,

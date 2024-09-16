@@ -1,14 +1,7 @@
-import { debug as _debug } from "../debug";
-import { ValidationError } from "../lib/error";
-import { dim, error } from "../logger";
+import { debug as _debug } from "@debug";
 
-import {
-  getCLIOptionName,
-  getConfigName,
-  getEnvVariables,
-  getEnvironmentVariableName,
-} from "./env";
-import { getCLIOptions } from "./options";
+import { getValidatedConfig } from "../utils";
+import { configKeys, getEnvVariables } from "./env";
 
 const debug = _debug.extend("config");
 
@@ -69,43 +62,17 @@ const mandatoryConfigKeys: MandatoryCurrentsConfigKeys[] = [
 let _config: CurrentsConfig | null = null;
 
 /**
- * Precendence: env > cli > reporter config
+ * Precendence: env > reporter config
  * @param reporterOptions reporter config
  */
 export function setCurrentsConfig(reporterOptions?: Partial<CurrentsConfig>) {
-  const result = {
-    ...removeUndefined(reporterOptions),
-    ...removeUndefined(getCLIOptions()),
-    ...removeUndefined(getEnvVariables()),
-  };
-
-  mandatoryConfigKeys.forEach((i) => {
-    if (!result[i]) {
-      error(
-        `${getConfigName(
-          i
-        )} is required for Currents Reporter. Use the following methods to set Currents Project ID:
-- as environment variable: ${dim(getEnvironmentVariableName(i))}
-- as CLI flag of the command: ${dim(getCLIOptionName(i))}`
-      );
-      throw new ValidationError("Missing required config variable");
-    }
-  });
-
-  _config = result as CurrentsConfig;
+  _config = getValidatedConfig(
+    configKeys,
+    mandatoryConfigKeys,
+    getEnvVariables,
+    reporterOptions
+  );
   debug("Resolved Currents config: %o", _config);
-}
-
-function removeUndefined<T extends {}>(obj?: T): T {
-  return Object.entries(obj ?? {}).reduce((acc, [key, value]) => {
-    if (value === undefined) {
-      return acc;
-    }
-    return {
-      ...acc,
-      [key]: value,
-    };
-  }, {} as T);
 }
 
 export function getCurrentsConfig() {

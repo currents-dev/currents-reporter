@@ -1,13 +1,10 @@
 import { Command } from "@commander-js/extra-typings";
-import fs from "fs";
-import { getCurrentsUploadCommand } from "../bin/program";
-import { debug } from "../debug";
-
+import { getUploadCommand } from "../../commands/upload";
 import { CurrentsConfig } from "./config";
 
 type ExtractSecondTags<T> = T extends Command<any, infer U> ? U : never;
 export type CLIOptions = ExtractSecondTags<
-  ReturnType<typeof getCurrentsUploadCommand>
+  ReturnType<typeof getUploadCommand>
 >;
 
 /**
@@ -30,19 +27,4 @@ export function cliOptionsToConfig(
     machineId: cliOptions.machineId,
     reportDir: cliOptions.reportDir,
   };
-}
-
-export function getCLIOptions() {
-  if (process.env.CURRENTS_REPORTER_CONFIG_PATH) {
-    try {
-      const result: Partial<CurrentsConfig> = JSON.parse(
-        fs.readFileSync(process.env.CURRENTS_REPORTER_CONFIG_PATH).toString()
-      );
-      debug("CLI options from file: %o", result);
-      return result;
-    } catch (error) {
-      return {};
-    }
-  }
-  return {};
 }

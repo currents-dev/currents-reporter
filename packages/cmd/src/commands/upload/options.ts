@@ -1,21 +1,23 @@
 import { Option } from "@commander-js/extra-typings";
 
-import { apiCommandConfigKey, getEnvironmentVariableName } from "../config";
+import { configKeys } from "../../config/upload";
+import { getEnvironmentVariableName } from "../../config/utils";
+import { parseCommaSeparatedList } from "../utils";
 
 export const ciBuildIdOption = new Option(
   "--ci-build-id <id>",
   "the unique identifier for the recorded build (run)"
-).env(getEnvironmentVariableName("ciBuildId"));
+).env(getEnvironmentVariableName(configKeys, "ciBuildId"));
 
 export const recordKeyOption = new Option(
   "-k, --key <record-key>",
   "your secret Record Key obtained from Currents"
-).env(getEnvironmentVariableName("recordKey"));
+).env(getEnvironmentVariableName(configKeys, "recordKey"));
 
 export const projectOption = new Option(
   "-p, --project-id <project>",
   "the project ID for results reporting obtained from Currents"
-).env(getEnvironmentVariableName("projectId"));
+).env(getEnvironmentVariableName(configKeys, "projectId"));
 
 export const tagOption = new Option(
   "-t, --tag <tag>",
@@ -35,30 +37,13 @@ export const disableTitleTagsOption = new Option(
 export const machineIdOption = new Option(
   "--machine-id <string>",
   "unique identifier of the machine running the tests. If not provided, it will be generated automatically. See: https://docs.currents.dev/?q=machineId"
-).env(getEnvironmentVariableName("machineId"));
+).env(getEnvironmentVariableName(configKeys, "machineId"));
 
 export const reportDirOption = new Option(
   "--report-dir <string>",
   "explicit path to the report directory"
-).env(getEnvironmentVariableName("reportDir"));
+).env(getEnvironmentVariableName(configKeys, "reportDir"));
 
 export const debugOption = new Option("--debug", "enable debug logs")
-  .env(getEnvironmentVariableName("debug"))
+  .env(getEnvironmentVariableName(configKeys, "debug"))
   .default(false);
-
-export const apiKeyOption = new Option(
-  "--api-key <api-key>",
-  "your API Key obtained from Currents dashboard"
-).env(apiCommandConfigKey["apiKey"].env);
-
-export const branchOption = new Option(
-  "--b, --branch <branch>",
-  "branch name of the recorded run"
-);
-
-function parseCommaSeparatedList(value: string, previous: string[] = []) {
-  if (value) {
-    return previous.concat(value.split(",").map((t) => t.trim()));
-  }
-  return previous;
-}

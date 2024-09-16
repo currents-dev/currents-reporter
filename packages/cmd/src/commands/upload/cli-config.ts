@@ -1,6 +1,6 @@
+import { debug as _debug } from "@debug";
 import fs from "fs";
-import { CLIOptions, CurrentsConfig, cliOptionsToConfig } from "../config";
-import { debug as _debug } from "../debug";
+import { CLIOptions, cliOptionsToConfig, CurrentsConfig } from "../../config/upload";
 import { createTempFile } from "./tmp-file";
 
 const debug = _debug.extend("cli");

@@ -1,4 +1,17 @@
 {
   "extends": "../tsconfig.json",
-  "exclude": ["node_modules", "../../src/__tests__/*.ts", "dist"]
+  "exclude": ["node_modules", "../../src/__tests__/*.ts", "dist"],
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@debug": ["debug"],
+      "@debug/*": ["debug/*"],
+      "@env": ["env"],
+      "@env/*": ["env/*"],
+      "@lib": ["lib"],
+      "@lib/*": ["lib/*"],
+      "@logger": ["logger"],
+      "@logger/*": ["logger/*"]
+    }
+  }
 }

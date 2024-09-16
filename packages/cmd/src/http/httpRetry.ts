@@ -1,8 +1,8 @@
 import { AxiosError, AxiosRequestConfig, isAxiosError } from "axios";
 import prettyMilliseconds from "pretty-ms";
 
+import { warn } from "@logger";
 import { debug as _debug } from "../debug";
-import { warn } from "../logger";
 
 const debug = _debug.extend("http");
 

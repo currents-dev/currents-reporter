@@ -1,3 +1,4 @@
+import { debug as _debug } from "@debug";
 import {
   AggregatedResult,
   Reporter,
@@ -6,7 +7,6 @@ import {
   TestResult,
 } from "@jest/reporters";
 import fs from "fs-extra";
-import { debug as _debug } from "../../debug";
 import {
   getDefaultProjectId,
   getProjectId,
@@ -16,7 +16,7 @@ import {
   testToSpecName,
 } from "./utils/test";
 
-import { dim, error } from "../../logger";
+import { dim, error } from "@logger";
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from "../types";
 
 const debug = _debug.extend("jest-discovery");

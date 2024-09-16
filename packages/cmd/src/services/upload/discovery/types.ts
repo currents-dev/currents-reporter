@@ -12,5 +12,3 @@ export type FullSuiteTest = {
   tags: string[];
   testId: string;
 };
-
-

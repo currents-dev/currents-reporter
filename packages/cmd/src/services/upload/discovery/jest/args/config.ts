@@ -1,9 +1,9 @@
+import { debug as _debug } from "@debug";
+import { error } from "@logger";
 import fs from "fs";
 import { readInitialOptions } from "jest-config";
 import { omit } from "lodash";
 import path from "path";
-import { debug as _debug } from "../../../debug";
-import { error } from "../../../logger";
 import { retryWithBackoff } from "../utils";
 import { readFileContents } from "../utils/fs";
 
