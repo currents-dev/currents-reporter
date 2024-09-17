@@ -22,7 +22,7 @@ export async function getRun(apiKey: string, params: GetRunParams) {
     debug("Run params: %o", params);
 
     return makeRequest<GetRunResponse>(ClientType.REST_API, {
-      url: `v1/runs/previous`,
+      url: `v1/runs/get-one`,
       params,
       method: "GET",
       headers: {
