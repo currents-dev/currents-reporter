@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.1...${npm.name}-v1.1.0-beta.2) (2024-09-17)
+
+
+### Reverts
+
+* Revert "revert to old endpoint url" ([339c6b9](https://github.com/currents-dev/currents-reporter/commit/339c6b95becacda8f07f313b47d481da17eae7aa))
+
 # [1.1.0-beta.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.0...${npm.name}-v1.1.0-beta.1) (2024-09-17)
 
 
