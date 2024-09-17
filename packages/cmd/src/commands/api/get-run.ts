@@ -1,4 +1,4 @@
-import { info } from "@logger";
+import { debug as _debug } from "@debug";
 import { getRunCommand } from ".";
 import {
   getAPIGetRunCommandConfig,
@@ -7,6 +7,8 @@ import {
 import { handleGetRun } from "../../services";
 import { commandHandler } from "../utils";
 
+const debug = _debug.extend("cli");
+
 export async function getRunHandler(
   options: ReturnType<ReturnType<typeof getRunCommand>["opts"]>
 ) {
@@ -14,7 +16,7 @@ export async function getRunHandler(
     setAPIGetRunCommandConfig(opts);
     const config = getAPIGetRunCommandConfig();
 
-    info("Config: %o", config);
+    debug("Config: %o", config);
     await handleGetRun();
   }, options);
 }

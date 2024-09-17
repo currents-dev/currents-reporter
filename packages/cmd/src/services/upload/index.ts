@@ -5,7 +5,6 @@ import { getPlatformInfo } from "@env/platform";
 import { reporterVersion } from "@env/versions";
 import { nanoid, readJsonFile, writeFileAsync } from "@lib";
 import { info, warn } from "@logger";
-import { AxiosError } from "axios";
 import { mapValues } from "lodash";
 import path from "path";
 import semver from "semver";
@@ -161,11 +160,8 @@ export async function handleCurrentsReport() {
         markerFilePath
       );
     } catch (e) {
-      if (e instanceof AxiosError) {
-        return;
-      }
-
-      throw new Error("Failed to upload the results to the dashboard");
+      debug("Failed to upload the results to the dashboard");
+      throw e;
     }
   }
 }
