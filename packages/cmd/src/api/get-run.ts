@@ -9,7 +9,7 @@ export type GetRunParams = {
   projectId?: string;
   branch?: string;
   tag?: string[];
-  lastFailed?: boolean;
+  pwLastFailed?: boolean;
 };
 
 export type GetRunResponse<T = {}> = {
@@ -22,7 +22,7 @@ export async function getRun(apiKey: string, params: GetRunParams) {
     debug("Run params: %o", params);
 
     return makeRequest<GetRunResponse>(ClientType.REST_API, {
-      url: `v1/runs/get-one`,
+      url: `v1/runs/previous`,
       params,
       method: "GET",
       headers: {

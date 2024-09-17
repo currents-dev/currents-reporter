@@ -7,41 +7,57 @@ const debug = _debug.extend("config");
 
 export type APICommandConfig = {
   /**
-   * The api key used for authentication. Read more: https://docs.currents.dev/resources/api/api-keys#managing-the-api-keys
+   * API key for authentication with the Currents API.
+   * For more information on managing API keys, visit:
+   * https://docs.currents.dev/resources/api/api-keys#managing-the-api-keys
    */
   apiKey: string;
 
   /**
-   * Enable debug logs.
+   * Enable or disable debug logging.
    */
   debug?: boolean;
 };
 
 export type APIGetRunCommandConfig = {
   /**
-   * The id of the build to record the test run. Read more: https://currents.dev/readme/guides/ci-build-id
+   * Identifier for the build associated with the test run.
+   * Refer to: https://currents.dev/readme/guides/ci-build-id for more details.
    */
   ciBuildId?: string;
 
   /**
-   * The id of the project the run is recorded.
+   * Identifier for the project where the test run is recorded.
    */
   projectId?: string;
 
   /**
-   * The branch the run was created for.
+   * The branch of the project for which the test run was created.
    */
   branch?: string;
 
   /**
-   * A list of tags attached to the run.
+   * List of tags associated with the test run.
    */
   tag?: string[];
 
   /**
-   * Specify in order to produce the .last-run.json output.
+   * Flag indicating whether to return the "LastRunResponse" data.
+   *
+   * type LastRunResponse = {
+   *   status: 'failed' | 'passed' | 'running';
+   *   failedTests: string[];
+   * };
+   *
+   * Default is false if not specified.
    */
-  lastFailed?: boolean;
+  pwLastFailed?: boolean;
+
+  /**
+   * File path to which the output should be written.
+   * If not specified, the output will be written to the console.
+   */
+  output?: string;
 };
 
 type MandatoryAPICommandConfigKeys = "apiKey";

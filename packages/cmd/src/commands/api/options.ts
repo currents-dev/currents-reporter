@@ -5,34 +5,39 @@ import { parseCommaSeparatedList } from "../utils";
 
 export const apiKeyOption = new Option(
   "--api-key <api-key>",
-  "your API Key obtained from Currents dashboard"
+  "API key from Currents dashboard for authentication"
 ).env(getEnvironmentVariableName(configKeys, "apiKey"));
+
+export const outputOption = new Option(
+  "-o, --output <path>",
+  "Path to the file where output will be written"
+).env(getEnvironmentVariableName(configKeys, "output"));
 
 export const ciBuildIdOption = new Option(
   "--ci-build-id <id>",
-  "the unique identifier for the recorded build (run)"
+  "Unique identifier for the run"
 );
 
 export const projectOption = new Option(
   "-p, --project-id <project>",
-  "the project ID obtained from Currents"
+  "Project ID from Currents associated with the run"
 );
 
 export const tagOption = new Option(
   "-t, --tag <tag>",
-  "comma-separated tag(s) associated with the Currents run"
+  "Comma-separated list of tags for the run"
 ).argParser(parseCommaSeparatedList);
 
-export const debugOption = new Option("--debug", "enable debug logs")
+export const debugOption = new Option("--debug", "Enable debug logging")
   .env(getEnvironmentVariableName(configKeys, "debug"))
   .default(false);
 
 export const branchOption = new Option(
   "-b, --branch <branch>",
-  "branch name of the recorded run"
+  "Branch name for the recorded run"
 );
 
-export const lastFailedOption = new Option(
-  "--last-failed",
-  "format the output for .last-run.json"
+export const pwLastFailedOption = new Option(
+  "--pw-last-failed",
+  'Generate output formatted for Playwright ".last-run.json"'
 );

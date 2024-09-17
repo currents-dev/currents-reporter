@@ -7,8 +7,9 @@ import {
   branchOption,
   ciBuildIdOption,
   debugOption,
-  lastFailedOption,
+  outputOption,
   projectOption,
+  pwLastFailedOption,
   tagOption,
 } from "./options";
 
@@ -21,11 +22,14 @@ const getExample = (name: string) => `
 
 ${chalk.bold("Examples")}
 
-Obtain last run data by --ci-build-id:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id --provider <provider>`)}
+Obtain run data by --ci-build-id:
+${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`)}
 
-Obtain last run data using filters:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA --tag tagB`)}
+Obtain most recent run data by filters:
+${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`)}
+
+Obtain last run data that matches the Playwright "test-results/.last-run.json":
+${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-failed --output <output-path>`)}
 `;
 
 export const getApiCommand = (name: string) => {
@@ -49,8 +53,8 @@ export const getRunCommand = () => {
     .addOption(projectOption)
     .addOption(branchOption)
     .addOption(tagOption)
-    .addOption(lastFailedOption)
-    .addOption(debugOption)
+    .addOption(outputOption)
+    .addOption(pwLastFailedOption)
     .action(getRunHandler);
 
   return command;

@@ -1,8 +1,13 @@
-import { AxiosError } from "axios";
+import { debug, enableDebug } from "@debug";
+import { ensurePathExists } from "@lib";
+import { writeFile } from "fs/promises";
 import { getRun } from "../../api/get-run";
-import { getAPIGetRunCommandConfig } from "../../config/api";
-import { enableDebug } from "../../debug";
-import { error } from "../../logger";
+import {
+  APICommandConfig,
+  APIGetRunCommandConfig,
+  getAPIGetRunCommandConfig,
+} from "../../config/api";
+import { info } from "../../logger";
 
 export async function handleGetRun() {
   try {
@@ -18,32 +23,33 @@ export async function handleGetRun() {
     const params = config.ciBuildId
       ? {
           ciBuildId: config.ciBuildId,
-          lastFailed: config.lastFailed,
+          pwLastFailed: config.pwLastFailed,
         }
       : {
           projectId: config.projectId,
           branch: config.branch,
           tag: config.tag,
-          lastFailed: config.lastFailed,
+          pwLastFailed: config.pwLastFailed,
         };
 
     const result = await getRun(config.apiKey, params);
-
-    if (config.lastFailed) {
-      console.log(getLastRunObject(result.data));
-      return;
-    }
-
-    console.log(JSON.stringify(result));
+    await handleOutput(result.data, config);
   } catch (e) {
-    if (e instanceof AxiosError) {
-      return;
-    }
-
-    throw new Error("Failed to get run data");
+    debug("Failed to get run data");
+    throw e;
   }
 }
 
-function getLastRunObject(result: unknown): string {
-  return JSON.stringify(result, null, 2);
+async function handleOutput(
+  result: unknown,
+  config: APICommandConfig & APIGetRunCommandConfig
+) {
+  const data = JSON.stringify(result, null, 2);
+
+  if (config.output) {
+    await ensurePathExists(config.output);
+    await writeFile(config.output, data, "utf-8");
+  } else {
+    info(data);
+  }
 }

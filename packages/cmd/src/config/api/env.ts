@@ -18,7 +18,11 @@ const apiGetRunCommandConfigKeys = {
     name: "Run Branch",
     cli: "--branch",
   },
-
+  output: {
+    name: "Output Path",
+    env: "CURRENTS_OUTPUT",
+    cli: "--output",
+  },
   ciBuildId: {
     name: "CI Build ID",
     cli: "--ci-build-id",
