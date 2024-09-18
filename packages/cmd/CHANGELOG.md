@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.2...${npm.name}-v1.1.0-beta.3) (2024-09-18)
+
+
+### Bug Fixes
+
+* adjust the handleGetRun function to match API changes ([5dd072c](https://github.com/currents-dev/currents-reporter/commit/5dd072c78948a67acc0222c9ef21141bab8f4da1))
+
 # [1.1.0-beta.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.1...${npm.name}-v1.1.0-beta.2) (2024-09-17)
 
 
