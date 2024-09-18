@@ -12,7 +12,11 @@ export type GetRunParams = {
   pwLastFailed?: boolean;
 };
 
-export type GetRunResponse<T = {}> = {
+export type GetRunResponse<
+  T = {
+    pwLastFailed?: unknown;
+  },
+> = {
   data: T;
   status: "OK";
 };
