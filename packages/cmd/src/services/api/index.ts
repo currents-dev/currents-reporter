@@ -33,7 +33,12 @@ export async function handleGetRun() {
         };
 
     const result = await getRun(config.apiKey, params);
-    await handleOutput(result.data, config);
+    await handleOutput(
+      config.pwLastFailed && result.data.pwLastFailed
+        ? result.data.pwLastFailed
+        : result.data,
+      config
+    );
   } catch (e) {
     debug("Failed to get run data");
     throw e;
