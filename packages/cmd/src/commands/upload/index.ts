@@ -17,10 +17,6 @@ import { uploadHandler } from "./upload";
 const COMMAND_NAME = "upload";
 
 const getExample = (name: string) => `
-----------------------------------------------------
-📖 Documentation: https://docs.currents.dev
-🤙 Support:       support@currents.dev
-----------------------------------------------------
 
 ${chalk.bold("Examples")}
 
@@ -36,6 +32,7 @@ Provide a custom path to the reports directory:
 ${dim(
   `${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --report-dir <report-dir>`
 )}
+
 `;
 
 export const getUploadCommand = (name: string) => {
