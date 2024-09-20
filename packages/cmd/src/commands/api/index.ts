@@ -15,10 +15,6 @@ import {
 
 const COMMAND_NAME = "api";
 const getExample = (name: string) => `
-----------------------------------------------------
-📖 Documentation: https://docs.currents.dev
-🤙 Support:       support@currents.dev
-----------------------------------------------------
 
 ${chalk.bold("Examples")}
 
@@ -30,6 +26,7 @@ ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project
 
 Obtain last run data that matches the Playwright "test-results/.last-run.json":
 ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-failed --output <output-path>`)}
+
 `;
 
 export const getApiCommand = (name: string) => {

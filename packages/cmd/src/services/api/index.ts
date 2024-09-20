@@ -1,7 +1,7 @@
 import { debug, enableDebug } from "@debug";
 import { ensurePathExists } from "@lib";
 import { writeFile } from "fs/promises";
-import { getRun } from "../../api/get-run";
+import { getRun } from "../../api";
 import {
   APICommandConfig,
   APIGetRunCommandConfig,
