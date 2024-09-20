@@ -22,12 +22,22 @@ export const pathsOption = new Option(
   "Comma-separated list of paths to cache"
 ).argParser(parseCommaSeparatedList);
 
+export enum PRESETS {
+  lastFailedSharding = "last-failed-sharding",
+  lastFailedOr8n = "last-failed-or8n",
+}
+
 export const presetOption = new Option(
   "--preset <preset-name>",
   'A set of predefined options. Use "last-failed-sharding" to get the last failed run data'
-).choices(["last-failed-sharding", "last-failed-or8n"]);
+).choices([PRESETS.lastFailedSharding, PRESETS.lastFailedOr8n]);
 
 export const outputDirOption = new Option(
   "--output-dir <dir>",
   "Path to the directory where output will be written"
 );
+
+export const includeHiddenOption = new Option(
+  "--include-hidden",
+  "Include hidden files in the cache"
+).default(false);
