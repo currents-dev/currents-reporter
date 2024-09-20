@@ -49,6 +49,7 @@ export type CreateRunParams = {
   group: string;
   projectId: string;
   platform: Platform;
+  recordKey: string;
   machineId: string;
   framework: Framework;
   commit: Commit;

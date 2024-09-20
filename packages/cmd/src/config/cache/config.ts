@@ -22,32 +22,58 @@ type CommonConfig = {
   preset?: string;
 };
 
-export type CacheSetCommandConfig = CommonConfig & {
-  paths?: string[];
-};
+export type CacheSetCommandConfig = CacheCommandConfig &
+  CommonConfig & {
+    paths?: string[];
+    includeHidden?: boolean;
+  };
 
-export type CacheGetCommandConfig = CommonConfig & {
-  outputDir?: string;
-};
+export type CacheGetCommandConfig = CacheCommandConfig &
+  CommonConfig & {
+    outputDir?: string;
+  };
 
 type MandatoryCacheCommandKeys = "recordKey";
 
 const mandatoryConfigKeys: MandatoryCacheCommandKeys[] = ["recordKey"];
 
 let _config:
-  | (CacheCommandConfig & CacheSetCommandConfig)
-  | (CacheCommandConfig & CacheGetCommandConfig)
-  | null = null;
+  | {
+      type: "SET_COMMAND_CONFIG";
+      values: (CacheCommandConfig & CacheSetCommandConfig) | null;
+    }
+  | {
+      type: "GET_COMMAND_CONFIG";
+      values: (CacheCommandConfig & CacheGetCommandConfig) | null;
+    };
 
-export function setCacheCommandConfig(
-  options?: Partial<NonNullable<typeof _config>>
+export function setCacheSetCommandConfig(
+  options?: Partial<NonNullable<(typeof _config)["values"]>>
 ) {
-  _config = getValidatedConfig(
-    configKeys,
-    mandatoryConfigKeys,
-    getEnvVariables,
-    options
-  );
+  _config = {
+    type: "SET_COMMAND_CONFIG",
+    values: getValidatedConfig(
+      configKeys,
+      mandatoryConfigKeys,
+      getEnvVariables,
+      options
+    ),
+  };
+  debug("Resolved config: %o", _config);
+}
+
+export function setCacheGetCommandConfig(
+  options?: Partial<NonNullable<(typeof _config)["values"]>>
+) {
+  _config = {
+    type: "GET_COMMAND_CONFIG",
+    values: getValidatedConfig(
+      configKeys,
+      mandatoryConfigKeys,
+      getEnvVariables,
+      options
+    ),
+  };
   debug("Resolved config: %o", _config);
 }
 

@@ -694,7 +694,7 @@ export function getCommitParams() {
   return _get(_providerCommitParams);
 }
 
-export function getCI(explicitCiBuildId: string | undefined) {
+export function getCI(explicitCiBuildId?: string | undefined) {
   const params = getCiParams();
   const provider = getCiProvider();
   const ciBuildId = getCIBuildId(explicitCiBuildId, provider);

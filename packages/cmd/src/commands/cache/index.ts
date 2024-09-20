@@ -5,6 +5,7 @@ import { getCacheGetHandler } from "./get";
 import {
   debugOption,
   idOption,
+  includeHiddenOption,
   outputDirOption,
   pathsOption,
   presetOption,
@@ -54,6 +55,7 @@ export const getCacheSetCommand = () => {
     .addOption(idOption)
     .addOption(presetOption.conflicts(["id", "paths"]))
     .addOption(pathsOption)
+    .addOption(includeHiddenOption)
     .addOption(debugOption)
     .action(getCacheSetHandler);
 
