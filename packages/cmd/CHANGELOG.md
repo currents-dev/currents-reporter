@@ -1,5 +1,18 @@
 # Changelog
 
+# [1.1.0-beta.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.3...${npm.name}-v1.1.0-beta.4) (2024-09-20)
+
+
+### Bug Fixes
+
+* commit changes ([e7f8b83](https://github.com/currents-dev/currents-reporter/commit/e7f8b83e085abe10801d7afcdc9cc798834cb2b8))
+
+
+### Features
+
+* add cache command ([ce8ee11](https://github.com/currents-dev/currents-reporter/commit/ce8ee112b8a7083e5121857a9dbbb16da1bc498e))
+* cache command implementation wip ([45dba8c](https://github.com/currents-dev/currents-reporter/commit/45dba8cf04e1e486cea5c9899eacea97dddd4a69))
+
 # [1.1.0-beta.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.2...${npm.name}-v1.1.0-beta.3) (2024-09-18)
 
 
