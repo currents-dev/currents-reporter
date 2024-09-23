@@ -86,46 +86,12 @@ export async function zipFilesToBuffer(
 }
 
 export async function unzipBuffer(
-  zipBuffer: Buffer
-): Promise<{ [fileName: string]: Buffer }> {
-  return new Promise((resolve, reject) => {
-    const extractedFiles: { [fileName: string]: Buffer } = {};
-    const readStream = new stream.Readable();
-
-    readStream.push(zipBuffer);
-    readStream.push(null);
-
-    readStream
-      .pipe(unzipper.Parse())
-      .on("entry", (entry) => {
-        const fileName = entry.path;
-        const buffers: Buffer[] = [];
-
-        entry.on("data", (chunk: Buffer) => buffers.push(chunk));
-
-        entry.on("end", () => {
-          extractedFiles[fileName] = Buffer.concat(buffers);
-        });
-      })
-      .on("finish", () => {
-        resolve(extractedFiles);
-      })
-      .on("error", (err) => {
-        reject(err);
-      });
-  });
-}
-
-export async function writeUnzippedFilesToDisk(
-  files: { [fileName: string]: Buffer },
-  outputDir?: string
-): Promise<void> {
-  for (const [fileName, fileData] of Object.entries(files)) {
-    const outputPath = outputDir ? path.join(outputDir, fileName) : fileName;
-
-    await ensurePathExists(outputPath);
-    await fs.writeFile(outputPath, fileData);
-  }
+  zipBuffer: Buffer,
+  outputDir: string,
+): Promise<void | { [fileName: string]: Buffer }> {
+  return unzipper.Open.buffer(zipBuffer).then((d) =>
+    d.extract({ path: outputDir, concurrency: 3 }),
+  );
 }
 
 export function filterPaths(filePaths: string[]) {

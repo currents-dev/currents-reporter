@@ -47,10 +47,7 @@ async function handleArchiveDownload({
 }) {
   try {
     const buffer = await download(readUrl);
-    const unzipped = await unzipBuffer(buffer);
-
-    await writeUnzippedFilesToDisk(unzipped, outputDir);
-    // await writeUnzippedFilesToDisk({ "archive.zip": buffer }, outputDir);
+    await unzipBuffer(buffer, outputDir || '.');
     debug("Cache downloaded");
   } catch (error) {
     debug("Failed to recreate chache from archive");
