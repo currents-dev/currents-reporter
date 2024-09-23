@@ -1,5 +1,14 @@
 # Changelog
 
+# [1.1.0-beta.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.4...${npm.name}-v1.1.0-beta.5) (2024-09-23)
+
+
+### Bug Fixes
+
+* .. ([10f8986](https://github.com/currents-dev/currents-reporter/commit/10f898635963de7a481766dfd2bd9b74ffddcced))
+* address issues ([802b87b](https://github.com/currents-dev/currents-reporter/commit/802b87bf3db251642930f016da7ffc9e1816512a))
+* rename option from pwLastFailed to pwLastRun ([2f3869f](https://github.com/currents-dev/currents-reporter/commit/2f3869f6af293d9cc655e0fe84e762959ef96cbe))
+
 # [1.1.0-beta.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.3...${npm.name}-v1.1.0-beta.4) (2024-09-20)
 
 
