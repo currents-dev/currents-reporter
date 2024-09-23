@@ -23,19 +23,24 @@ export const pathsOption = new Option(
 ).argParser(parseCommaSeparatedList);
 
 export enum PRESETS {
-  lastFailedSharding = "last-failed-sharding",
-  lastFailedOr8n = "last-failed-or8n",
+  lastRunSharding = "last-run-sharding",
+  lastRunOr8n = "last-run-or8n",
 }
 
 export const presetOption = new Option(
   "--preset <preset-name>",
-  'A set of predefined options. Use "last-failed-sharding" to get the last failed run data'
-).choices([PRESETS.lastFailedSharding, PRESETS.lastFailedOr8n]);
+  'A set of predefined options. Use "last-run-sharding" to get the last run data'
+);
 
 export const outputDirOption = new Option(
   "--output-dir <dir>",
   "Path to the directory where output will be written"
 );
+
+export const pwOutputDirOption = new Option(
+  "--pw-output-dir <dir>",
+  "Directory for artifacts produced by Playwright tests"
+).default("test-results");
 
 export const includeHiddenOption = new Option(
   "--include-hidden",

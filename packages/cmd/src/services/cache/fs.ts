@@ -46,20 +46,42 @@ export async function zipFilesToBuffer(
       resolve(buffer);
     });
 
-    const processFiles = async () => {
+    const processFile = async (filePath: string) => {
+      const normalized = path.normalize(filePath);
+      const stats = await fs.stat(normalized);
+      const dirname = path.dirname(normalized);
+      const prefix = dirname === "." ? undefined : dirname;
+
+      if (stats.isDirectory()) {
+        archive.directory(normalized, normalized, {
+          prefix,
+          stats,
+        });
+      } else {
+        archive.file(normalized, {
+          name: path.relative(dirname, normalized),
+          prefix,
+          stats,
+        });
+      }
+    };
+
+    const processFiles = async (filePaths: string[]) => {
       for (const filePath of filePaths) {
-        const stat = await fs.stat(filePath);
-        if (stat.isDirectory()) {
-          archive.directory(filePath, path.basename(filePath));
+        if (filePath === ".") {
+          const subPaths = await fs.readdir(filePath);
+          for (const filePath of subPaths) {
+            await processFile(filePath);
+          }
         } else {
-          archive.file(filePath, { name: path.basename(filePath) });
+          await processFile(filePath);
         }
       }
 
       archive.finalize();
     };
 
-    processFiles().catch(reject);
+    processFiles(filePaths).catch(reject);
   });
 }
 
@@ -96,15 +118,30 @@ export async function unzipBuffer(
 
 export async function writeUnzippedFilesToDisk(
   files: { [fileName: string]: Buffer },
-  outputDirectory?: string
+  outputDir?: string
 ): Promise<void> {
   console.log(files);
   for (const [fileName, fileData] of Object.entries(files)) {
-    const outputPath = outputDirectory
-      ? path.join(outputDirectory, fileName)
-      : fileName;
+    const outputPath = outputDir ? path.join(outputDir, fileName) : fileName;
 
     await ensurePathExists(outputPath);
     await fs.writeFile(outputPath, fileData);
   }
+}
+
+export function filterPaths(filePaths: string[]) {
+  const baseDir = process.cwd();
+  return filePaths.filter((filePath) => {
+    const absolutePath = path.resolve(filePath);
+    const relativePath = path.relative(baseDir, absolutePath);
+
+    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      warn(
+        `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
+      );
+      return false;
+    }
+
+    return true;
+  });
 }

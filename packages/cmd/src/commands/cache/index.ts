@@ -9,6 +9,7 @@ import {
   outputDirOption,
   pathsOption,
   presetOption,
+  pwOutputDirOption,
   recordKeyOption,
 } from "./options";
 import { getCacheSetHandler } from "./set";
@@ -53,10 +54,11 @@ export const getCacheSetCommand = () => {
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
-    .addOption(presetOption.conflicts(["id", "paths"]))
+    .addOption(presetOption)
     .addOption(pathsOption)
     .addOption(includeHiddenOption)
     .addOption(debugOption)
+    .addOption(pwOutputDirOption)
     .action(getCacheSetHandler);
 
   return command;
@@ -68,8 +70,9 @@ export const getCacheGetCommand = () => {
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
-    .addOption(presetOption.conflicts("id"))
+    .addOption(presetOption)
     .addOption(outputDirOption)
+    .addOption(pwOutputDirOption.conflicts("output-dir"))
     .addOption(debugOption)
     .action(getCacheGetHandler);
 

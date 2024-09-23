@@ -21,6 +21,7 @@ export function cacheSetCommandOptsToConfig(
     recordKey: options.key,
     id: options.id,
     preset: options.preset,
+    pwOutputDir: options.pwOutputDir,
     paths: options.paths,
     includeHidden: options.includeHidden,
     debug: options.debug,

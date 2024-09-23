@@ -22,6 +22,10 @@ const cacheSetCommandConfigKeys = {
     name: "Preset",
     cli: "--preset",
   },
+  pwOutputDir: {
+    name: "Playwright output directory",
+    cli: "--pw-output-dir",
+  },
   paths: {
     name: "Paths to cache",
     cli: "--paths",
@@ -36,6 +40,10 @@ const cacheGetCommandConfigKeys = {
   preset: {
     name: "Preset",
     cli: "--preset",
+  },
+  pwOutputDir: {
+    name: "Playwright output directory",
+    cli: "--pw-output-dir",
   },
   outputDir: {
     name: "Custom directory to write output",
