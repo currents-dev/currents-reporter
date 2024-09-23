@@ -120,7 +120,6 @@ export async function writeUnzippedFilesToDisk(
   files: { [fileName: string]: Buffer },
   outputDir?: string
 ): Promise<void> {
-  console.log(files);
   for (const [fileName, fileData] of Object.entries(files)) {
     const outputPath = outputDir ? path.join(outputDir, fileName) : fileName;
 
@@ -135,7 +134,7 @@ export function filterPaths(filePaths: string[]) {
     const absolutePath = path.resolve(filePath);
     const relativePath = path.relative(baseDir, absolutePath);
 
-    if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    if (filePath.startsWith("..") || path.isAbsolute(relativePath)) {
       warn(
         `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
       );

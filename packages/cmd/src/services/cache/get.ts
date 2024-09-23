@@ -14,7 +14,7 @@ export async function handleGetCache() {
     }
 
     const { recordKey, id } = config.values;
-    const outputDir = config.values.pwOutputDir ?? config.values.outputDir;
+    const outputDir = config.values.outputDir ?? config.values.pwOutputDir;
 
     if (config.values.debug) {
       enableDebug();
@@ -49,8 +49,8 @@ async function handleArchiveDownload({
     const buffer = await download(readUrl);
     const unzipped = await unzipBuffer(buffer);
 
-    // await writeUnzippedFilesToDisk(unzipped, outputDir);
-    await writeUnzippedFilesToDisk({ "archive.zip": buffer }, outputDir);
+    await writeUnzippedFilesToDisk(unzipped, outputDir);
+    // await writeUnzippedFilesToDisk({ "archive.zip": buffer }, outputDir);
     debug("Cache downloaded");
   } catch (error) {
     debug("Failed to recreate chache from archive");
