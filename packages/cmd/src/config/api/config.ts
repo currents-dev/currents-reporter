@@ -45,13 +45,13 @@ export type APIGetRunCommandConfig = {
    * Flag indicating whether to return the "LastRunResponse" data.
    *
    * type LastRunResponse = {
-   *   status: 'failed' | 'passed' | 'running';
+   *   status: 'failed' | 'passed';
    *   failedTests: string[];
    * };
    *
    * Default is false if not specified.
    */
-  pwLastFailed?: boolean;
+  pwLastRun?: boolean;
 
   /**
    * File path to which the output should be written.

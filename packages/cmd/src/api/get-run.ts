@@ -9,12 +9,12 @@ export type GetRunParams = {
   projectId?: string;
   branch?: string;
   tag?: string[];
-  pwLastFailed?: boolean;
+  pwLastRun?: boolean;
 };
 
 export type GetRunResponse<
   T = {
-    pwLastFailed?: unknown;
+    pwLastRun?: unknown;
   },
 > = {
   data: T;
