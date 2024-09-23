@@ -20,6 +20,7 @@ export type CacheCommandConfig = {
 type CommonConfig = {
   id?: string;
   preset?: string;
+  pwOutputDir?: string;
 };
 
 export type CacheSetCommandConfig = CacheCommandConfig &

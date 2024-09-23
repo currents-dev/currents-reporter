@@ -23,19 +23,19 @@ export async function handleGetRun() {
     const params = config.ciBuildId
       ? {
           ciBuildId: config.ciBuildId,
-          pwLastFailed: config.pwLastFailed,
+          pwLastRun: config.pwLastRun,
         }
       : {
           projectId: config.projectId,
           branch: config.branch,
           tag: config.tag,
-          pwLastFailed: config.pwLastFailed,
+          pwLastRun: config.pwLastRun,
         };
 
     const result = await getRun(config.apiKey, params);
     await handleOutput(
-      config.pwLastFailed && result.data.pwLastFailed
-        ? result.data.pwLastFailed
+      config.pwLastRun && result.data.pwLastRun
+        ? result.data.pwLastRun
         : result.data,
       config
     );

@@ -37,7 +37,7 @@ export const branchOption = new Option(
   "Branch name for the recorded run"
 );
 
-export const pwLastFailedOption = new Option(
-  "--pw-last-failed",
+export const pwLastRunOption = new Option(
+  "--pw-last-run",
   'Generate output formatted for Playwright ".last-run.json"'
 );

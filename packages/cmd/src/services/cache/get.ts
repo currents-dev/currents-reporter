@@ -3,7 +3,7 @@ import { retrieveCache } from "../../api";
 import { getCacheCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
 import { unzipBuffer, writeUnzippedFilesToDisk } from "./fs";
-import { MetaFile } from "./lib";
+import { MetaFile, warn } from "./lib";
 import { download } from "./network";
 
 export async function handleGetCache() {
@@ -13,7 +13,8 @@ export async function handleGetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, outputDir } = config.values;
+    const { recordKey, id } = config.values;
+    const outputDir = config.values.outputDir ?? config.values.pwOutputDir;
 
     if (config.values.debug) {
       enableDebug();
@@ -33,8 +34,7 @@ export async function handleGetCache() {
 
     await handleMetaDownload(result.metaReadUrl);
   } catch (e) {
-    debug("Failed to obtain cache");
-    throw e;
+    warn(e, "Failed to obtain cache");
   }
 }
 
@@ -47,9 +47,7 @@ async function handleArchiveDownload({
 }) {
   try {
     const buffer = await download(readUrl);
-    const unzipped = await unzipBuffer(buffer);
-
-    await writeUnzippedFilesToDisk(unzipped, outputDir);
+    await unzipBuffer(buffer, outputDir || '.');
     debug("Cache downloaded");
   } catch (error) {
     debug("Failed to recreate chache from archive");

@@ -3,8 +3,8 @@ import { createCache } from "../../api";
 import { PRESETS } from "../../commands/cache/options";
 import { getCacheCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
-import { zipFilesToBuffer } from "./fs";
-import { createMeta, getLastRunFilePath } from "./lib";
+import { filterPaths, zipFilesToBuffer } from "./fs";
+import { createMeta, getLastRunFilePath, warn } from "./lib";
 import {
   ContentType,
   getDefautUploadProgressHandler,
@@ -18,11 +18,29 @@ export async function handleSetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, paths, debug, preset, includeHidden } =
+    const { recordKey, id, debug, preset, pwOutputDir, includeHidden } =
       config.values;
 
     if (debug) {
       enableDebug();
+    }
+
+    const paths = config.values.paths ? filterPaths(config.values.paths) : [];
+
+    const uploadPaths: string[] = [];
+
+    if (paths && paths.length > 0) {
+      uploadPaths.push(...paths);
+    } else if (
+      preset === PRESETS.lastRunSharding ||
+      preset === PRESETS.lastRunOr8n
+    ) {
+      const lastRunPath = getLastRunFilePath(pwOutputDir);
+      uploadPaths.push(lastRunPath);
+    }
+
+    if (uploadPaths.length === 0) {
+      throw new Error("No paths available to upload");
     }
 
     const ci = getCI();
@@ -31,18 +49,6 @@ export async function handleSetCache() {
       ci,
       id,
     });
-
-    const uploadPaths: string[] = [];
-
-    if (paths && paths.length > 0) {
-      uploadPaths.push(...paths);
-    } else if (
-      preset === PRESETS.lastFailedSharding ||
-      preset === PRESETS.lastFailedOr8n
-    ) {
-      const lastRunPath = getLastRunFilePath();
-      uploadPaths.push(lastRunPath);
-    }
 
     await handleArchiveUpload({
       archive: await zipFilesToBuffer(uploadPaths, { includeHidden }),
@@ -62,8 +68,7 @@ export async function handleSetCache() {
       uploadUrl: result.metaUploadUrl,
     });
   } catch (e) {
-    debug("Failed to save cache");
-    throw e;
+    warn(e, "Failed to save cache");
   }
 }
 

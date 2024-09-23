@@ -46,65 +46,67 @@ export async function zipFilesToBuffer(
       resolve(buffer);
     });
 
-    const processFiles = async () => {
+    const processFile = async (filePath: string) => {
+      const normalized = path.normalize(filePath);
+      const stats = await fs.stat(normalized);
+      const dirname = path.dirname(normalized);
+      const prefix = dirname === "." ? undefined : dirname;
+
+      if (stats.isDirectory()) {
+        archive.directory(normalized, normalized, {
+          prefix,
+          stats,
+        });
+      } else {
+        archive.file(normalized, {
+          name: path.relative(dirname, normalized),
+          prefix,
+          stats,
+        });
+      }
+    };
+
+    const processFiles = async (filePaths: string[]) => {
       for (const filePath of filePaths) {
-        const stat = await fs.stat(filePath);
-        if (stat.isDirectory()) {
-          archive.directory(filePath, path.basename(filePath));
+        if (filePath === ".") {
+          const subPaths = await fs.readdir(filePath);
+          for (const filePath of subPaths) {
+            await processFile(filePath);
+          }
         } else {
-          archive.file(filePath, { name: path.basename(filePath) });
+          await processFile(filePath);
         }
       }
 
       archive.finalize();
     };
 
-    processFiles().catch(reject);
+    processFiles(filePaths).catch(reject);
   });
 }
 
 export async function unzipBuffer(
-  zipBuffer: Buffer
-): Promise<{ [fileName: string]: Buffer }> {
-  return new Promise((resolve, reject) => {
-    const extractedFiles: { [fileName: string]: Buffer } = {};
-    const readStream = new stream.Readable();
-
-    readStream.push(zipBuffer);
-    readStream.push(null);
-
-    readStream
-      .pipe(unzipper.Parse())
-      .on("entry", (entry) => {
-        const fileName = entry.path;
-        const buffers: Buffer[] = [];
-
-        entry.on("data", (chunk: Buffer) => buffers.push(chunk));
-
-        entry.on("end", () => {
-          extractedFiles[fileName] = Buffer.concat(buffers);
-        });
-      })
-      .on("finish", () => {
-        resolve(extractedFiles);
-      })
-      .on("error", (err) => {
-        reject(err);
-      });
-  });
+  zipBuffer: Buffer,
+  outputDir: string,
+): Promise<void | { [fileName: string]: Buffer }> {
+  return unzipper.Open.buffer(zipBuffer).then((d) =>
+    d.extract({ path: outputDir, concurrency: 3 }),
+  );
 }
 
-export async function writeUnzippedFilesToDisk(
-  files: { [fileName: string]: Buffer },
-  outputDirectory?: string
-): Promise<void> {
-  console.log(files);
-  for (const [fileName, fileData] of Object.entries(files)) {
-    const outputPath = outputDirectory
-      ? path.join(outputDirectory, fileName)
-      : fileName;
+export function filterPaths(filePaths: string[]) {
+  const baseDir = process.cwd();
+  return filePaths.filter((filePath) => {
+    const absolutePath = path.resolve(filePath);
+    const relativePath = path.relative(baseDir, absolutePath);
 
-    await ensurePathExists(outputPath);
-    await fs.writeFile(outputPath, fileData);
-  }
+    if (filePath.startsWith("..") || path.isAbsolute(relativePath)) {
+      warn(
+        `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
+      );
+      return false;
+    }
+
+    return true;
+  });
 }

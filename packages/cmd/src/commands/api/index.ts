@@ -9,7 +9,7 @@ import {
   debugOption,
   outputOption,
   projectOption,
-  pwLastFailedOption,
+  pwLastRunOption,
   tagOption,
 } from "./options";
 
@@ -25,7 +25,7 @@ Obtain most recent run data by filters:
 ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`)}
 
 Obtain last run data that matches the Playwright "test-results/.last-run.json":
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-failed --output <output-path>`)}
+${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`)}
 
 `;
 
@@ -51,7 +51,7 @@ export const getRunCommand = () => {
     .addOption(branchOption)
     .addOption(tagOption)
     .addOption(outputOption)
-    .addOption(pwLastFailedOption)
+    .addOption(pwLastRunOption)
     .action(getRunHandler);
 
   return command;
