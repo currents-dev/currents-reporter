@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.9](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.8...${npm.name}-v1.1.0-beta.9) (2024-09-24)
+
+
+### Bug Fixes
+
+* Force use of relative path in archive creation ([b29bf58](https://github.com/currents-dev/currents-reporter/commit/b29bf58e6f68b2093b67599941fd751acb542de3))
+
 # [1.1.0-beta.8](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.7...${npm.name}-v1.1.0-beta.8) (2024-09-24)
 
 # [1.1.0-beta.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.6...${npm.name}-v1.1.0-beta.7) (2024-09-24)
