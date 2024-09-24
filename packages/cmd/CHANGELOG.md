@@ -1,5 +1,13 @@
 # Changelog
 
+# [1.1.0-beta.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.5...${npm.name}-v1.1.0-beta.6) (2024-09-24)
+
+
+### Bug Fixes
+
+* add last-run preset handler ([75205a8](https://github.com/currents-dev/currents-reporter/commit/75205a8acfdb7f2e86d48bc57162972434a2e4ed))
+* make projectId mandatory for the api command ([ef916d0](https://github.com/currents-dev/currents-reporter/commit/ef916d0ce49b5f6ce18a68d79379f82fadaa683c))
+
 # [1.1.0-beta.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.4...${npm.name}-v1.1.0-beta.5) (2024-09-23)
 
 
