@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.6...${npm.name}-v1.1.0-beta.7) (2024-09-24)
+
+
+### Bug Fixes
+
+* add missing package ([0f46544](https://github.com/currents-dev/currents-reporter/commit/0f46544eb215d380f25ad65089e3d4364c59d910))
+
 # [1.1.0-beta.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.5...${npm.name}-v1.1.0-beta.6) (2024-09-24)
 
 
