@@ -5,8 +5,8 @@ import { ClientType } from "../http/client";
 const debug = _debug.extend("api");
 
 export type GetRunParams = {
+  projectId: string;
   ciBuildId?: string;
-  projectId?: string;
   branch?: string;
   tag?: string[];
   pwLastRun?: boolean;

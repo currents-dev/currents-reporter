@@ -23,14 +23,13 @@ export const pathsOption = new Option(
 ).argParser(parseCommaSeparatedList);
 
 export enum PRESETS {
-  lastRunSharding = "last-run-sharding",
-  lastRunOr8n = "last-run-or8n",
+  lastRun = "last-run",
 }
 
 export const presetOption = new Option(
   "--preset <preset-name>",
-  'A set of predefined options. Use "last-run-sharding" to get the last run data'
-);
+  'A set of predefined options. Use "last-run" to get the last run data'
+).choices(Object.values(PRESETS));
 
 export const outputDirOption = new Option(
   "--output-dir <dir>",
@@ -45,4 +44,13 @@ export const pwOutputDirOption = new Option(
 export const includeHiddenOption = new Option(
   "--include-hidden",
   "Include hidden files in the cache"
-).default(false);
+)
+  .hideHelp()
+  .default(false);
+
+export const PW_CONFIG_DUMP_FILE = ".currents_env";
+
+export const pwConfigDumpOption = new Option(
+  "--pw-config-dump <path>",
+  "Path to the file containing the Playwright configuration dump"
+).default(PW_CONFIG_DUMP_FILE);

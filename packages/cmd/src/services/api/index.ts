@@ -22,6 +22,7 @@ export async function handleGetRun() {
 
     const params = config.ciBuildId
       ? {
+          projectId: config.projectId,
           ciBuildId: config.ciBuildId,
           pwLastRun: config.pwLastRun,
         }
