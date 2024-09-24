@@ -6,7 +6,7 @@ import { getCI } from "../../env/ciProvider";
 import { unzipBuffer } from "./fs";
 import { MetaFile, warn } from "./lib";
 import { download } from "./network";
-import { handleLastRunPreset } from "./presets";
+import { handlePostLastRunPreset, handlePreLastRunPreset } from "./presets";
 
 export async function handleGetCache() {
   try {
@@ -25,7 +25,7 @@ export async function handleGetCache() {
     const ci = getCI();
 
     if (preset === PRESETS.lastRun) {
-      await handleLastRunPreset(config.values, ci);
+      await handlePreLastRunPreset(config.values, ci);
     }
 
     const result = await retrieveCache({
@@ -39,7 +39,11 @@ export async function handleGetCache() {
       outputDir,
     });
 
-    await handleMetaDownload(result.metaReadUrl);
+    const meta = await handleMetaDownload(result.metaReadUrl);
+
+    if (preset === PRESETS.lastRun) {
+      await handlePostLastRunPreset(config.values, ci, meta);
+    }
   } catch (e) {
     warn(e, "Failed to obtain cache");
   }
@@ -68,6 +72,7 @@ async function handleMetaDownload(readUrl: string) {
     const meta = JSON.parse(buffer.toString("utf-8")) as MetaFile;
     console.log(meta);
     debug("Meta file: %O", meta);
+    return meta;
   } catch (error) {
     debug("Failed to handle the meta");
     throw error;

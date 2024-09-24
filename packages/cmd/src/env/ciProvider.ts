@@ -322,6 +322,7 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       "CI_REPOSITORY_URL",
       "CI_ENVIRONMENT_URL",
       "CI_DEFAULT_BRANCH",
+      "RUN_ATTEMPT", // custom param that we ourselves sometimes add for retrying jobs
       // for PRs: https://gitlab.com/gitlab-org/gitlab-ce/issues/23902
     ]),
     // https://docs.gocd.org/current/faq/dev_use_current_revision_in_build.html#standard-gocd-environment-variables
