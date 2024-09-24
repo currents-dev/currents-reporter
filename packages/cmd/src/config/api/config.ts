@@ -14,6 +14,11 @@ export type APICommandConfig = {
   apiKey: string;
 
   /**
+   * Identifier for the project where the test run is recorded.
+   */
+  projectId: string;
+
+  /**
    * Enable or disable debug logging.
    */
   debug?: boolean;
@@ -25,11 +30,6 @@ export type APIGetRunCommandConfig = {
    * Refer to: https://currents.dev/readme/guides/ci-build-id for more details.
    */
   ciBuildId?: string;
-
-  /**
-   * Identifier for the project where the test run is recorded.
-   */
-  projectId?: string;
 
   /**
    * The branch of the project for which the test run was created.
@@ -60,9 +60,12 @@ export type APIGetRunCommandConfig = {
   output?: string;
 };
 
-type MandatoryAPICommandConfigKeys = "apiKey";
+type MandatoryAPICommandConfigKeys = "apiKey" | "projectId";
 
-const mandatoryConfigKeys: MandatoryAPICommandConfigKeys[] = ["apiKey"];
+const mandatoryConfigKeys: MandatoryAPICommandConfigKeys[] = [
+  "apiKey",
+  "projectId",
+];
 
 let _config: (APICommandConfig & APIGetRunCommandConfig) | null = null;
 

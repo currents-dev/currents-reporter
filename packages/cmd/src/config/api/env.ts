@@ -29,6 +29,7 @@ const apiGetRunCommandConfigKeys = {
   },
   projectId: {
     name: "Project ID",
+    env: "CURRENTS_PROJECT_ID",
     cli: "--project-id",
   },
   tag: {

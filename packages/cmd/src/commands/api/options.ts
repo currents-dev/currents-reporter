@@ -21,7 +21,7 @@ export const ciBuildIdOption = new Option(
 export const projectOption = new Option(
   "-p, --project-id <project>",
   "Project ID from Currents associated with the run"
-);
+).env(getEnvironmentVariableName(configKeys, "projectId"));
 
 export const tagOption = new Option(
   "-t, --tag <tag>",
