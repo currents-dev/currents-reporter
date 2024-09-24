@@ -1,10 +1,12 @@
 import { debug, enableDebug } from "@debug";
 import { retrieveCache } from "../../api";
+import { PRESETS } from "../../commands/cache/options";
 import { getCacheCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
-import { unzipBuffer, writeUnzippedFilesToDisk } from "./fs";
+import { unzipBuffer } from "./fs";
 import { MetaFile, warn } from "./lib";
 import { download } from "./network";
+import { handleLastRunPreset } from "./presets";
 
 export async function handleGetCache() {
   try {
@@ -13,7 +15,7 @@ export async function handleGetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id } = config.values;
+    const { recordKey, id, preset  } = config.values;
     const outputDir = config.values.outputDir ?? config.values.pwOutputDir;
 
     if (config.values.debug) {
@@ -21,6 +23,11 @@ export async function handleGetCache() {
     }
 
     const ci = getCI();
+
+    if (preset === PRESETS.lastRun) {
+      await handleLastRunPreset(config.values, ci);
+    }
+
     const result = await retrieveCache({
       recordKey,
       ci,

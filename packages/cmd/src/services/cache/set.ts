@@ -31,10 +31,11 @@ export async function handleSetCache() {
 
     if (paths && paths.length > 0) {
       uploadPaths.push(...paths);
-    } else if (
-      preset === PRESETS.lastRunSharding ||
-      preset === PRESETS.lastRunOr8n
-    ) {
+    }
+
+    const ci = getCI();
+
+    if (preset === PRESETS.lastRun) {
       const lastRunPath = getLastRunFilePath(pwOutputDir);
       uploadPaths.push(lastRunPath);
     }
@@ -43,7 +44,6 @@ export async function handleSetCache() {
       throw new Error("No paths available to upload");
     }
 
-    const ci = getCI();
     const result = await createCache({
       recordKey,
       ci,
