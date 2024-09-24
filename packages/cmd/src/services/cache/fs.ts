@@ -47,19 +47,21 @@ export async function zipFilesToBuffer(
     });
 
     const processFile = async (filePath: string) => {
+      const baseDir = process.cwd();
       const normalized = path.normalize(filePath);
-      const stats = await fs.stat(normalized);
-      const dirname = path.dirname(normalized);
+      const relativePath = path.relative(baseDir, normalized);
+      const stats = await fs.stat(relativePath);
+      const dirname = path.dirname(relativePath);
       const prefix = dirname === "." ? undefined : dirname;
 
       if (stats.isDirectory()) {
-        archive.directory(normalized, normalized, {
+        archive.directory(relativePath, relativePath, {
           prefix,
           stats,
         });
       } else {
         archive.file(normalized, {
-          name: path.relative(dirname, normalized),
+          name: path.basename(relativePath),
           prefix,
           stats,
         });

@@ -61,7 +61,7 @@ async function handleArchiveDownload({
     await unzipBuffer(buffer, outputDir || '.');
     debug("Cache downloaded");
   } catch (error) {
-    debug("Failed to recreate chache from archive");
+    debug("Failed to recreate cache from archive");
     throw error;
   }
 }
