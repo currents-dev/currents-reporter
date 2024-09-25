@@ -3,7 +3,7 @@ import { PW_CONFIG_DUMP_FILE } from "../../commands/cache/options";
 
 import { CacheGetCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
-import { GithubActionsParams } from "../../env/types";
+import { GithubActionsParams, GitLabParams } from "../../env/types";
 import { writeFileAsync } from "../../lib";
 import { MetaFile } from "./lib";
 
@@ -42,12 +42,14 @@ async function dumpPwConfigForGitlab(
   ci: ReturnType<typeof getCI>,
   meta: MetaFile | null = null,
 ) {
-  const previousRunAttempt = meta
-    ? parseIntSafe(meta.ci.params?.runAttempt, 0)
+  const ciParams = ci.params as GitLabParams;
+  const prevCiParams = meta?.ci.params as null | GitLabParams;
+  const prevRunAttempt = prevCiParams
+    ? parseIntSafe(prevCiParams.runAttempt, 0)
     : 0;
-  const runAttempt = previousRunAttempt + 1;
-  const nodeIndex = parseIntSafe(process.env.CI_NODE_INDEX, 1);
-  const jobTotal = parseIntSafe(process.env.CI_NODE_TOTAL, 1);
+  const runAttempt = prevRunAttempt + 1;
+  const nodeIndex = parseIntSafe(ciParams.ciNodeIndex, 1);
+  const jobTotal = parseIntSafe(ciParams.ciNodeTotal, 1);
 
   const lastFailedOption = runAttempt > 1 ? "--last-failed" : "";
 
