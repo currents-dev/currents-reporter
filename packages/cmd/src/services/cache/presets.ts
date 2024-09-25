@@ -76,15 +76,15 @@ async function dumpPWConfigForGHA(
 ) {
   const ciParams = ci.params as GithubActionsParams;
   const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
-  const nodeIndex = parseIntSafe(ciParams.ghStrategyNodeIndex, 0);
+  const jobIndex = parseIntSafe(ciParams.ghStrategyJobIndex, 0);
   const jobTotal = parseIntSafe(ciParams.ghStrategyJobTotal, 1);
 
   const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
 
   let shardOption = '';
   if (jobTotal > 1) {
-    // GH_STRATEGY_NODE_INDEX is 0-based, but --shard is 1-based
-    const currentShard = nodeIndex + 1;
+    // GH_STRATEGY_JOB_INDEX is 0-based, but --shard is 1-based
+    const currentShard = jobIndex + 1;
 
     shardOption =
       runAttempt > 1 ? '--shard=1/1' : `--shard=${currentShard}/${jobTotal}`;

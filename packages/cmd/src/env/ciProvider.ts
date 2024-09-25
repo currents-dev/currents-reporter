@@ -306,7 +306,7 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'GITHUB_REPOSITORY',
 
       // custom variables
-      'GH_STRATEGY_NODE_INDEX',
+      'GH_STRATEGY_JOB_INDEX',
       'GH_STRATEGY_JOB_TOTAL',
     ]),
     // see https://docs.gitlab.com/ee/ci/variables/
