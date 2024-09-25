@@ -1,46 +1,46 @@
-import { omit } from 'lodash';
+import { omit } from "lodash";
 
 const ignoredOptions = [
-  'bail', // causes unexpected behaviour
-  'clearCache',
-  'collectCoverage',
-  'collectCoverageFrom',
-  'color',
-  'colors',
-  'config',
-  'coverage',
-  'coverageDirectory',
-  'coveragePathIgnorePatterns',
-  'coverageProvider',
-  'coverageReporters',
-  'coverageThreshold',
-  'debug',
-  'detectLeaks',
-  'detectOpenHandles',
-  'errorOnDeprecated',
-  'expand',
-  'forceExit',
-  'json',
-  'listTests',
-  'logHeapUsage',
-  'noStackTrace',
-  'notify',
-  'notifyMode',
-  'openHandlesTimeout',
-  'outputFile',
-  'reporters',
-  'runner',
-  'shard',
-  'showConfig',
-  'showSeed',
-  'silent',
-  'testNamePattern',
-  'verbose',
-  'waitNextEventLoopTurnForUnhandledRejectionEvents',
-  'watch',
-  'watchAll',
-  'watchPathIgnorePatterns',
-  'watchman',
+  "bail", // causes unexpected behaviour
+  "clearCache",
+  "collectCoverage",
+  "collectCoverageFrom",
+  "color",
+  "colors",
+  "config",
+  "coverage",
+  "coverageDirectory",
+  "coveragePathIgnorePatterns",
+  "coverageProvider",
+  "coverageReporters",
+  "coverageThreshold",
+  "debug",
+  "detectLeaks",
+  "detectOpenHandles",
+  "errorOnDeprecated",
+  "expand",
+  "forceExit",
+  "json",
+  "listTests",
+  "logHeapUsage",
+  "noStackTrace",
+  "notify",
+  "notifyMode",
+  "openHandlesTimeout",
+  "outputFile",
+  "reporters",
+  "runner",
+  "shard",
+  "showConfig",
+  "showSeed",
+  "silent",
+  "testNamePattern",
+  "verbose",
+  "waitNextEventLoopTurnForUnhandledRejectionEvents",
+  "watch",
+  "watchAll",
+  "watchPathIgnorePatterns",
+  "watchman",
 ];
 
 export function getDiscoveryOptions(options: Record<string, unknown>) {
@@ -51,9 +51,9 @@ export function argvToString(argv: Record<string, any>) {
   let args = [];
 
   for (const [key, value] of Object.entries(argv)) {
-    if (key === '_' || key === '$0' || key.includes('-')) continue; // skip _, script name and the kebab case properties added by yargs
+    if (key === "_" || key === "$0" || key.includes("-")) continue; // skip _, script name and the kebab case properties added by yargs
 
-    if (typeof value === 'boolean') {
+    if (typeof value === "boolean") {
       if (value) {
         args.push(`--${key}`);
       }
@@ -66,5 +66,5 @@ export function argvToString(argv: Record<string, any>) {
     }
   }
 
-  return args.join(' ');
+  return args.join(" ");
 }

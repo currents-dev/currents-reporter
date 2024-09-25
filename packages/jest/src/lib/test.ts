@@ -1,20 +1,20 @@
-import { Test, TestCaseResult } from '@jest/reporters';
-import type { Circus } from '@jest/types';
-import crypto from 'node:crypto';
+import { Test, TestCaseResult } from "@jest/reporters";
+import type { Circus } from "@jest/types";
+import crypto from "node:crypto";
 import {
   ExpectedStatus,
   JestTestCaseStatus,
   TestCaseStatus,
   TestRunnerStatus,
-} from '../types';
-import { getRelativeFileLocation } from './relativeFileLocation';
+} from "../types";
+import { getRelativeFileLocation } from "./relativeFileLocation";
 
 export type TestCaseInvocationStart = {
   testCaseStartInfo: Circus.TestCaseStartInfo;
 };
 
 export function getDefaultProjectId() {
-  return 'root';
+  return "root";
 }
 
 export function getProjectId(test: Test) {
@@ -44,16 +44,16 @@ export function getTestCaseId(
   const specName = testToSpecName(test);
 
   // Concatenate values
-  const combinedString: string = title.join(' ') + specName;
+  const combinedString: string = title.join(" ") + specName;
   // + testCaseResult.location?.column ??
   // "" + testCaseResult.location?.line ??
   // "";
 
   // Hash the combined string using SHA-256
   const fullHash: string = crypto
-    .createHash('sha256')
+    .createHash("sha256")
     .update(combinedString)
-    .digest('hex');
+    .digest("hex");
 
   // Take the first 16 characters of the hash
   const shortenedHash: string = fullHash.substring(0, 16);
@@ -74,16 +74,16 @@ export function getTestCaseStatus(
   testStatus: JestTestCaseStatus
 ): TestCaseStatus {
   switch (testStatus) {
-    case 'passed':
-      return 'passed';
-    case 'failed':
-      return 'failed';
-    case 'pending':
-    case 'todo':
-      return 'pending';
+    case "passed":
+      return "passed";
+    case "failed":
+      return "failed";
+    case "pending":
+    case "todo":
+      return "pending";
 
     default:
-      throw new Error('Invalid Jest test case status');
+      throw new Error("Invalid Jest test case status");
   }
 }
 
@@ -91,27 +91,27 @@ export function getTestRunnerStatus(
   status: JestTestCaseStatus
 ): TestRunnerStatus {
   switch (status) {
-    case 'passed':
-      return 'passed';
-    case 'failed':
-      return 'failed';
-    case 'pending':
-    case 'todo':
-      return 'skipped';
+    case "passed":
+      return "passed";
+    case "failed":
+      return "failed";
+    case "pending":
+    case "todo":
+      return "skipped";
 
     default:
-      throw new Error('Invalid Jest test case status');
+      throw new Error("Invalid Jest test case status");
   }
 }
 
 export function getExpectedStatus(status: JestTestCaseStatus): ExpectedStatus {
   switch (status) {
-    case 'pending':
-    case 'todo':
-      return 'skipped';
+    case "pending":
+    case "todo":
+      return "skipped";
 
     default:
-      return 'passed';
+      return "passed";
   }
 }
 
@@ -121,7 +121,7 @@ export function jestStatusFromInvocations(testResults: TestCaseResult[]) {
     return statuses[0];
   }
 
-  return 'failed';
+  return "failed";
 }
 
 export function getAttemptNumber(result: TestCaseResult) {
@@ -133,7 +133,7 @@ export function isTestFlaky(testResults: TestCaseResult[]): boolean {
   const statuses = testResults.map((r) => r.status);
   return (
     testResults.length > 1 &&
-    statuses.includes('failed') &&
-    statuses.includes('passed')
+    statuses.includes("failed") &&
+    statuses.includes("passed")
   );
 }

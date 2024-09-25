@@ -1,21 +1,21 @@
-import axios, { AxiosInstance } from 'axios';
-import axiosRetry from 'axios-retry';
-import _ from 'lodash';
+import axios, { AxiosInstance } from "axios";
+import axiosRetry from "axios-retry";
+import _ from "lodash";
 
-import { debug as _debug } from '../debug';
-import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from './httpConfig';
+import { debug as _debug } from "../debug";
+import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from "./httpConfig";
 import {
   getDelay,
   getMaxRetries,
   isRetriableError,
   onRetry,
-} from './httpRetry';
+} from "./httpRetry";
 
-const debug = _debug.extend('http');
+const debug = _debug.extend("http");
 
 export enum ClientType {
-  API = 'api',
-  REST_API = 'restApi',
+  API = "api",
+  REST_API = "restApi",
 }
 
 let _clients: Record<ClientType, AxiosInstance | null> = {
@@ -38,7 +38,7 @@ export function createClient(type: ClientType) {
 
   client.interceptors.request.use((config) => {
     // @ts-ignore
-    const retry = config['axios-retry']?.retryCount ?? 0;
+    const retry = config["axios-retry"]?.retryCount ?? 0;
 
     // const currentsConfig = getCurrentsConfig();
     // config.headers.set({
@@ -53,20 +53,20 @@ export function createClient(type: ClientType) {
     //   config.headers.set("x-currents-machine-id", currentsConfig.machineId);
     // }
 
-    if (!config.headers.get('Content-Type')) {
-      config.headers.set('Content-Type', 'application/json');
+    if (!config.headers.get("Content-Type")) {
+      config.headers.set("Content-Type", "application/json");
     }
 
     const args = {
-      ..._.pick(config, 'method', 'url', 'headers'),
-      data: Buffer.isBuffer(config.data) ? 'buffer' : (config.data as unknown),
+      ..._.pick(config, "method", "url", "headers"),
+      data: Buffer.isBuffer(config.data) ? "buffer" : (config.data as unknown),
     };
 
     if (!retry) {
-      debug('network request: %o', getNetworkRequestDebugData(args));
+      debug("network request: %o", getNetworkRequestDebugData(args));
     } else {
       debug(
-        'network request retry: %o',
+        "network request retry: %o",
         getNetworkRequestDebugData({
           ...args,
           isRetry: true,
@@ -106,10 +106,10 @@ function getNetworkRequestDebugData(data: {
     method: data.method,
     baseUrl: getAPIBaseUrl(),
     url: data.url,
-    data: data.isRetry ? '<retry>' : getPayloadDebugData(data.data),
+    data: data.isRetry ? "<retry>" : getPayloadDebugData(data.data),
     headers: {
       ...data.headers,
-      ['x-currents-key']: '***',
+      ["x-currents-key"]: "***",
     },
   };
 }
@@ -120,7 +120,7 @@ function getPayloadDebugData(data: any) {
       ...data,
       results: {
         ...data.results,
-        raw: '***',
+        raw: "***",
       },
     };
   }

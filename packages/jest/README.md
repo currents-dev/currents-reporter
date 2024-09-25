@@ -26,10 +26,10 @@ npm install @currents/jest --save-dev
 Add the reporter to Jest configuration:
 
 ```ts
-import type { Config } from 'jest';
+import type { Config } from "jest";
 
 const config: Config = {
-  reporters: ['default', ['@currents/jest']],
+  reporters: ["default", ["@currents/jest"]],
 };
 
 export default config;

@@ -1,7 +1,7 @@
-import * as log from '@logger';
-import { AxiosError, isAxiosError } from 'axios';
-import _ from 'lodash';
-import { P, match } from 'ts-pattern';
+import * as log from "@logger";
+import { AxiosError, isAxiosError } from "axios";
+import _ from "lodash";
+import { P, match } from "ts-pattern";
 
 export function handleHTTPError<T, D>(error: unknown) {
   match(error)
@@ -15,16 +15,16 @@ function handleAxiosError<T, D>(error: AxiosError<T, D>) {
   return (
     match(error)
       // Generic network errors
-      .with({ code: 'ECONNABORTED' }, () => {
+      .with({ code: "ECONNABORTED" }, () => {
         log.warn(`Network connection aborted`);
       })
-      .with({ code: 'ECONNREFUSED' }, () => {
+      .with({ code: "ECONNREFUSED" }, () => {
         log.warn(`Network connection aborted`);
       })
-      .with({ code: 'ECONNRESET' }, () => {
+      .with({ code: "ECONNRESET" }, () => {
         log.warn(`Network connection reset`);
       })
-      .with({ code: 'ETIMEDOUT' }, () => {
+      .with({ code: "ETIMEDOUT" }, () => {
         log.warn(`Network connection timeout`);
       })
       .with({ response: P.not(P.nullish) }, (i) => {
@@ -34,7 +34,7 @@ function handleAxiosError<T, D>(error: AxiosError<T, D>) {
         });
       })
       .otherwise((i) => {
-        log.warn('[currents] Unexpected network error: %s\n%O', error.message, {
+        log.warn("[currents] Unexpected network error: %s\n%O", error.message, {
           method: error.response?.config.method,
           url: error.response?.config.url,
           status: error.response?.status,
@@ -76,7 +76,7 @@ function handle4xx<T, D>(
     })
     .otherwise(() => {
       log.warn(
-        '[currents] Unexpected network response: %s\n%O',
+        "[currents] Unexpected network response: %s\n%O",
         error.message,
         {
           method: error.response?.config.method,
@@ -113,7 +113,7 @@ function handle422Error(error: AxiosError, data: unknown) {
     })
     .otherwise(() => {
       log.warn(
-        '[currents] Unexpected network response: %s\n%O',
+        "[currents] Unexpected network response: %s\n%O",
         error.message,
         {
           method: error.response?.config.method,
@@ -124,9 +124,9 @@ function handle422Error(error: AxiosError, data: unknown) {
     });
 }
 const ErrorCodes = {
-  RUN_CANCELLED: 'RUN_CANCELLED',
-  RUN_EXPIRED: 'RUN_EXPIRED',
-  MISSING_SUITE: 'MISSING_SUITE',
+  RUN_CANCELLED: "RUN_CANCELLED",
+  RUN_EXPIRED: "RUN_EXPIRED",
+  MISSING_SUITE: "MISSING_SUITE",
 } as const;
 
 export function formatGenericCloudError(
@@ -134,7 +134,7 @@ export function formatGenericCloudError(
   errors?: string[]
 ): string[] {
   if (!_.isString(message)) {
-    return ['Unexpected network error'];
+    return ["Unexpected network error"];
   }
 
   if (errors?.length === 0) {
@@ -143,7 +143,7 @@ export function formatGenericCloudError(
   return [
     message as string,
     `
-${(errors ?? []).map((e) => `  - ${e}`).join('\n')}
+${(errors ?? []).map((e) => `  - ${e}`).join("\n")}
 `,
   ];
 }

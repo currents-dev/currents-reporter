@@ -1,14 +1,14 @@
-import getos from 'getos';
-import { memoize } from 'lodash';
-import { freemem, platform, release, totalmem } from 'os';
-import { promisify } from 'util';
+import getos from "getos";
+import { memoize } from "lodash";
+import { freemem, platform, release, totalmem } from "os";
+import { promisify } from "util";
 
 const getOsVersion = async () => {
-  if (platform() === 'linux') {
+  if (platform() === "linux") {
     try {
       const linuxOs = await promisify(getos)();
-      if ('dist' in linuxOs && 'release' in linuxOs) {
-        return [linuxOs.dist, linuxOs.release].join(' - ');
+      if ("dist" in linuxOs && "release" in linuxOs) {
+        return [linuxOs.dist, linuxOs.release].join(" - ");
       } else {
         return release();
       }

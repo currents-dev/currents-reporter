@@ -1,4 +1,4 @@
-import { GhaEventData } from './gitInfo';
+import { GhaEventData } from "./gitInfo";
 export type CiProvider = string | null;
 
 export type CiProviderData = {
@@ -24,4 +24,24 @@ export type GithubActionsParams = {
 
   ghStrategyJobIndex?: string;
   ghStrategyJobTotal?: string;
+};
+
+
+export type GitLabParams = {
+  gitlabCi: string;
+  ciPipelineId: string;
+  ciPipelineUrl: string;
+  ciBuildId: string;
+  ciJobId: string;
+  ciJobUrl: string;
+  ciJobName: string;
+  gitlabHost: string;
+  ciProjectId: string;
+  ciProjectUrl: string;
+  ciRepositoryUrl: string;
+  ciEnvironmentUrl: string;
+  ciDefaultBranch: string;
+  ciNodeIndex?: string;
+  ciNodeTotal?: string;
+  runAttempt?: string;
 };

@@ -21,9 +21,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
-    "lint": "turbo run lint",
-    "format": "prettier --check .",
-    "format-fix": "prettier --write ."
+    "lint": "turbo run lint"
   },
   "devDependencies": {
     "eslint-config-custom": "*",

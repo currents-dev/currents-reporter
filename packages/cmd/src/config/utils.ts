@@ -1,6 +1,6 @@
-import { debug as _debug } from '@debug';
-import { ValidationError } from '@lib/error';
-import { dim, error } from '@logger';
+import { debug as _debug } from "@debug";
+import { ValidationError } from "@lib/error";
+import { dim, error } from "@logger";
 
 type ConfigKeys = Record<
   string,
@@ -27,9 +27,9 @@ export function getEnvironmentVariableName<T extends ConfigKeys>(
   configKeys: T,
   variable: keyof T
 ) {
-  return 'env' in configKeys[variable] && !!configKeys[variable].env
+  return "env" in configKeys[variable] && !!configKeys[variable].env
     ? configKeys[variable].env
-    : '';
+    : "";
 }
 
 export function getCLIOptionName<T extends ConfigKeys>(
@@ -69,7 +69,7 @@ export function getValidatedConfig<T extends ConfigKeys, R>(
 - as environment variable: ${dim(getEnvironmentVariableName(configKeys, i as string))}
 - as CLI flag of the command: ${dim(getCLIOptionName(configKeys, i as string))}`
       );
-      throw new ValidationError('Missing required config variable');
+      throw new ValidationError("Missing required config variable");
     }
   });
 

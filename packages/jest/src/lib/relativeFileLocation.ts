@@ -1,4 +1,4 @@
-import path from 'path';
+import path from "path";
 
 export function getRelativeFileLocation(aPath: string, rootDir: string) {
   return toPosixPath(path.relative(rootDir, aPath));
