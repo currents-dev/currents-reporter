@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.11](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.10...${npm.name}-v1.1.0-beta.11) (2024-09-25)
+
+
+### Bug Fixes
+
+* add custom varibles for GHA to params ([837e119](https://github.com/currents-dev/currents-reporter/commit/837e119bf1f1b4721c506c6567d76bc9e9f3edc8))
+
 # [1.1.0-beta.10](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.9...${npm.name}-v1.1.0-beta.10) (2024-09-25)
 
 # [1.1.0-beta.9](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.8...${npm.name}-v1.1.0-beta.9) (2024-09-24)
