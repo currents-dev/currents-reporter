@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.13](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.12...${npm.name}-v1.1.0-beta.13) (2024-09-25)
+
+
+### Reverts
+
+* Revert "chore: add prettier" ([53fcd5f](https://github.com/currents-dev/currents-reporter/commit/53fcd5fc752642ad7c11682f07505fc0bd819f65))
+
 # [1.1.0-beta.12](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.11...${npm.name}-v1.1.0-beta.12) (2024-09-25)
 
 
