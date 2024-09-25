@@ -4,6 +4,7 @@ import { PW_CONFIG_DUMP_FILE } from '../../commands/cache/options';
 
 import { CacheGetCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
+import { GithubActionsParams } from '../../env/types';
 import { writeFileAsync } from '../../lib';
 import { MetaFile } from './lib';
 
@@ -73,15 +74,20 @@ async function dumpPWConfigForGHA(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>
 ) {
-  const variables = getGHAEnvironementVariables(ci);
-  debug('GHA environment variables: %O', variables);
-  const { runAttempt, nodeIndex, jobTotal } = variables;
+  const ciParams = ci.params as GithubActionsParams;
+  const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
+  const nodeIndex = parseIntSafe(ciParams.ghStrategyNodeIndex, 0);
+  const jobTotal = parseIntSafe(ciParams.ghStrategyJobTotal, 1);
+
   const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
 
   let shardOption = '';
   if (jobTotal > 1) {
+    // GH_STRATEGY_NODE_INDEX is 0-based, but --shard is 1-based
+    const currentShard = nodeIndex + 1;
+
     shardOption =
-      runAttempt > 1 ? '--shard=1/1' : `--shard=${nodeIndex}/${jobTotal}`;
+      runAttempt > 1 ? '--shard=1/1' : `--shard=${currentShard}/${jobTotal}`;
   }
 
   const pwCliOptions = [lastFailedOption, shardOption]
@@ -100,16 +106,3 @@ const parseIntSafe = (
   const parsed = _.toNumber(value);
   return _.isNaN(parsed) ? defaultValue : parsed;
 };
-
-function getGHAEnvironementVariables(ci: ReturnType<typeof getCI>) {
-  const { GITHUB_RUN_ATTEMPT, GITHUB_REPOSITORY, GITHUB_RUN_ID } = ci.params;
-  const { GH_STRATEGY_NODE_INDEX, GH_STRATEGY_JOB_TOTAL } = process.env;
-
-  return {
-    githubRepo: GITHUB_REPOSITORY,
-    runId: GITHUB_RUN_ID,
-    runAttempt: parseIntSafe(GITHUB_RUN_ATTEMPT, 1),
-    nodeIndex: parseIntSafe(GH_STRATEGY_NODE_INDEX, 0),
-    jobTotal: parseIntSafe(GH_STRATEGY_JOB_TOTAL, 1),
-  };
-}
