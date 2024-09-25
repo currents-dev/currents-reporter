@@ -65,8 +65,7 @@ async function dumpPwConfigForGitlab(
 
   await writeFileAsync(
     config.pwConfigDump ?? PW_CONFIG_DUMP_FILE,
-    `CURRENTS_CI_BUILD_ID="\${CURRENTS_CI_BUILD_ID:-$CI_PIPELINE_ID}_${runAttempt}"
-EXTRA_PW_FLAGS="${pwCliOptions}"
+    `EXTRA_PW_FLAGS="${pwCliOptions}"
 EXTRA_PWCP_FLAGS="${lastFailedOption}"
 RUN_ATTEMPT="${runAttempt}"
 `,
