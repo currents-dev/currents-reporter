@@ -13,3 +13,15 @@ export type CiProviderData = {
   runAttempt?: string;
   ghaEventData?: GhaEventData | null;
 };
+
+export type GithubActionsParams = {
+  githubWorkflow: string;
+  githubAction: string;
+  githubEventName: string;
+  githubRunId: string;
+  githubRunAttempt: string;
+  githubRepository: string;
+
+  ghStrategyNodeIndex?: string;
+  ghStrategyJobTotal?: string;
+};
