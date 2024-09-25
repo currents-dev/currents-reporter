@@ -1,10 +1,10 @@
-import axios, { CreateAxiosDefaults } from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
-import proxyFromEnv from "proxy-from-env";
+import axios, { CreateAxiosDefaults } from 'axios';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import proxyFromEnv from 'proxy-from-env';
 
-import { debug as _debug } from "../debug";
+import { debug as _debug } from '../debug';
 
-const debug = _debug.extend("axios");
+const debug = _debug.extend('axios');
 
 export function getAxios(config: CreateAxiosDefaults = {}) {
   const instance = axios.create(config);
@@ -14,7 +14,7 @@ export function getAxios(config: CreateAxiosDefaults = {}) {
     const uri = instance.getUri(config);
     const proxyURL = proxyFromEnv.getProxyForUrl(uri);
     if (proxyURL) {
-      debug("Using HTTP proxy %s for %s ", proxyURL, uri);
+      debug('Using HTTP proxy %s for %s ', proxyURL, uri);
       _config.proxy = false;
       _config.httpsAgent = getHTTPSProxyAgent(proxyURL);
     }

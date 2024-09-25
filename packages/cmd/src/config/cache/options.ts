@@ -1,6 +1,6 @@
-import { CacheGetCommandOpts } from "../../commands/cache/get";
-import { CacheSetCommandOpts } from "../../commands/cache/set";
-import { CacheGetCommandConfig, CacheSetCommandConfig } from "./config";
+import { CacheGetCommandOpts } from '../../commands/cache/get';
+import { CacheSetCommandOpts } from '../../commands/cache/set';
+import { CacheGetCommandConfig, CacheSetCommandConfig } from './config';
 
 export function cacheGetCommandOptsToConfig(
   options: CacheGetCommandOpts
@@ -10,6 +10,7 @@ export function cacheGetCommandOptsToConfig(
     id: options.id,
     preset: options.preset,
     outputDir: options.outputDir,
+    pwConfigDump: options.pwConfigDump,
     debug: options.debug,
   };
 }
@@ -22,7 +23,6 @@ export function cacheSetCommandOptsToConfig(
     id: options.id,
     preset: options.preset,
     pwOutputDir: options.pwOutputDir,
-    pwConfigDump: options.pwConfigDump,
     paths: options.paths,
     includeHidden: options.includeHidden,
     debug: options.debug,

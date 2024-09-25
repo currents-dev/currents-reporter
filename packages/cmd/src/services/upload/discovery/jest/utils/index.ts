@@ -1,2 +1,2 @@
-export * from "fs";
-export * from "./test";
+export * from 'fs';
+export * from './test';

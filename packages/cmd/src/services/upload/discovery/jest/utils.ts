@@ -1,6 +1,5 @@
 // import { debug } from "../debug";
 
-
 export function retryWithBackoff<T, P extends any[]>(
   func: (...args: P) => T,
   backoffIntervals: number[]
@@ -31,5 +30,3 @@ export function retryWithBackoff<T, P extends any[]>(
     });
   };
 }
-
-

@@ -1,16 +1,16 @@
-import retry from "async-retry";
-import { AxiosProgressEvent, RawAxiosRequestConfig } from "axios";
-import { debug as _debug } from "../../debug";
-import { getAxios } from "../../http/axios";
-import { error, warn } from "../../logger";
+import retry from 'async-retry';
+import { AxiosProgressEvent, RawAxiosRequestConfig } from 'axios';
+import { debug as _debug } from '../../debug';
+import { getAxios } from '../../http/axios';
+import { error, warn } from '../../logger';
 
-const debug = _debug.extend("upload");
+const debug = _debug.extend('upload');
 
 const UPLOAD_RETRY_COUNT = 5;
 
 export enum ContentType {
-  JSON = "application/json",
-  ZIP = "application/zip",
+  JSON = 'application/json',
+  ZIP = 'application/zip',
 }
 
 export type BufferUpload = {
@@ -23,9 +23,9 @@ export type BufferUpload = {
 export async function sendBuffer(
   upload: BufferUpload,
   contentType: string,
-  onUploadProgress: RawAxiosRequestConfig["onUploadProgress"]
+  onUploadProgress: RawAxiosRequestConfig['onUploadProgress']
 ) {
-  debug("Uploading buffer %s", upload.name, {
+  debug('Uploading buffer %s', upload.name, {
     buffer: Buffer.byteLength(upload.buffer),
   });
   return send(upload.buffer, upload.uploadUrl, contentType, onUploadProgress);
@@ -35,26 +35,26 @@ async function _send(
   buffer: Buffer,
   url: string,
   contentType: string,
-  onUploadProgress: RawAxiosRequestConfig["onUploadProgress"]
+  onUploadProgress: RawAxiosRequestConfig['onUploadProgress']
 ) {
   return getAxios().request({
-    method: "put",
+    method: 'put',
     url,
     data: buffer,
     onUploadProgress,
     headers: {
-      "Content-Disposition": `inline`,
-      "Content-Type": contentType,
+      'Content-Disposition': `inline`,
+      'Content-Type': contentType,
     },
   });
 }
 
 export async function download(
   url: string,
-  onDownloadProgress?: RawAxiosRequestConfig["onDownloadProgress"]
+  onDownloadProgress?: RawAxiosRequestConfig['onDownloadProgress']
 ): Promise<Buffer> {
   const response = await getAxios().get(url, {
-    responseType: "arraybuffer",
+    responseType: 'arraybuffer',
     onDownloadProgress,
   });
 
@@ -70,7 +70,7 @@ async function send(...args: Parameters<typeof _send>) {
       retries: UPLOAD_RETRY_COUNT,
       onRetry: (e: Error, retryCount: number) => {
         debug(
-          "Upload failed %d out of %d attempts: %s",
+          'Upload failed %d out of %d attempts: %s',
           retryCount,
           UPLOAD_RETRY_COUNT,
           e.message
@@ -92,7 +92,7 @@ export const getDefautUploadProgressHandler =
   ({ total, loaded }: AxiosProgressEvent) => {
     () => {
       debug(
-        "Uploading %s: %d / %d",
+        'Uploading %s: %d / %d',
         label,
         bytesToMb(loaded),
         bytesToMb(total ?? 0)
@@ -106,7 +106,7 @@ export const getDefaultDownloadProgressHandler =
     () => {
       const percentCompleted = total ? Math.round((loaded * 100) / total) : 0;
       debug(
-        "Downloaded %s: %d / %d (%d%)",
+        'Downloaded %s: %d / %d (%d%)',
         label,
         bytesToMb(loaded),
         bytesToMb(total ?? 0),

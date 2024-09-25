@@ -1,7 +1,7 @@
-import { Command } from "@commander-js/extra-typings";
-import { dim } from "@logger";
-import chalk from "chalk";
-import { getRunHandler } from "./get-run";
+import { Command } from '@commander-js/extra-typings';
+import { dim } from '@logger';
+import chalk from 'chalk';
+import { getRunHandler } from './get-run';
 import {
   apiKeyOption,
   branchOption,
@@ -11,12 +11,12 @@ import {
   projectOption,
   pwLastRunOption,
   tagOption,
-} from "./options";
+} from './options';
 
-const COMMAND_NAME = "api";
+const COMMAND_NAME = 'api';
 const getExample = (name: string) => `
 
-${chalk.bold("Examples")}
+${chalk.bold('Examples')}
 
 Obtain run data by --ci-build-id:
 ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`)}
@@ -33,7 +33,7 @@ export const getApiCommand = (name: string) => {
   const command = new Command()
     .command(COMMAND_NAME)
     .description(`Receive information from Currents API ${getExample(name)}`)
-    .showHelpAfterError("(add --help for additional information)")
+    .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
     .addCommand(getRunCommand());
 
@@ -42,7 +42,7 @@ export const getApiCommand = (name: string) => {
 
 export const getRunCommand = () => {
   const command = new Command()
-    .name("get-run")
+    .name('get-run')
     .allowUnknownOption()
     .addOption(apiKeyOption)
     .addOption(debugOption)

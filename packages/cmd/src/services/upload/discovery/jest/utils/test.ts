@@ -1,10 +1,10 @@
-import { Test, TestCaseResult } from "@jest/reporters";
-import type { Circus } from "@jest/types";
-import crypto from "node:crypto";
-import { getRelativeFileLocation } from "./fs";
+import { Test, TestCaseResult } from '@jest/reporters';
+import type { Circus } from '@jest/types';
+import crypto from 'node:crypto';
+import { getRelativeFileLocation } from './fs';
 
 export function getDefaultProjectId() {
-  return "root";
+  return 'root';
 }
 
 export function getProjectId(test: Test) {
@@ -34,16 +34,16 @@ export function getTestCaseId(
   const specName = testToSpecName(test);
 
   // Concatenate values
-  const combinedString: string = title.join(" ") + specName;
+  const combinedString: string = title.join(' ') + specName;
   // + testCaseResult.location?.column ??
   // "" + testCaseResult.location?.line ??
   // "";
 
   // Hash the combined string using SHA-256
   const fullHash: string = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(combinedString)
-    .digest("hex");
+    .digest('hex');
 
   // Take the first 16 characters of the hash
   const shortenedHash: string = fullHash.substring(0, 16);
@@ -52,12 +52,12 @@ export function getTestCaseId(
 }
 
 export function getTestTags(testTitle: string[]) {
-  const titleTags = (testTitle.join(" ").match(/@(\S+)/g) ?? [])
+  const titleTags = (testTitle.join(' ').match(/@(\S+)/g) ?? [])
     .filter(Boolean)
     .map((t) => t as string);
 
   return Array.from(
-    new Set([...titleTags].map((i) => i.trim()).map((i) => i.replace("@", "")))
+    new Set([...titleTags].map((i) => i.trim()).map((i) => i.replace('@', '')))
   );
 }
 
