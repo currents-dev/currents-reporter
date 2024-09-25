@@ -1,7 +1,7 @@
-import fs from "fs-extra";
-import path, { join, resolve } from "path";
-import { error } from "@logger";
-import { ReportOptions } from "./types";
+import fs from 'fs-extra';
+import path, { join, resolve } from 'path';
+import { error } from '@logger';
+import { ReportOptions } from './types';
 
 export async function resolveReportOptions(
   options?: ReportOptions
@@ -9,13 +9,13 @@ export async function resolveReportOptions(
   const reportDir = await findReportDir(options?.reportDir);
 
   if (!reportDir) {
-    throw new Error("Failed to find the report dir");
+    throw new Error('Failed to find the report dir');
   }
 
   return {
     reportDir,
     configFilePath:
-      options?.configFilePath ?? path.join(reportDir, "config.json"),
+      options?.configFilePath ?? path.join(reportDir, 'config.json'),
   };
 }
 
@@ -25,7 +25,7 @@ async function findReportDir(reportDir?: string): Promise<string | null> {
     return reportDir;
   }
 
-  return getLastCreatedDirectory(join(process.cwd(), ".currents"));
+  return getLastCreatedDirectory(join(process.cwd(), '.currents'));
 }
 
 async function getLastCreatedDirectory(dir: string): Promise<string | null> {
@@ -51,13 +51,13 @@ export async function checkPathExists(path: string): Promise<boolean> {
     const exists = await fs.pathExists(path);
     return exists;
   } catch (err) {
-    error("Error checking if path exists:", error);
+    error('Error checking if path exists:', error);
     return false;
   }
 }
 
 export async function getInstanceReportList(reportDir: string) {
-  const instancesDir = path.join(reportDir, "instances");
+  const instancesDir = path.join(reportDir, 'instances');
   return getAllFilePaths(instancesDir);
 }
 
@@ -76,5 +76,3 @@ async function getAllFilePaths(dir: string): Promise<string[]> {
 
   return filePaths;
 }
-
-

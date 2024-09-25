@@ -1,10 +1,10 @@
-import Archiver from "archiver";
-import fs from "fs-extra";
-import path from "path";
-import stream from "stream";
-import unzipper from "unzipper";
-import { ensurePathExists } from "../../lib";
-import { warn } from "../../logger";
+import Archiver from 'archiver';
+import fs from 'fs-extra';
+import path from 'path';
+import stream from 'stream';
+import unzipper from 'unzipper';
+import { ensurePathExists } from '../../lib';
+import { warn } from '../../logger';
 
 const MAX_ZIP_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -19,11 +19,11 @@ export async function zipFilesToBuffer(
   maxSize: number = MAX_ZIP_SIZE
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const archive = Archiver("zip", { zlib: { level: 9 } });
+    const archive = Archiver('zip', { zlib: { level: 9 } });
     const chunks: Buffer[] = [];
     let totalSize = 0;
 
-    archive.on("data", (chunk) => {
+    archive.on('data', (chunk) => {
       chunks.push(chunk);
       totalSize += chunk.length;
       if (totalSize > maxSize) {
@@ -31,17 +31,17 @@ export async function zipFilesToBuffer(
       }
     });
 
-    archive.on("warning", (err) => {
-      if (err.code === "ENOENT") {
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') {
         warn(err);
       } else {
         reject(err);
       }
     });
 
-    archive.on("error", (err) => reject(err));
+    archive.on('error', (err) => reject(err));
 
-    archive.on("end", () => {
+    archive.on('end', () => {
       const buffer = Buffer.concat(chunks);
       resolve(buffer);
     });
@@ -52,7 +52,7 @@ export async function zipFilesToBuffer(
       const relativePath = path.relative(baseDir, normalized);
       const stats = await fs.stat(relativePath);
       const dirname = path.dirname(relativePath);
-      const prefix = dirname === "." ? undefined : dirname;
+      const prefix = dirname === '.' ? undefined : dirname;
 
       if (stats.isDirectory()) {
         archive.directory(relativePath, relativePath, {
@@ -70,7 +70,7 @@ export async function zipFilesToBuffer(
 
     const processFiles = async (filePaths: string[]) => {
       for (const filePath of filePaths) {
-        if (filePath === ".") {
+        if (filePath === '.') {
           const subPaths = await fs.readdir(filePath);
           for (const filePath of subPaths) {
             await processFile(filePath);
@@ -89,10 +89,10 @@ export async function zipFilesToBuffer(
 
 export async function unzipBuffer(
   zipBuffer: Buffer,
-  outputDir: string,
+  outputDir: string
 ): Promise<void | { [fileName: string]: Buffer }> {
   return unzipper.Open.buffer(zipBuffer).then((d) =>
-    d.extract({ path: outputDir, concurrency: 3 }),
+    d.extract({ path: outputDir, concurrency: 3 })
   );
 }
 
@@ -102,7 +102,7 @@ export function filterPaths(filePaths: string[]) {
     const absolutePath = path.resolve(filePath);
     const relativePath = path.relative(baseDir, absolutePath);
 
-    if (filePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    if (filePath.startsWith('..') || path.isAbsolute(relativePath)) {
       warn(
         `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
       );

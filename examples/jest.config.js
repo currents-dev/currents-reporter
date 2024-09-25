@@ -2,18 +2,18 @@
 const config = {
   reporters: [
     // "default",
-    ["@currents/jest", {}],
+    ['@currents/jest', {}],
   ],
   projects: [
     {
-      displayName: "spec",
+      displayName: 'spec',
       testLocationInResults: true,
-      testMatch: ["<rootDir>/**/*.spec.ts"],
+      testMatch: ['<rootDir>/**/*.spec.ts'],
     },
     {
-      displayName: "test",
+      displayName: 'test',
       testLocationInResults: true,
-      testMatch: ["<rootDir>/**/*.test.ts"],
+      testMatch: ['<rootDir>/**/*.test.ts'],
     },
   ],
 };

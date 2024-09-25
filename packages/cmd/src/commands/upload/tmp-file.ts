@@ -1,4 +1,4 @@
-import { file } from "tmp-promise";
+import { file } from 'tmp-promise';
 
 export const createTempFile = async () => {
   const { path } = await file();

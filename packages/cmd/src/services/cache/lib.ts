@@ -1,6 +1,6 @@
-import path from "path";
-import { CacheSetCommandConfig } from "../../config/cache";
-import { warnWithNoTrace } from "../../logger";
+import path from 'path';
+import { CacheSetCommandConfig } from '../../config/cache';
+import { warnWithNoTrace } from '../../logger';
 
 export type MetaFile = {
   id: string;
@@ -37,12 +37,12 @@ export function createMeta({
 }
 
 export const getLastRunFilePath = (output?: string) =>
-  path.resolve(output ?? "test-results", ".last-run.json");
+  path.resolve(output ?? 'test-results', '.last-run.json');
 
 export function warn(error: unknown, msg: string) {
   if (error instanceof Error) {
-    warnWithNoTrace("%s. %s.", msg, error.message);
+    warnWithNoTrace('%s. %s.', msg, error.message);
   } else {
-    warnWithNoTrace("%s. %s.", msg, "Unknown error");
+    warnWithNoTrace('%s. %s.', msg, 'Unknown error');
   }
 }

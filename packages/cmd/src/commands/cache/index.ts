@@ -1,7 +1,7 @@
-import { Command } from "@commander-js/extra-typings";
-import { dim } from "@logger";
-import chalk from "chalk";
-import { getCacheGetHandler } from "./get";
+import { Command } from '@commander-js/extra-typings';
+import { dim } from '@logger';
+import chalk from 'chalk';
+import { getCacheGetHandler } from './get';
 import {
   debugOption,
   idOption,
@@ -12,13 +12,13 @@ import {
   pwConfigDumpOption,
   pwOutputDirOption,
   recordKeyOption,
-} from "./options";
-import { getCacheSetHandler } from "./set";
+} from './options';
+import { getCacheSetHandler } from './set';
 
-const COMMAND_NAME = "cache";
+const COMMAND_NAME = 'cache';
 const getExample = (name: string) => `
 
-${chalk.bold("Examples")}
+${chalk.bold('Examples')}
 
 Save files to the cache under a specific ID:
 ${dim(`${name} ${COMMAND_NAME} set --key <record-key> --id <id> --paths <path-1,path-2,...path-n>`)}
@@ -41,7 +41,7 @@ export const getCacheCommand = (name: string) => {
   const command = new Command()
     .command(COMMAND_NAME)
     .description(`Cache data to Currents ${getExample(name)}`)
-    .showHelpAfterError("(add --help for additional information)")
+    .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
     .addCommand(getCacheSetCommand())
     .addCommand(getCacheGetCommand());
@@ -51,7 +51,7 @@ export const getCacheCommand = (name: string) => {
 
 export const getCacheSetCommand = () => {
   const command = new Command()
-    .name("set")
+    .name('set')
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
@@ -67,13 +67,13 @@ export const getCacheSetCommand = () => {
 
 export const getCacheGetCommand = () => {
   const command = new Command()
-    .name("get")
+    .name('get')
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
     .addOption(presetOption)
     .addOption(outputDirOption)
-    .addOption(pwOutputDirOption.conflicts("output-dir"))
+    .addOption(pwOutputDirOption.conflicts('output-dir'))
     .addOption(pwConfigDumpOption)
     .addOption(debugOption)
     .action(getCacheGetHandler);

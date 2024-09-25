@@ -1,57 +1,57 @@
-import { CacheCommandConfig } from "./config";
+import { CacheCommandConfig } from './config';
 
 const cacheCommandConfigKeys = {
   recordKey: {
-    name: "Record Key",
-    env: "CURRENTS_RECORD_KEY",
-    cli: "--key",
+    name: 'Record Key',
+    env: 'CURRENTS_RECORD_KEY',
+    cli: '--key',
   },
   debug: {
-    name: "Debug",
-    env: "CURRENTS_DEBUG",
-    cli: "--debug",
+    name: 'Debug',
+    env: 'CURRENTS_DEBUG',
+    cli: '--debug',
   },
 } as const;
 
 const cacheSetCommandConfigKeys = {
   id: {
-    name: "Cache id",
-    cli: "--id",
+    name: 'Cache id',
+    cli: '--id',
   },
   preset: {
-    name: "Preset",
-    cli: "--preset",
+    name: 'Preset',
+    cli: '--preset',
   },
   pwOutputDir: {
-    name: "Playwright output directory",
-    cli: "--pw-output-dir",
+    name: 'Playwright output directory',
+    cli: '--pw-output-dir',
   },
   pwConfigDump: {
-    name: "Playwright config dump",
-    cli: "--pw-config-dump",
+    name: 'Playwright config dump',
+    cli: '--pw-config-dump',
   },
   paths: {
-    name: "Paths to cache",
-    cli: "--paths",
+    name: 'Paths to cache',
+    cli: '--paths',
   },
 } as const;
 
 const cacheGetCommandConfigKeys = {
   id: {
-    name: "Cache id",
-    cli: "--id",
+    name: 'Cache id',
+    cli: '--id',
   },
   preset: {
-    name: "Preset",
-    cli: "--preset",
+    name: 'Preset',
+    cli: '--preset',
   },
   pwOutputDir: {
-    name: "Playwright output directory",
-    cli: "--pw-output-dir",
+    name: 'Playwright output directory',
+    cli: '--pw-output-dir',
   },
   outputDir: {
-    name: "Custom directory to write output",
-    cli: "--output-dir",
+    name: 'Custom directory to write output',
+    cli: '--output-dir',
   },
 } as const;
 

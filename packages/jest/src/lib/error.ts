@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { codeFrameColumns } from "@babel/code-frame";
-import chalk from "chalk";
-import fs from "fs-extra";
-import path from "path";
-import StackUtils from "stack-utils";
-import url from "url";
-import { ErrorSchema, LocationSchema } from "../types";
+import { codeFrameColumns } from '@babel/code-frame';
+import chalk from 'chalk';
+import fs from 'fs-extra';
+import path from 'path';
+import StackUtils from 'stack-utils';
+import url from 'url';
+import { ErrorSchema, LocationSchema } from '../types';
 
 function parseErrorString(errorString: string) {
   // Remove ANSI escape codes for easier parsing
-  const cleanString = errorString.replace(/\u001b\[[0-9;]*m/g, "");
+  const cleanString = errorString.replace(/\u001b\[[0-9;]*m/g, '');
 
   // Extract the error name, message, and stack trace
   const nameMatch = cleanString.match(/^(.+?):/);
@@ -38,7 +38,7 @@ function parseErrorString(errorString: string) {
   const codeFrameMatch = cleanString.match(/at (.+):(\d+):(\d+)/);
   const fileWithFunction = codeFrameMatch ? codeFrameMatch[1] : null;
   const file = fileWithFunction
-    ? fileWithFunction.replace(/^.*\(([^)]+)\).*$/, "$1")
+    ? fileWithFunction.replace(/^.*\(([^)]+)\).*$/, '$1')
     : null;
   const line = codeFrameMatch ? parseInt(codeFrameMatch[2], 10) : null;
   const column = codeFrameMatch ? parseInt(codeFrameMatch[3], 10) : null;
@@ -94,10 +94,10 @@ function prepareErrorStack(stack: string): {
   stackLines: string[];
   location?: LocationSchema;
 } {
-  const lines = stack.split("\n");
-  let firstStackLine = lines.findIndex((line) => line.startsWith("    at "));
+  const lines = stack.split('\n');
+  let firstStackLine = lines.findIndex((line) => line.startsWith('    at '));
   if (firstStackLine === -1) firstStackLine = lines.length;
-  const message = lines.slice(0, firstStackLine).join("\n");
+  const message = lines.slice(0, firstStackLine).join('\n');
   const stackLines = lines.slice(firstStackLine);
   let location: LocationSchema | undefined;
   for (const line of stackLines) {
@@ -124,7 +124,7 @@ function parseStackTraceLine(line: string): {
   let fileName: string | null = null;
   if (frame.file) {
     // ESM files return file:// URLs, see here: https://github.com/tapjs/stack-utils/issues/60
-    fileName = frame.file.startsWith("file://")
+    fileName = frame.file.startsWith('file://')
       ? url.fileURLToPath(frame.file)
       : path.resolve(process.cwd(), frame.file);
   }
@@ -156,20 +156,20 @@ export function formatError(
         !error.snippet &&
         (!file || fs.realpathSync(file) !== location.file)
       ) {
-        tokens.push("");
+        tokens.push('');
         tokens.push(
           chalk.gray(`   at `) +
             `${relativeFilePath(rootDir, location.file)}:${location.line}`
         );
       }
-      tokens.push("");
+      tokens.push('');
       // @ts-ignore
       if (error.snippet) {
         // @ts-ignore
         tokens.push(error.snippet);
       } else {
         try {
-          const source = fs.readFileSync(location.file, "utf8");
+          const source = fs.readFileSync(location.file, 'utf8');
           const codeFrame = codeFrameColumns(
             source,
             { start: location },
@@ -181,8 +181,8 @@ export function formatError(
         }
       }
     }
-    tokens.push("");
-    tokens.push(parsed.stackLines.join("\n"));
+    tokens.push('');
+    tokens.push(parsed.stackLines.join('\n'));
   } else if (error.message) {
     tokens.push(error.message);
     // @ts-ignore
@@ -192,7 +192,7 @@ export function formatError(
   }
   return {
     location,
-    message: tokens.join("\n"),
+    message: tokens.join('\n'),
   };
 }
 
