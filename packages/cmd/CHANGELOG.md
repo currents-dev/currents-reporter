@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.12](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.11...${npm.name}-v1.1.0-beta.12) (2024-09-25)
+
+
+### Bug Fixes
+
+* rename variable ([68229ed](https://github.com/currents-dev/currents-reporter/commit/68229ed8c99a0f5881459abd462a9cbd1269fb9f))
+
 # [1.1.0-beta.11](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.10...${npm.name}-v1.1.0-beta.11) (2024-09-25)
 
 
