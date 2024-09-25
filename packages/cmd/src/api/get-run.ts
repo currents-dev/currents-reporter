@@ -1,8 +1,8 @@
-import { debug as _debug } from '../debug';
-import { makeRequest } from '../http';
-import { ClientType } from '../http/client';
+import { debug as _debug } from "../debug";
+import { makeRequest } from "../http";
+import { ClientType } from "../http/client";
 
-const debug = _debug.extend('api');
+const debug = _debug.extend("api");
 
 export type GetRunParams = {
   projectId: string;
@@ -18,24 +18,24 @@ export type GetRunResponse<
   },
 > = {
   data: T;
-  status: 'OK';
+  status: "OK";
 };
 
 export async function getRun(apiKey: string, params: GetRunParams) {
   try {
-    debug('Run params: %o', params);
+    debug("Run params: %o", params);
 
     return makeRequest<GetRunResponse>(ClientType.REST_API, {
       url: `v1/runs/previous`,
       params,
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
     }).then((res) => res.data);
   } catch (err) {
-    debug('Failed to obtain run data:', err);
+    debug("Failed to obtain run data:", err);
     throw err;
   }
 }

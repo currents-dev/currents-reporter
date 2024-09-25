@@ -1,8 +1,8 @@
-import { Config } from '@jest/types';
-import { ReportConfig } from '../../types';
-import { FullTestSuite } from '../types';
-import { jestScanner } from './scanner';
-import { Scanner } from '../scanner';
+import { Config } from "@jest/types";
+import { ReportConfig } from "../../types";
+import { FullTestSuite } from "../types";
+import { jestScanner } from "./scanner";
+import { Scanner } from "../scanner";
 
 export class JestScanner extends Scanner {
   constructor(config: ReportConfig) {

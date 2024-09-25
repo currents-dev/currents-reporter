@@ -1,26 +1,27 @@
-import { debug, enableDebug } from '@debug';
-import { createCache } from '../../api';
-import { PRESETS } from '../../commands/cache/options';
-import { getCacheCommandConfig } from '../../config/cache';
-import { getCI } from '../../env/ciProvider';
-import { filterPaths, zipFilesToBuffer } from './fs';
-import { createMeta, getLastRunFilePath, warn } from './lib';
+import { debug, enableDebug } from "@debug";
+import { createCache } from "../../api";
+import { PRESETS } from "../../commands/cache/options";
+import { getCacheCommandConfig } from "../../config/cache";
+import { getCI } from "../../env/ciProvider";
+import { filterPaths, zipFilesToBuffer } from "./fs";
+import { createMeta, getLastRunFilePath, warn } from "./lib";
 import {
   ContentType,
   getDefautUploadProgressHandler,
   sendBuffer,
-} from './network';
+} from "./network";
 
 export async function handleSetCache() {
   try {
     const config = getCacheCommandConfig();
-    if (config.type !== 'SET_COMMAND_CONFIG' || !config.values) {
-      throw new Error('Config is missing!');
+    if (config.type !== "SET_COMMAND_CONFIG" || !config.values) {
+      throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, preset, pwOutputDir, includeHidden } = config.values;
+    const { recordKey, id, debug, preset, pwOutputDir, includeHidden } =
+      config.values;
 
-    if (config.values.debug) {
+    if (debug) {
       enableDebug();
     }
 
@@ -33,7 +34,6 @@ export async function handleSetCache() {
     }
 
     const ci = getCI();
-    debug('CI: %O', ci);
 
     if (preset === PRESETS.lastRun) {
       const lastRunPath = getLastRunFilePath(pwOutputDir);
@@ -41,7 +41,7 @@ export async function handleSetCache() {
     }
 
     if (uploadPaths.length === 0) {
-      throw new Error('No paths available to upload');
+      throw new Error("No paths available to upload");
     }
 
     const result = await createCache({
@@ -68,7 +68,7 @@ export async function handleSetCache() {
       uploadUrl: result.metaUploadUrl,
     });
   } catch (e) {
-    warn(e, 'Failed to save cache');
+    warn(e, "Failed to save cache");
   }
 }
 
@@ -93,9 +93,9 @@ async function handleArchiveUpload({
       contentType,
       getDefautUploadProgressHandler(cacheId)
     );
-    debug('Cache archive uploaded', { cacheId });
+    debug("Cache archive uploaded", { cacheId });
   } catch (error) {
-    debug('Failed to upload cache archive', error);
+    debug("Failed to upload cache archive", error);
     throw error;
   }
 }
@@ -123,9 +123,9 @@ async function handleMetaUpload({
       getDefautUploadProgressHandler(name)
     );
 
-    debug('Cache meta uploaded', { cacheId });
+    debug("Cache meta uploaded", { cacheId });
   } catch (error) {
-    debug('Failed to upload cache meta', error);
+    debug("Failed to upload cache meta", error);
     throw error;
   }
 }

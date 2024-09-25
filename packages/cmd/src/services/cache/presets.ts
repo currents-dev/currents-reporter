@@ -1,22 +1,21 @@
-import { debug } from '@debug';
-import _ from 'lodash';
-import { PW_CONFIG_DUMP_FILE } from '../../commands/cache/options';
+import _ from "lodash";
+import { PW_CONFIG_DUMP_FILE } from "../../commands/cache/options";
 
-import { CacheGetCommandConfig } from '../../config/cache';
-import { getCI } from '../../env/ciProvider';
-import { GithubActionsParams } from '../../env/types';
-import { writeFileAsync } from '../../lib';
-import { MetaFile } from './lib';
+import { CacheGetCommandConfig } from "../../config/cache";
+import { getCI } from "../../env/ciProvider";
+import { GithubActionsParams } from "../../env/types";
+import { writeFileAsync } from "../../lib";
+import { MetaFile } from "./lib";
 
 export async function handlePreLastRunPreset(
   config: CacheGetCommandConfig,
-  ci: ReturnType<typeof getCI>
+  ci: ReturnType<typeof getCI>,
 ) {
   switch (ci.provider) {
-    case 'githubActions':
+    case "githubActions":
       await dumpPWConfigForGHA(config, ci);
       break;
-    case 'gitlab':
+    case "gitlab":
       await dumpPwConfigForGitlab(config, ci);
       break;
     default:
@@ -27,10 +26,10 @@ export async function handlePreLastRunPreset(
 export async function handlePostLastRunPreset(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
-  meta: MetaFile
+  meta: MetaFile,
 ) {
   switch (ci.provider) {
-    case 'gitlab':
+    case "gitlab":
       await dumpPwConfigForGitlab(config, ci, meta);
       break;
     default:
@@ -41,7 +40,7 @@ export async function handlePostLastRunPreset(
 async function dumpPwConfigForGitlab(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
-  meta: MetaFile | null = null
+  meta: MetaFile | null = null,
 ) {
   const previousRunAttempt = meta
     ? parseIntSafe(meta.ci.params?.runAttempt, 0)
@@ -50,17 +49,17 @@ async function dumpPwConfigForGitlab(
   const nodeIndex = parseIntSafe(process.env.CI_NODE_INDEX, 1);
   const jobTotal = parseIntSafe(process.env.CI_NODE_TOTAL, 1);
 
-  const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
+  const lastFailedOption = runAttempt > 1 ? "--last-failed" : "";
 
-  let shardOption = '';
+  let shardOption = "";
   if (jobTotal > 1) {
     shardOption =
-      runAttempt > 1 ? '--shard=1/1' : `--shard=${nodeIndex}/${jobTotal}`;
+      runAttempt > 1 ? "--shard=1/1" : `--shard=${nodeIndex}/${jobTotal}`;
   }
 
   const pwCliOptions = [lastFailedOption, shardOption]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   await writeFileAsync(
     config.pwConfigDump ?? PW_CONFIG_DUMP_FILE,
@@ -68,13 +67,13 @@ async function dumpPwConfigForGitlab(
 EXTRA_PW_FLAGS="${pwCliOptions}"
 EXTRA_PWCP_FLAGS="${lastFailedOption}"
 RUN_ATTEMPT="${runAttempt}"
-`
+`,
   );
 }
 
 async function dumpPWConfigForGHA(
   config: CacheGetCommandConfig,
-  ci: ReturnType<typeof getCI>
+  ci: ReturnType<typeof getCI>,
 ) {
   const ciParams = ci.params as GithubActionsParams;
   const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
@@ -83,7 +82,7 @@ async function dumpPWConfigForGHA(
 
   const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
 
-  let shardOption = '';
+  let shardOption = "";
   if (jobTotal > 1) {
     // GH_STRATEGY_JOB_INDEX is 0-based, but --shard is 1-based
     const currentShard = jobIndex + 1;
@@ -94,16 +93,16 @@ async function dumpPWConfigForGHA(
 
   const pwCliOptions = [lastFailedOption, shardOption]
     .filter(Boolean)
-    .join(' ');
-
-  const dumpPath = config.pwConfigDump ?? PW_CONFIG_DUMP_FILE;
-  await writeFileAsync(dumpPath, pwCliOptions);
-  debug('Dumped PW config: "%s" for GHA to %s', pwCliOptions, dumpPath);
+    .join(" ");
+  await writeFileAsync(
+    config.pwConfigDump ?? PW_CONFIG_DUMP_FILE,
+    pwCliOptions,
+  );
 }
 
 const parseIntSafe = (
   value: string | undefined,
-  defaultValue: number
+  defaultValue: number,
 ): number => {
   const parsed = _.toNumber(value);
   return _.isNaN(parsed) ? defaultValue : parsed;

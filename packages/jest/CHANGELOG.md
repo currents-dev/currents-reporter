@@ -8,9 +8,10 @@
 
 # [1.0.0-beta.5](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.0.0-beta.4...${npm.name}-v1.0.0-beta.5) (2024-07-16)
 
+
 ### Bug Fixes
 
-- include test case location in the report, when available ([#3](https://github.com/currents-dev/currents-reporter/issues/3)) ([f074021](https://github.com/currents-dev/currents-reporter/commit/f074021627ba44d130abeea0d608edf71440840a))
+* include test case location in the report, when available ([#3](https://github.com/currents-dev/currents-reporter/issues/3)) ([f074021](https://github.com/currents-dev/currents-reporter/commit/f074021627ba44d130abeea0d608edf71440840a))
 
 # [1.0.0-beta.4](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.0.0-beta.3...${npm.name}-v1.0.0-beta.4) (2024-07-10)
 

@@ -1,7 +1,7 @@
 // @ts-ignore
-import { commitInfo } from '@currents/commit-info';
-import { memoize } from 'lodash';
-import { mergeGitCommit } from './git-ci-provider';
+import { commitInfo } from "@currents/commit-info";
+import { memoize } from "lodash";
+import { mergeGitCommit } from "./git-ci-provider";
 
 export type GhaEventData = {
   headRef: string;

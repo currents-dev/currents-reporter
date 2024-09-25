@@ -1,21 +1,21 @@
-import { debug, enableDebug } from '@debug';
-import { retrieveCache } from '../../api';
-import { PRESETS } from '../../commands/cache/options';
-import { getCacheCommandConfig } from '../../config/cache';
-import { getCI } from '../../env/ciProvider';
-import { unzipBuffer } from './fs';
-import { MetaFile, warn } from './lib';
-import { download } from './network';
-import { handlePostLastRunPreset, handlePreLastRunPreset } from './presets';
+import { debug, enableDebug } from "@debug";
+import { retrieveCache } from "../../api";
+import { PRESETS } from "../../commands/cache/options";
+import { getCacheCommandConfig } from "../../config/cache";
+import { getCI } from "../../env/ciProvider";
+import { unzipBuffer } from "./fs";
+import { MetaFile, warn } from "./lib";
+import { download } from "./network";
+import { handlePostLastRunPreset, handlePreLastRunPreset } from "./presets";
 
 export async function handleGetCache() {
   try {
     const config = getCacheCommandConfig();
-    if (config.type !== 'GET_COMMAND_CONFIG' || !config.values) {
-      throw new Error('Config is missing!');
+    if (config.type !== "GET_COMMAND_CONFIG" || !config.values) {
+      throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, preset } = config.values;
+    const { recordKey, id, preset  } = config.values;
     const outputDir = config.values.outputDir ?? config.values.pwOutputDir;
 
     if (config.values.debug) {
@@ -23,7 +23,6 @@ export async function handleGetCache() {
     }
 
     const ci = getCI();
-    debug('CI: %O', ci);
 
     if (preset === PRESETS.lastRun) {
       await handlePreLastRunPreset(config.values, ci);
@@ -46,7 +45,7 @@ export async function handleGetCache() {
       await handlePostLastRunPreset(config.values, ci, meta);
     }
   } catch (e) {
-    warn(e, 'Failed to obtain cache');
+    warn(e, "Failed to obtain cache");
   }
 }
 
@@ -60,9 +59,9 @@ async function handleArchiveDownload({
   try {
     const buffer = await download(readUrl);
     await unzipBuffer(buffer, outputDir || '.');
-    debug('Cache downloaded');
+    debug("Cache downloaded");
   } catch (error) {
-    debug('Failed to recreate cache from archive');
+    debug("Failed to recreate cache from archive");
     throw error;
   }
 }
@@ -70,11 +69,12 @@ async function handleArchiveDownload({
 async function handleMetaDownload(readUrl: string) {
   try {
     const buffer = await download(readUrl);
-    const meta = JSON.parse(buffer.toString('utf-8')) as MetaFile;
-    debug('Meta file: %O', meta);
+    const meta = JSON.parse(buffer.toString("utf-8")) as MetaFile;
+    console.log(meta);
+    debug("Meta file: %O", meta);
     return meta;
   } catch (error) {
-    debug('Failed to handle the meta');
+    debug("Failed to handle the meta");
     throw error;
   }
 }

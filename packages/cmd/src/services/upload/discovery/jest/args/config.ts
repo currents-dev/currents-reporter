@@ -1,13 +1,13 @@
-import { debug as _debug } from '@debug';
-import { error } from '@logger';
-import fs from 'fs';
-import { readInitialOptions } from 'jest-config';
-import { omit } from 'lodash';
-import path from 'path';
-import { retryWithBackoff } from '../utils';
-import { readFileContents } from '../utils/fs';
+import { debug as _debug } from "@debug";
+import { error } from "@logger";
+import fs from "fs";
+import { readInitialOptions } from "jest-config";
+import { omit } from "lodash";
+import path from "path";
+import { retryWithBackoff } from "../utils";
+import { readFileContents } from "../utils/fs";
 
-const debug = _debug.extend('jest-discovery');
+const debug = _debug.extend("jest-discovery");
 
 export async function getConfigFilePath(
   explicitConfigFilePath?: string
@@ -19,63 +19,63 @@ export async function getConfigFilePath(
 
     const configOptionsToAvoid = [
       // from docs: https://jestjs.io/docs/configuration
-      'collectCoverage',
-      'collectCoverageFrom',
-      'coverageDirectory',
-      'coveragePathIgnorePatterns',
-      'coverageProvider',
-      'coverageReporters',
-      'coverageThreshold',
-      'errorOnDeprecated',
-      'forceCoverageMatch',
-      'notify',
-      'notifyMode',
-      'openHandlesTimeout',
-      'reporters',
-      'runner',
-      'showSeed',
-      'testFailureExitCode',
-      'verbose',
-      'watchPathIgnorePatterns',
-      'watchPlugins',
-      'watchman',
+      "collectCoverage",
+      "collectCoverageFrom",
+      "coverageDirectory",
+      "coveragePathIgnorePatterns",
+      "coverageProvider",
+      "coverageReporters",
+      "coverageThreshold",
+      "errorOnDeprecated",
+      "forceCoverageMatch",
+      "notify",
+      "notifyMode",
+      "openHandlesTimeout",
+      "reporters",
+      "runner",
+      "showSeed",
+      "testFailureExitCode",
+      "verbose",
+      "watchPathIgnorePatterns",
+      "watchPlugins",
+      "watchman",
 
       // from Config type
-      'bail', // causes unexpected behaviour
-      'clearCache',
-      'color',
-      'colors',
-      'debug',
-      'detectLeaks',
-      'detectOpenHandles',
-      'expand',
-      'forceExit',
-      'json',
-      'listTests',
-      'logHeapUsage',
-      'noStackTrace',
-      'outputFile',
-      'shard',
-      'showConfig',
-      'silent',
-      'testNamePattern',
-      'waitNextEventLoopTurnForUnhandledRejectionEvents',
-      'watch',
-      'watchAll',
+      "bail", // causes unexpected behaviour
+      "clearCache",
+      "color",
+      "colors",
+      "debug",
+      "detectLeaks",
+      "detectOpenHandles",
+      "expand",
+      "forceExit",
+      "json",
+      "listTests",
+      "logHeapUsage",
+      "noStackTrace",
+      "outputFile",
+      "shard",
+      "showConfig",
+      "silent",
+      "testNamePattern",
+      "waitNextEventLoopTurnForUnhandledRejectionEvents",
+      "watch",
+      "watchAll",
     ];
 
     // from InitialProjectOptions type
     const projectConfigOptionsToAvoid = [
-      'collectCoverageFrom',
-      'coverageDirectory',
-      'coveragePathIgnorePatterns',
-      'detectLeaks',
-      'detectOpenHandles',
-      'errorOnDeprecated',
-      'forceCoverageMatch',
-      'openHandlesTimeout',
-      'runner',
-      'watchPathIgnorePatterns',
+      "collectCoverageFrom",
+      "coverageDirectory",
+      "coveragePathIgnorePatterns",
+      "detectLeaks",
+      "detectOpenHandles",
+      "errorOnDeprecated",
+      "forceCoverageMatch",
+      "openHandlesTimeout",
+      "runner",
+      "watchPathIgnorePatterns",
     ];
 
     const parsedConfigObject = omit(initialConfig, configOptionsToAvoid);
@@ -83,7 +83,7 @@ export async function getConfigFilePath(
     if (parsedConfigObject.projects) {
       parsedConfigObject.projects = parsedConfigObject.projects.map(
         (project) =>
-          typeof project !== 'string'
+          typeof project !== "string"
             ? omit(project, projectConfigOptionsToAvoid)
             : project
       );
@@ -102,7 +102,7 @@ export async function getConfigFilePath(
     );
 
     const configFileContents = `module.exports=${JSON.stringify(parsedConfigObject, null, 2)}`;
-    debug('configFileContent: %O', configFileContents);
+    debug("configFileContent: %O", configFileContents);
     fs.writeFileSync(tmpFilePath, configFileContents);
 
     await retryWithBackoff(
@@ -112,8 +112,8 @@ export async function getConfigFilePath(
 
     return tmpFilePath;
   } catch (err) {
-    error('Failed to recreate the config file');
-    debug('error %o', err);
+    error("Failed to recreate the config file");
+    debug("error %o", err);
     return null;
   }
 }

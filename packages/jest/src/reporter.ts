@@ -7,10 +7,10 @@ import type {
   TestCaseResult,
   TestContext,
   TestResult,
-} from '@jest/reporters';
-import { Circus } from '@jest/types';
+} from "@jest/reporters";
+import { Circus } from "@jest/types";
 
-import { join } from 'path';
+import { join } from "path";
 import {
   Deferred,
   createFolder,
@@ -31,10 +31,10 @@ import {
   jestStatusFromInvocations,
   testToSpecName,
   writeFileAsync,
-} from './lib';
-import { getReportConfig } from './lib/getReportConfig';
-import { info } from './logger';
-import { InstanceReport, JestTestCaseStatus, WorkerInfo } from './types';
+} from "./lib";
+import { getReportConfig } from "./lib/getReportConfig";
+import { info } from "./logger";
+import { InstanceReport, JestTestCaseStatus, WorkerInfo } from "./types";
 
 type TestCase = {
   id: string;
@@ -42,7 +42,7 @@ type TestCase = {
   title: string[];
   result: TestCaseResult[];
   worker: WorkerInfo;
-  config: Test['context']['config'];
+  config: Test["context"]["config"];
   location?: {
     column?: number;
     line?: number;
@@ -63,8 +63,8 @@ type ReporterOptions = {
 
 export default class CustomReporter implements Reporter {
   private rootDir: string;
-  private reportDir: string = '';
-  private instancesDir: string = '';
+  private reportDir: string = "";
+  private instancesDir: string = "";
   private specInfo: Record<string, SpecInfo> = {};
   private projectBySpecMap: Record<string, string> = {};
   private specsCount = 0;
@@ -87,25 +87,25 @@ export default class CustomReporter implements Reporter {
     aggregatedResults: AggregatedResult,
     options: ReporterOnStartOptions
   ): Promise<void> {
-    debug('Run started');
+    debug("Run started");
 
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
     this.reportDir = this.options?.reportDir
       ? await createFolder(this.options.reportDir)
-      : await createUniqueFolder(this.rootDir, '.currents');
+      : await createUniqueFolder(this.rootDir, ".currents");
 
-    info('[currents]: Run started');
-    info('[currents]: Report directory is set to - %s', this.reportDir);
+    info("[currents]: Run started");
+    info("[currents]: Report directory is set to - %s", this.reportDir);
 
-    this.instancesDir = await createFolder(join(this.reportDir, 'instances'));
+    this.instancesDir = await createFolder(join(this.reportDir, "instances"));
 
     const reportConfig = getReportConfig(this.globalConfig);
-    debug('Report config:', reportConfig);
+    debug("Report config:", reportConfig);
 
     await writeFileAsync(
       this.reportDir,
-      'config.json',
+      "config.json",
       JSON.stringify(reportConfig)
     );
 
@@ -130,7 +130,7 @@ export default class CustomReporter implements Reporter {
 
     this.specInfoDeferred[specKey] = new Deferred<void>();
     this.specInfoDeferred[specKey].resolve();
-    debug('Spec execution started [%s]: %o', specName, this.specInfo[specKey]);
+    debug("Spec execution started [%s]: %o", specName, this.specInfo[specKey]);
   }
 
   /**
@@ -181,7 +181,7 @@ export default class CustomReporter implements Reporter {
     }
 
     debug(
-      'Test case execution started [%s]: %o',
+      "Test case execution started [%s]: %o",
       testId,
       this.specInfo[specKey].testCaseList[testCaseKey]
     );
@@ -219,7 +219,7 @@ export default class CustomReporter implements Reporter {
         location: testCaseResult.location,
       };
       debug(
-        'Test case execution was skipped [%s]: %o',
+        "Test case execution was skipped [%s]: %o",
         testId,
         this.specInfo[specKey].testCaseList[testCaseKey]
       );
@@ -232,7 +232,7 @@ export default class CustomReporter implements Reporter {
     this.resultsDeferred[testCaseKey] = new Deferred<void>();
     this.resultsDeferred[testCaseKey].resolve();
     debug(
-      'Test case execution completed [%s]: %o',
+      "Test case execution completed [%s]: %o",
       testId,
       this.specInfo[specKey].testCaseList[testCaseKey]
     );
@@ -244,7 +244,7 @@ export default class CustomReporter implements Reporter {
     const specKey = getSpecKey(projectId, specName);
 
     debug(
-      'Spec execution completed [%s], jest test result: %o',
+      "Spec execution completed [%s], jest test result: %o",
       specName,
       testResult
     );
@@ -267,7 +267,7 @@ export default class CustomReporter implements Reporter {
         this.resultsDeferred[testCaseKey].resolve();
 
         debug(
-          'Spec execution completed [%s][%s], adding skipped tests: %o',
+          "Spec execution completed [%s][%s], adding skipped tests: %o",
           specName,
           testId,
           this.specInfo[specKey].testCaseList[testCaseKey]
@@ -370,7 +370,7 @@ export default class CustomReporter implements Reporter {
     };
 
     debug(
-      'Spec execution completed [%s], result payload: %o',
+      "Spec execution completed [%s], result payload: %o",
       specName,
       result
     );
@@ -391,7 +391,7 @@ export default class CustomReporter implements Reporter {
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
-    info('[currents]: Run completed');
+    info("[currents]: Run completed");
   }
 }
 

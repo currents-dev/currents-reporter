@@ -1,17 +1,17 @@
-import { debug as _debug } from '@debug';
-import { getCacheGetCommand } from '.';
+import { debug as _debug } from "@debug";
+import { getCacheGetCommand } from ".";
 import {
   cacheGetCommandOptsToConfig,
   getCacheCommandConfig,
   setCacheGetCommandConfig,
-} from '../../config/cache';
-import { handleGetCache } from '../../services';
-import { commandHandler } from '../utils';
+} from "../../config/cache";
+import { handleGetCache } from "../../services";
+import { commandHandler } from "../utils";
 
-const debug = _debug.extend('cli');
+const debug = _debug.extend("cli");
 
 export type CacheGetCommandOpts = ReturnType<
-  ReturnType<typeof getCacheGetCommand>['opts']
+  ReturnType<typeof getCacheGetCommand>["opts"]
 >;
 
 export async function getCacheGetHandler(options: CacheGetCommandOpts) {
@@ -19,9 +19,9 @@ export async function getCacheGetHandler(options: CacheGetCommandOpts) {
     setCacheGetCommandConfig(cacheGetCommandOptsToConfig(opts));
     const config = getCacheCommandConfig();
 
-    debug('Config: %o', {
+    debug("Config: %o", {
       ...config.values,
-      recordKey: config.values?.recordKey ? '*****' : undefined,
+      recordKey: config.values?.recordKey ? "*****" : undefined,
     });
 
     await handleGetCache();

@@ -1,9 +1,9 @@
-import { debug as _debug } from '@debug';
+import { debug as _debug } from "@debug";
 
-import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { getValidatedConfig } from "../utils";
+import { configKeys, getEnvVariables } from "./env";
 
-const debug = _debug.extend('config');
+const debug = _debug.extend("config");
 
 export type CurrentsConfig = {
   /**
@@ -52,11 +52,11 @@ export type CurrentsConfig = {
   debug?: boolean;
 };
 
-type MandatoryCurrentsConfigKeys = 'projectId' | 'recordKey';
+type MandatoryCurrentsConfigKeys = "projectId" | "recordKey";
 
 const mandatoryConfigKeys: MandatoryCurrentsConfigKeys[] = [
-  'projectId',
-  'recordKey',
+  "projectId",
+  "recordKey",
 ];
 
 let _config: CurrentsConfig | null = null;
@@ -72,7 +72,7 @@ export function setCurrentsConfig(reporterOptions?: Partial<CurrentsConfig>) {
     getEnvVariables,
     reporterOptions
   );
-  debug('Resolved Currents config: %o', _config);
+  debug("Resolved Currents config: %o", _config);
 }
 
 export function getCurrentsConfig() {

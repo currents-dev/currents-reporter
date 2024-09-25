@@ -1,12 +1,12 @@
-import { debug as _debug } from '@debug';
+import { debug as _debug } from "@debug";
 import {
   AggregatedResult,
   Reporter,
   Test,
   TestContext,
   TestResult,
-} from '@jest/reporters';
-import fs from 'fs-extra';
+} from "@jest/reporters";
+import fs from "fs-extra";
 import {
   getDefaultProjectId,
   getProjectId,
@@ -14,25 +14,25 @@ import {
   getTestCaseId,
   getTestTags,
   testToSpecName,
-} from './utils/test';
+} from "./utils/test";
 
-import { dim, error } from '@logger';
-import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
+import { dim, error } from "@logger";
+import { FullSuiteProject, FullSuiteTest, FullTestSuite } from "../types";
 
-const debug = _debug.extend('jest-discovery');
+const debug = _debug.extend("jest-discovery");
 
 export default class DiscoveryReporter implements Reporter {
   private specsWithoutResultsCount = 0;
   private fullTestSuite: Record<
     string,
-    Omit<FullSuiteProject, 'tests'> & {
+    Omit<FullSuiteProject, "tests"> & {
       tests: FullSuiteTest[];
     }
   > = {};
 
   onRunStart(results: AggregatedResult) {
-    debug('onRunStart, results: %O', results);
-    console.time(dim('@currents/jest-discovery'));
+    debug("onRunStart, results: %O", results);
+    console.time(dim("@currents/jest-discovery"));
   }
 
   onTestFileResult(test: Test, testResult: TestResult): Promise<void> | void {
@@ -47,11 +47,11 @@ export default class DiscoveryReporter implements Reporter {
     }
 
     const spec = testToSpecName(test);
-    debug('onTestFileResult [%s][%s]', projectId, spec);
+    debug("onTestFileResult [%s][%s]", projectId, spec);
 
     if (testResult.testResults.length === 0) {
       debug(
-        'Failed to obtain spec results, error:',
+        "Failed to obtain spec results, error:",
         spec,
         testResult.failureMessage
       );
@@ -78,20 +78,20 @@ export default class DiscoveryReporter implements Reporter {
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     const filePath = process.env.CURRENTS_DISCOVERY_PATH;
     if (!filePath) {
-      throw new Error('CURRENTS_DISCOVERY_PATH is not set');
+      throw new Error("CURRENTS_DISCOVERY_PATH is not set");
     }
 
     let fullTestSuite: FullTestSuite = [];
     if (this.specsWithoutResultsCount > 0) {
-      error('Incomplete full test suite! Run the command with --debug flag.');
+      error("Incomplete full test suite! Run the command with --debug flag.");
     } else {
       fullTestSuite = this.getFullTestSuite(testContexts);
-      debug('onRunComplete %s, %o', filePath, fullTestSuite);
+      debug("onRunComplete %s, %o", filePath, fullTestSuite);
     }
 
-    await fs.writeFile(filePath, JSON.stringify(fullTestSuite), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(fullTestSuite), "utf8");
 
-    console.timeEnd(dim('@currents/jest-discovery'));
+    console.timeEnd(dim("@currents/jest-discovery"));
   }
 
   // this is required to prevent different projectId in the full test suite and reported results

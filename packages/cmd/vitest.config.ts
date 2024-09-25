@@ -1,12 +1,12 @@
-import path from 'path';
+import path from "path";
 
 const config = {
   resolve: {
     alias: {
-      '@debug': path.resolve(__dirname, './src/debug'),
-      '@env': path.resolve(__dirname, './src/env'),
-      '@lib': path.resolve(__dirname, './src/lib'),
-      '@logger': path.resolve(__dirname, './src/logger'),
+      "@debug": path.resolve(__dirname, "./src/debug"),
+      "@env": path.resolve(__dirname, "./src/env"),
+      "@lib": path.resolve(__dirname, "./src/lib"),
+      "@logger": path.resolve(__dirname, "./src/logger"),
     },
   },
 };

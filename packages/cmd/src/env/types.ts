@@ -1,4 +1,4 @@
-import { GhaEventData } from './gitInfo';
+import { GhaEventData } from "./gitInfo";
 export type CiProvider = string | null;
 
 export type CiProviderData = {

@@ -1,10 +1,10 @@
-import { ReportConfig } from '../types';
-import { JestScanner } from './jest';
-import { Scanner } from './scanner';
+import { ReportConfig } from "../types";
+import { JestScanner } from "./jest";
+import { Scanner } from "./scanner";
 
 export function createScanner(config: ReportConfig): Scanner {
   switch (config.framework) {
-    case 'jest':
+    case "jest":
       return new JestScanner(config);
 
     default:

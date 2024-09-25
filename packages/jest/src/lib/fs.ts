@@ -1,11 +1,11 @@
-import fs from 'fs-extra';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { error } from '../logger';
-import { debug } from './debug';
+import fs from "fs-extra";
+import { join } from "path";
+import { v4 as uuidv4 } from "uuid";
+import { error } from "../logger";
+import { debug } from "./debug";
 
 export function generateUniqueDirName(): string {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const uniqueId = uuidv4();
   return `${timestamp}-${uniqueId}`;
 }
@@ -23,7 +23,7 @@ export async function createUniqueFolder(
 export async function createFolder(folderPath: string) {
   try {
     await fs.ensureDir(folderPath);
-    debug('Folder created', folderPath);
+    debug("Folder created", folderPath);
     return folderPath;
   } catch (err) {
     error(`Failed to create folder at ${folderPath}:`, err);
@@ -39,8 +39,8 @@ export async function writeFileAsync(
   const filePath = join(basePath, fileName);
 
   try {
-    await fs.writeFile(filePath, content, 'utf8');
-    debug('File created', filePath);
+    await fs.writeFile(filePath, content, "utf8");
+    debug("File created", filePath);
     return filePath;
   } catch (err) {
     error(`Error writing file at ${filePath}:`, err);
