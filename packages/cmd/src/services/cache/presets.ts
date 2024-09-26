@@ -1,3 +1,4 @@
+import { debug } from '@debug';
 import _ from "lodash";
 import { PW_CONFIG_DUMP_FILE } from "../../commands/cache/options";
 
@@ -95,10 +96,9 @@ async function dumpPWConfigForGHA(
   const pwCliOptions = [lastFailedOption, shardOption]
     .filter(Boolean)
     .join(" ");
-  await writeFileAsync(
-    config.pwConfigDump ?? PW_CONFIG_DUMP_FILE,
-    pwCliOptions,
-  );
+  const dumpPath = config.pwConfigDump ?? PW_CONFIG_DUMP_FILE;
+  await writeFileAsync(dumpPath, pwCliOptions);
+  debug('Dumped PW config: "%s" for GHA to %s', pwCliOptions, dumpPath);
 }
 
 const parseIntSafe = (
