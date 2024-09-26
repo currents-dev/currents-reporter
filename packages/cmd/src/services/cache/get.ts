@@ -70,7 +70,6 @@ async function handleMetaDownload(readUrl: string) {
   try {
     const buffer = await download(readUrl);
     const meta = JSON.parse(buffer.toString("utf-8")) as MetaFile;
-    console.log(meta);
     debug("Meta file: %O", meta);
     return meta;
   } catch (error) {
