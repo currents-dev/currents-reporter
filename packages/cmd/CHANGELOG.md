@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.15](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.14...${npm.name}-v1.1.0-beta.15) (2024-09-26)
+
+
+### Bug Fixes
+
+* set the pwConfigDump option to cache get command ([76da9da](https://github.com/currents-dev/currents-reporter/commit/76da9da44882109a1765209d59169b752a26c0d5))
+
 # [1.1.0-beta.14](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.13...${npm.name}-v1.1.0-beta.14) (2024-09-25)
 
 # [1.1.0-beta.13](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.12...${npm.name}-v1.1.0-beta.13) (2024-09-25)
