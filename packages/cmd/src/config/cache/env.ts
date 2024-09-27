@@ -26,9 +26,9 @@ const cacheSetCommandConfigKeys = {
     name: "Playwright output directory",
     cli: "--pw-output-dir",
   },
-  pwConfigDump: {
-    name: "Playwright config dump",
-    cli: "--pw-config-dump",
+  presetOutput: {
+    name: "Preset output path",
+    cli: "--preset-output",
   },
   paths: {
     name: "Paths to cache",

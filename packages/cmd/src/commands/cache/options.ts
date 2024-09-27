@@ -41,9 +41,8 @@ export const pwOutputDirOption = new Option(
   "Directory for artifacts produced by Playwright tests"
 ).default("test-results");
 
-export const PW_CONFIG_DUMP_FILE = ".currents_env";
-
-export const pwConfigDumpOption = new Option(
-  "--pw-config-dump <path>",
-  "Path to the file containing the Playwright configuration dump"
-).default(PW_CONFIG_DUMP_FILE);
+export const PRESET_OUTPUT_PATH = ".currents_env";
+export const presetOutputOption = new Option(
+  "--preset-output <path>",
+  "Path to the file containing the preset output"
+).default(PRESET_OUTPUT_PATH);

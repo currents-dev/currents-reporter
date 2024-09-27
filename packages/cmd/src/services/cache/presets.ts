@@ -1,6 +1,6 @@
 import { debug } from '@debug';
 import _ from "lodash";
-import { PW_CONFIG_DUMP_FILE } from "../../commands/cache/options";
+import { PRESET_OUTPUT_PATH } from "../../commands/cache/options";
 
 import { CacheGetCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
@@ -65,7 +65,7 @@ async function dumpPwConfigForGitlab(
     .join(" ");
 
   await writeFileAsync(
-    config.pwConfigDump ?? PW_CONFIG_DUMP_FILE,
+    config.presetOutput ?? PRESET_OUTPUT_PATH,
     `EXTRA_PW_FLAGS="${pwCliOptions}"
 EXTRA_PWCP_FLAGS="${lastFailedOption}"
 RUN_ATTEMPT="${runAttempt}"
@@ -96,7 +96,7 @@ async function dumpPWConfigForGHA(
   const pwCliOptions = [lastFailedOption, shardOption]
     .filter(Boolean)
     .join(" ");
-  const dumpPath = config.pwConfigDump ?? PW_CONFIG_DUMP_FILE;
+  const dumpPath = config.presetOutput ?? PRESET_OUTPUT_PATH;
   await writeFileAsync(dumpPath, pwCliOptions);
   debug('Dumped PW config: "%s" for GHA to %s', pwCliOptions, dumpPath);
 }

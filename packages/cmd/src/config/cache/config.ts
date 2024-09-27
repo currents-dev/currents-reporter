@@ -31,7 +31,7 @@ export type CacheSetCommandConfig = CacheCommandConfig &
 export type CacheGetCommandConfig = CacheCommandConfig &
   CommonConfig & {
     outputDir?: string;
-    pwConfigDump?: string;
+    presetOutput?: string;
   };
 
 type MandatoryCacheCommandKeys = "recordKey";

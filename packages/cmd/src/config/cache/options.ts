@@ -10,7 +10,7 @@ export function cacheGetCommandOptsToConfig(
     id: options.id,
     preset: options.preset,
     outputDir: options.outputDir,
-    pwConfigDump: options.pwConfigDump,
+    presetOutput: options.presetOutput,
     debug: options.debug,
   };
 }

@@ -8,7 +8,7 @@ import {
   outputDirOption,
   pathsOption,
   presetOption,
-  pwConfigDumpOption,
+  presetOutputOption,
   pwOutputDirOption,
   recordKeyOption,
 } from "./options";
@@ -72,7 +72,7 @@ export const getCacheGetCommand = () => {
     .addOption(presetOption)
     .addOption(outputDirOption)
     .addOption(pwOutputDirOption.conflicts("output-dir"))
-    .addOption(pwConfigDumpOption)
+    .addOption(presetOutputOption)
     .addOption(debugOption)
     .action(getCacheGetHandler);
 
