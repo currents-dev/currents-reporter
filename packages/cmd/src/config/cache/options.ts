@@ -24,7 +24,6 @@ export function cacheSetCommandOptsToConfig(
     preset: options.preset,
     pwOutputDir: options.pwOutputDir,
     paths: options.paths,
-    includeHidden: options.includeHidden,
     debug: options.debug,
   };
 }

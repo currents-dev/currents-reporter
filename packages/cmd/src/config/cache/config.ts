@@ -26,7 +26,6 @@ type CommonConfig = {
 export type CacheSetCommandConfig = CacheCommandConfig &
   CommonConfig & {
     paths?: string[];
-    includeHidden?: boolean;
   };
 
 export type CacheGetCommandConfig = CacheCommandConfig &

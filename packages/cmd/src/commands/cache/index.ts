@@ -5,7 +5,6 @@ import { getCacheGetHandler } from "./get";
 import {
   debugOption,
   idOption,
-  includeHiddenOption,
   outputDirOption,
   pathsOption,
   presetOption,
@@ -57,7 +56,6 @@ export const getCacheSetCommand = () => {
     .addOption(idOption)
     .addOption(presetOption)
     .addOption(pathsOption)
-    .addOption(includeHiddenOption)
     .addOption(debugOption)
     .addOption(pwOutputDirOption)
     .action(getCacheSetHandler);

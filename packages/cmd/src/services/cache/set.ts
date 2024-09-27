@@ -18,8 +18,7 @@ export async function handleSetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, debug, preset, pwOutputDir, includeHidden } =
-      config.values;
+    const { recordKey, id, debug, preset, pwOutputDir } = config.values;
 
     if (debug) {
       enableDebug();
@@ -51,7 +50,7 @@ export async function handleSetCache() {
     });
 
     await handleArchiveUpload({
-      archive: await zipFilesToBuffer(uploadPaths, { includeHidden }),
+      archive: await zipFilesToBuffer(uploadPaths),
       cacheId: result.cacheId,
       uploadUrl: result.uploadUrl,
     });

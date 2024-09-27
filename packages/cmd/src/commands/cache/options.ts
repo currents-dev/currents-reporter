@@ -41,13 +41,6 @@ export const pwOutputDirOption = new Option(
   "Directory for artifacts produced by Playwright tests"
 ).default("test-results");
 
-export const includeHiddenOption = new Option(
-  "--include-hidden",
-  "Include hidden files in the cache"
-)
-  .hideHelp()
-  .default(false);
-
 export const PW_CONFIG_DUMP_FILE = ".currents_env";
 
 export const pwConfigDumpOption = new Option(

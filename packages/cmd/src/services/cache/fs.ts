@@ -1,21 +1,13 @@
 import Archiver from "archiver";
 import fs from "fs-extra";
 import path from "path";
-import stream from "stream";
 import unzipper from "unzipper";
-import { ensurePathExists } from "../../lib";
 import { warn } from "../../logger";
 
 const MAX_ZIP_SIZE = 50 * 1024 * 1024; // 50MB
 
-// TODO: implement includeHidden
-interface ZipOptions {
-  includeHidden?: boolean;
-}
-
 export async function zipFilesToBuffer(
   filePaths: string[],
-  options: ZipOptions = {},
   maxSize: number = MAX_ZIP_SIZE
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -89,10 +81,10 @@ export async function zipFilesToBuffer(
 
 export async function unzipBuffer(
   zipBuffer: Buffer,
-  outputDir: string,
+  outputDir: string
 ): Promise<void | { [fileName: string]: Buffer }> {
   return unzipper.Open.buffer(zipBuffer).then((d) =>
-    d.extract({ path: outputDir, concurrency: 3 }),
+    d.extract({ path: outputDir, concurrency: 3 })
   );
 }
 
