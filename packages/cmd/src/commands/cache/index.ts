@@ -27,7 +27,7 @@ Retrieve files from the cache saved under a specific ID:
 ${dim(`${name} ${COMMAND_NAME} get --key <record-key> --id <id>`)}
 
 Store the last run data in the cache:
-${dim(`${name} ${COMMAND_NAME} set --key <record-key> --preset last-failed-sharding`)}
+${dim(`${name} ${COMMAND_NAME} set --key <record-key> --preset last-run`)}
 
 Retrieve the last run data from the cache:
 ${dim(`${name} ${COMMAND_NAME} get --key <record-key> --preset last-failed-sharding`)}
