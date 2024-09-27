@@ -1,4 +1,4 @@
-import { Option } from "@commander-js/extra-typings";
+import { InvalidArgumentError, Option } from "@commander-js/extra-typings";
 import { configKeys } from "../../config/cache";
 import { getEnvironmentVariableName } from "../../config/utils";
 import { parseCommaSeparatedList } from "../utils";
@@ -41,16 +41,34 @@ export const pwOutputDirOption = new Option(
   "Directory for artifacts produced by Playwright tests"
 ).default("test-results");
 
-export const includeHiddenOption = new Option(
-  "--include-hidden",
-  "Include hidden files in the cache"
+export const PRESET_OUTPUT_PATH = ".currents_env";
+export const presetOutputOption = new Option(
+  "--preset-output <path>",
+  "Path to the file containing the preset output"
+).default(PRESET_OUTPUT_PATH);
+
+export const matrixIndexOption = new Option(
+  "--matrix-index <number>",
+  "The index of the matrix to use"
 )
-  .hideHelp()
-  .default(false);
+  .default(1)
+  .argParser(validatePositiveInteger);
 
-export const PW_CONFIG_DUMP_FILE = ".currents_env";
+export const matrixTotalOption = new Option(
+  "--matrix-total <number>",
+  "The total number of matrices available"
+)
+  .default(1)
+  .argParser(validatePositiveInteger);
 
-export const pwConfigDumpOption = new Option(
-  "--pw-config-dump <path>",
-  "Path to the file containing the Playwright configuration dump"
-).default(PW_CONFIG_DUMP_FILE);
+function validatePositiveInteger(value: string) {
+  const parsedValue = parseInt(value, 10);
+  if (
+    isNaN(parsedValue) ||
+    parsedValue <= 0 ||
+    !Number.isInteger(parsedValue)
+  ) {
+    throw new InvalidArgumentError("A positive integer is expected.");
+  }
+  return parsedValue;
+}

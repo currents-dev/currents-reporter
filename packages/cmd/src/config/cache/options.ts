@@ -10,8 +10,10 @@ export function cacheGetCommandOptsToConfig(
     id: options.id,
     preset: options.preset,
     outputDir: options.outputDir,
-    pwConfigDump: options.pwConfigDump,
+    presetOutput: options.presetOutput,
     debug: options.debug,
+    matrixIndex: options.matrixIndex,
+    matrixTotal: options.matrixTotal,
   };
 }
 
@@ -24,7 +26,8 @@ export function cacheSetCommandOptsToConfig(
     preset: options.preset,
     pwOutputDir: options.pwOutputDir,
     paths: options.paths,
-    includeHidden: options.includeHidden,
     debug: options.debug,
+    matrixIndex: options.matrixIndex,
+    matrixTotal: options.matrixTotal,
   };
 }

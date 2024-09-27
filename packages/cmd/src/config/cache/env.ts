@@ -26,13 +26,21 @@ const cacheSetCommandConfigKeys = {
     name: "Playwright output directory",
     cli: "--pw-output-dir",
   },
-  pwConfigDump: {
-    name: "Playwright config dump",
-    cli: "--pw-config-dump",
+  presetOutput: {
+    name: "Preset output path",
+    cli: "--preset-output",
   },
   paths: {
     name: "Paths to cache",
     cli: "--paths",
+  },
+  matrixIndex: {
+    name: "Matrix index",
+    cli: "--matrix-index",
+  },
+  matrixTotal: {
+    name: "Matrix total",
+    cli: "--matrix-total",
   },
 } as const;
 
@@ -45,13 +53,17 @@ const cacheGetCommandConfigKeys = {
     name: "Preset",
     cli: "--preset",
   },
-  pwOutputDir: {
-    name: "Playwright output directory",
-    cli: "--pw-output-dir",
-  },
   outputDir: {
     name: "Custom directory to write output",
     cli: "--output-dir",
+  },
+  matrixIndex: {
+    name: "Matrix index",
+    cli: "--matrix-index",
+  },
+  matrixTotal: {
+    name: "Matrix total",
+    cli: "--matrix-total",
   },
 } as const;
 

@@ -18,21 +18,22 @@ export type CacheCommandConfig = {
 };
 
 type CommonConfig = {
+  matrixIndex: number;
+  matrixTotal: number;
   id?: string;
   preset?: string;
-  pwOutputDir?: string;
 };
 
 export type CacheSetCommandConfig = CacheCommandConfig &
   CommonConfig & {
     paths?: string[];
-    includeHidden?: boolean;
+    pwOutputDir?: string;
   };
 
 export type CacheGetCommandConfig = CacheCommandConfig &
   CommonConfig & {
     outputDir?: string;
-    pwConfigDump?: string;
+    presetOutput?: string;
   };
 
 type MandatoryCacheCommandKeys = "recordKey";

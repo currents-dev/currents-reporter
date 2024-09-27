@@ -4,10 +4,16 @@ import { ClientType } from "../http/client";
 
 const debug = _debug.extend("api");
 
+export type CacheRequestConfigParams = {
+  matrixIndex?: number;
+  matrixTotal?: number;
+};
+
 export type CacheRequestParams = {
   recordKey: string;
   ci: Record<string, unknown>;
   id?: string;
+  config?: CacheRequestConfigParams;
 };
 
 export type CacheCreationResponse = {

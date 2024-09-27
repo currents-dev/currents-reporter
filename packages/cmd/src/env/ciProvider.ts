@@ -304,10 +304,6 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'GITHUB_RUN_ID',
       'GITHUB_RUN_ATTEMPT',
       'GITHUB_REPOSITORY',
-
-      // custom variables
-      'GH_STRATEGY_JOB_INDEX',
-      'GH_STRATEGY_JOB_TOTAL',
     ]),
     // see https://docs.gitlab.com/ee/ci/variables/
     gitlab: extract([

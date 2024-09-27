@@ -1,6 +1,7 @@
 import path from "path";
 import { CacheSetCommandConfig } from "../../config/cache";
 import { warnWithNoTrace } from "../../logger";
+import { omit } from "lodash";
 
 export type MetaFile = {
   id: string;
@@ -18,7 +19,7 @@ export function createMeta({
   paths,
   ci,
 }: {
-  config: CacheSetCommandConfig;
+  config: Partial<CacheSetCommandConfig>;
   cacheId: string;
   orgId: string;
   paths: string[];
@@ -27,7 +28,7 @@ export function createMeta({
   const meta = {
     id: cacheId,
     orgId,
-    config,
+    config: omit(config, "recordKey"),
     paths,
     ci,
     createdAt: new Date().toISOString(),

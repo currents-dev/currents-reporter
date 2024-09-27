@@ -1,4 +1,5 @@
 import { debug, enableDebug } from "@debug";
+import { omit } from "lodash";
 import { createCache } from "../../api";
 import { PRESETS } from "../../commands/cache/options";
 import { getCacheCommandConfig } from "../../config/cache";
@@ -18,8 +19,15 @@ export async function handleSetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, debug, preset, pwOutputDir, includeHidden } =
-      config.values;
+    const {
+      recordKey,
+      id,
+      debug,
+      preset,
+      pwOutputDir,
+      matrixIndex,
+      matrixTotal,
+    } = config.values;
 
     if (debug) {
       enableDebug();
@@ -48,10 +56,14 @@ export async function handleSetCache() {
       recordKey,
       ci,
       id,
+      config: {
+        matrixIndex,
+        matrixTotal,
+      },
     });
 
     await handleArchiveUpload({
-      archive: await zipFilesToBuffer(uploadPaths, { includeHidden }),
+      archive: await zipFilesToBuffer(uploadPaths),
       cacheId: result.cacheId,
       uploadUrl: result.uploadUrl,
     });
@@ -59,7 +71,7 @@ export async function handleSetCache() {
     await handleMetaUpload({
       meta: createMeta({
         cacheId: result.cacheId,
-        config: config.values,
+        config: omit(config.values, ["recordKey"]),
         ci,
         orgId: result.orgId,
         paths: uploadPaths,

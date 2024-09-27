@@ -1,6 +1,6 @@
-import { debug } from '@debug';
+import { debug } from "@debug";
 import _ from "lodash";
-import { PW_CONFIG_DUMP_FILE } from "../../commands/cache/options";
+import { PRESET_OUTPUT_PATH } from "../../commands/cache/options";
 
 import { CacheGetCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
@@ -65,7 +65,7 @@ async function dumpPwConfigForGitlab(
     .join(" ");
 
   await writeFileAsync(
-    config.pwConfigDump ?? PW_CONFIG_DUMP_FILE,
+    config.presetOutput ?? PRESET_OUTPUT_PATH,
     `EXTRA_PW_FLAGS="${pwCliOptions}"
 EXTRA_PWCP_FLAGS="${lastFailedOption}"
 RUN_ATTEMPT="${runAttempt}"
@@ -77,26 +77,22 @@ async function dumpPWConfigForGHA(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
 ) {
+  const { matrixIndex, matrixTotal } = config;
   const ciParams = ci.params as GithubActionsParams;
   const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
-  const jobIndex = parseIntSafe(ciParams.ghStrategyJobIndex, 0);
-  const jobTotal = parseIntSafe(ciParams.ghStrategyJobTotal, 1);
 
-  const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
+  const lastFailedOption = runAttempt > 1 ? "--last-failed" : "";
 
   let shardOption = "";
-  if (jobTotal > 1) {
-    // GH_STRATEGY_JOB_INDEX is 0-based, but --shard is 1-based
-    const currentShard = jobIndex + 1;
-
+  if (matrixTotal > 1) {
     shardOption =
-      runAttempt > 1 ? '--shard=1/1' : `--shard=${currentShard}/${jobTotal}`;
+      runAttempt > 1 ? "--shard=1/1" : `--shard=${matrixIndex}/${matrixTotal}`;
   }
 
   const pwCliOptions = [lastFailedOption, shardOption]
     .filter(Boolean)
     .join(" ");
-  const dumpPath = config.pwConfigDump ?? PW_CONFIG_DUMP_FILE;
+  const dumpPath = config.presetOutput ?? PRESET_OUTPUT_PATH;
   await writeFileAsync(dumpPath, pwCliOptions);
   debug('Dumped PW config: "%s" for GHA to %s', pwCliOptions, dumpPath);
 }
