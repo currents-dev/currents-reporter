@@ -19,7 +19,7 @@ export function createMeta({
   paths,
   ci,
 }: {
-  config: CacheSetCommandConfig;
+  config: Partial<CacheSetCommandConfig>;
   cacheId: string;
   orgId: string;
   paths: string[];

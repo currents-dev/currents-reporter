@@ -1,4 +1,5 @@
 import { debug, enableDebug } from "@debug";
+import { omit } from "lodash";
 import { createCache } from "../../api";
 import { PRESETS } from "../../commands/cache/options";
 import { getCacheCommandConfig } from "../../config/cache";
@@ -58,7 +59,7 @@ export async function handleSetCache() {
     await handleMetaUpload({
       meta: createMeta({
         cacheId: result.cacheId,
-        config: config.values,
+        config: omit(config.values, ["recordKey"]),
         ci,
         orgId: result.orgId,
         paths: uploadPaths,
