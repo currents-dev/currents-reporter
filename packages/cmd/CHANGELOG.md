@@ -1,5 +1,21 @@
 # Changelog
 
+# [1.1.0-beta.16](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.15...${npm.name}-v1.1.0-beta.16) (2024-09-27)
+
+
+### Bug Fixes
+
+* Omit the recordKey from being stored in cache ([a240727](https://github.com/currents-dev/currents-reporter/commit/a24072753996bee24077c64ca28959cd01341f44))
+* remove --pw-output-dir from the cache get command ([a16e230](https://github.com/currents-dev/currents-reporter/commit/a16e2306e2bae434932a18fc64b50f1206b8be47))
+* remove includeHidden option ([0f46ef3](https://github.com/currents-dev/currents-reporter/commit/0f46ef3384c126bf5b8941a382276b748251d717))
+* remove recordKey from cache meta file ([1892f35](https://github.com/currents-dev/currents-reporter/commit/1892f355e851e4148eeb4b7b4a3e2df0e59bf406))
+* rename option from --pw-config-dump to --preset-output ([19941dc](https://github.com/currents-dev/currents-reporter/commit/19941dc021a66ee3816f8137dc3849978acc61fd))
+
+
+### Features
+
+* add matrixIndex and matrixTotal options ([bcf8f95](https://github.com/currents-dev/currents-reporter/commit/bcf8f95a675f0e84949bdcda498b112a5da5d96e))
+
 # [1.1.0-beta.15](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.14...${npm.name}-v1.1.0-beta.15) (2024-09-26)
 
 
