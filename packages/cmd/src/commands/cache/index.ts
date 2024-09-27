@@ -71,7 +71,6 @@ export const getCacheGetCommand = () => {
     .addOption(idOption)
     .addOption(presetOption)
     .addOption(outputDirOption)
-    .addOption(pwOutputDirOption.conflicts("output-dir"))
     .addOption(presetOutputOption)
     .addOption(debugOption)
     .action(getCacheGetHandler);

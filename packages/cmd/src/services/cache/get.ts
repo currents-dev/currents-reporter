@@ -15,8 +15,8 @@ export async function handleGetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, preset  } = config.values;
-    const outputDir = config.values.outputDir ?? config.values.pwOutputDir;
+    const { recordKey, id, preset } = config.values;
+    const outputDir = config.values.outputDir;
 
     if (config.values.debug) {
       enableDebug();
@@ -58,7 +58,7 @@ async function handleArchiveDownload({
 }) {
   try {
     const buffer = await download(readUrl);
-    await unzipBuffer(buffer, outputDir || '.');
+    await unzipBuffer(buffer, outputDir || ".");
     debug("Cache downloaded");
   } catch (error) {
     debug("Failed to recreate cache from archive");

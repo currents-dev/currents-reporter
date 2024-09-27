@@ -45,10 +45,6 @@ const cacheGetCommandConfigKeys = {
     name: "Preset",
     cli: "--preset",
   },
-  pwOutputDir: {
-    name: "Playwright output directory",
-    cli: "--pw-output-dir",
-  },
   outputDir: {
     name: "Custom directory to write output",
     cli: "--output-dir",

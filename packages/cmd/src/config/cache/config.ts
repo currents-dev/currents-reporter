@@ -20,12 +20,12 @@ export type CacheCommandConfig = {
 type CommonConfig = {
   id?: string;
   preset?: string;
-  pwOutputDir?: string;
 };
 
 export type CacheSetCommandConfig = CacheCommandConfig &
   CommonConfig & {
     paths?: string[];
+    pwOutputDir?: string;
   };
 
 export type CacheGetCommandConfig = CacheCommandConfig &
