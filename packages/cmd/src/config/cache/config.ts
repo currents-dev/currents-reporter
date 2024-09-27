@@ -18,6 +18,8 @@ export type CacheCommandConfig = {
 };
 
 type CommonConfig = {
+  matrixIndex: number;
+  matrixTotal: number;
   id?: string;
   preset?: string;
 };

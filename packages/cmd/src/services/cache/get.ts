@@ -15,7 +15,7 @@ export async function handleGetCache() {
       throw new Error("Config is missing!");
     }
 
-    const { recordKey, id, preset } = config.values;
+    const { recordKey, id, preset, matrixIndex, matrixTotal } = config.values;
     const outputDir = config.values.outputDir;
 
     if (config.values.debug) {
@@ -32,6 +32,10 @@ export async function handleGetCache() {
       recordKey,
       ci,
       id,
+      config: {
+        matrixIndex,
+        matrixTotal,
+      },
     });
 
     await handleArchiveDownload({

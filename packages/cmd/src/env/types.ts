@@ -21,9 +21,6 @@ export type GithubActionsParams = {
   githubRunId: string;
   githubRunAttempt: string;
   githubRepository: string;
-
-  ghStrategyJobIndex?: string;
-  ghStrategyJobTotal?: string;
 };
 
 

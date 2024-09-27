@@ -1,4 +1,4 @@
-import { Option } from "@commander-js/extra-typings";
+import { InvalidArgumentError, Option } from "@commander-js/extra-typings";
 import { configKeys } from "../../config/cache";
 import { getEnvironmentVariableName } from "../../config/utils";
 import { parseCommaSeparatedList } from "../utils";
@@ -46,3 +46,29 @@ export const presetOutputOption = new Option(
   "--preset-output <path>",
   "Path to the file containing the preset output"
 ).default(PRESET_OUTPUT_PATH);
+
+export const matrixIndexOption = new Option(
+  "--matrix-index <number>",
+  "The index of the matrix to use"
+)
+  .default(1)
+  .argParser(validatePositiveInteger);
+
+export const matrixTotalOption = new Option(
+  "--matrix-total <number>",
+  "The total number of matrices available"
+)
+  .default(1)
+  .argParser(validatePositiveInteger);
+
+function validatePositiveInteger(value: string) {
+  const parsedValue = parseInt(value, 10);
+  if (
+    isNaN(parsedValue) ||
+    parsedValue <= 0 ||
+    !Number.isInteger(parsedValue)
+  ) {
+    throw new InvalidArgumentError("A positive integer is expected.");
+  }
+  return parsedValue;
+}

@@ -5,6 +5,8 @@ import { getCacheGetHandler } from "./get";
 import {
   debugOption,
   idOption,
+  matrixIndexOption,
+  matrixTotalOption,
   outputDirOption,
   pathsOption,
   presetOption,
@@ -58,6 +60,8 @@ export const getCacheSetCommand = () => {
     .addOption(pathsOption)
     .addOption(debugOption)
     .addOption(pwOutputDirOption)
+    .addOption(matrixIndexOption)
+    .addOption(matrixTotalOption)
     .action(getCacheSetHandler);
 
   return command;
@@ -73,6 +77,8 @@ export const getCacheGetCommand = () => {
     .addOption(outputDirOption)
     .addOption(presetOutputOption)
     .addOption(debugOption)
+    .addOption(matrixIndexOption)
+    .addOption(matrixTotalOption)
     .action(getCacheGetHandler);
 
   return command;

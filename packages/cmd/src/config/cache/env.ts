@@ -34,6 +34,14 @@ const cacheSetCommandConfigKeys = {
     name: "Paths to cache",
     cli: "--paths",
   },
+  matrixIndex: {
+    name: "Matrix index",
+    cli: "--matrix-index",
+  },
+  matrixTotal: {
+    name: "Matrix total",
+    cli: "--matrix-total",
+  },
 } as const;
 
 const cacheGetCommandConfigKeys = {
@@ -48,6 +56,14 @@ const cacheGetCommandConfigKeys = {
   outputDir: {
     name: "Custom directory to write output",
     cli: "--output-dir",
+  },
+  matrixIndex: {
+    name: "Matrix index",
+    cli: "--matrix-index",
+  },
+  matrixTotal: {
+    name: "Matrix total",
+    cli: "--matrix-total",
   },
 } as const;
 

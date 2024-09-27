@@ -1,4 +1,4 @@
-import { debug } from '@debug';
+import { debug } from "@debug";
 import _ from "lodash";
 import { PRESET_OUTPUT_PATH } from "../../commands/cache/options";
 
@@ -77,20 +77,16 @@ async function dumpPWConfigForGHA(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
 ) {
+  const { matrixIndex, matrixTotal } = config;
   const ciParams = ci.params as GithubActionsParams;
   const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
-  const jobIndex = parseIntSafe(ciParams.ghStrategyJobIndex, 0);
-  const jobTotal = parseIntSafe(ciParams.ghStrategyJobTotal, 1);
 
-  const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
+  const lastFailedOption = runAttempt > 1 ? "--last-failed" : "";
 
   let shardOption = "";
-  if (jobTotal > 1) {
-    // GH_STRATEGY_JOB_INDEX is 0-based, but --shard is 1-based
-    const currentShard = jobIndex + 1;
-
+  if (matrixTotal > 1) {
     shardOption =
-      runAttempt > 1 ? '--shard=1/1' : `--shard=${currentShard}/${jobTotal}`;
+      runAttempt > 1 ? "--shard=1/1" : `--shard=${matrixIndex}/${matrixTotal}`;
   }
 
   const pwCliOptions = [lastFailedOption, shardOption]
