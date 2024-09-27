@@ -33,7 +33,7 @@ Retrieve the last run data from the cache:
 ${dim(`${name} ${COMMAND_NAME} get --key <record-key> --preset last-run`)}
 
 Retrieve the last run data from the cache and save it to a custom directory:
-${dim(`${name} ${COMMAND_NAME} get --key <record-key> --preset last-failed-sharding --outputDir <outputDir>`)}
+${dim(`${name} ${COMMAND_NAME} get --key <record-key> --preset last-run --output-dir <outputDir>`)}
 
 `;
 
