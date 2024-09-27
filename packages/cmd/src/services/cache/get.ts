@@ -1,8 +1,10 @@
 import { debug, enableDebug } from "@debug";
+import { isAxiosError } from "axios";
 import { retrieveCache } from "../../api";
 import { PRESETS } from "../../commands/cache/options";
 import { getCacheCommandConfig } from "../../config/cache";
 import { getCI } from "../../env/ciProvider";
+import { warnWithNoTrace } from "../../logger";
 import { unzipBuffer } from "./fs";
 import { MetaFile, warn } from "./lib";
 import { download } from "./network";
@@ -38,15 +40,26 @@ export async function handleGetCache() {
       },
     });
 
-    await handleArchiveDownload({
-      readUrl: result.readUrl,
-      outputDir,
-    });
+    try {
+      await handleArchiveDownload({
+        readUrl: result.readUrl,
+        outputDir,
+      });
 
-    const meta = await handleMetaDownload(result.metaReadUrl);
+      const meta = await handleMetaDownload(result.metaReadUrl);
 
-    if (preset === PRESETS.lastRun) {
-      await handlePostLastRunPreset(config.values, ci, meta);
+      if (preset === PRESETS.lastRun) {
+        await handlePostLastRunPreset(config.values, ci, meta);
+      }
+    } catch (e) {
+      if (isAxiosError(e)) {
+        if (e.response?.status && e.response?.status < 500) {
+          warnWithNoTrace(`Cache with ID "${result.cacheId}" not found`);
+          return;
+        }
+      }
+
+      throw e;
     }
   } catch (e) {
     warn(e, "Failed to obtain cache");
@@ -60,24 +73,14 @@ async function handleArchiveDownload({
   readUrl: string;
   outputDir?: string;
 }) {
-  try {
-    const buffer = await download(readUrl);
-    await unzipBuffer(buffer, outputDir || ".");
-    debug("Cache downloaded");
-  } catch (error) {
-    debug("Failed to recreate cache from archive");
-    throw error;
-  }
+  const buffer = await download(readUrl);
+  await unzipBuffer(buffer, outputDir || ".");
+  debug("Cache downloaded");
 }
 
 async function handleMetaDownload(readUrl: string) {
-  try {
-    const buffer = await download(readUrl);
-    const meta = JSON.parse(buffer.toString("utf-8")) as MetaFile;
-    debug("Meta file: %O", meta);
-    return meta;
-  } catch (error) {
-    debug("Failed to handle the meta");
-    throw error;
-  }
+  const buffer = await download(readUrl);
+  const meta = JSON.parse(buffer.toString("utf-8")) as MetaFile;
+  debug("Meta file: %O", meta);
+  return meta;
 }
