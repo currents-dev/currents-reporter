@@ -1,6 +1,6 @@
 {
   "name": "@currents/cmd",
-  "version": "1.1.0-beta.17",
+  "version": "1.1.0-beta.18",
   "main": "./dist/index.js",
   "author": "Currents Software Inc",
   "license": "GPL-3.0-or-later",

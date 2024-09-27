@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.18](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.17...${npm.name}-v1.1.0-beta.18) (2024-09-27)
+
+
+### Reverts
+
+* Revert "fix: remove recordKey from cache meta file" ([99e8c32](https://github.com/currents-dev/currents-reporter/commit/99e8c32a2e307d67da68dfd7a9f9f235bb0b8429))
+
 # [1.1.0-beta.17](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.16...${npm.name}-v1.1.0-beta.17) (2024-09-27)
 
 
