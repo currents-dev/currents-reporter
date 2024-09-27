@@ -1,5 +1,5 @@
 import retry from "async-retry";
-import { AxiosProgressEvent, RawAxiosRequestConfig } from "axios";
+import { AxiosProgressEvent, isAxiosError, RawAxiosRequestConfig } from "axios";
 import { debug as _debug } from "../../debug";
 import { getAxios } from "../../http/axios";
 import { error, warn } from "../../logger";
@@ -53,12 +53,19 @@ export async function download(
   url: string,
   onDownloadProgress?: RawAxiosRequestConfig["onDownloadProgress"]
 ): Promise<Buffer> {
-  const response = await getAxios().get(url, {
-    responseType: "arraybuffer",
-    onDownloadProgress,
-  });
+  try {
+    const response = await getAxios().get(url, {
+      responseType: "arraybuffer",
+      onDownloadProgress,
+    });
 
-  return Buffer.from(response.data);
+    return Buffer.from(response.data);
+  } catch (error) {
+    if (isAxiosError(error)) {
+      debug("Failed to download %s: %s", url, error.message);
+    }
+    throw error;
+  }
 }
 
 async function send(...args: Parameters<typeof _send>) {
