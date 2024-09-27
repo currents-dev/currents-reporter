@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.1.0-beta.17](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.16...${npm.name}-v1.1.0-beta.17) (2024-09-27)
+
+
+### Bug Fixes
+
+* show user a friendlier message when the cache for ID was not found ([3f77465](https://github.com/currents-dev/currents-reporter/commit/3f77465fffe0b84c50f75bb72cc46878b892c4b0))
+
 # [1.1.0-beta.16](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.15...${npm.name}-v1.1.0-beta.16) (2024-09-27)
 
 
