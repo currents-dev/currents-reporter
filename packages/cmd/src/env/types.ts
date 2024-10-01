@@ -1,4 +1,4 @@
-import { GhaEventData } from "./gitInfo";
+import { GhaEventData } from './gitInfo';
 export type CiProvider = string | null;
 
 export type CiProviderData = {
@@ -22,7 +22,6 @@ export type GithubActionsParams = {
   githubRunAttempt: string;
   githubRepository: string;
 };
-
 
 export type GitLabParams = {
   gitlabCi: string;

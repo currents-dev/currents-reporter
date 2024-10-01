@@ -1,15 +1,15 @@
-import { CommanderError } from "@commander-js/extra-typings";
-import { ValidationError } from "@lib";
-import { error } from "@logger";
-import { isAxiosError } from "axios";
-import { enableDebug } from "../debug";
+import { CommanderError } from '@commander-js/extra-typings';
+import { ValidationError } from '@lib';
+import { error } from '@logger';
+import { isAxiosError } from 'axios';
+import { enableDebug } from '../debug';
 
 export function parseCommaSeparatedList(
   value: string,
   previous: string[] = []
 ) {
   if (value) {
-    return previous.concat(value.split(",").map((t) => t.trim()));
+    return previous.concat(value.split(',').map((t) => t.trim()));
   }
   return previous;
 }
@@ -40,7 +40,7 @@ export async function commandHandler<T extends Record<string, unknown>>(
       process.exit(1);
     }
 
-    error("Script execution failed: %o", e);
+    error('Script execution failed: %o', e);
     process.exit(1);
   }
 }

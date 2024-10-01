@@ -1,19 +1,19 @@
-import { debug } from "@debug";
-import { ensurePathExists } from "@lib";
-import { writeFile } from "fs/promises";
-import { getRun } from "../../api";
+import { debug } from '@debug';
+import { ensurePathExists } from '@lib';
+import { writeFile } from 'fs/promises';
+import { getRun } from '../../api';
 import {
   APICommandConfig,
   APIGetRunCommandConfig,
   getAPIGetRunCommandConfig,
-} from "../../config/api";
-import { info } from "../../logger";
+} from '../../config/api';
+import { info } from '../../logger';
 
 export async function handleGetRun() {
   try {
     const config = getAPIGetRunCommandConfig();
     if (!config) {
-      throw new Error("Config is missing!");
+      throw new Error('Config is missing!');
     }
 
     const params = config.ciBuildId
@@ -37,7 +37,7 @@ export async function handleGetRun() {
       config
     );
   } catch (e) {
-    debug("Failed to get run data");
+    debug('Failed to get run data');
     throw e;
   }
 }
@@ -50,7 +50,7 @@ async function handleOutput(
 
   if (config.output) {
     await ensurePathExists(config.output);
-    await writeFile(config.output, data, "utf-8");
+    await writeFile(config.output, data, 'utf-8');
   } else {
     info(data);
   }

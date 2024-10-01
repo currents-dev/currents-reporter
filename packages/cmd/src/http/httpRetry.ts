@@ -1,33 +1,33 @@
-import { AxiosError, AxiosRequestConfig, isAxiosError } from "axios";
-import prettyMilliseconds from "pretty-ms";
+import { AxiosError, AxiosRequestConfig, isAxiosError } from 'axios';
+import prettyMilliseconds from 'pretty-ms';
 
-import { warn } from "@logger";
-import { debug as _debug } from "../debug";
+import { warn } from '@logger';
+import { debug as _debug } from '../debug';
 
-const debug = _debug.extend("http");
+const debug = _debug.extend('http');
 
 export const getDelay = (i: number) => [3 * 1000, 15 * 1000, 30 * 1000][i - 1];
 
 export const isRetriableError = (err: AxiosError | Error): boolean => {
-  debug("isRetriableError: %o", {
+  debug('isRetriableError: %o', {
     message: err.message,
-    code: "code" in err ? err.code : undefined,
-    status: "response" in err ? err.response?.status : undefined,
-    headers: "response" in err ? err.response?.headers : undefined,
-    data: "response" in err ? err.response?.data : undefined,
+    code: 'code' in err ? err.code : undefined,
+    status: 'response' in err ? err.response?.status : undefined,
+    headers: 'response' in err ? err.response?.headers : undefined,
+    data: 'response' in err ? err.response?.data : undefined,
     isAxiosError: isAxiosError(err),
   });
 
   if (
-    "code" in err &&
+    'code' in err &&
     err.code &&
     // https://man7.org/linux/man-pages/man3/errno.3.html
     [
-      "ECONNABORTED",
-      "ECONNREFUSED",
-      "ECONNRESET",
-      "ETIMEDOUT",
-      "ENETRESET",
+      'ECONNABORTED',
+      'ECONNREFUSED',
+      'ECONNRESET',
+      'ETIMEDOUT',
+      'ENETRESET',
     ].includes(err.code)
   ) {
     return true;

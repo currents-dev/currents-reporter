@@ -71,14 +71,16 @@ For more examples and usage options, run `npx currents api --help`.
 
 ## Cache test artifacts
 
-The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually or it can be generated based on CI environment variables (only GitHub and GitLab are supported). 
+The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually or it can be generated based on CI environment variables (only GitHub and GitLab are supported).
 
 To cache files, use the following command:
+
 ```sh
 npx currents cache set --key <record-key> --id <id> --paths <path-1,path-2,...path-n>
 ```
 
 To download files, use the following command:
+
 ```sh
 npx currents cache set --key <record-key> --preset last-run
 ```

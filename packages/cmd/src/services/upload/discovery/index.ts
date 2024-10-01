@@ -1,2 +1,2 @@
-export * from "./createScanner";
-export * from "./types";
+export * from './createScanner';
+export * from './types';

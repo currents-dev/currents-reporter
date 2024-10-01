@@ -1,6 +1,6 @@
-import { CacheGetCommandOpts } from "../../commands/cache/get";
-import { CacheSetCommandOpts } from "../../commands/cache/set";
-import { CacheGetCommandConfig, CacheSetCommandConfig } from "./config";
+import { CacheGetCommandOpts } from '../../commands/cache/get';
+import { CacheSetCommandOpts } from '../../commands/cache/set';
+import { CacheGetCommandConfig, CacheSetCommandConfig } from './config';
 
 export function cacheGetCommandOptsToConfig(
   options: CacheGetCommandOpts

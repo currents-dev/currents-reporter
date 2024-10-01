@@ -1,6 +1,6 @@
-import { yargsOptions } from "jest-cli";
-import { hideBin } from "yargs/helpers";
-import yargs from "yargs/yargs";
+import { yargsOptions } from 'jest-cli';
+import { hideBin } from 'yargs/helpers';
+import yargs from 'yargs/yargs';
 
 export function getJestArgv() {
   const argv = yargs(hideBin(process.argv))

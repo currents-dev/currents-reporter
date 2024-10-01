@@ -1,69 +1,69 @@
-import { CacheCommandConfig } from "./config";
+import { CacheCommandConfig } from './config';
 
 const cacheCommandConfigKeys = {
   recordKey: {
-    name: "Record Key",
-    env: "CURRENTS_RECORD_KEY",
-    cli: "--key",
+    name: 'Record Key',
+    env: 'CURRENTS_RECORD_KEY',
+    cli: '--key',
   },
   debug: {
-    name: "Debug",
-    env: "CURRENTS_DEBUG",
-    cli: "--debug",
+    name: 'Debug',
+    env: 'CURRENTS_DEBUG',
+    cli: '--debug',
   },
 } as const;
 
 const cacheSetCommandConfigKeys = {
   id: {
-    name: "Cache id",
-    cli: "--id",
+    name: 'Cache id',
+    cli: '--id',
   },
   preset: {
-    name: "Preset",
-    cli: "--preset",
+    name: 'Preset',
+    cli: '--preset',
   },
   pwOutputDir: {
-    name: "Playwright output directory",
-    cli: "--pw-output-dir",
+    name: 'Playwright output directory',
+    cli: '--pw-output-dir',
   },
   presetOutput: {
-    name: "Preset output path",
-    cli: "--preset-output",
+    name: 'Preset output path',
+    cli: '--preset-output',
   },
   paths: {
-    name: "Paths to cache",
-    cli: "--paths",
+    name: 'Paths to cache',
+    cli: '--paths',
   },
   matrixIndex: {
-    name: "Matrix index",
-    cli: "--matrix-index",
+    name: 'Matrix index',
+    cli: '--matrix-index',
   },
   matrixTotal: {
-    name: "Matrix total",
-    cli: "--matrix-total",
+    name: 'Matrix total',
+    cli: '--matrix-total',
   },
 } as const;
 
 const cacheGetCommandConfigKeys = {
   id: {
-    name: "Cache id",
-    cli: "--id",
+    name: 'Cache id',
+    cli: '--id',
   },
   preset: {
-    name: "Preset",
-    cli: "--preset",
+    name: 'Preset',
+    cli: '--preset',
   },
   outputDir: {
-    name: "Custom directory to write output",
-    cli: "--output-dir",
+    name: 'Custom directory to write output',
+    cli: '--output-dir',
   },
   matrixIndex: {
-    name: "Matrix index",
-    cli: "--matrix-index",
+    name: 'Matrix index',
+    cli: '--matrix-index',
   },
   matrixTotal: {
-    name: "Matrix total",
-    cli: "--matrix-total",
+    name: 'Matrix total',
+    cli: '--matrix-total',
   },
 } as const;
 

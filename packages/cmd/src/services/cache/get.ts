@@ -1,20 +1,20 @@
-import { debug } from "@debug";
-import { isAxiosError } from "axios";
-import { retrieveCache } from "../../api";
-import { PRESETS } from "../../commands/cache/options";
-import { getCacheCommandConfig } from "../../config/cache";
-import { getCI } from "../../env/ciProvider";
-import { warnWithNoTrace } from "../../logger";
-import { unzipBuffer } from "./fs";
-import { MetaFile, warn } from "./lib";
-import { download } from "./network";
-import { handlePostLastRunPreset, handlePreLastRunPreset } from "./presets";
+import { debug } from '@debug';
+import { isAxiosError } from 'axios';
+import { retrieveCache } from '../../api';
+import { PRESETS } from '../../commands/cache/options';
+import { getCacheCommandConfig } from '../../config/cache';
+import { getCI } from '../../env/ciProvider';
+import { warnWithNoTrace } from '../../logger';
+import { unzipBuffer } from './fs';
+import { MetaFile, warn } from './lib';
+import { download } from './network';
+import { handlePostLastRunPreset, handlePreLastRunPreset } from './presets';
 
 export async function handleGetCache() {
   try {
     const config = getCacheCommandConfig();
-    if (config.type !== "GET_COMMAND_CONFIG" || !config.values) {
-      throw new Error("Config is missing!");
+    if (config.type !== 'GET_COMMAND_CONFIG' || !config.values) {
+      throw new Error('Config is missing!');
     }
 
     const { recordKey, id, preset, matrixIndex, matrixTotal } = config.values;
@@ -58,7 +58,7 @@ export async function handleGetCache() {
       throw e;
     }
   } catch (e) {
-    warn(e, "Failed to obtain cache");
+    warn(e, 'Failed to obtain cache');
   }
 }
 
@@ -70,13 +70,13 @@ async function handleArchiveDownload({
   outputDir?: string;
 }) {
   const buffer = await download(readUrl);
-  await unzipBuffer(buffer, outputDir || ".");
-  debug("Cache downloaded");
+  await unzipBuffer(buffer, outputDir || '.');
+  debug('Cache downloaded');
 }
 
 async function handleMetaDownload(readUrl: string) {
   const buffer = await download(readUrl);
-  const meta = JSON.parse(buffer.toString("utf-8")) as MetaFile;
-  debug("Meta file: %O", meta);
+  const meta = JSON.parse(buffer.toString('utf-8')) as MetaFile;
+  debug('Meta file: %O', meta);
   return meta;
 }
