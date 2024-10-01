@@ -1,5 +1,11 @@
 # Changelog
 
+# [1.1.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.5...${npm.name}-v1.1.0) (2024-10-01)
+
+### Features
+
+* Implementation for `api` and `cache` commands (#12)
+
 ## [1.0.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.4...${npm.name}-v1.0.5) (2024-09-09)
 
 
