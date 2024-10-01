@@ -32,17 +32,17 @@ ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-bui
 export const getApiCommand = (name: string) => {
   const command = new Command()
     .command(COMMAND_NAME)
-    .description(`Receive information from Currents API ${getExample(name)}`)
     .showHelpAfterError("(add --help for additional information)")
     .allowUnknownOption()
-    .addCommand(getRunCommand());
+    .addCommand(getRunCommand(name));
 
   return command;
 };
 
-export const getRunCommand = () => {
+export const getRunCommand = (name: string) => {
   const command = new Command()
     .name("get-run")
+    .description(`Receive information from Currents API ${getExample(name)}`)
     .allowUnknownOption()
     .addOption(apiKeyOption)
     .addOption(debugOption)
