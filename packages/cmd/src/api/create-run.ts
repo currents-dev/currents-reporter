@@ -1,15 +1,16 @@
+import { Commit } from "@env/gitInfo";
+import { CiProvider, CiProviderData } from "@env/types";
+import { error } from "@logger";
 import { promisify } from "node:util";
 import { gzip } from "node:zlib";
-import { CurrentsConfig } from "../config";
+import { CurrentsConfig } from "../config/upload";
 import { debug as _debug } from "../debug";
-import { FullTestSuite } from "../discovery";
-import { Commit } from "../env/gitInfo";
-import { CiProvider, CiProviderData } from "../env/types";
 import { makeRequest } from "../http";
-import { InstanceReport } from "../types";
-import { error } from "../logger";
+import { FullTestSuite } from "../services/upload/discovery";
+import { InstanceReport } from "../services/upload/types";
+import { ClientType } from "../http/client";
 
-const debug = _debug.extend("run");
+const debug = _debug.extend("api");
 const gzipPromise = promisify(gzip);
 
 export type Platform = {
@@ -43,11 +44,12 @@ export type CI = {
   provider: CiProvider;
 };
 
-export type RunParams = {
+export type CreateRunParams = {
   ciBuildId?: string;
   group: string;
   projectId: string;
   platform: Platform;
+  recordKey: string;
   machineId: string;
   framework: Framework;
   commit: Commit;
@@ -58,7 +60,7 @@ export type RunParams = {
   config: RunCreationConfig;
 };
 
-export type RunResponse = {
+export type CreateRunResponse = {
   runId: string;
   groupId: string;
   machineId: string;
@@ -70,12 +72,12 @@ export type RunResponse = {
   warnings: any[];
 };
 
-export async function createRun(params: RunParams) {
+export async function createRun(params: CreateRunParams) {
   try {
     debug("Run params: %o", params);
     const data = await compressData(JSON.stringify(params));
 
-    return makeRequest<RunResponse, Buffer>({
+    return makeRequest<CreateRunResponse, Buffer>(ClientType.API, {
       url: `v1/runs`,
       method: "POST",
       headers: {

@@ -11,6 +11,12 @@ const log = (...args: unknown[]) => {
   console.log(stringToRender);
 };
 
+const _error = (...args: unknown[]) => {
+  const stringToRender = util.format(...args);
+  addToLogDrain(stringToRender);
+  console.error(stringToRender);
+};
+
 export const info = log;
 
 export const warn = (...args: unknown[]) => {
@@ -38,7 +44,7 @@ export const error = (...args: unknown[]) => {
   const msg = util.format(...args);
   errors.push(msg);
   debug("ERROR: ", msg);
-  return log(chalk.bgRed.white(" ERROR "), msg);
+  return _error(chalk.bgRed.white(" ERROR "), msg);
 };
 
 export const title = (...args: unknown[]) =>

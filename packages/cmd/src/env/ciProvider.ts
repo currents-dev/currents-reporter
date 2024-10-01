@@ -27,6 +27,7 @@ SOFTWARE.
 
 // import debugFn from "debug";
 // @ts-ignore
+import { userFacingNanoid } from "@lib/nano";
 import {
   camelCase,
   chain,
@@ -38,7 +39,6 @@ import {
   some,
   transform,
 } from "lodash";
-import { userFacingNanoid } from "../lib/nano";
 import { debug as _debug } from "../debug";
 import { CiProvider, CiProviderData } from "./types";
 
@@ -298,12 +298,12 @@ const _providerCiParams = (): ProviderCiParamsRes => {
     ]),
     // https://help.github.com/en/actions/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables
     githubActions: extract([
-      "GITHUB_WORKFLOW",
-      "GITHUB_ACTION",
-      "GITHUB_EVENT_NAME",
-      "GITHUB_RUN_ID",
-      "GITHUB_RUN_ATTEMPT",
-      "GITHUB_REPOSITORY",
+      'GITHUB_WORKFLOW',
+      'GITHUB_ACTION',
+      'GITHUB_EVENT_NAME',
+      'GITHUB_RUN_ID',
+      'GITHUB_RUN_ATTEMPT',
+      'GITHUB_REPOSITORY',
     ]),
     // see https://docs.gitlab.com/ee/ci/variables/
     gitlab: extract([
@@ -315,6 +315,9 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       "CI_JOB_ID",
       "CI_JOB_URL",
       "CI_JOB_NAME",
+      // matrix information
+      "CI_NODE_INDEX",
+      "CI_NODE_TOTAL",
       // other information
       "GITLAB_HOST",
       "CI_PROJECT_ID",
@@ -322,6 +325,8 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       "CI_REPOSITORY_URL",
       "CI_ENVIRONMENT_URL",
       "CI_DEFAULT_BRANCH",
+      // custom variables
+      "RUN_ATTEMPT", // custom param that we ourselves sometimes add for retrying jobs
       // for PRs: https://gitlab.com/gitlab-org/gitlab-ce/issues/23902
     ]),
     // https://docs.gocd.org/current/faq/dev_use_current_revision_in_build.html#standard-gocd-environment-variables
@@ -694,7 +699,7 @@ export function getCommitParams() {
   return _get(_providerCommitParams);
 }
 
-export function getCI(explicitCiBuildId: string | undefined) {
+export function getCI(explicitCiBuildId?: string | undefined) {
   const params = getCiParams();
   const provider = getCiProvider();
   const ciBuildId = getCIBuildId(explicitCiBuildId, provider);

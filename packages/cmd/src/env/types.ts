@@ -13,3 +13,32 @@ export type CiProviderData = {
   runAttempt?: string;
   ghaEventData?: GhaEventData | null;
 };
+
+export type GithubActionsParams = {
+  githubWorkflow: string;
+  githubAction: string;
+  githubEventName: string;
+  githubRunId: string;
+  githubRunAttempt: string;
+  githubRepository: string;
+};
+
+
+export type GitLabParams = {
+  gitlabCi: string;
+  ciPipelineId: string;
+  ciPipelineUrl: string;
+  ciBuildId: string;
+  ciJobId: string;
+  ciJobUrl: string;
+  ciJobName: string;
+  gitlabHost: string;
+  ciProjectId: string;
+  ciProjectUrl: string;
+  ciRepositoryUrl: string;
+  ciEnvironmentUrl: string;
+  ciDefaultBranch: string;
+  ciNodeIndex?: string;
+  ciNodeTotal?: string;
+  runAttempt?: string;
+};

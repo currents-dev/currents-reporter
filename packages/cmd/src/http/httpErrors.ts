@@ -1,7 +1,7 @@
+import * as log from "@logger";
 import { AxiosError, isAxiosError } from "axios";
 import _ from "lodash";
 import { P, match } from "ts-pattern";
-import * as log from "../logger";
 
 export function handleHTTPError<T, D>(error: unknown) {
   match(error)

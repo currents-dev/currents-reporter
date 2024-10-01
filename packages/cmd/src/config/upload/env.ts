@@ -1,6 +1,6 @@
 import { CurrentsConfig } from "./config";
 
-export const configKey = {
+export const configKeys = {
   debug: {
     name: "Debug",
     env: "CURRENTS_DEBUG",
@@ -48,18 +48,6 @@ export const configKey = {
   },
 } as const;
 
-export function getEnvironmentVariableName(variable: keyof typeof configKey) {
-  return configKey[variable].env;
-}
-
-export function getCLIOptionName(variable: keyof typeof configKey) {
-  return configKey[variable].cli;
-}
-
-export function getConfigName(variable: keyof typeof configKey) {
-  return configKey[variable].name;
-}
-
 /**
  * Converts Environment variables to Currents config.
  * @returns
@@ -68,15 +56,15 @@ export function getEnvVariables(): Partial<
   Record<keyof CurrentsConfig, string | string[] | boolean | number | undefined>
 > {
   return {
-    projectId: process.env[configKey.projectId.env],
-    recordKey: process.env[configKey.recordKey.env],
-    ciBuildId: process.env[configKey.ciBuildId.env],
-    tag: process.env[configKey.tag.env]
-      ? process.env[configKey.tag.env]?.split(",").map((i) => i.trim())
+    projectId: process.env[configKeys.projectId.env],
+    recordKey: process.env[configKeys.recordKey.env],
+    ciBuildId: process.env[configKeys.ciBuildId.env],
+    tag: process.env[configKeys.tag.env]
+      ? process.env[configKeys.tag.env]?.split(",").map((i) => i.trim())
       : undefined,
-    disableTitleTags: !!process.env[configKey.disableTitleTags.env],
-    removeTitleTags: !!process.env[configKey.removeTitleTags.env],
-    debug: !!process.env[configKey.debug.env],
-    machineId: process.env[configKey.machineId.env],
+    disableTitleTags: !!process.env[configKeys.disableTitleTags.env],
+    removeTitleTags: !!process.env[configKeys.removeTitleTags.env],
+    debug: !!process.env[configKeys.debug.env],
+    machineId: process.env[configKeys.machineId.env],
   };
 }

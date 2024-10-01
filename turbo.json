@@ -12,6 +12,7 @@
         "DEBUG",
         "CURRENTS_RUN_URL_FILE",
         "CURRENTS_API_URL",
+        "CURRENTS_REST_API_URL",
         "CURRENTS_REMOTE_LOGGING",
         "TF_BUILD",
         "TF_BUILD_BUILDNUMBER",

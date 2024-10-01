@@ -1,10 +1,9 @@
 import axios, { AxiosInstance } from "axios";
 import axiosRetry from "axios-retry";
 import _ from "lodash";
-import { nanoid } from "nanoid";
 
 import { debug as _debug } from "../debug";
-import { getAPIBaseUrl, getTimeout } from "./httpConfig";
+import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from "./httpConfig";
 import {
   getDelay,
   getMaxRetries,
@@ -14,11 +13,19 @@ import {
 
 const debug = _debug.extend("http");
 
-let _client: AxiosInstance | null = null;
+export enum ClientType {
+  API = "api",
+  REST_API = "restApi",
+}
 
-export function createClient() {
+let _clients: Record<ClientType, AxiosInstance | null> = {
+  [ClientType.API]: null,
+  [ClientType.REST_API]: null,
+};
+
+export function createClient(type: ClientType) {
   const client = axios.create({
-    baseURL: getAPIBaseUrl(),
+    baseURL: type === ClientType.API ? getAPIBaseUrl() : getRestAPIBaseUrl(),
     // Setting no timeout means axios will wait forever for a response
     // and the actual timeout will be handled by the underlying network
     // stack
@@ -80,12 +87,12 @@ export function createClient() {
   return client;
 }
 
-export function getClient() {
-  if (_client) {
-    return _client;
+export function getClient(type: ClientType): AxiosInstance {
+  if (_clients[type] === null) {
+    _clients[type] = createClient(type);
   }
-  _client = createClient();
-  return _client;
+
+  return _clients[type];
 }
 
 function getNetworkRequestDebugData(data: {
