@@ -1,19 +1,19 @@
-import Archiver from "archiver";
-import fs from "fs-extra";
-import path from "path";
-import unzipper from "unzipper";
-import { warn } from "../../logger";
+import Archiver from 'archiver';
+import fs from 'fs-extra';
+import path from 'path';
+import unzipper from 'unzipper';
+import { warn } from '../../logger';
 
 const MAX_ZIP_SIZE = 50 * 1024 * 1024; // 50MB
 
 /**
  * Adds files and directories to an archive while preserving their original folder structure.
  *
- * This function supports various types of paths, including individual files, entire directories, 
- * and files located within subdirectories. When the archive is extracted, the original organization 
+ * This function supports various types of paths, including individual files, entire directories,
+ * and files located within subdirectories. When the archive is extracted, the original organization
  * will be restored, making navigation straightforward.
  *
- * Paths based on a specific starting point will be stored relative to that point, helping to avoid 
+ * Paths based on a specific starting point will be stored relative to that point, helping to avoid
  * naming conflicts and maintaining the logical arrangement of files and directories.
  */
 export async function zipFilesToBuffer(
@@ -21,11 +21,11 @@ export async function zipFilesToBuffer(
   maxSize: number = MAX_ZIP_SIZE
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const archive = Archiver("zip", { zlib: { level: 9 } });
+    const archive = Archiver('zip', { zlib: { level: 9 } });
     const chunks: Buffer[] = [];
     let totalSize = 0;
 
-    archive.on("data", (chunk) => {
+    archive.on('data', (chunk) => {
       chunks.push(chunk);
       totalSize += chunk.length;
       if (totalSize > maxSize) {
@@ -33,17 +33,17 @@ export async function zipFilesToBuffer(
       }
     });
 
-    archive.on("warning", (err) => {
-      if (err.code === "ENOENT") {
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') {
         warn(err);
       } else {
         reject(err);
       }
     });
 
-    archive.on("error", (err) => reject(err));
+    archive.on('error', (err) => reject(err));
 
-    archive.on("end", () => {
+    archive.on('end', () => {
       const buffer = Buffer.concat(chunks);
       resolve(buffer);
     });
@@ -90,7 +90,7 @@ export function filterPaths(filePaths: string[]) {
     const absolutePath = path.resolve(filePath);
     const relativePath = path.relative(baseDir, absolutePath);
 
-    if (filePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    if (filePath.startsWith('..') || path.isAbsolute(relativePath)) {
       warn(
         `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
       );

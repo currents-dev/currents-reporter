@@ -1,49 +1,49 @@
-import { debug, setTraceFilePath } from "@debug";
-import { getCI } from "@env/ciProvider";
-import { getGitInfo } from "@env/gitInfo";
-import { getPlatformInfo } from "@env/platform";
-import { reporterVersion } from "@env/versions";
-import { nanoid, readJsonFile, writeFileAsync } from "@lib";
-import { info, warn } from "@logger";
-import { mapValues } from "lodash";
-import path from "path";
-import semver from "semver";
+import { debug, setTraceFilePath } from '@debug';
+import { getCI } from '@env/ciProvider';
+import { getGitInfo } from '@env/gitInfo';
+import { getPlatformInfo } from '@env/platform';
+import { reporterVersion } from '@env/versions';
+import { nanoid, readJsonFile, writeFileAsync } from '@lib';
+import { info, warn } from '@logger';
+import { mapValues } from 'lodash';
+import path from 'path';
+import semver from 'semver';
 import {
   Framework,
   RunCreationConfig,
   createRun as createRunApi,
-} from "../../api";
-import { getCurrentsConfig } from "../../config/upload";
-import { FullTestSuite, createScanner } from "./discovery";
+} from '../../api';
+import { getCurrentsConfig } from '../../config/upload';
+import { FullTestSuite, createScanner } from './discovery';
 import {
   checkPathExists,
   getInstanceReportList,
   resolveReportOptions,
-} from "./fs";
-import { InstanceReport, ReportConfig, UploadMarkerInfo } from "./types";
+} from './fs';
+import { InstanceReport, ReportConfig, UploadMarkerInfo } from './types';
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
   if (!currentsConfig) {
-    throw new Error("Currents config is missing!");
+    throw new Error('Currents config is missing!');
   }
 
   const reportOptions = await resolveReportOptions(currentsConfig);
   // set the trace file path
   setTraceFilePath(getTraceFilePath(reportOptions.reportDir));
 
-  debug("Reporter options: %o", reportOptions);
+  debug('Reporter options: %o', reportOptions);
 
-  info("Report directory: %s", reportOptions.reportDir);
+  info('Report directory: %s', reportOptions.reportDir);
 
   const config = await readJsonFile<ReportConfig>(reportOptions.configFilePath);
-  debug("Report config: %o", config);
+  debug('Report config: %o', config);
 
   const instanceReportList = await getInstanceReportList(
     reportOptions.reportDir
   );
   debug(
-    "Found %d instance results in the reportDir: %s",
+    'Found %d instance results in the reportDir: %s',
     instanceReportList.length,
     reportOptions.reportDir
   );
@@ -58,7 +58,7 @@ export async function handleCurrentsReport() {
   let fullTestSuite: FullTestSuite | null = null;
   if (markerFileExists) {
     const markerInfo = await readJsonFile<UploadMarkerInfo>(markerFilePath);
-    warn("Marker file detected. The report was already uploaded: %o", {
+    warn('Marker file detected. The report was already uploaded: %o', {
       runUrl: markerInfo.response.runUrl,
       isoDate: markerInfo.isoDate,
     });
@@ -69,7 +69,7 @@ export async function handleCurrentsReport() {
 
     if (fullTestSuiteFileExists) {
       fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
-      debug("Full test suite file detected: %s", fullTestSuiteFilePath);
+      debug('Full test suite file detected: %s', fullTestSuiteFilePath);
     }
   }
 
@@ -78,12 +78,12 @@ export async function handleCurrentsReport() {
     fullTestSuite = await scanner.getFullTestSuite();
 
     if (isEmptyTestSuite(fullTestSuite)) {
-      throw new Error("Failed to discover the full test suite!");
+      throw new Error('Failed to discover the full test suite!');
     }
 
     await writeFileAsync(fullTestSuiteFilePath, JSON.stringify(fullTestSuite));
   } else {
-    debug("The discovery stage was skipped");
+    debug('The discovery stage was skipped');
   }
 
   const defaultGroup =
@@ -117,7 +117,7 @@ export async function handleCurrentsReport() {
 
     if (defaultGroup) {
       debug(
-        "Default group found: %s, overwriting the group in the results",
+        'Default group found: %s, overwriting the group in the results',
         defaultGroup
       );
 
@@ -139,9 +139,9 @@ export async function handleCurrentsReport() {
         framework,
       });
 
-      debug("Api response: %o", response);
+      debug('Api response: %o', response);
 
-      info("[%s] Run created: %s", group, response.runUrl);
+      info('[%s] Run created: %s', group, response.runUrl);
 
       const markerInfo = {
         response,
@@ -151,12 +151,12 @@ export async function handleCurrentsReport() {
       await writeFileAsync(markerFilePath, JSON.stringify(markerInfo));
 
       debug(
-        "Marker file %s: %s",
-        markerFileExists ? "overwritten" : "created",
+        'Marker file %s: %s',
+        markerFileExists ? 'overwritten' : 'created',
         markerFilePath
       );
     } catch (e) {
-      debug("Failed to upload the results to the dashboard");
+      debug('Failed to upload the results to the dashboard');
       throw e;
     }
   }
@@ -182,7 +182,7 @@ async function createRun({
   const commit = await getGitInfo();
   const platformInfo = await getPlatformInfo();
   const browserInfo = {
-    browserName: "node",
+    browserName: 'node',
     browserVersion: semver.coerce(process.version)?.version,
   };
 
@@ -206,19 +206,19 @@ async function createRun({
   };
 
   debug(
-    "Creating run: %o",
-    mapValues(payload, (v, k) => (k === "recordKey" ? "******" : v))
+    'Creating run: %o',
+    mapValues(payload, (v, k) => (k === 'recordKey' ? '******' : v))
   );
 
   return createRunApi(payload);
 }
 
 function getMarkerFilePath(reportDir: string) {
-  return path.join(reportDir, "upload.marker.json");
+  return path.join(reportDir, 'upload.marker.json');
 }
 
 function getFullTestSuiteFilePath(reportDir: string) {
-  return path.join(reportDir, "fullTestSuite.json");
+  return path.join(reportDir, 'fullTestSuite.json');
 }
 
 function getTraceFilePath(reportDir: string) {

@@ -1,16 +1,16 @@
-import { defaultTo, transform } from "lodash";
-import { debug as _debug } from "../debug";
-import { getCommitParams } from "./ciProvider";
-import { GhaEventData } from "./gitInfo";
-import { CiProvider, CiProviderData } from "./types";
+import { defaultTo, transform } from 'lodash';
+import { debug as _debug } from '../debug';
+import { getCommitParams } from './ciProvider';
+import { GhaEventData } from './gitInfo';
+import { CiProvider, CiProviderData } from './types';
 
-const debug = _debug.extend("ci-git");
+const debug = _debug.extend('ci-git');
 
 export function mergeGitCommit(existingInfo: CiProviderData) {
-  debug("git commit existing info: %O", existingInfo);
+  debug('git commit existing info: %O', existingInfo);
 
   const commitParamsObj = getCommitParams();
-  debug("commit info from provider environment variables: %O", commitParamsObj);
+  debug('commit info from provider environment variables: %O', commitParamsObj);
 
   // based on the existingInfo properties
   // merge in the commitParams if null or undefined
@@ -30,7 +30,7 @@ export function mergeGitCommit(existingInfo: CiProviderData) {
     }
   );
 
-  debug("combined git and environment variables from provider: %O", combined);
+  debug('combined git and environment variables from provider: %O', combined);
 
   return combined;
 }

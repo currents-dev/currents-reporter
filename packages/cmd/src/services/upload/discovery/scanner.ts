@@ -1,5 +1,5 @@
-import { ReportConfig } from "../types";
-import { FullTestSuite } from "./types";
+import { ReportConfig } from '../types';
+import { FullTestSuite } from './types';
 
 export class Scanner {
   constructor(protected config: ReportConfig) {}

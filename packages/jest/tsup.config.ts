@@ -1,14 +1,14 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: ['src/index.ts'],
   esbuildOptions: (options) => {
-    options.legalComments = "linked";
+    options.legalComments = 'linked';
   },
   splitting: false,
   shims: true,
   clean: true,
   sourcemap: true,
-  platform: "node",
-  target: "esnext",
+  platform: 'node',
+  target: 'esnext',
 });

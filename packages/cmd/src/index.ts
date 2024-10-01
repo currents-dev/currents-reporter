@@ -1,2 +1,2 @@
-export { handleCurrentsReport } from "./services/upload";
-export type * from "./services/upload/types";
+export { handleCurrentsReport } from './services/upload';
+export type * from './services/upload/types';

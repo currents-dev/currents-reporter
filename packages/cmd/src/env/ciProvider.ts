@@ -27,7 +27,7 @@ SOFTWARE.
 
 // import debugFn from "debug";
 // @ts-ignore
-import { userFacingNanoid } from "@lib/nano";
+import { userFacingNanoid } from '@lib/nano';
 import {
   camelCase,
   chain,
@@ -38,11 +38,11 @@ import {
   set,
   some,
   transform,
-} from "lodash";
-import { debug as _debug } from "../debug";
-import { CiProvider, CiProviderData } from "./types";
+} from 'lodash';
+import { debug as _debug } from '../debug';
+import { CiProvider, CiProviderData } from './types';
 
-const debug = _debug.extend("ci");
+const debug = _debug.extend('ci');
 
 const join = (char: string, ...pieces: (string | undefined)[]) => {
   return chain(pieces).compact().join(char).value();
@@ -86,7 +86,7 @@ const isBamboo = () => {
 const isCodeshipBasic = () => {
   return (
     process.env.CI_NAME &&
-    process.env.CI_NAME === "codeship" &&
+    process.env.CI_NAME === 'codeship' &&
     process.env.CODESHIP
   );
 };
@@ -94,7 +94,7 @@ const isCodeshipBasic = () => {
 const isCodeshipPro = () => {
   return (
     process.env.CI_NAME &&
-    process.env.CI_NAME === "codeship" &&
+    process.env.CI_NAME === 'codeship' &&
     !process.env.CODESHIP
   );
 };
@@ -146,31 +146,31 @@ const isWercker = () => {
  * variable "APPVEYOR" set during run
  */
 const CI_PROVIDERS = {
-  appveyor: "APPVEYOR",
+  appveyor: 'APPVEYOR',
   azure: isAzureCi,
   awsCodeBuild: isAWSCodeBuild,
   bamboo: isBamboo,
-  bitbucket: "BITBUCKET_BUILD_NUMBER",
-  buildkite: "BUILDKITE",
-  circle: "CIRCLECI",
+  bitbucket: 'BITBUCKET_BUILD_NUMBER',
+  buildkite: 'BUILDKITE',
+  circle: 'CIRCLECI',
   codeshipBasic: isCodeshipBasic,
   codeshipPro: isCodeshipPro,
   concourse: isConcourse,
-  codeFresh: "CF_BUILD_ID",
-  drone: "DRONE",
-  githubActions: "GITHUB_ACTIONS",
+  codeFresh: 'CF_BUILD_ID',
+  drone: 'DRONE',
+  githubActions: 'GITHUB_ACTIONS',
   gitlab: isGitlab,
-  goCD: "GO_JOB_NAME",
+  goCD: 'GO_JOB_NAME',
   googleCloud: isGoogleCloud,
   jenkins: isJenkins,
-  semaphore: "SEMAPHORE",
-  shippable: "SHIPPABLE",
-  teamcity: "TEAMCITY_VERSION",
+  semaphore: 'SEMAPHORE',
+  shippable: 'SHIPPABLE',
+  teamcity: 'TEAMCITY_VERSION',
   teamfoundation: isTeamFoundation,
-  travis: "TRAVIS",
+  travis: 'TRAVIS',
   wercker: isWercker,
-  netlify: "NETLIFY",
-  layerci: "LAYERCI",
+  netlify: 'NETLIFY',
+  layerci: 'LAYERCI',
 };
 
 function _detectProviderName(): string | undefined {
@@ -192,109 +192,109 @@ function _detectProviderName(): string | undefined {
 const _providerCiParams = (): ProviderCiParamsRes => {
   return {
     appveyor: extract([
-      "APPVEYOR_JOB_ID",
-      "APPVEYOR_ACCOUNT_NAME",
-      "APPVEYOR_PROJECT_SLUG",
-      "APPVEYOR_BUILD_NUMBER",
-      "APPVEYOR_BUILD_VERSION",
-      "APPVEYOR_PULL_REQUEST_NUMBER",
-      "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH",
+      'APPVEYOR_JOB_ID',
+      'APPVEYOR_ACCOUNT_NAME',
+      'APPVEYOR_PROJECT_SLUG',
+      'APPVEYOR_BUILD_NUMBER',
+      'APPVEYOR_BUILD_VERSION',
+      'APPVEYOR_PULL_REQUEST_NUMBER',
+      'APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH',
     ]),
     azure: extract([
-      "BUILD_BUILDID",
-      "BUILD_BUILDNUMBER",
-      "BUILD_CONTAINERID",
-      "BUILD_REPOSITORY_URI",
-      "SYSTEM_TEAMPROJECT",
-      "SYSTEM_COLLECTIONURI",
+      'BUILD_BUILDID',
+      'BUILD_BUILDNUMBER',
+      'BUILD_CONTAINERID',
+      'BUILD_REPOSITORY_URI',
+      'SYSTEM_TEAMPROJECT',
+      'SYSTEM_COLLECTIONURI',
     ]),
     awsCodeBuild: extract([
-      "CODEBUILD_BUILD_ID",
-      "CODEBUILD_BUILD_NUMBER",
-      "CODEBUILD_RESOLVED_SOURCE_VERSION",
-      "CODEBUILD_SOURCE_REPO_URL",
-      "CODEBUILD_SOURCE_VERSION",
+      'CODEBUILD_BUILD_ID',
+      'CODEBUILD_BUILD_NUMBER',
+      'CODEBUILD_RESOLVED_SOURCE_VERSION',
+      'CODEBUILD_SOURCE_REPO_URL',
+      'CODEBUILD_SOURCE_VERSION',
     ]),
     bamboo: extract([
-      "bamboo_buildNumber",
-      "bamboo_buildResultsUrl",
-      "bamboo_planRepository_repositoryUrl",
-      "bamboo_buildKey",
+      'bamboo_buildNumber',
+      'bamboo_buildResultsUrl',
+      'bamboo_planRepository_repositoryUrl',
+      'bamboo_buildKey',
     ]),
     bitbucket: extract([
-      "BITBUCKET_REPO_SLUG",
-      "BITBUCKET_REPO_OWNER",
-      "BITBUCKET_BUILD_NUMBER",
-      "BITBUCKET_PARALLEL_STEP",
-      "BITBUCKET_STEP_RUN_NUMBER",
+      'BITBUCKET_REPO_SLUG',
+      'BITBUCKET_REPO_OWNER',
+      'BITBUCKET_BUILD_NUMBER',
+      'BITBUCKET_PARALLEL_STEP',
+      'BITBUCKET_STEP_RUN_NUMBER',
       // the PR variables are only set on pull request builds
-      "BITBUCKET_PR_ID",
-      "BITBUCKET_PR_DESTINATION_BRANCH",
-      "BITBUCKET_PR_DESTINATION_COMMIT",
+      'BITBUCKET_PR_ID',
+      'BITBUCKET_PR_DESTINATION_BRANCH',
+      'BITBUCKET_PR_DESTINATION_COMMIT',
     ]),
     buildkite: extract([
-      "BUILDKITE_REPO",
-      "BUILDKITE_SOURCE",
-      "BUILDKITE_JOB_ID",
-      "BUILDKITE_BUILD_ID",
-      "BUILDKITE_BUILD_URL",
-      "BUILDKITE_BUILD_NUMBER",
-      "BUILDKITE_PULL_REQUEST",
-      "BUILDKITE_PULL_REQUEST_REPO",
-      "BUILDKITE_PULL_REQUEST_BASE_BRANCH",
+      'BUILDKITE_REPO',
+      'BUILDKITE_SOURCE',
+      'BUILDKITE_JOB_ID',
+      'BUILDKITE_BUILD_ID',
+      'BUILDKITE_BUILD_URL',
+      'BUILDKITE_BUILD_NUMBER',
+      'BUILDKITE_PULL_REQUEST',
+      'BUILDKITE_PULL_REQUEST_REPO',
+      'BUILDKITE_PULL_REQUEST_BASE_BRANCH',
     ]),
     circle: extract([
-      "CIRCLE_JOB",
-      "CIRCLE_BUILD_NUM",
-      "CIRCLE_BUILD_URL",
-      "CIRCLE_PR_NUMBER",
-      "CIRCLE_PR_REPONAME",
-      "CIRCLE_PR_USERNAME",
-      "CIRCLE_COMPARE_URL",
-      "CIRCLE_WORKFLOW_ID",
-      "CIRCLE_PULL_REQUEST",
-      "CIRCLE_REPOSITORY_URL",
-      "CI_PULL_REQUEST",
+      'CIRCLE_JOB',
+      'CIRCLE_BUILD_NUM',
+      'CIRCLE_BUILD_URL',
+      'CIRCLE_PR_NUMBER',
+      'CIRCLE_PR_REPONAME',
+      'CIRCLE_PR_USERNAME',
+      'CIRCLE_COMPARE_URL',
+      'CIRCLE_WORKFLOW_ID',
+      'CIRCLE_PULL_REQUEST',
+      'CIRCLE_REPOSITORY_URL',
+      'CI_PULL_REQUEST',
     ]),
     codeshipBasic: extract([
-      "CI_BUILD_ID",
-      "CI_REPO_NAME",
-      "CI_BUILD_URL",
-      "CI_PROJECT_ID",
-      "CI_BUILD_NUMBER",
-      "CI_PULL_REQUEST",
+      'CI_BUILD_ID',
+      'CI_REPO_NAME',
+      'CI_BUILD_URL',
+      'CI_PROJECT_ID',
+      'CI_BUILD_NUMBER',
+      'CI_PULL_REQUEST',
     ]),
     // CodeshipPro provides very few CI variables
     // https://documentation.codeship.com/pro/builds-and-configuration/environment-variables/
-    codeshipPro: extract(["CI_BUILD_ID", "CI_REPO_NAME", "CI_PROJECT_ID"]),
+    codeshipPro: extract(['CI_BUILD_ID', 'CI_REPO_NAME', 'CI_PROJECT_ID']),
     // https://concourse-ci.org/implementing-resource-types.html#resource-metadata
     concourse: extract([
-      "BUILD_ID",
-      "BUILD_NAME",
-      "BUILD_JOB_NAME",
-      "BUILD_PIPELINE_NAME",
-      "BUILD_TEAM_NAME",
-      "ATC_EXTERNAL_URL",
+      'BUILD_ID',
+      'BUILD_NAME',
+      'BUILD_JOB_NAME',
+      'BUILD_PIPELINE_NAME',
+      'BUILD_TEAM_NAME',
+      'ATC_EXTERNAL_URL',
     ]),
     // https://codefresh.io/docs/docs/codefresh-yaml/variables/
     codeFresh: extract([
-      "CF_BUILD_ID",
-      "CF_BUILD_URL",
-      "CF_CURRENT_ATTEMPT",
-      "CF_STEP_NAME",
-      "CF_PIPELINE_NAME",
-      "CF_PIPELINE_TRIGGER_ID",
+      'CF_BUILD_ID',
+      'CF_BUILD_URL',
+      'CF_CURRENT_ATTEMPT',
+      'CF_STEP_NAME',
+      'CF_PIPELINE_NAME',
+      'CF_PIPELINE_TRIGGER_ID',
       // variables added for pull requests
-      "CF_PULL_REQUEST_ID",
-      "CF_PULL_REQUEST_IS_FORK",
-      "CF_PULL_REQUEST_NUMBER",
-      "CF_PULL_REQUEST_TARGET",
+      'CF_PULL_REQUEST_ID',
+      'CF_PULL_REQUEST_IS_FORK',
+      'CF_PULL_REQUEST_NUMBER',
+      'CF_PULL_REQUEST_TARGET',
     ]),
     drone: extract([
-      "DRONE_JOB_NUMBER",
-      "DRONE_BUILD_LINK",
-      "DRONE_BUILD_NUMBER",
-      "DRONE_PULL_REQUEST",
+      'DRONE_JOB_NUMBER',
+      'DRONE_BUILD_LINK',
+      'DRONE_BUILD_NUMBER',
+      'DRONE_PULL_REQUEST',
     ]),
     // https://help.github.com/en/actions/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables
     githubActions: extract([
@@ -308,153 +308,153 @@ const _providerCiParams = (): ProviderCiParamsRes => {
     // see https://docs.gitlab.com/ee/ci/variables/
     gitlab: extract([
       // pipeline is common among all jobs
-      "CI_PIPELINE_ID",
-      "CI_PIPELINE_URL",
+      'CI_PIPELINE_ID',
+      'CI_PIPELINE_URL',
       // individual jobs
-      "CI_BUILD_ID", // build id and job id are aliases
-      "CI_JOB_ID",
-      "CI_JOB_URL",
-      "CI_JOB_NAME",
+      'CI_BUILD_ID', // build id and job id are aliases
+      'CI_JOB_ID',
+      'CI_JOB_URL',
+      'CI_JOB_NAME',
       // matrix information
-      "CI_NODE_INDEX",
-      "CI_NODE_TOTAL",
+      'CI_NODE_INDEX',
+      'CI_NODE_TOTAL',
       // other information
-      "GITLAB_HOST",
-      "CI_PROJECT_ID",
-      "CI_PROJECT_URL",
-      "CI_REPOSITORY_URL",
-      "CI_ENVIRONMENT_URL",
-      "CI_DEFAULT_BRANCH",
+      'GITLAB_HOST',
+      'CI_PROJECT_ID',
+      'CI_PROJECT_URL',
+      'CI_REPOSITORY_URL',
+      'CI_ENVIRONMENT_URL',
+      'CI_DEFAULT_BRANCH',
       // custom variables
-      "RUN_ATTEMPT", // custom param that we ourselves sometimes add for retrying jobs
+      'RUN_ATTEMPT', // custom param that we ourselves sometimes add for retrying jobs
       // for PRs: https://gitlab.com/gitlab-org/gitlab-ce/issues/23902
     ]),
     // https://docs.gocd.org/current/faq/dev_use_current_revision_in_build.html#standard-gocd-environment-variables
     goCD: extract([
-      "GO_SERVER_URL",
-      "GO_ENVIRONMENT_NAME",
-      "GO_PIPELINE_NAME",
-      "GO_PIPELINE_COUNTER",
-      "GO_PIPELINE_LABEL",
-      "GO_STAGE_NAME",
-      "GO_STAGE_COUNTER",
-      "GO_JOB_NAME",
-      "GO_TRIGGER_USER",
-      "GO_REVISION",
-      "GO_TO_REVISION",
-      "GO_FROM_REVISION",
-      "GO_MATERIAL_HAS_CHANGED",
+      'GO_SERVER_URL',
+      'GO_ENVIRONMENT_NAME',
+      'GO_PIPELINE_NAME',
+      'GO_PIPELINE_COUNTER',
+      'GO_PIPELINE_LABEL',
+      'GO_STAGE_NAME',
+      'GO_STAGE_COUNTER',
+      'GO_JOB_NAME',
+      'GO_TRIGGER_USER',
+      'GO_REVISION',
+      'GO_TO_REVISION',
+      'GO_FROM_REVISION',
+      'GO_MATERIAL_HAS_CHANGED',
     ]),
     googleCloud: extract([
       // individual jobs
-      "BUILD_ID",
-      "PROJECT_ID",
+      'BUILD_ID',
+      'PROJECT_ID',
       // other information
-      "REPO_NAME",
-      "BRANCH_NAME",
-      "TAG_NAME",
-      "COMMIT_SHA",
-      "SHORT_SHA",
+      'REPO_NAME',
+      'BRANCH_NAME',
+      'TAG_NAME',
+      'COMMIT_SHA',
+      'SHORT_SHA',
       // https://cloud.google.com/cloud-build/docs/api/reference/rest/Shared.Types/Build
     ]),
-    jenkins: extract(["BUILD_ID", "BUILD_URL", "BUILD_NUMBER", "ghprbPullId"]),
+    jenkins: extract(['BUILD_ID', 'BUILD_URL', 'BUILD_NUMBER', 'ghprbPullId']),
     // https://semaphoreci.com/docs/available-environment-variables.html
     // some come from v1, some from v2 of semaphore
     semaphore: extract([
-      "SEMAPHORE_BRANCH_ID",
-      "SEMAPHORE_BUILD_NUMBER",
-      "SEMAPHORE_CURRENT_JOB",
-      "SEMAPHORE_CURRENT_THREAD",
-      "SEMAPHORE_EXECUTABLE_UUID",
-      "SEMAPHORE_GIT_BRANCH",
-      "SEMAPHORE_GIT_DIR",
-      "SEMAPHORE_GIT_REF",
-      "SEMAPHORE_GIT_REF_TYPE",
-      "SEMAPHORE_GIT_REPO_SLUG",
-      "SEMAPHORE_GIT_SHA",
-      "SEMAPHORE_GIT_URL",
-      "SEMAPHORE_JOB_COUNT",
-      "SEMAPHORE_JOB_ID", // v2
-      "SEMAPHORE_JOB_NAME",
-      "SEMAPHORE_JOB_UUID", // v1
-      "SEMAPHORE_PIPELINE_ID",
-      "SEMAPHORE_PLATFORM",
-      "SEMAPHORE_PROJECT_DIR",
-      "SEMAPHORE_PROJECT_HASH_ID",
-      "SEMAPHORE_PROJECT_ID", // v2
-      "SEMAPHORE_PROJECT_NAME",
-      "SEMAPHORE_PROJECT_UUID", // v1
-      "SEMAPHORE_REPO_SLUG",
-      "SEMAPHORE_TRIGGER_SOURCE",
-      "SEMAPHORE_WORKFLOW_ID",
-      "PULL_REQUEST_NUMBER", // pull requests from forks ONLY
+      'SEMAPHORE_BRANCH_ID',
+      'SEMAPHORE_BUILD_NUMBER',
+      'SEMAPHORE_CURRENT_JOB',
+      'SEMAPHORE_CURRENT_THREAD',
+      'SEMAPHORE_EXECUTABLE_UUID',
+      'SEMAPHORE_GIT_BRANCH',
+      'SEMAPHORE_GIT_DIR',
+      'SEMAPHORE_GIT_REF',
+      'SEMAPHORE_GIT_REF_TYPE',
+      'SEMAPHORE_GIT_REPO_SLUG',
+      'SEMAPHORE_GIT_SHA',
+      'SEMAPHORE_GIT_URL',
+      'SEMAPHORE_JOB_COUNT',
+      'SEMAPHORE_JOB_ID', // v2
+      'SEMAPHORE_JOB_NAME',
+      'SEMAPHORE_JOB_UUID', // v1
+      'SEMAPHORE_PIPELINE_ID',
+      'SEMAPHORE_PLATFORM',
+      'SEMAPHORE_PROJECT_DIR',
+      'SEMAPHORE_PROJECT_HASH_ID',
+      'SEMAPHORE_PROJECT_ID', // v2
+      'SEMAPHORE_PROJECT_NAME',
+      'SEMAPHORE_PROJECT_UUID', // v1
+      'SEMAPHORE_REPO_SLUG',
+      'SEMAPHORE_TRIGGER_SOURCE',
+      'SEMAPHORE_WORKFLOW_ID',
+      'PULL_REQUEST_NUMBER', // pull requests from forks ONLY
     ]),
     // see http://docs.shippable.com/ci/env-vars/
     shippable: extract([
       // build variables
-      "SHIPPABLE_BUILD_ID", // "5b93354cabfabb07007f01fd"
-      "SHIPPABLE_BUILD_NUMBER", // "4"
-      "SHIPPABLE_COMMIT_RANGE", // "sha1...sha2"
-      "SHIPPABLE_CONTAINER_NAME", // "c.exec.cypress-example-kitchensink.4.1"
-      "SHIPPABLE_JOB_ID", // "1"
-      "SHIPPABLE_JOB_NUMBER", // "1"
-      "SHIPPABLE_REPO_SLUG", // "<username>/<repo>"
+      'SHIPPABLE_BUILD_ID', // "5b93354cabfabb07007f01fd"
+      'SHIPPABLE_BUILD_NUMBER', // "4"
+      'SHIPPABLE_COMMIT_RANGE', // "sha1...sha2"
+      'SHIPPABLE_CONTAINER_NAME', // "c.exec.cypress-example-kitchensink.4.1"
+      'SHIPPABLE_JOB_ID', // "1"
+      'SHIPPABLE_JOB_NUMBER', // "1"
+      'SHIPPABLE_REPO_SLUG', // "<username>/<repo>"
       // additional information that Shippable provides
-      "IS_FORK", // "true"
-      "IS_GIT_TAG", // "false"
-      "IS_PRERELEASE", // "false"
-      "IS_RELEASE", // "false"
-      "REPOSITORY_URL", // "https://github.com/....git"
-      "REPO_FULL_NAME", // "<username>/<repo>"
-      "REPO_NAME", // "cypress-example-kitchensink"
-      "BUILD_URL", // "https://app.shippable.com/github/<username>/<repo>/runs/1"
+      'IS_FORK', // "true"
+      'IS_GIT_TAG', // "false"
+      'IS_PRERELEASE', // "false"
+      'IS_RELEASE', // "false"
+      'REPOSITORY_URL', // "https://github.com/....git"
+      'REPO_FULL_NAME', // "<username>/<repo>"
+      'REPO_NAME', // "cypress-example-kitchensink"
+      'BUILD_URL', // "https://app.shippable.com/github/<username>/<repo>/runs/1"
       // Pull request information
-      "BASE_BRANCH", // Name of the target branch into which the pull request changes will be merged.
-      "HEAD_BRANCH", // This is only set for pull requests and is the name of the branch the pull request was opened from.
-      "IS_PULL_REQUEST", // "false" or "true"
-      "PULL_REQUEST", // Pull request number if the job is a pull request. If not, this will be set to false.
-      "PULL_REQUEST_BASE_BRANCH", // Name of the branch that the pull request will be merged into. It should be the same as BASE_BRANCH.
-      "PULL_REQUEST_REPO_FULL_NAME", // Full name of the repository from where the pull request originated.
+      'BASE_BRANCH', // Name of the target branch into which the pull request changes will be merged.
+      'HEAD_BRANCH', // This is only set for pull requests and is the name of the branch the pull request was opened from.
+      'IS_PULL_REQUEST', // "false" or "true"
+      'PULL_REQUEST', // Pull request number if the job is a pull request. If not, this will be set to false.
+      'PULL_REQUEST_BASE_BRANCH', // Name of the branch that the pull request will be merged into. It should be the same as BASE_BRANCH.
+      'PULL_REQUEST_REPO_FULL_NAME', // Full name of the repository from where the pull request originated.
     ]),
     teamcity: null,
     teamfoundation: extract([
-      "BUILD_BUILDID",
-      "BUILD_BUILDNUMBER",
-      "BUILD_CONTAINERID",
+      'BUILD_BUILDID',
+      'BUILD_BUILDNUMBER',
+      'BUILD_CONTAINERID',
     ]),
     travis: extract([
-      "TRAVIS_JOB_ID",
-      "TRAVIS_BUILD_ID",
-      "TRAVIS_BUILD_WEB_URL",
-      "TRAVIS_REPO_SLUG",
-      "TRAVIS_JOB_NUMBER",
-      "TRAVIS_EVENT_TYPE",
-      "TRAVIS_COMMIT_RANGE",
-      "TRAVIS_BUILD_NUMBER",
-      "TRAVIS_PULL_REQUEST",
-      "TRAVIS_PULL_REQUEST_BRANCH",
-      "TRAVIS_PULL_REQUEST_SHA",
+      'TRAVIS_JOB_ID',
+      'TRAVIS_BUILD_ID',
+      'TRAVIS_BUILD_WEB_URL',
+      'TRAVIS_REPO_SLUG',
+      'TRAVIS_JOB_NUMBER',
+      'TRAVIS_EVENT_TYPE',
+      'TRAVIS_COMMIT_RANGE',
+      'TRAVIS_BUILD_NUMBER',
+      'TRAVIS_PULL_REQUEST',
+      'TRAVIS_PULL_REQUEST_BRANCH',
+      'TRAVIS_PULL_REQUEST_SHA',
     ]),
     wercker: null,
     // https://docs.netlify.com/configure-builds/environment-variables/#deploy-urls-and-metadata
     netlify: extract([
-      "BUILD_ID",
-      "CONTEXT",
-      "URL",
-      "DEPLOY_URL",
-      "DEPLOY_PRIME_URL",
-      "DEPLOY_ID",
+      'BUILD_ID',
+      'CONTEXT',
+      'URL',
+      'DEPLOY_URL',
+      'DEPLOY_PRIME_URL',
+      'DEPLOY_ID',
     ]),
     // https://layerci.com/docs/layerfile-reference/build-env
     layerci: extract([
-      "LAYERCI_JOB_ID",
-      "LAYERCI_RUNNER_ID",
-      "RETRY_INDEX",
-      "LAYERCI_PULL_REQUEST",
-      "LAYERCI_REPO_NAME",
-      "LAYERCI_REPO_OWNER",
-      "LAYERCI_BRANCH",
-      "GIT_TAG", // short hex for commits
+      'LAYERCI_JOB_ID',
+      'LAYERCI_RUNNER_ID',
+      'RETRY_INDEX',
+      'LAYERCI_PULL_REQUEST',
+      'LAYERCI_REPO_NAME',
+      'LAYERCI_REPO_OWNER',
+      'LAYERCI_BRANCH',
+      'GIT_TAG', // short hex for commits
     ]),
   };
 };
@@ -475,7 +475,7 @@ const _providerCommitParams = (): ProviderCommitParamsRes => {
       branch:
         env.APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH || env.APPVEYOR_REPO_BRANCH,
       message: join(
-        "\n",
+        '\n',
         env.APPVEYOR_REPO_COMMIT_MESSAGE,
         env.APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED
       ),
@@ -687,7 +687,7 @@ export function isCiBuildIdDetectable(ciProvider: string | null) {
 
 function getCiProvider(): CiProvider {
   const providerName = _detectProviderName();
-  debug("detected CI provider name: %s", providerName);
+  debug('detected CI provider name: %s', providerName);
   return providerName || null;
 }
 
@@ -704,9 +704,9 @@ export function getCI(explicitCiBuildId?: string | undefined) {
   const provider = getCiProvider();
   const ciBuildId = getCIBuildId(explicitCiBuildId, provider);
 
-  debug("detected CI provider: %s", provider);
-  debug("detected CI params: %O", params);
-  debug("detected CI build ID: %o", ciBuildId);
+  debug('detected CI provider: %s', provider);
+  debug('detected CI params: %O', params);
+  debug('detected CI build ID: %o', ciBuildId);
 
   return {
     params,
@@ -717,15 +717,15 @@ export function getCI(explicitCiBuildId?: string | undefined) {
 
 type CIBuildIdStruct =
   | {
-      source: "user"; // provided by the user
+      source: 'user'; // provided by the user
       value: string;
     }
   | {
-      source: "server"; // expected to be generated by the Currents server
+      source: 'server'; // expected to be generated by the Currents server
       value: null;
     }
   | {
-      source: "random"; // generated by the reporter
+      source: 'random'; // generated by the reporter
       value: string;
     };
 
@@ -742,18 +742,18 @@ function getCIBuildId(
 ): CIBuildIdStruct {
   if (explicitValue) {
     return {
-      source: "user" as const,
+      source: 'user' as const,
       value: explicitValue,
     };
   }
   if (!isCiBuildIdDetectable(provider)) {
     return {
-      source: "random" as const,
+      source: 'random' as const,
       value: `auto:${userFacingNanoid()}`,
     };
   }
   return {
-    source: "server" as const,
+    source: 'server' as const,
     value: null,
   };
 }

@@ -1,9 +1,9 @@
-import { debug as _debug } from "@debug";
+import { debug as _debug } from '@debug';
 
-import { getValidatedConfig } from "../utils";
-import { configKeys, getEnvVariables } from "./env";
+import { getValidatedConfig } from '../utils';
+import { configKeys, getEnvVariables } from './env';
 
-const debug = _debug.extend("config");
+const debug = _debug.extend('config');
 
 export type APICommandConfig = {
   /**
@@ -60,11 +60,11 @@ export type APIGetRunCommandConfig = {
   output?: string;
 };
 
-type MandatoryAPICommandConfigKeys = "apiKey" | "projectId";
+type MandatoryAPICommandConfigKeys = 'apiKey' | 'projectId';
 
 const mandatoryConfigKeys: MandatoryAPICommandConfigKeys[] = [
-  "apiKey",
-  "projectId",
+  'apiKey',
+  'projectId',
 ];
 
 let _config: (APICommandConfig & APIGetRunCommandConfig) | null = null;
@@ -78,7 +78,7 @@ export function setAPIGetRunCommandConfig(
     getEnvVariables,
     options
   );
-  debug("Resolved config: %o", _config);
+  debug('Resolved config: %o', _config);
 }
 
 export function getAPIGetRunCommandConfig() {

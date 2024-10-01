@@ -2,32 +2,28 @@
 
 ## [1.0.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.4...${npm.name}-v1.0.5) (2024-09-09)
 
-
 ### Bug Fixes
 
-* make missing config variables user-friendly ([2a2b7ab](https://github.com/currents-dev/currents-reporter/commit/2a2b7abb97cbf78546465538d7c48b97d6934bc4))
+- make missing config variables user-friendly ([2a2b7ab](https://github.com/currents-dev/currents-reporter/commit/2a2b7abb97cbf78546465538d7c48b97d6934bc4))
 
 ## [1.0.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.3...${npm.name}-v1.0.4) (2024-09-03)
 
-
 ### Bug Fixes
 
-* use .currents directory ([611132b](https://github.com/currents-dev/currents-reporter/commit/611132b286403fce4dcbf4343d82e9927611255d))
-* use currents instead of currents-reporter CLI command ([2617004](https://github.com/currents-dev/currents-reporter/commit/26170046044f94dffda5bc967f2ab87a72cc0d8c))
+- use .currents directory ([611132b](https://github.com/currents-dev/currents-reporter/commit/611132b286403fce4dcbf4343d82e9927611255d))
+- use currents instead of currents-reporter CLI command ([2617004](https://github.com/currents-dev/currents-reporter/commit/26170046044f94dffda5bc967f2ab87a72cc0d8c))
 
 ## [1.0.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.2...${npm.name}-v1.0.3) (2024-08-01)
 
-
 ### Bug Fixes
 
-* use v1/runs endpoint [CSR-1336] ([#6](https://github.com/currents-dev/currents-reporter/issues/6)) ([d9a799d](https://github.com/currents-dev/currents-reporter/commit/d9a799dbcfa4db5908a2a168ce78adc544df45b5))
+- use v1/runs endpoint [CSR-1336] ([#6](https://github.com/currents-dev/currents-reporter/issues/6)) ([d9a799d](https://github.com/currents-dev/currents-reporter/commit/d9a799dbcfa4db5908a2a168ce78adc544df45b5))
 
 ## [1.0.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.1...${npm.name}-v1.0.2) (2024-07-25)
 
-
 ### Bug Fixes
 
-* filter irrelevant options from jest configuration ([#5](https://github.com/currents-dev/currents-reporter/issues/5)) ([3031b3d](https://github.com/currents-dev/currents-reporter/commit/3031b3d78a394b0946daa1fd3ce4d2b73c32f9f3))
+- filter irrelevant options from jest configuration ([#5](https://github.com/currents-dev/currents-reporter/issues/5)) ([3031b3d](https://github.com/currents-dev/currents-reporter/commit/3031b3d78a394b0946daa1fd3ce4d2b73c32f9f3))
 
 ## [1.0.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0...${npm.name}-v1.0.1) (2024-07-23)
 
@@ -35,10 +31,9 @@
 
 # [1.0.0-beta.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0-beta.3...${npm.name}-v1.0.0-beta.4) (2024-07-16)
 
-
 ### Bug Fixes
 
-* include test case location in the report, when available ([#3](https://github.com/currents-dev/currents-reporter/issues/3)) ([f074021](https://github.com/currents-dev/currents-reporter/commit/f074021627ba44d130abeea0d608edf71440840a))
+- include test case location in the report, when available ([#3](https://github.com/currents-dev/currents-reporter/issues/3)) ([f074021](https://github.com/currents-dev/currents-reporter/commit/f074021627ba44d130abeea0d608edf71440840a))
 
 # [1.0.0-beta.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.0-beta.2...${npm.name}-v1.0.0-beta.3) (2024-07-10)
 

@@ -52,7 +52,6 @@ Run `npx currents api --help` to see all available api commands.
 
 To explore additional examples and filtering options for receiving runs, you can utilize the `npx currents api get-run --help` command.
 
-
 ### Caching artifacts
 
 The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually or it can be generated based on CI environment variables (only GitHub and GitLab are supported). The files to archive can be defined using the `paths <path-1,path2,...,path-n>` CLI option or predefined using a `preset`.
