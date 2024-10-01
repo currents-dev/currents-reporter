@@ -1,5 +1,13 @@
 # Changelog
 
+# [1.1.0-beta.19](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.18...${npm.name}-v1.1.0-beta.19) (2024-10-01)
+
+
+### Bug Fixes
+
+* debug option parsing [skip ci] ([55a9122](https://github.com/currents-dev/currents-reporter/commit/55a91223391842207d5fde36e328fe140cba63ac))
+* set command description to get-run command [skip ci] ([2635376](https://github.com/currents-dev/currents-reporter/commit/26353762323548b40f9c8c285f09daae44d3a2a0))
+
 # [1.1.0-beta.18](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0-beta.17...${npm.name}-v1.1.0-beta.18) (2024-09-27)
 
 
