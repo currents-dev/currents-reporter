@@ -2,6 +2,7 @@ import { CommanderError } from "@commander-js/extra-typings";
 import { ValidationError } from "@lib";
 import { error } from "@logger";
 import { isAxiosError } from "axios";
+import { enableDebug } from "../debug";
 
 export function parseCommaSeparatedList(
   value: string,
@@ -13,11 +14,14 @@ export function parseCommaSeparatedList(
   return previous;
 }
 
-export async function commandHandler<T extends object>(
+export async function commandHandler<T extends Record<string, unknown>>(
   action: (options: T) => Promise<void>,
   options: T
 ) {
   try {
+    if (options.debug) {
+      enableDebug();
+    }
     await action(options);
     process.exit(0);
   } catch (e) {

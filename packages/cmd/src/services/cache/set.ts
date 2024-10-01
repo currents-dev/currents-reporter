@@ -1,4 +1,4 @@
-import { debug, enableDebug } from "@debug";
+import { debug } from "@debug";
 import { createCache } from "../../api";
 import { PRESETS } from "../../commands/cache/options";
 import { getCacheCommandConfig } from "../../config/cache";
@@ -18,19 +18,8 @@ export async function handleSetCache() {
       throw new Error("Config is missing!");
     }
 
-    const {
-      recordKey,
-      id,
-      debug,
-      preset,
-      pwOutputDir,
-      matrixIndex,
-      matrixTotal,
-    } = config.values;
-
-    if (debug) {
-      enableDebug();
-    }
+    const { recordKey, id, preset, pwOutputDir, matrixIndex, matrixTotal } =
+      config.values;
 
     const paths = config.values.paths ? filterPaths(config.values.paths) : [];
 

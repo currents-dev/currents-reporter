@@ -1,4 +1,4 @@
-import { debug, enableDebug } from "@debug";
+import { debug } from "@debug";
 import { isAxiosError } from "axios";
 import { retrieveCache } from "../../api";
 import { PRESETS } from "../../commands/cache/options";
@@ -19,10 +19,6 @@ export async function handleGetCache() {
 
     const { recordKey, id, preset, matrixIndex, matrixTotal } = config.values;
     const outputDir = config.values.outputDir;
-
-    if (config.values.debug) {
-      enableDebug();
-    }
 
     const ci = getCI();
 

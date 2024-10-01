@@ -6,6 +6,16 @@ import { warn } from "../../logger";
 
 const MAX_ZIP_SIZE = 50 * 1024 * 1024; // 50MB
 
+/**
+ * Adds files and directories to an archive while preserving their original folder structure.
+ *
+ * This function supports various types of paths, including individual files, entire directories, 
+ * and files located within subdirectories. When the archive is extracted, the original organization 
+ * will be restored, making navigation straightforward.
+ *
+ * Paths based on a specific starting point will be stored relative to that point, helping to avoid 
+ * naming conflicts and maintaining the logical arrangement of files and directories.
+ */
 export async function zipFilesToBuffer(
   filePaths: string[],
   maxSize: number = MAX_ZIP_SIZE
@@ -42,19 +52,12 @@ export async function zipFilesToBuffer(
       const baseDir = process.cwd();
       const normalized = path.normalize(filePath);
       const relativePath = path.relative(baseDir, normalized);
-      const stats = await fs.stat(relativePath);
-      const dirname = path.dirname(relativePath);
-      const prefix = dirname === "." ? undefined : dirname;
-
+      const stats = await fs.stat(filePath);
       if (stats.isDirectory()) {
-        archive.directory(relativePath, relativePath, {
-          prefix,
-          stats,
-        });
+        archive.directory(filePath, relativePath);
       } else {
-        archive.file(normalized, {
-          name: path.basename(relativePath),
-          prefix,
+        archive.file(filePath, {
+          name: relativePath,
           stats,
         });
       }
@@ -62,17 +65,10 @@ export async function zipFilesToBuffer(
 
     const processFiles = async (filePaths: string[]) => {
       for (const filePath of filePaths) {
-        if (filePath === ".") {
-          const subPaths = await fs.readdir(filePath);
-          for (const filePath of subPaths) {
-            await processFile(filePath);
-          }
-        } else {
-          await processFile(filePath);
-        }
+        await processFile(filePath);
       }
 
-      archive.finalize();
+      await archive.finalize();
     };
 
     processFiles(filePaths).catch(reject);
