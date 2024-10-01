@@ -1,6 +1,3 @@
-// import { debug } from "../debug";
-
-
 export function retryWithBackoff<T, P extends any[]>(
   func: (...args: P) => T,
   backoffIntervals: number[]
@@ -10,11 +7,8 @@ export function retryWithBackoff<T, P extends any[]>(
       let attempt = 0;
       const executeFunction = () => {
         attempt++;
-        // debug("Attempt %d to execute function with args: %o", attempt, args);
-
         try {
           const result = func(...args);
-          // debug("Function with args %o executed at attempt %d", args, attempt);
           resolve(result);
         } catch (error) {
           if (attempt >= backoffIntervals.length) {
@@ -26,7 +20,6 @@ export function retryWithBackoff<T, P extends any[]>(
         }
       };
 
-      // Initial attempt to execute the function
       executeFunction();
     });
   };

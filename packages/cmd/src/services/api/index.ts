@@ -1,4 +1,4 @@
-import { debug, enableDebug } from "@debug";
+import { debug } from "@debug";
 import { ensurePathExists } from "@lib";
 import { writeFile } from "fs/promises";
 import { getRun } from "../../api";
@@ -14,10 +14,6 @@ export async function handleGetRun() {
     const config = getAPIGetRunCommandConfig();
     if (!config) {
       throw new Error("Config is missing!");
-    }
-
-    if (config.debug) {
-      enableDebug();
     }
 
     const params = config.ciBuildId

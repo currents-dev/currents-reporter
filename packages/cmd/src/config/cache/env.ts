@@ -81,6 +81,6 @@ export function getEnvVariables(): Partial<
 > {
   return {
     recordKey: process.env[configKeys.recordKey.env],
-    debug: !!process.env[configKeys.debug.env],
+    debug: process.env[configKeys.debug.env],
   };
 }

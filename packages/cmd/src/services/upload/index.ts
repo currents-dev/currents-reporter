@@ -1,4 +1,4 @@
-import { debug, enableDebug, setTraceFilePath } from "@debug";
+import { debug, setTraceFilePath } from "@debug";
 import { getCI } from "@env/ciProvider";
 import { getGitInfo } from "@env/gitInfo";
 import { getPlatformInfo } from "@env/platform";
@@ -26,10 +26,6 @@ export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
   if (!currentsConfig) {
     throw new Error("Currents config is missing!");
-  }
-
-  if (currentsConfig.debug) {
-    enableDebug();
   }
 
   const reportOptions = await resolveReportOptions(currentsConfig);
