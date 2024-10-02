@@ -31,19 +31,16 @@ export const warnWithNoTrace = (...args: unknown[]) => {
   return log(chalk.bgYellow.black(' WARNING '), msg);
 };
 
-export const errorWithNoTrace = (...args: unknown[]) => {
-  const msg = util.format(...args);
-  debug('ERRRO: ', msg);
-  return log(chalk.bgRed.white(' ERROR '), msg);
-};
-
 export const success = (...args: unknown[]) =>
   log(chalk.green.bold(util.format(...args)));
 
 export const error = (...args: unknown[]) => {
-  const msg = util.format(...args);
+  const formattedArgs = args.map((arg) =>
+    arg instanceof Error ? arg.message : arg
+  );
+  const msg = util.format(...formattedArgs);
   errors.push(msg);
-  debug('ERROR: ', msg);
+  debug('ERROR: ', util.format(...args));
   return _error(chalk.bgRed.white(' ERROR '), msg);
 };
 
