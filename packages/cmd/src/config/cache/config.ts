@@ -26,7 +26,7 @@ type CommonConfig = {
 
 export type CacheSetCommandConfig = CacheCommandConfig &
   CommonConfig & {
-    paths?: string[];
+    path?: string[];
     pwOutputDir?: string;
   };
 

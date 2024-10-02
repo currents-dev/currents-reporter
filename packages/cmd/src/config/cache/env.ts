@@ -30,9 +30,9 @@ const cacheSetCommandConfigKeys = {
     name: 'Preset output path',
     cli: '--preset-output',
   },
-  paths: {
+  path: {
     name: 'Paths to cache',
-    cli: '--paths',
+    cli: '--path',
   },
   matrixIndex: {
     name: 'Matrix index',

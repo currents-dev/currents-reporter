@@ -54,9 +54,9 @@ To explore additional examples and filtering options for receiving runs, you can
 
 ### Caching artifacts
 
-The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually or it can be generated based on CI environment variables (only GitHub and GitLab are supported). The files to archive can be defined using the `paths <path-1,path2,...,path-n>` CLI option or predefined using a `preset`.
+The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually or it can be generated based on CI environment variables (only GitHub and GitLab are supported). The files to archive can be defined using the `path <path-1,path2,...,path-n>` CLI option or predefined using a `preset`.
 
-To cache files, run `npx currents cache set --key <record-key> --id <id> --paths <path-1,path-2,...path-n>`.
+To cache files, run `npx currents cache set --key <record-key> --id <id> --path <path-1,path-2,...path-n>`.
 
 To download files, run `npx currents cache get --key <record-key> --id <id>`.
 
