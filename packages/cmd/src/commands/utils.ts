@@ -1,6 +1,6 @@
 import { CommanderError } from '@commander-js/extra-typings';
-import { ValidationError } from '@lib';
-import { error } from '@logger';
+import { ValidationError, Warning } from '@lib';
+import { error, warnWithNoTrace } from '@logger';
 import { isAxiosError } from 'axios';
 import { enableDebug } from '../debug';
 
@@ -32,6 +32,11 @@ export async function commandHandler<T extends Record<string, unknown>>(
 
     if (e instanceof ValidationError) {
       error(e.message);
+      process.exit(1);
+    }
+
+    if (e instanceof Warning) {
+      warnWithNoTrace(e.message);
       process.exit(1);
     }
 
