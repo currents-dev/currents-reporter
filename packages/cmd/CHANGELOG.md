@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1-beta.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.0...${npm.name}-v1.1.1-beta.1) (2024-10-02)
+
+
+### Bug Fixes
+
+* display traces for errors only fo debug mode ([8f12eaf](https://github.com/currents-dev/currents-reporter/commit/8f12eafeb9dc06f56db5d5d3805c0ec4e2eea4f4))
+
 ## [1.1.1-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0...${npm.name}-v1.1.1-beta.0) (2024-10-02)
 
 
