@@ -4,6 +4,7 @@ import { retrieveCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
+import { success } from '../../logger';
 import { unzipBuffer } from './fs';
 import { MetaFile } from './lib';
 import { download } from './network';
@@ -45,6 +46,8 @@ export async function handleGetCache() {
     if (preset === PRESETS.lastRun) {
       await handlePostLastRunPreset(config.values, ci, meta);
     }
+
+    success('Cache restored. Cache ID: %s', result.cacheId);
   } catch (e) {
     if (isAxiosError(e)) {
       if (
