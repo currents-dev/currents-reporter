@@ -7,6 +7,7 @@ import {
   idOption,
   matrixIndexOption,
   matrixTotalOption,
+  noFailOption,
   outputDirOption,
   pathOption,
   presetOption,
@@ -62,6 +63,7 @@ export const getCacheSetCommand = () => {
     .addOption(pwOutputDirOption)
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
+    .addOption(noFailOption)
     .action(getCacheSetHandler);
 
   return command;
@@ -79,6 +81,7 @@ export const getCacheGetCommand = () => {
     .addOption(debugOption)
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
+    .addOption(noFailOption)
     .action(getCacheGetHandler);
 
   return command;

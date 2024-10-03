@@ -1,5 +1,5 @@
 import { CommanderError } from '@commander-js/extra-typings';
-import { ValidationError, Warning } from '@lib';
+import { ValidationError } from '@lib';
 import { error, warnWithNoTrace } from '@logger';
 import { isAxiosError } from 'axios';
 import { enableDebug } from '../debug';
@@ -16,36 +16,36 @@ export function parseCommaSeparatedList(
 
 export async function commandHandler<T extends Record<string, unknown>>(
   action: (options: T) => Promise<void>,
-  options: T
+  commandOptions: T,
+  options?: {
+    failOnError?: boolean;
+  }
 ) {
   try {
-    if (options.debug) {
+    if (commandOptions.debug) {
       enableDebug();
     }
-    await action(options);
+    await action(commandOptions);
     process.exit(0);
   } catch (e) {
-    if (e instanceof CommanderError) {
-      error(e.message);
-      process.exit(e.exitCode);
+    const failOnError = options?.failOnError ?? true;
+    let exitCode = e instanceof CommanderError ? e.exitCode : 1;
+
+    if (
+      e instanceof CommanderError ||
+      e instanceof ValidationError ||
+      isAxiosError(e)
+    ) {
+      if (failOnError) {
+        error(e.message);
+      } else {
+        warnWithNoTrace(e.message);
+        exitCode = 0;
+      }
+    } else {
+      error('Script execution failed: %o', e);
     }
 
-    if (e instanceof ValidationError) {
-      error(e.message);
-      process.exit(1);
-    }
-
-    if (e instanceof Warning) {
-      warnWithNoTrace(e.message);
-      process.exit(1);
-    }
-
-    if (isAxiosError(e)) {
-      error(e.message);
-      process.exit(1);
-    }
-
-    error('Script execution failed: %o', e);
-    process.exit(1);
+    process.exit(exitCode);
   }
 }
