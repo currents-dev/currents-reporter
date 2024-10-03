@@ -1,7 +1,5 @@
 import { CommanderError } from '@commander-js/extra-typings';
-import { ValidationError } from '@lib';
 import { error, warnWithNoTrace } from '@logger';
-import { isAxiosError } from 'axios';
 import { enableDebug } from '../debug';
 
 export function parseCommaSeparatedList(
@@ -27,21 +25,14 @@ export async function commandHandler<T extends Record<string, unknown>>(
     }
     await action(commandOptions);
     process.exit(0);
-  } catch (e) {
+  } catch (_e) {
+    console.log(_e);
+    const e = _e as Error;
     const failOnError = options?.failOnError ?? true;
-
-    if (
-      e instanceof CommanderError ||
-      e instanceof ValidationError ||
-      isAxiosError(e)
-    ) {
-      if (failOnError) {
-        error(e.message);
-      } else {
-        warnWithNoTrace(e.message);
-      }
+    if (failOnError) {
+      error(e.message);
     } else {
-      error('Script execution failed: %o', e);
+      warnWithNoTrace(e.message);
     }
 
     const exitCode = e instanceof CommanderError ? e.exitCode : 1;
