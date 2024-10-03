@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.1-beta.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.3...${npm.name}-v1.1.1-beta.4) (2024-10-03)
+
+
+### Bug Fixes
+
+* .. ([a55fe22](https://github.com/currents-dev/currents-reporter/commit/a55fe22b12a9364eb8884d66aae2a669869aec95))
+
+
+### Features
+
+* add success messages ([7b7c1fa](https://github.com/currents-dev/currents-reporter/commit/7b7c1fa9faf96d5fdcd5e78f1200e7681ed746e5))
+
 ## [1.1.1-beta.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.2...${npm.name}-v1.1.1-beta.3) (2024-10-03)
 
 
