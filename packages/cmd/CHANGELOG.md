@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1-beta.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.2...${npm.name}-v1.1.1-beta.3) (2024-10-03)
+
+
+### Bug Fixes
+
+* add --no-fail flag ([1ab94c1](https://github.com/currents-dev/currents-reporter/commit/1ab94c1d743bea11c3aac69806df59c51ce51487))
+* cache command usage example [skip ci] ([3bb9415](https://github.com/currents-dev/currents-reporter/commit/3bb9415612f2d2e4f564596c8fc4a3e140cfd6be))
+
 ## [1.1.1-beta.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.1...${npm.name}-v1.1.1-beta.2) (2024-10-02)
 
 ## [1.1.1-beta.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.0...${npm.name}-v1.1.1-beta.1) (2024-10-02)
