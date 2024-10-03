@@ -17,8 +17,8 @@ export const idOption = new Option(
   'The ID the data is saved under in the cache'
 );
 
-export const pathsOption = new Option(
-  '--paths <paths>',
+export const pathOption = new Option(
+  '--path <path>',
   'Comma-separated list of paths to cache'
 ).argParser(parseCommaSeparatedList);
 

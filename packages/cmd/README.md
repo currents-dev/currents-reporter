@@ -76,13 +76,13 @@ The `currents cache` command allows you to archive files from specified location
 To cache files, use the following command:
 
 ```sh
-npx currents cache set --key <record-key> --id <id> --paths <path-1,path-2,...path-n>
+npx currents cache set --key <record-key> --id <id> --path <path-1,path-2,...path-n>
 ```
 
 To download files, use the following command:
 
 ```sh
-npx currents cache set --key <record-key> --preset last-run
+npx currents cache get --key <record-key> --id <id>
 ```
 
 For more examples and usage options, run `npx currents cache --help`.

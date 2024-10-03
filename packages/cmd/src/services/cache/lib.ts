@@ -7,7 +7,7 @@ export type MetaFile = {
   id: string;
   orgId: string;
   config: CacheSetCommandConfig;
-  paths: string[];
+  path: string[];
   ci: Record<string, unknown>;
   createdAt: string;
 };
@@ -16,20 +16,20 @@ export function createMeta({
   config,
   cacheId,
   orgId,
-  paths,
+  path,
   ci,
 }: {
   config: CacheSetCommandConfig;
   cacheId: string;
   orgId: string;
-  paths: string[];
+  path: string[];
   ci: Record<string, unknown>;
 }) {
   const meta = {
     id: cacheId,
     orgId,
     config: omit(config, 'recordKey'),
-    paths,
+    path,
     ci,
     createdAt: new Date().toISOString(),
   };

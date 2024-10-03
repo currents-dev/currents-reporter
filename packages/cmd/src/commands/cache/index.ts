@@ -8,7 +8,7 @@ import {
   matrixIndexOption,
   matrixTotalOption,
   outputDirOption,
-  pathsOption,
+  pathOption,
   presetOption,
   presetOutputOption,
   pwOutputDirOption,
@@ -22,7 +22,7 @@ const getExample = (name: string) => `
 ${chalk.bold('Examples')}
 
 Save files to the cache under a specific ID:
-${dim(`${name} ${COMMAND_NAME} set --key <record-key> --id <id> --paths <path-1,path-2,...path-n>`)}
+${dim(`${name} ${COMMAND_NAME} set --key <record-key> --id <id> --path <path-1,path-2,...path-n>`)}
 
 Retrieve files from the cache saved under a specific ID:
 ${dim(`${name} ${COMMAND_NAME} get --key <record-key> --id <id>`)}
@@ -57,7 +57,7 @@ export const getCacheSetCommand = () => {
     .addOption(recordKeyOption)
     .addOption(idOption)
     .addOption(presetOption)
-    .addOption(pathsOption)
+    .addOption(pathOption)
     .addOption(debugOption)
     .addOption(pwOutputDirOption)
     .addOption(matrixIndexOption)
