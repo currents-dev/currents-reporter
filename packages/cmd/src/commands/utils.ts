@@ -26,7 +26,6 @@ export async function commandHandler<T extends Record<string, unknown>>(
     await action(commandOptions);
     process.exit(0);
   } catch (_e) {
-    console.log(_e);
     const e = _e as Error;
     const failOnError = options?.failOnError ?? true;
     if (failOnError) {
