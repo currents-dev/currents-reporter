@@ -82,7 +82,7 @@ npx currents cache set --key <record-key> --id <id> --path <path-1,path-2,...pat
 To download files, use the following command:
 
 ```sh
-npx currents cache set --key <record-key> --preset last-run
+npx currents cache get --key <record-key> --id <id>
 ```
 
 For more examples and usage options, run `npx currents cache --help`.

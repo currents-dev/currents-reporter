@@ -4,7 +4,6 @@ import { retrieveCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
-import { Warning } from '../../lib';
 import { unzipBuffer } from './fs';
 import { MetaFile } from './lib';
 import { download } from './network';
@@ -52,7 +51,7 @@ export async function handleGetCache() {
         e.response?.status &&
         (e.response?.status === 403 || e.response?.status === 404)
       ) {
-        throw new Warning(`Cache with ID "${result.cacheId}" not found`);
+        throw new Error(`Cache with ID "${result.cacheId}" not found`);
       }
     }
 

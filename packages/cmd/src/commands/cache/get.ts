@@ -15,15 +15,21 @@ export type CacheGetCommandOpts = ReturnType<
 >;
 
 export async function getCacheGetHandler(options: CacheGetCommandOpts) {
-  await commandHandler(async (opts) => {
-    setCacheGetCommandConfig(cacheGetCommandOptsToConfig(opts));
-    const config = getCacheCommandConfig();
+  await commandHandler(
+    async (opts) => {
+      setCacheGetCommandConfig(cacheGetCommandOptsToConfig(opts));
+      const config = getCacheCommandConfig();
 
-    debug('Config: %o', {
-      ...config.values,
-      recordKey: config.values?.recordKey ? '*****' : undefined,
-    });
+      debug('Config: %o', {
+        ...config.values,
+        recordKey: config.values?.recordKey ? '*****' : undefined,
+      });
 
-    await handleGetCache();
-  }, options);
+      await handleGetCache();
+    },
+    options,
+    {
+      failOnError: options.fail,
+    }
+  );
 }

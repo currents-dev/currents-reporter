@@ -72,3 +72,8 @@ function validatePositiveInteger(value: string) {
   }
   return parsedValue;
 }
+
+export const noFailOption = new Option(
+  '--no-fail',
+  'Do not fail the process if the command fails'
+);
