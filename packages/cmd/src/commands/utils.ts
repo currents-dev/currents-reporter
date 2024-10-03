@@ -29,7 +29,6 @@ export async function commandHandler<T extends Record<string, unknown>>(
     process.exit(0);
   } catch (e) {
     const failOnError = options?.failOnError ?? true;
-    let exitCode = e instanceof CommanderError ? e.exitCode : 1;
 
     if (
       e instanceof CommanderError ||
@@ -40,12 +39,12 @@ export async function commandHandler<T extends Record<string, unknown>>(
         error(e.message);
       } else {
         warnWithNoTrace(e.message);
-        exitCode = 0;
       }
     } else {
       error('Script execution failed: %o', e);
     }
 
-    process.exit(exitCode);
+    const exitCode = e instanceof CommanderError ? e.exitCode : 1;
+    process.exit(failOnError ? exitCode : 0);
   }
 }

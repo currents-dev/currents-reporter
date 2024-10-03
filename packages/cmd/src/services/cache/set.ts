@@ -3,6 +3,7 @@ import { createCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
+import { success } from '../../logger';
 import { filterPaths, zipFilesToBuffer } from './fs';
 import { createMeta, getLastRunFilePath } from './lib';
 import {
@@ -66,6 +67,8 @@ export async function handleSetCache() {
     cacheId: result.cacheId,
     uploadUrl: result.metaUploadUrl,
   });
+
+  success('Cache uploaded. Cache ID: %s', result.cacheId);
 }
 
 async function handleArchiveUpload({
