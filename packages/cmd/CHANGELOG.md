@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1-beta.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.4...${npm.name}-v1.1.1-beta.5) (2024-10-03)
+
+
+### Bug Fixes
+
+* simplify the error handler ([0342c3d](https://github.com/currents-dev/currents-reporter/commit/0342c3d259a4ca7b8cbe2c9b5f259fea2d813015))
+
 ## [1.1.1-beta.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1-beta.3...${npm.name}-v1.1.1-beta.4) (2024-10-03)
 
 
