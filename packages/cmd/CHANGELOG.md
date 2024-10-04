@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1...${npm.name}-v1.1.2) (2024-10-04)
+
+
+### Bug Fixes
+
+* .. ([a55fe22](https://github.com/currents-dev/currents-reporter/commit/a55fe22b12a9364eb8884d66aae2a669869aec95))
+* add --no-fail flag ([1ab94c1](https://github.com/currents-dev/currents-reporter/commit/1ab94c1d743bea11c3aac69806df59c51ce51487))
+* display traces for errors only fo debug mode ([8f12eaf](https://github.com/currents-dev/currents-reporter/commit/8f12eafeb9dc06f56db5d5d3805c0ec4e2eea4f4))
+* exit with code 1 when cache commands fail ([d08bd60](https://github.com/currents-dev/currents-reporter/commit/d08bd608978ff4c03d61d8e9f820df3d494b64f8))
+* remove --no-fail flag, add --continue flag ([a84b773](https://github.com/currents-dev/currents-reporter/commit/a84b7738e227175505df6711976f1b4d1b75c741))
+* remove console.log [skip ci] ([a766e6f](https://github.com/currents-dev/currents-reporter/commit/a766e6f90f372a89ba577715823acf3c6e4f814d))
+* simplify the error handler ([0342c3d](https://github.com/currents-dev/currents-reporter/commit/0342c3d259a4ca7b8cbe2c9b5f259fea2d813015))
+
+
+### Features
+
+* add success messages ([7b7c1fa](https://github.com/currents-dev/currents-reporter/commit/7b7c1fa9faf96d5fdcd5e78f1200e7681ed746e5))
+
 ## [1.1.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0...${npm.name}-v1.1.1) (2024-10-03)
 
 
