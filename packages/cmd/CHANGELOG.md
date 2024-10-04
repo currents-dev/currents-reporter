@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.0...${npm.name}-v1.1.1) (2024-10-03)
+
+
+### Bug Fixes
+
+* cache command usage example [skip ci] ([3bb9415](https://github.com/currents-dev/currents-reporter/commit/3bb9415612f2d2e4f564596c8fc4a3e140cfd6be))
+* rename from --paths to --path ([b995083](https://github.com/currents-dev/currents-reporter/commit/b99508354d2dbc4af77ed32852acc5d8ad7d8981))
+
 # [1.1.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.0.5...${npm.name}-v1.1.0) (2024-10-01)
 
 ### Features
