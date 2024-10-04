@@ -26,24 +26,18 @@ export const warn = (...args: unknown[]) => {
   return log(chalk.bgYellow.black(' WARNING '), msg);
 };
 export const warnWithNoTrace = (...args: unknown[]) => {
-  const msg = util.format(...args);
-  debug('WARNING: ', msg);
+  const msg = util.format(...formatArgs(args));
+  debug('WARNING: ', util.format(...args));
   return log(chalk.bgYellow.black(' WARNING '), msg);
-};
-
-export const errorWithNoTrace = (...args: unknown[]) => {
-  const msg = util.format(...args);
-  debug('ERRRO: ', msg);
-  return log(chalk.bgRed.white(' ERROR '), msg);
 };
 
 export const success = (...args: unknown[]) =>
   log(chalk.green.bold(util.format(...args)));
 
 export const error = (...args: unknown[]) => {
-  const msg = util.format(...args);
+  const msg = util.format(...formatArgs(args));
   errors.push(msg);
-  debug('ERROR: ', msg);
+  debug('ERROR: ', util.format(...args));
   return _error(chalk.bgRed.white(' ERROR '), msg);
 };
 
@@ -82,6 +76,9 @@ export const blockEnd = (label = '', lineLength = 64) => {
       .join('')}`
   );
 };
+
+const formatArgs = (args: unknown[]) =>
+  args.map((arg) => (arg instanceof Error ? arg.message : arg));
 
 export const spacer = (n: number = 2) =>
   console.log(Array(n).fill('').join('\n'));

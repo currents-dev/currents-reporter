@@ -3,8 +3,9 @@ import { createCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
+import { success } from '../../logger';
 import { filterPaths, zipFilesToBuffer } from './fs';
-import { createMeta, getLastRunFilePath, warn } from './lib';
+import { createMeta, getLastRunFilePath } from './lib';
 import {
   ContentType,
   getDefautUploadProgressHandler,
@@ -12,64 +13,64 @@ import {
 } from './network';
 
 export async function handleSetCache() {
-  try {
-    const config = getCacheCommandConfig();
-    if (config.type !== 'SET_COMMAND_CONFIG' || !config.values) {
-      throw new Error('Config is missing!');
-    }
-
-    const { recordKey, id, preset, pwOutputDir, matrixIndex, matrixTotal } =
-      config.values;
-
-    const paths = config.values.path ? filterPaths(config.values.path) : [];
-
-    const uploadPaths: string[] = [];
-
-    if (paths && paths.length > 0) {
-      uploadPaths.push(...paths);
-    }
-
-    const ci = getCI();
-
-    if (preset === PRESETS.lastRun) {
-      const lastRunPath = getLastRunFilePath(pwOutputDir);
-      uploadPaths.push(lastRunPath);
-    }
-
-    if (uploadPaths.length === 0) {
-      throw new Error('No paths available to upload');
-    }
-
-    const result = await createCache({
-      recordKey,
-      ci,
-      id,
-      config: {
-        matrixIndex,
-        matrixTotal,
-      },
-    });
-
-    await handleArchiveUpload({
-      archive: await zipFilesToBuffer(uploadPaths),
-      cacheId: result.cacheId,
-      uploadUrl: result.uploadUrl,
-    });
-
-    await handleMetaUpload({
-      meta: createMeta({
-        cacheId: result.cacheId,
-        config: config.values,
-        ci,
-        orgId: result.orgId,
-        path: uploadPaths,
-      }),
-      cacheId: result.cacheId,
-      uploadUrl: result.metaUploadUrl,
-    });
-  } catch (e) {
-    warn(e, 'Failed to save cache');
+  const config = getCacheCommandConfig();
+  if (config.type !== 'SET_COMMAND_CONFIG' || !config.values) {
+    throw new Error('Config is missing!');
   }
+
+  const { recordKey, id, preset, pwOutputDir, matrixIndex, matrixTotal } =
+    config.values;
+
+  const paths = config.values.path?.length
+    ? filterPaths(config.values.path)
+    : [];
+
+  const uploadPaths: string[] = [];
+
+  if (paths && paths.length > 0) {
+    uploadPaths.push(...paths);
+  }
+
+  const ci = getCI();
+
+  if (preset === PRESETS.lastRun) {
+    const lastRunPath = getLastRunFilePath(pwOutputDir);
+    uploadPaths.push(lastRunPath);
+  }
+
+  if (uploadPaths.length === 0) {
+    throw new Error('No paths available to upload');
+  }
+
+  const result = await createCache({
+    recordKey,
+    ci,
+    id,
+    config: {
+      matrixIndex,
+      matrixTotal,
+    },
+  });
+
+  await handleArchiveUpload({
+    archive: await zipFilesToBuffer(uploadPaths),
+    cacheId: result.cacheId,
+    uploadUrl: result.uploadUrl,
+  });
+
+  await handleMetaUpload({
+    meta: createMeta({
+      cacheId: result.cacheId,
+      config: config.values,
+      ci,
+      orgId: result.orgId,
+      path: uploadPaths,
+    }),
+    cacheId: result.cacheId,
+    uploadUrl: result.metaUploadUrl,
+  });
+
+  success('Cache uploaded. Cache ID: %s', result.cacheId);
 }
 
 async function handleArchiveUpload({

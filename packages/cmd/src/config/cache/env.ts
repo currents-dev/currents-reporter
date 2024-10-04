@@ -65,6 +65,10 @@ const cacheGetCommandConfigKeys = {
     name: 'Matrix total',
     cli: '--matrix-total',
   },
+  continue: {
+    name: 'Continue on cache miss',
+    cli: '--continue',
+  },
 } as const;
 
 export const configKeys = {

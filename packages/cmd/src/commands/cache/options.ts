@@ -72,3 +72,8 @@ function validatePositiveInteger(value: string) {
   }
   return parsedValue;
 }
+
+export const continueOption = new Option(
+  '--continue',
+  'Continue the script execution if the cache is not found'
+).default(false);

@@ -32,6 +32,7 @@ export type CacheSetCommandConfig = CacheCommandConfig &
 
 export type CacheGetCommandConfig = CacheCommandConfig &
   CommonConfig & {
+    continue?: boolean;
     outputDir?: string;
     presetOutput?: string;
   };
