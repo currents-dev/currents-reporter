@@ -21,7 +21,9 @@ export async function handleSetCache() {
   const { recordKey, id, preset, pwOutputDir, matrixIndex, matrixTotal } =
     config.values;
 
-  const paths = config.values.path ? filterPaths(config.values.path) : [];
+  const paths = config.values.path?.length
+    ? filterPaths(config.values.path)
+    : [];
 
   const uploadPaths: string[] = [];
 

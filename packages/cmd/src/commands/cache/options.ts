@@ -73,7 +73,7 @@ function validatePositiveInteger(value: string) {
   return parsedValue;
 }
 
-export const noFailOption = new Option(
-  '--no-fail',
-  'Do not fail the process if the command fails'
-);
+export const continueOption = new Option(
+  '--continue',
+  'Continue the script execution if the cache is not found'
+).default(false);

@@ -4,7 +4,7 @@ import { retrieveCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
-import { success } from '../../logger';
+import { success, warnWithNoTrace } from '../../logger';
 import { unzipBuffer } from './fs';
 import { MetaFile } from './lib';
 import { download } from './network';
@@ -16,7 +16,14 @@ export async function handleGetCache() {
     throw new Error('Config is missing!');
   }
 
-  const { recordKey, id, preset, matrixIndex, matrixTotal } = config.values;
+  const {
+    recordKey,
+    id,
+    preset,
+    matrixIndex,
+    matrixTotal,
+    continue: continueOnCacheMiss,
+  } = config.values;
   const outputDir = config.values.outputDir;
 
   const ci = getCI();
@@ -50,11 +57,14 @@ export async function handleGetCache() {
     success('Cache restored. Cache ID: %s', result.cacheId);
   } catch (e) {
     if (isAxiosError(e)) {
-      if (
-        e.response?.status &&
-        (e.response?.status === 403 || e.response?.status === 404)
-      ) {
-        throw new Error(`Cache with ID "${result.cacheId}" not found`);
+      if (e.response?.status === 403 || e.response?.status === 404) {
+        const message = `Cache with ID "${result.cacheId}" not found`;
+        if (continueOnCacheMiss) {
+          warnWithNoTrace(message);
+          return;
+        }
+
+        throw new Error(message);
       }
     }
 

@@ -1,6 +1,6 @@
 import { CommanderError } from '@commander-js/extra-typings';
-import { error, warnWithNoTrace } from '@logger';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { error } from '@logger';
+import { beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
 import { enableDebug } from '../../debug';
 import { commandHandler, parseCommaSeparatedList } from '../utils';
 
@@ -41,70 +41,55 @@ describe('parseCommaSeparatedList', () => {
 });
 
 describe('commandHandler', () => {
-  const mockAction = vi.fn();
-  let mockExit = vi.spyOn(process, 'exit').mockImplementation((code) => {
-    throw new Error(`process.exit(${code})`);
-  });
+  let exitSpy: MockInstance<never, [code?: string | number | null | undefined]>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // @ts-ignore
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation((code) => {
+      return code as never;
+    });
   });
 
-  it('should call the action and exit with code 0 on success', async () => {
-    mockAction.mockResolvedValueOnce(undefined);
-    // @ts-ignore
-    mockExit = vi.spyOn(process, 'exit').mockImplementationOnce(() => void 0);
+  it('should call action with the given options and exit with code 0 on success', async () => {
+    const mockAction = vi.fn().mockResolvedValue(undefined);
+    const mockOptions = { debug: false };
 
-    await commandHandler(mockAction, { debug: false });
-    expect(mockAction).toHaveBeenCalled();
-    expect(mockExit).toHaveBeenCalledWith(0);
+    await commandHandler(mockAction, mockOptions);
+    expect(mockAction).toHaveBeenCalledWith(mockOptions);
+    expect(exitSpy).toHaveBeenCalledWith(0);
   });
 
-  it('should enable debug mode if debug is true', async () => {
-    mockAction.mockResolvedValueOnce(undefined);
-    // @ts-ignore
-    mockExit = vi.spyOn(process, 'exit').mockImplementationOnce(() => void 0);
+  it('should enable debug mode if debug option is true', async () => {
+    const mockAction = vi.fn().mockResolvedValue(undefined);
+    const mockOptions = { debug: true };
 
-    await commandHandler(mockAction, { debug: true });
+    await commandHandler(mockAction, mockOptions);
     expect(enableDebug).toHaveBeenCalled();
-    expect(mockAction).toHaveBeenCalled();
-    expect(mockExit).toHaveBeenCalledWith(0);
+    expect(mockAction).toHaveBeenCalledWith(mockOptions);
+    expect(exitSpy).toHaveBeenCalledWith(0);
   });
 
-  it('should log error and exit with code 1 if an error occurs and failOnError is true', async () => {
-    const errorMessage = 'Test error';
-    mockAction.mockRejectedValueOnce(new Error(errorMessage));
+  it('should log an error and exit with code 1 if action throws a generic error', async () => {
+    const mockAction = vi.fn().mockRejectedValue(new Error('Test Error'));
+    const mockOptions = { debug: false };
 
-    await expect(commandHandler(mockAction, { debug: false })).rejects.toThrow(
-      'process.exit(1)'
-    );
-    expect(error).toHaveBeenCalledWith(errorMessage);
-    expect(mockExit).toHaveBeenCalledWith(1);
+    await commandHandler(mockAction, mockOptions);
+    expect(error).toHaveBeenCalledWith('Test Error');
+    expect(exitSpy).toHaveBeenCalledWith(1);
   });
 
-  it('should log error and exit with specific exitCode if CommanderError occurs', async () => {
-    const commandError = new CommanderError(
-      123,
+  it('should exit with CommanderError exitCode if action throws a CommanderError', async () => {
+    const commanderError = new CommanderError(
+      2,
       'commander.error',
-      'Commander failed'
+      'Commander Error'
     );
-    mockAction.mockRejectedValueOnce(commandError);
+    const mockAction = vi.fn().mockRejectedValue(commanderError);
+    const mockOptions = { debug: false };
 
-    await expect(commandHandler(mockAction, { debug: false })).rejects.toThrow(
-      'process.exit(123)'
-    );
-    expect(error).toHaveBeenCalledWith('Commander failed');
-    expect(mockExit).toHaveBeenCalledWith(123);
-  });
-
-  it('should log a warning and exit with code 0 if failOnError is false', async () => {
-    const errorMessage = 'Test warning';
-    mockAction.mockRejectedValueOnce(new Error(errorMessage));
-
-    await expect(
-      commandHandler(mockAction, { debug: false }, { failOnError: false })
-    ).rejects.toThrow('process.exit(0)');
-    expect(warnWithNoTrace).toHaveBeenCalledWith(errorMessage);
-    expect(mockExit).toHaveBeenCalledWith(0);
+    await commandHandler(mockAction, mockOptions);
+    expect(error).toHaveBeenCalledWith('Commander Error');
+    expect(exitSpy).toHaveBeenCalledWith(2);
   });
 });

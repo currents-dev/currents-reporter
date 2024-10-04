@@ -1,5 +1,5 @@
 import { CommanderError } from '@commander-js/extra-typings';
-import { error, warnWithNoTrace } from '@logger';
+import { error } from '@logger';
 import { enableDebug } from '../debug';
 
 export function parseCommaSeparatedList(
@@ -14,10 +14,7 @@ export function parseCommaSeparatedList(
 
 export async function commandHandler<T extends Record<string, unknown>>(
   action: (options: T) => Promise<void>,
-  commandOptions: T,
-  options?: {
-    failOnError?: boolean;
-  }
+  commandOptions: T
 ) {
   try {
     if (commandOptions.debug) {
@@ -25,16 +22,9 @@ export async function commandHandler<T extends Record<string, unknown>>(
     }
     await action(commandOptions);
     process.exit(0);
-  } catch (_e) {
-    const e = _e as Error;
-    const failOnError = options?.failOnError ?? true;
-    if (failOnError) {
-      error(e.message);
-    } else {
-      warnWithNoTrace(e.message);
-    }
-
+  } catch (e) {
+    error((e as Error).message);
     const exitCode = e instanceof CommanderError ? e.exitCode : 1;
-    process.exit(failOnError ? exitCode : 0);
+    process.exit(exitCode);
   }
 }
