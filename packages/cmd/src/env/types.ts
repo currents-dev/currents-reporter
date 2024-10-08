@@ -41,3 +41,20 @@ export type GitLabParams = {
   ciNodeTotal?: string;
   runAttempt?: string;
 };
+
+export type CircleParams = {
+  circleJob: string;
+  circleBuildNum: string;
+  circleBuildUrl: string;
+  circlePrNumber: string;
+  circlePrReponame: string;
+  circlePrUsername: string;
+  circleCompareUrl: string;
+  circleWorkflowId: string;
+  circleWorkflowWorkspaceId: string;
+  circlePullRequest: string;
+  circleRepositoryUrl: string;
+  ciPullRequest: string;
+  circleNodeIndex: string;
+  circleNodeTotal: string;
+};
