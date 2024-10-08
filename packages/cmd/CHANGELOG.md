@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.2.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.2...${npm.name}-v1.2.0-beta.0) (2024-10-08)
+
+
+### Features
+
+* CircleCi cache ([db742e6](https://github.com/currents-dev/currents-reporter/commit/db742e61f7ecfb88a2be15369a565ef2af9807e8))
+
 ## [1.1.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1...${npm.name}-v1.1.2) (2024-10-04)
 
 
