@@ -252,9 +252,13 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'CIRCLE_PR_USERNAME',
       'CIRCLE_COMPARE_URL',
       'CIRCLE_WORKFLOW_ID',
+      'CIRCLE_WORKFLOW_WORKSPACE_ID',
       'CIRCLE_PULL_REQUEST',
       'CIRCLE_REPOSITORY_URL',
       'CI_PULL_REQUEST',
+      // matrix information
+      'CIRCLE_NODE_INDEX',
+      'CIRCLE_NODE_TOTAL',
     ]),
     codeshipBasic: extract([
       'CI_BUILD_ID',
