@@ -203,6 +203,7 @@ async function createRun({
     machineId: currents.machineId ?? machineId,
     framework,
     instances,
+    previousCiBuildId: process.env.CURRENTS_PREVIOUS_CI_BUILD_ID,
   };
 
   debug(
