@@ -46,6 +46,7 @@ export type CI = {
 
 export type CreateRunParams = {
   ciBuildId?: string;
+  previousCiBuildId?: string;
   group: string;
   projectId: string;
   platform: Platform;
