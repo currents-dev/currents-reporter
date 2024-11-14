@@ -1,6 +1,7 @@
 import { isEmpty } from 'lodash';
 import { CLIArgs } from '../../../types';
-import { argvToString, getDiscoveryOptions } from './args';
+import { argvToString } from '../../utils';
+import { getDiscoveryOptions } from './args';
 import { getConfigFilePath } from './config';
 
 export async function getCLIArgs(
