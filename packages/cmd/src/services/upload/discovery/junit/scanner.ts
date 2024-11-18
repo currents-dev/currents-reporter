@@ -7,9 +7,9 @@ import crypto from 'node:crypto';
 import { parseStringPromise } from 'xml2js';
 import { CLIArgs } from '../../types';
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
-import { getCLIArgs } from './args';
+import { JUnitCompleteStructure } from './types';
 
-const debug = _debug.extend('jest-discovery');
+const debug = _debug.extend('junit-discovery');
 
 export async function jUnitScanner(
   _config: Config.GlobalConfig,
@@ -17,20 +17,20 @@ export async function jUnitScanner(
 ) {
   console.time(dim('@currents/junit:fullTestSuite-ready'));
 
-  const { cliArgs } = await getCLIArgs(cliArgsFromConfig);
-
   try {
-    debug('running scanner: %o', cliArgs);
+    debug('running scanner: %o', cliArgsFromConfig);
 
     // jUnitFile is the path to the JUnit xml file with all the tests suite and results
     const xmlFilePath = cliArgsFromConfig.options['jUnitFile'] as string;
 
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.CURRENTS_DISCOVERY_PATH = xmlFilePath;
 
     const fileContent = fs.readFileSync(xmlFilePath, 'utf-8');
 
     const jsonContent = await parseStringPromise(fileContent, {
       explicitArray: false,
+      mergeAttrs: true,
     });
 
     return parseToFullTestSuite(jsonContent);
@@ -40,29 +40,32 @@ export async function jUnitScanner(
   }
 }
 
-function parseToFullTestSuite(jsonContent: Record<string, any>) {
+function parseToFullTestSuite(jsonContent: JUnitCompleteStructure) {
   const fullTestSuite: FullTestSuite = [];
 
-  const testsuites = jsonContent.testsuites.testsuite;
+  const testsuites = jsonContent.testsuites?.testsuite;
 
   const suiteArray = Array.isArray(testsuites) ? testsuites : [testsuites];
 
   const fullSuiteProject: FullSuiteProject = {
-    name: jsonContent.testsuites.$.name,
+    name: jsonContent.testsuites?.name ?? 'No name',
     tags: [],
     tests: [],
   };
 
-  suiteArray.forEach((suite: any) => {
-    const testcases = suite.testcase;
+  suiteArray.forEach((suite) => {
+    const testcases = suite?.testcase;
     const testcaseArray = Array.isArray(testcases) ? testcases : [testcases];
 
-    testcaseArray.forEach((testcase: any) => {
+    testcaseArray.forEach((testcase) => {
       const fullSuiteTest: FullSuiteTest = {
-        title: [testcase.$.name],
-        spec: suite.$.name,
-        tags: [testcase.$.classname || suite.$.name],
-        testId: generateTestId(testcase.$.name, suite.$.name),
+        title: [testcase?.name ?? ''],
+        spec: suite?.name ?? 'No name',
+        tags: [],
+        testId: generateTestId(
+          testcase?.name ?? 'No name',
+          suite?.name ?? 'No name'
+        ),
       };
 
       fullSuiteProject.tests.push(fullSuiteTest);
