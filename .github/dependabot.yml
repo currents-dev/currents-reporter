@@ -15,5 +15,5 @@ updates:
       - 'twk3'
       - 'ynahmany'
     commit-message:
-      prefix: '[CSR-0] '
-      prefix-development: '[CSR-0] '
+      prefix: '[CSR-0] chore: '
+      prefix-development: '[CSR-0] chore: '
