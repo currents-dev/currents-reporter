@@ -19,7 +19,7 @@ A monorepo which contains the following packages:
 
 Run `npm run test` to run example spec files.
 
-In order to test different scenarious, update the jest configuration by modifying the `jest.config.js` file or run the command with jest cli options.
+In order to test different scenarios, update the jest configuration by modifying the `jest.config.js` file or run the command with jest cli options.
 
 To enable the debug mode, prefix the command with `DEBUG=currents-jest`
 
