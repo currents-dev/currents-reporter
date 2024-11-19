@@ -3,6 +3,7 @@ import { reporterVersion } from '@env/versions';
 import { getApiCommand } from '../commands/api';
 import { getCacheCommand } from '../commands/cache';
 import { getUploadCommand } from '../commands/upload';
+import { getConvertCommand } from '../commands/convert';
 
 const example = `
 ----------------------------------------------------
@@ -18,4 +19,5 @@ export const getProgram = () =>
     .description(`Currents CLI ${example}`)
     .addCommand(getUploadCommand(NAME), { isDefault: true })
     .addCommand(getCacheCommand(NAME))
-    .addCommand(getApiCommand(NAME));
+    .addCommand(getApiCommand(NAME))
+    .addCommand(getConvertCommand(NAME));
