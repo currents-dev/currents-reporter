@@ -1,9 +1,8 @@
-import * as xml2js from 'xml2js';
-import { Failure, TestSuite, TestSuites } from './combineInputFiles';
-import { generateTestId } from 'services/upload/discovery/junit/scanner';
 import { generateShortHash } from '@lib/hash';
-import * as fs from 'fs';
 import { ConvertCommandConfig } from 'config/convert';
+import { generateTestId } from 'services/upload/discovery/junit/scanner';
+import * as xml2js from 'xml2js';
+import { TestSuite, TestSuites } from './combineInputFiles';
 import {
   ExpectedStatus,
   InstanceReport,
