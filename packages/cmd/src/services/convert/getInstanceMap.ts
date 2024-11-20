@@ -1,8 +1,17 @@
 import { ConvertCommandConfig } from 'config/convert';
 import { InstanceReport } from './types';
+import { combineResults, saveCombinedResultsFile } from './combineInputFiles';
+import { getPostmanInstances } from './getInstances';
 
-export function getInstanceMap(
+export async function getInstanceMap(
   config: ConvertCommandConfig
 ): Promise<Map<string, InstanceReport>> {
-  return Promise.resolve(new Map());
+  let combinedResult: string = '';
+  combinedResult = await combineResults(config.inputFiles);
+  saveCombinedResultsFile(combinedResult, config.outputDir);
+  switch (config.framework) {
+    case 'postman':
+    default:
+      return Promise.resolve(getPostmanInstances(combinedResult));
+  }
 }
