@@ -112,12 +112,6 @@ export async function getInstances(
         };
 
         const fileNameHash = generateShortHash(suite?.name ?? '');
-
-        fs.writeFileSync(
-          `${config.outputDir}/${fileNameHash}.json`,
-          JSON.stringify(suiteJson, null, 2),
-          'utf8'
-        );
         instances.set(fileNameHash, suiteJson);
       });
     }
