@@ -5,7 +5,7 @@ export function convertCommandOptsToConfig(
   options: ConvertCommandOpts
 ): Partial<ConvertCommandConfig> {
   return {
-    inputFile: options.inputFile,
+    inputFiles: options.inputFile,
     inputFormat: options.inputFormat,
     outputDir: options.outputDir,
     framework: options.framework,
