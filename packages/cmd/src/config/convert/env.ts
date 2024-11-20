@@ -10,7 +10,7 @@ export const configKeys = {
     name: 'Input Format',
     cli: '--input-format',
   },
-  inputFile: {
+  inputFiles: {
     name: 'Input File',
     cli: '--input-file',
   },
