@@ -29,7 +29,7 @@ export type Framework = {
   type: string;
   clientVersion: string | null;
   version: string | null;
-  frameworkConfig: FrameworkConfig;
+  frameworkConfig?: FrameworkConfig;
 };
 
 export type FrameworkConfig = {

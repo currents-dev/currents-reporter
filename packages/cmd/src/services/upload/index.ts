@@ -97,7 +97,14 @@ export async function handleCurrentsReport() {
     type: config.framework,
     version: config.frameworkVersion,
     clientVersion: reporterVersion,
-    frameworkConfig: config.frameworkConfig,
+    frameworkConfig: {
+      originFramework: config.frameworkConfig?.originFramework as
+        | string
+        | undefined,
+      originFrameworkVersion: config.frameworkConfig?.originFrameworkVersion as
+        | string
+        | undefined,
+    },
   };
 
   const machineId = nanoid.userFacingNanoid();
