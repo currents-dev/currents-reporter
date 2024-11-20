@@ -11,9 +11,9 @@ export type ConvertCommandConfig = {
   inputFormat: string;
 
   /**
-   * The pattern to search for test reports.
+   * The array of paths to the test reports to convert.
    */
-  inputFile: string;
+  inputFiles: string[];
 
   /**
    * The directory to save the converted test reports.
@@ -38,13 +38,13 @@ export type ConvertCommandConfig = {
 
 type MandatoryConvertCommandConfigKeys =
   | 'inputFormat'
-  | 'inputFile'
+  | 'inputFiles'
   | 'outputDir'
   | 'framework';
 
 const mandatoryConfigKeys: MandatoryConvertCommandConfigKeys[] = [
   'inputFormat',
-  'inputFile',
+  'inputFiles',
   'outputDir',
   'framework',
 ];
