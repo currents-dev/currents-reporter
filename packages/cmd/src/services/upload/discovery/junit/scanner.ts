@@ -76,7 +76,7 @@ function parseToFullTestSuite(jsonContent: JUnitCompleteStructure) {
   return fullTestSuite;
 }
 
-function generateTestId(testName: string, suiteName: string): string {
+export function generateTestId(testName: string, suiteName: string): string {
   const combinedString = `${testName}${suiteName}`;
   const fullHash = crypto
     .createHash('sha256')
