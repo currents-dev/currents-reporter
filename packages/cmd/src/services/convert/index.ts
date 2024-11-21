@@ -1,10 +1,11 @@
 import { debug } from '@debug';
-import { getConvertCommandConfig } from '../../config/convert';
-import { join } from 'path';
-import { getReportConfig } from './getReportConfig';
 import { ensurePathExists, generateShortHash, writeFileAsync } from '@lib';
-import { InstanceReport } from './types';
+import { info } from '@logger';
+import { join } from 'path';
+import { getConvertCommandConfig } from '../../config/convert';
 import { getInstanceMap } from './getInstanceMap';
+import { getReportConfig } from './getReportConfig';
+import { InstanceReport } from './types';
 
 export async function handleConvert() {
   try {
@@ -20,6 +21,8 @@ export async function handleConvert() {
 
     const reportConfig = getReportConfig(config);
     debug('Report config:', reportConfig);
+
+    info('[currents] Convertion files: %s', config.inputFiles.join(', '));
 
     await writeFileAsync(
       join(reportDir, 'config.json'),
@@ -37,7 +40,7 @@ export async function handleConvert() {
       )
     );
 
-    debug('Conversion completed, reports saved to: %s', reportDir);
+    info('[currents] Conversion completed, report saved to: %s', reportDir);
   } catch (e) {
     debug('Failed to convert: %o', e);
     throw e;
