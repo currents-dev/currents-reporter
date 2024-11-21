@@ -92,7 +92,7 @@ export function getClient(type: ClientType): AxiosInstance {
     _clients[type] = createClient(type);
   }
 
-  return _clients[type];
+  return _clients[type] as AxiosInstance;
 }
 
 function getNetworkRequestDebugData(data: {

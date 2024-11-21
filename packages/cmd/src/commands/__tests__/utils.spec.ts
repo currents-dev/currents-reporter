@@ -41,7 +41,7 @@ describe('parseCommaSeparatedList', () => {
 });
 
 describe('commandHandler', () => {
-  let exitSpy: MockInstance<never, [code?: string | number | null | undefined]>;
+  let exitSpy: MockInstance<never>;
 
   beforeEach(() => {
     vi.clearAllMocks();

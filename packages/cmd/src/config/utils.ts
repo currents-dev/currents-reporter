@@ -26,9 +26,9 @@ export function removeUndefined<T extends {}>(obj?: T): T {
 export function getEnvironmentVariableName<T extends ConfigKeys>(
   configKeys: T,
   variable: keyof T
-) {
+): string {
   return 'env' in configKeys[variable] && !!configKeys[variable].env
-    ? configKeys[variable].env
+    ? (configKeys[variable].env as string)
     : '';
 }
 

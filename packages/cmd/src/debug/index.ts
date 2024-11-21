@@ -1,6 +1,8 @@
+// @ts-ignore
 import { debug as Debug, Debugger } from 'debug';
 import fs from 'fs-extra';
 
+// @ts-ignore
 export const debug = Debug('currents');
 
 let _traceFilePath: string | null = null;

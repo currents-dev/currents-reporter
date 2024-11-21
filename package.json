@@ -21,6 +21,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
+    "types": "turbo run types",
     "lint": "turbo run lint",
     "format": "prettier --check .",
     "format-fix": "prettier --write ."
