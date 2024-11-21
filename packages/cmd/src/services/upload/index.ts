@@ -21,6 +21,7 @@ import {
   resolveReportOptions,
 } from './fs';
 import { InstanceReport, ReportConfig, UploadMarkerInfo } from './types';
+import { parseDangerousProperties } from './utils';
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
@@ -116,7 +117,7 @@ export async function handleCurrentsReport() {
     if (!instancesByGroup[report.groupId]) {
       instancesByGroup[report.groupId] = [];
     }
-    instancesByGroup[report.groupId].push(report);
+    instancesByGroup[report.groupId].push(parseDangerousProperties(report));
   }
 
   for await (const key of Object.keys(instancesByGroup)) {
