@@ -1,0 +1,91 @@
+name: Types Matrix
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          since_last_remote_commit: true
+          files: packages/**
+          files_ignore: packages/eslint-config-custom/**
+
+      - name: Generate Matrix
+        id: generate-matrix
+        run: |
+          echo "Changes files: ${{ steps.changed-files.outputs.all_changed_files }}" 
+          CHANGED_DIRS=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr " " "\n" | awk -F'/' '{print $2}' | sort | uniq | sed 's/^/"/; s/$/"/' | tr '\n' ',' | sed 's/,$//' | awk '{print "[" $0 "]"}')
+          echo "CHANGED_DIRS: ${CHANGED_DIRS}"
+          echo "addding packages to ${GITHUB_OUTPUT}..."
+          echo "packages=${CHANGED_DIRS}" >> $GITHUB_OUTPUT
+
+    outputs:
+      packages: ${{ steps.generate-matrix.outputs.packages }}
+  # ------------------------
+  # echo:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - matrix
+  #   steps:
+  #     - name: Echo previous outputs
+  #       run: echo "${{ needs.matrix.outputs.packages }}"
+
+  types:
+    name: ${{ matrix.package }} Types
+    if: ${{ needs.matrix.outputs.packages != '[""]' }}
+    needs:
+      - matrix
+    strategy:
+      matrix:
+        package: ${{ fromJson(needs.matrix.outputs.packages) }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.package }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: yarn
+
+      - run: yarn global add node-gyp
+      - run: yarn install --frozen-lockfile
+      - name: Run Type Checks
+        working-directory: ./packages/${{ matrix.package }}
+        run: NODE_OPTIONS=--max-old-space-size=4096 yarn types
+
+  typechecks-status:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [types]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          since_last_remote_commit: 'true'
+          files: packages/**
+          files_ignore: packages/eslint-config-custom/**
+ 
+      - name: Successful deploy
+        if: ${{ steps.changed-files.outputs.any_changed != 'true' || !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Failing deploy
+        if: ${{ steps.changed-files.outputs.any_changed == 'true' && contains(needs.*.result, 'failure') }}
+        run: exit 1
