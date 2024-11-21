@@ -16,7 +16,7 @@ export async function handleConvert() {
     const reportDir = config.outputDir;
     await ensurePathExists(reportDir);
     const instancesDir = join(reportDir, 'instances');
-    await ensurePathExists(instancesDir);
+    await ensurePathExists(instancesDir, true);
 
     const reportConfig = getReportConfig(config);
     debug('Report config:', reportConfig);

@@ -74,7 +74,7 @@ export async function handleCurrentsReport() {
   }
 
   if (!fullTestSuite) {
-    const scanner = createScanner(config);
+    const scanner = createScanner(config, reportOptions.reportDir);
     fullTestSuite = await scanner.getFullTestSuite();
 
     if (isEmptyTestSuite(fullTestSuite)) {
