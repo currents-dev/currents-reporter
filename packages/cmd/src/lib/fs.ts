@@ -22,7 +22,14 @@ export async function writeFileAsync(filePath: string, content: string) {
   }
 }
 
-export async function ensurePathExists(filePath: string): Promise<void> {
+export async function ensurePathExists(
+  filePath: string,
+  isFolder?: boolean
+): Promise<void> {
   const dir = dirname(filePath);
+  if (isFolder) {
+    await fs.ensureDir(filePath);
+    return;
+  }
   await fs.ensureDir(dir);
 }

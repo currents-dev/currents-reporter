@@ -12,6 +12,7 @@ import {
 import { parseStringPromise } from 'xml2js';
 import { CLIArgs } from '../../types';
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
+import { join } from 'path';
 
 const debug = _debug.extend('junit-discovery');
 
@@ -22,7 +23,7 @@ export async function jUnitScanner(reportDir: string) {
     debug('running scanner: %o', reportDir);
 
     // jUnitFile is the path to the JUnit xml file with all the tests suite and results
-    const xmlFilePath = `${reportDir}/currents.results.xml` as string;
+    const xmlFilePath = join(reportDir, 'currents.results.xml');
 
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.CURRENTS_DISCOVERY_PATH = xmlFilePath;

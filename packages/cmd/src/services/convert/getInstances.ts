@@ -24,6 +24,7 @@ export async function getPostmanInstances(combinedResult: string) {
 
     const testcases = assertForArray(suite.testcase) as TestCase[];
 
+    // Need this to sum each testcase time to the testsuite timestamp and see a difference in the startime
     let accumulatedTestTime = 0;
 
     const suiteJson = {
@@ -33,7 +34,7 @@ export async function getPostmanInstances(combinedResult: string) {
         workerIndex: 1,
         parallelIndex: 1,
       },
-      startTime: suite?.timestamp ?? '',
+      startTime: startTime.toISOString(),
       results: {
         stats: {
           suites: 1,
@@ -43,13 +44,14 @@ export async function getPostmanInstances(combinedResult: string) {
           skipped: 0,
           failures: testcases?.filter((tc) => tc?.failure).length,
           flaky: 0,
-          wallClockStartedAt: suite?.timestamp ?? '',
+          wallClockStartedAt: startTime.toISOString(),
           wallClockEndedAt: endTime.toISOString(),
           wallClockDuration: durationMillis,
         },
         tests: testcases?.map((test) => {
           const newAccumulatedTestTime =
             accumulatedTestTime + parseFloat(testcases[0].time ?? '0') * 1000;
+          accumulatedTestTime = newAccumulatedTestTime;
           return getTestCase(test, suite, newAccumulatedTestTime);
         }),
       },

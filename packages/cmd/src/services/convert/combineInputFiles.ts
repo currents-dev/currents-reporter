@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 import * as xml2js from 'xml2js';
 import { TestSuite, TestSuites } from './types';
+import { join } from 'path';
 
 async function processTestSuites(
   testsuites: TestSuite[]
@@ -62,7 +63,7 @@ export async function saveCombinedResultsFile(
   combinedResults: string,
   outputDir: string
 ) {
-  writeFileSync(`${outputDir}/currents.results.xml`, combinedResults);
+  writeFileSync(join(outputDir, 'currents.results.xml'), combinedResults);
 }
 
 export function readInputFile(filePath: string) {
