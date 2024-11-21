@@ -6,7 +6,7 @@ const debug = _debug.extend('config');
 
 export type ConvertCommandConfig = {
   /**
-   * The format of the input test reports. Supported formats: junit.
+   * The format of the input test reports.
    */
   inputFormat: string;
 

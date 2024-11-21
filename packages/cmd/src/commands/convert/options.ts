@@ -6,10 +6,15 @@ import { getEnvironmentVariableName } from '../../config/utils';
 export const debugOption = new Option('--debug', 'Enable debug logging')
   .env(getEnvironmentVariableName(configKeys, 'debug'))
   .default(false);
+
+export enum REPORT_INPUT_FORMATS {
+  junit = 'junit',
+}
 export const inputFormatOption = new Option(
   '--input-format <string>',
-  'the format of the input test reports. Supported formats: junit'
-);
+  'the format of the input test reports'
+).choices(Object.values(REPORT_INPUT_FORMATS));
+
 export const inputFileOption = new Option(
   '--input-file <pattern>',
   'the pattern to search for test reports'

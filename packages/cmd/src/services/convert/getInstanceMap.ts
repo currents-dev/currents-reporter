@@ -1,14 +1,15 @@
 import { warn } from '@logger';
 import { ConvertCommandConfig } from 'config/convert';
 import { readFile } from 'fs-extra';
+import { REPORT_INPUT_FORMATS } from '../../commands/convert/options';
+import { InstanceReport } from '../../types';
 import { combineInputFiles, saveXMLInput } from './combineInputFiles';
 import { getInstanceMapForPostman } from './getInstances';
-import { InstanceReport } from './types';
 
 export async function getInstanceMap(
   config: ConvertCommandConfig
 ): Promise<Map<string, InstanceReport>> {
-  if (config.inputFormat === 'junit') {
+  if (config.inputFormat === REPORT_INPUT_FORMATS.junit) {
     const xmlInput =
       config.inputFiles.length > 1
         ? await combineInputFiles(config.inputFiles)
