@@ -1,11 +1,10 @@
-import { Config } from '@jest/types';
 import { ReportConfig } from '../../types';
 import { Scanner } from '../scanner';
 import { FullTestSuite } from '../types';
 import { jUnitScanner } from './scanner';
 
 export class JUnitScanner extends Scanner {
-  reportDir: string;
+  private reportDir: string;
 
   constructor(config: ReportConfig, reportDir: string) {
     super(config);

@@ -1,8 +1,8 @@
+import { writeFileAsync } from '@lib';
 import { readFile } from 'fs-extra';
 import { join } from 'path';
 import * as xml2js from 'xml2js';
 import { TestSuite, TestSuites } from './types';
-import { writeFileAsync } from '@lib';
 
 export async function combineInputFiles(inputFiles: string[]): Promise<string> {
   const combinedTestSuites: TestSuites = {
