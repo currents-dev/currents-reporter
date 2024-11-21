@@ -16,10 +16,13 @@ export async function getInstanceMap(
   } else {
     combinedResult = readInputFile(config.inputFiles[0]);
   }
-  saveCombinedResultsFile(combinedResult, config.outputDir);
-  switch (config.framework) {
-    case 'postman':
-    default:
-      return Promise.resolve(getPostmanInstances(combinedResult));
+  if (combinedResult.trim()) {
+    saveCombinedResultsFile(combinedResult, config.outputDir);
+    switch (config.framework) {
+      case 'postman':
+      default:
+        return Promise.resolve(getPostmanInstances(combinedResult));
+    }
   }
+  return new Map();
 }
