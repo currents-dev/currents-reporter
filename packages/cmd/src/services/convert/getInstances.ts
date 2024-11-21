@@ -1,5 +1,4 @@
 import { generateShortHash } from '@lib/hash';
-import { ConvertCommandConfig } from 'config/convert';
 import { parseStringPromise } from 'xml2js';
 import { InstanceReport, TestCase, TestSuite } from './types';
 import { assertForArray, getSpec, getTestCase } from './utils';
@@ -37,7 +36,7 @@ export async function getPostmanInstances(combinedResult: string) {
       startTime: suite?.timestamp ?? '',
       results: {
         stats: {
-          suites: testcases?.length,
+          suites: 1,
           tests: parseInt(suite.tests ?? '0'),
           passes: testcases?.filter((tc) => !tc?.failure).length,
           pending: 0,

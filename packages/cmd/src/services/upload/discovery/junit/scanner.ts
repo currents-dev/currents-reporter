@@ -3,26 +3,26 @@ import fs from 'fs-extra';
 
 import { debug as _debug } from '@debug';
 import { dim, error } from '@logger';
-import crypto from 'node:crypto';
-import { TestSuites } from 'services/convert/types';
-import { generateTestId, getSpec, getTestTitle } from 'services/convert/utils';
+import { TestSuites } from '../../../../services/convert/types';
+import {
+  generateTestId,
+  getSpec,
+  getTestTitle,
+} from '../../../../services/convert/utils';
 import { parseStringPromise } from 'xml2js';
 import { CLIArgs } from '../../types';
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
 
 const debug = _debug.extend('junit-discovery');
 
-export async function jUnitScanner(
-  _config: Config.GlobalConfig,
-  cliArgsFromConfig: CLIArgs
-) {
+export async function jUnitScanner(reportDir: string) {
   console.time(dim('@currents/junit:fullTestSuite-ready'));
 
   try {
-    debug('running scanner: %o', cliArgsFromConfig);
+    debug('running scanner: %o', reportDir);
 
     // jUnitFile is the path to the JUnit xml file with all the tests suite and results
-    const xmlFilePath = cliArgsFromConfig.options['jUnitFile'] as string;
+    const xmlFilePath = `${reportDir}/currents.results.xml` as string;
 
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.CURRENTS_DISCOVERY_PATH = xmlFilePath;

@@ -5,14 +5,14 @@ import { FullTestSuite } from '../types';
 import { jUnitScanner } from './scanner';
 
 export class JUnitScanner extends Scanner {
-  constructor(config: ReportConfig) {
+  reportDir: string;
+
+  constructor(config: ReportConfig, reportDir: string) {
     super(config);
+    this.reportDir = reportDir;
   }
 
   async getFullTestSuite(): Promise<FullTestSuite> {
-    return jUnitScanner(
-      this.config.frameworkConfig as Config.GlobalConfig,
-      this.config.cliArgs
-    );
+    return jUnitScanner(this.reportDir);
   }
 }

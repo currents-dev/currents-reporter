@@ -3,11 +3,12 @@ import { ReportConfig } from './types';
 
 export function getReportConfig(config: ConvertCommandConfig): ReportConfig {
   return {
-    framework: config.framework,
+    framework: 'junit',
     frameworkVersion: config.frameworkVersion ?? null,
     cliArgs: {},
     frameworkConfig: {
-      format: config.inputFormat,
+      originFramework: config.framework,
+      originFrameworkVersion: config.frameworkVersion,
     },
   };
 }

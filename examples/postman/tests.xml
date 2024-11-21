@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Tests" tests="2" time="0.653">
+  <testsuite name="Currents API" id="8ff5ccec-3c02-4ebd-973c-ca35270676e5" timestamp="2024-11-20T02:50:24.703Z" tests="4" failures="4" errors="0" time="0.528">
+    <testcase name="Response status code is 200" time="0.528" classname="CurrentsApi">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 401">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Currents API.]]>
+        <![CDATA[Test description: Response status code is 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 401.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 401
+   at Object.eval sandbox-script.js:1:1).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response time is less than 200ms" time="0.528" classname="CurrentsApi">
+      <failure type="AssertionFailure" message="expected 528 to be below 200">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Currents API.]]>
+        <![CDATA[Test description: Response time is less than 200ms.]]>
+        <![CDATA[Error message: expected 528 to be below 200.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 528 to be below 200
+   at Object.eval sandbox-script.js:2:1).]]>
+      </failure>
+    </testcase>
+    <testcase name="Status code is 200" time="0.528" classname="CurrentsApi">
+      <failure type="AssertionFailure" message="expected 401 to equal 200">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Currents API.]]>
+        <![CDATA[Test description: Status code is 200.]]>
+        <![CDATA[Error message: expected 401 to equal 200.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 401 to equal 200
+   at Object.eval sandbox-script.js:3:1).]]>
+      </failure>
+    </testcase>
+    <testcase name="Validate the response schema for required fields and data types" time="0.528" classname="CurrentsApi">
+      <failure type="AssertionFailure" message="expected undefined to be an object">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Currents API.]]>
+        <![CDATA[Test description: Validate the response schema for required fields and data types.]]>
+        <![CDATA[Error message: expected undefined to be an object.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to be an object
+   at Object.eval sandbox-script.js:4:1).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="Get Run" id="8710cebd-3ca3-411a-83e4-f44e397dee79" timestamp="2024-11-20T02:50:24.703Z" tests="4" failures="3" errors="0" time="0.125">
+    <testcase name="Response status code is 200" time="0.125" classname="GetRun">
+      <failure type="AssertionFailure" message="expected response to have status code 200 but got 401">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Get Run.]]>
+        <![CDATA[Test description: Response status code is 200.]]>
+        <![CDATA[Error message: expected response to have status code 200 but got 401.]]>
+        <![CDATA[Stacktrace: AssertionError: expected response to have status code 200 but got 401
+   at Object.eval sandbox-script.js:1:2).]]>
+      </failure>
+    </testcase>
+    <testcase name="Response time is less than 200ms" time="0.125" classname="GetRun"/>
+    <testcase name="Status code is 200" time="0.125" classname="GetRun">
+      <failure type="AssertionFailure" message="expected 401 to equal 200">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Get Run.]]>
+        <![CDATA[Test description: Status code is 200.]]>
+        <![CDATA[Error message: expected 401 to equal 200.]]>
+        <![CDATA[Stacktrace: AssertionError: expected 401 to equal 200
+   at Object.eval sandbox-script.js:3:2).]]>
+      </failure>
+    </testcase>
+    <testcase name="Validate the response schema for required fields and data types" time="0.125" classname="GetRun">
+      <failure type="AssertionFailure" message="expected undefined to be an object">
+        <![CDATA[Failed 1 times.]]>
+        <![CDATA[Collection JSON ID: e1e87782-7e0d-48dc-a937-3f6e1b931edc.]]>
+        <![CDATA[Collection name: Tests.]]>
+        <![CDATA[Request name: Get Run.]]>
+        <![CDATA[Test description: Validate the response schema for required fields and data types.]]>
+        <![CDATA[Error message: expected undefined to be an object.]]>
+        <![CDATA[Stacktrace: AssertionError: expected undefined to be an object
+   at Object.eval sandbox-script.js:4:2).]]>
+      </failure>
+    </testcase>
+  </testsuite>
+</testsuites>

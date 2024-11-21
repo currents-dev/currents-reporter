@@ -48,7 +48,7 @@ export function getTestCase(
   suite: TestSuite,
   accumulatedTestTime: number
 ) {
-  const failures = testCase.failure;
+  const failures = assertForArray(testCase.failure);
   const hasFailure = failures?.length ?? 0 > 0;
 
   return {
@@ -230,5 +230,8 @@ export function getSpec(suite: TestSuite) {
 }
 
 export function assertForArray(element: unknown) {
+  if (!element) {
+    return [];
+  }
   return Array.isArray(element) ? element : [element];
 }

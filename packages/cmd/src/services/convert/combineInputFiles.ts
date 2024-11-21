@@ -38,7 +38,7 @@ export async function combineResults(inputFiles: string[]): Promise<string> {
   });
 
   for (const filePath of inputFiles) {
-    const content = readFileSync(filePath, 'utf-8');
+    const content = readInputFile(filePath);
     const result = (await parser.parseStringPromise(content)) as TestSuites;
 
     if (result.testsuites?.testsuite) {
@@ -62,5 +62,9 @@ export async function saveCombinedResultsFile(
   combinedResults: string,
   outputDir: string
 ) {
-  writeFileSync(`${outputDir}/combined-results.json`, combinedResults);
+  writeFileSync(`${outputDir}/currents.results.xml`, combinedResults);
+}
+
+export function readInputFile(filePath: string) {
+  return readFileSync(filePath, 'utf-8');
 }
