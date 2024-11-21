@@ -1,37 +1,6 @@
-import * as fs from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import * as xml2js from 'xml2js';
-
-export interface Failure {
-  message?: string;
-  _?: string;
-}
-
-export interface TestCase {
-  name?: string;
-  classname?: string;
-  time?: string;
-  failure?: (Failure | string)[] | string;
-  [key: string]: any;
-}
-
-export interface TestSuite {
-  name?: string;
-  errors?: string;
-  failures?: string;
-  skipped?: string;
-  timestamp?: string;
-  time?: string;
-  tests?: string;
-  testcase?: TestCase[];
-  [key: string]: any;
-}
-
-export interface TestSuites {
-  testsuites?: {
-    testsuite?: TestSuite[];
-    [key: string]: any;
-  };
-}
+import { TestSuite, TestSuites } from './types';
 
 async function processTestSuites(
   testsuites: TestSuite[]
@@ -56,7 +25,7 @@ async function processTestSuites(
   return processedSuites;
 }
 
-export async function combineResults(filePaths: string[]): Promise<string> {
+export async function combineResults(inputFiles: string[]): Promise<string> {
   let combinedTestsuites: TestSuites = {
     testsuites: {
       testsuite: [],
@@ -64,12 +33,12 @@ export async function combineResults(filePaths: string[]): Promise<string> {
   };
 
   const parser = new xml2js.Parser({
-    explicitArray: true,
+    explicitArray: false,
     mergeAttrs: true,
   });
 
-  for (const filePath of filePaths) {
-    const content = fs.readFileSync(filePath, 'utf-8');
+  for (const filePath of inputFiles) {
+    const content = readFileSync(filePath, 'utf-8');
     const result = (await parser.parseStringPromise(content)) as TestSuites;
 
     if (result.testsuites?.testsuite) {
@@ -89,4 +58,9 @@ export async function combineResults(filePaths: string[]): Promise<string> {
   return builder.buildObject(combinedTestsuites);
 }
 
-export default combineResults;
+export async function saveCombinedResultsFile(
+  combinedResults: string,
+  outputDir: string
+) {
+  writeFileSync(`${outputDir}/combined-results.json`, combinedResults);
+}

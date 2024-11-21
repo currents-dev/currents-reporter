@@ -4,10 +4,11 @@ import fs from 'fs-extra';
 import { debug as _debug } from '@debug';
 import { dim, error } from '@logger';
 import crypto from 'node:crypto';
+import { TestSuites } from 'services/convert/types';
+import { generateTestId, getSpec, getTestTitle } from 'services/convert/utils';
 import { parseStringPromise } from 'xml2js';
 import { CLIArgs } from '../../types';
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
-import { JUnitCompleteStructure } from './types';
 
 const debug = _debug.extend('junit-discovery');
 
@@ -40,12 +41,10 @@ export async function jUnitScanner(
   }
 }
 
-function parseToFullTestSuite(jsonContent: JUnitCompleteStructure) {
+function parseToFullTestSuite(jsonContent: TestSuites) {
   const fullTestSuite: FullTestSuite = [];
 
   const testsuites = jsonContent.testsuites?.testsuite;
-
-  const suiteArray = Array.isArray(testsuites) ? testsuites : [testsuites];
 
   const fullSuiteProject: FullSuiteProject = {
     name: jsonContent.testsuites?.name ?? 'No name',
@@ -53,18 +52,17 @@ function parseToFullTestSuite(jsonContent: JUnitCompleteStructure) {
     tests: [],
   };
 
-  suiteArray.forEach((suite) => {
+  testsuites?.forEach((suite) => {
     const testcases = suite?.testcase;
-    const testcaseArray = Array.isArray(testcases) ? testcases : [testcases];
 
-    testcaseArray.forEach((testcase) => {
+    testcases?.forEach((testcase) => {
       const fullSuiteTest: FullSuiteTest = {
-        title: [testcase?.name ?? ''],
-        spec: suite?.name ?? 'No name',
+        title: getTestTitle(testcase.name, suite.name),
+        spec: getSpec(suite),
         tags: [],
         testId: generateTestId(
-          testcase?.name ?? 'No name',
-          suite?.name ?? 'No name'
+          getTestTitle(testcase.name, suite.name).join(', '),
+          getSpec(suite)
         ),
       };
 
@@ -74,13 +72,4 @@ function parseToFullTestSuite(jsonContent: JUnitCompleteStructure) {
   fullTestSuite.push(fullSuiteProject);
 
   return fullTestSuite;
-}
-
-export function generateTestId(testName: string, suiteName: string): string {
-  const combinedString = `${testName}${suiteName}`;
-  const fullHash = crypto
-    .createHash('sha256')
-    .update(combinedString)
-    .digest('hex');
-  return fullHash.substring(0, 16);
 }

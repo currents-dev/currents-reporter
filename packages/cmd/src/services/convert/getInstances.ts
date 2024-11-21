@@ -1,152 +1,64 @@
 import { generateShortHash } from '@lib/hash';
 import { ConvertCommandConfig } from 'config/convert';
-import { generateTestId } from 'services/upload/discovery/junit/scanner';
-import * as xml2js from 'xml2js';
-import { TestSuite, TestSuites } from './combineInputFiles';
-import {
-  ExpectedStatus,
-  InstanceReport,
-  TestCaseStatus,
-  TestRunnerStatus,
-} from './types';
+import { parseStringPromise } from 'xml2js';
+import { InstanceReport, TestCase, TestSuite } from './types';
+import { assertForArray, getSpec, getTestCase } from './utils';
 
-export async function getInstances(
-  combinedResult: string,
-  config: ConvertCommandConfig
-) {
+export async function getPostmanInstances(combinedResult: string) {
   const instances: Map<string, InstanceReport> = new Map();
-  xml2js.parseString(
-    combinedResult,
-    { explicitArray: true, mergeAttrs: true },
-    (err, result) => {
-      if (err) {
-        console.error('Error parsing XML:', err);
-        return;
-      }
-      const rootSuite: TestSuites = result.testsuites;
+  const result = await parseStringPromise(combinedResult, {
+    explicitArray: false,
+    mergeAttrs: true,
+  });
 
-      const testsuites = Array.isArray(result.testsuites.testsuite)
-        ? result.testsuites.testsuite
-        : [result.testsuites.testsuite];
+  if (!result) {
+    console.error('Error parsing XML');
+    return instances;
+  }
 
-      testsuites.forEach((suite: TestSuite) => {
-        const startTime = new Date(suite?.timestamp ?? '');
-        const durationMillis = parseFloat(suite?.time ?? '0') * 1000;
-        const endTime = new Date(startTime.getTime() + durationMillis);
+  const testsuites = assertForArray(result.testsuites.testsuite) as TestSuite[];
 
-        const testcases = Array.isArray(suite.testcase)
-          ? suite.testcase
-          : [suite.testcase];
+  testsuites.forEach((suite: TestSuite) => {
+    const startTime = new Date(suite?.timestamp ?? '');
+    const durationMillis = parseFloat(suite?.time ?? '0') * 1000;
+    const endTime = new Date(startTime.getTime() + durationMillis);
 
-        const suiteJson = {
-          groupId: result.testsuites.name,
-          spec: suite.file ?? suite.name,
-          worker: {
-            workerIndex: 1,
-            parallelIndex: 1,
-          },
-          startTime: suite?.timestamp ?? '',
-          results: {
-            stats: {
-              suites: testcases.length,
-              tests: parseInt(suite.tests ?? '0'),
-              passes: testcases.filter((tc) => !tc?.failure).length,
-              pending: 0,
-              skipped: 0,
-              failures: testcases.filter((tc) => tc?.failure).length,
-              flaky: 0,
-              wallClockStartedAt: suite?.timestamp ?? '',
-              wallClockEndedAt: endTime.toISOString(),
-              wallClockDuration: durationMillis,
-            },
-            tests: testcases.map((test) => {
-              const hasFailure = test?.failure && test?.failure !== 'false';
-              return {
-                _t: Date.now(),
-                testId: generateTestId(test?.name ?? '', suite?.name ?? ''),
-                title: [test?.name ?? ''],
-                state: (hasFailure ? 'failed' : 'passed') as TestCaseStatus,
-                isFlaky: false,
-                expectedStatus: (hasFailure
-                  ? 'skipped'
-                  : 'passed') as ExpectedStatus,
-                timeout: 0,
-                location: {
-                  column: 1,
-                  file: suite?.file ?? suite?.name,
-                  line: 1,
-                },
-                retries: 1,
-                attempts: [
-                  {
-                    _s: (hasFailure ? 'failed' : 'passed') as TestCaseStatus,
-                    attempt: 1,
-                    workerIndex: 1,
-                    parallelIndex: 1,
-                    startTime: suite?.timestamp ?? '',
-                    steps: [],
-                    duration: parseFloat(test?.time ?? '0') * 1000,
-                    status: (hasFailure
-                      ? 'failed'
-                      : 'passed') as TestRunnerStatus,
-                    stdout: test?.['system-out'] ? [test?.['system-out']] : [],
-                    stderr: hasFailure ? extractFailure(test?.failure) : [],
-                    errors: hasFailure
-                      ? [
-                          mergeFailuresIntoMessage(
-                            extractFailure(test?.failure)
-                          ) ?? {},
-                        ]
-                      : [],
-                    error: hasFailure
-                      ? mergeFailuresIntoMessage(
-                          extractFailure(test?.failure)
-                        ) ?? {}
-                      : {},
-                  },
-                ],
-              };
-            }),
-          },
-        };
+    const testcases = assertForArray(suite.testcase) as TestCase[];
 
-        const fileNameHash = generateShortHash(suite?.name ?? '');
-        instances.set(fileNameHash, suiteJson);
-      });
-    }
-  );
+    let accumulatedTestTime = 0;
+
+    const suiteJson = {
+      groupId: result.testsuites.name,
+      spec: getSpec(suite),
+      worker: {
+        workerIndex: 1,
+        parallelIndex: 1,
+      },
+      startTime: suite?.timestamp ?? '',
+      results: {
+        stats: {
+          suites: testcases?.length,
+          tests: parseInt(suite.tests ?? '0'),
+          passes: testcases?.filter((tc) => !tc?.failure).length,
+          pending: 0,
+          skipped: 0,
+          failures: testcases?.filter((tc) => tc?.failure).length,
+          flaky: 0,
+          wallClockStartedAt: suite?.timestamp ?? '',
+          wallClockEndedAt: endTime.toISOString(),
+          wallClockDuration: durationMillis,
+        },
+        tests: testcases?.map((test) => {
+          const newAccumulatedTestTime =
+            accumulatedTestTime + parseFloat(testcases[0].time ?? '0') * 1000;
+          return getTestCase(test, suite, newAccumulatedTestTime);
+        }),
+      },
+    };
+
+    const fileNameHash = generateShortHash(suite?.name ?? '');
+    instances.set(fileNameHash, suiteJson);
+  });
+
   return instances;
-}
-
-function extractFailure(failure: any) {
-  const failureArray = [];
-  if (failure?.message) {
-    failureArray.push(failure?.message);
-  }
-  if (failure?._) {
-    failureArray.push(failure?._);
-  }
-  if (Array.isArray(failure)) {
-    let failureItem;
-    for (let i = 0; i < failure.length; i++) {
-      if (typeof failure[i] === 'object' && failure[i] !== null) {
-        failureItem = failure[i];
-        break;
-      }
-    }
-    return extractFailure(failureItem);
-  }
-  return failureArray;
-}
-
-function mergeFailuresIntoMessage(failuresArray: string[]) {
-  if (!failuresArray) {
-    return;
-  }
-  if (failuresArray.length === 0) {
-    return;
-  }
-  return {
-    message: failuresArray.join(', '),
-  };
 }
