@@ -9,6 +9,7 @@
     "test": "jest",
     "rm": "rimraf dist",
     "lint": "TIMING=1 eslint \"**/*.ts*\"",
+    "types": "tsc --noEmit",
     "build": "tsup-node --minify --dts",
     "dev": "tsup-node --watch --dts",
     "release": "release-it",
