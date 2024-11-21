@@ -14,13 +14,14 @@ import {
   createRun as createRunApi,
 } from '../../api';
 import { getCurrentsConfig } from '../../config/upload';
+import { InstanceReport } from '../../types';
 import { FullTestSuite, createScanner } from './discovery';
 import {
   checkPathExists,
   getInstanceReportList,
   resolveReportOptions,
 } from './fs';
-import { InstanceReport, ReportConfig, UploadMarkerInfo } from './types';
+import { ReportConfig, UploadMarkerInfo } from './types';
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();

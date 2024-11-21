@@ -1,14 +1,12 @@
 import crypto from 'node:crypto';
 import {
   ErrorSchema,
-  Failure,
   InstanceReportTest,
   InstanceReportTestAttempt,
-  TestCase,
   TestCaseStatus,
   TestRunnerStatus,
-  TestSuite,
-} from './types';
+} from '../../types';
+import { Failure, TestCase, TestSuite } from './types';
 
 export function getTestCase(
   testCase: TestCase,

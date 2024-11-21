@@ -3,9 +3,9 @@ import { ensurePathExists, generateShortHash, writeFileAsync } from '@lib';
 import { info } from '@logger';
 import { join } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
+import { InstanceReport } from '../../types';
 import { getInstanceMap } from './getInstanceMap';
 import { getReportConfig } from './getReportConfig';
-import { InstanceReport } from './types';
 
 export async function handleConvert() {
   try {

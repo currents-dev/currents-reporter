@@ -1,5 +1,5 @@
 import { isEmpty } from 'lodash';
-import { CLIArgs } from 'services/upload/types';
+import { CLIArgs } from '../../types';
 import { argvToString } from '../utils';
 
 export async function getCLIArgs(

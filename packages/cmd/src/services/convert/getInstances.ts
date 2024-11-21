@@ -1,8 +1,9 @@
 import { generateShortHash } from '@lib/hash';
 import { error } from '@logger';
 import { parseStringPromise } from 'xml2js';
-import { InstanceReport, TestCase, TestSuite } from './types';
 import { ensureArray, getSpec, getTestCase, timeToMilliseconds } from './utils';
+import { InstanceReport } from '../../types';
+import { TestCase, TestSuite } from './types';
 
 export async function getInstanceMapForPostman(
   xmlInput: string
@@ -26,7 +27,7 @@ export async function getInstanceMapForPostman(
     const startTime = new Date(suite?.timestamp ?? '');
     const durationMillis = timeToMilliseconds(suite?.time);
     const endTime = new Date(startTime.getTime() + durationMillis);
-    const testcases = ensureArray(suite.testcase) as TestCase[];
+    const testcases = ensureArray<TestCase>(suite.testcase);
 
     let accTestTime = 0; // Accumulated test time
 
