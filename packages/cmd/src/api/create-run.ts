@@ -29,6 +29,12 @@ export type Framework = {
   type: string;
   clientVersion: string | null;
   version: string | null;
+  frameworkConfig?: FrameworkConfig;
+};
+
+export type FrameworkConfig = {
+  originFramework?: string;
+  originFrameworkVersion?: string;
 };
 
 export type RunCreationConfig = {
