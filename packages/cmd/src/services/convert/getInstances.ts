@@ -1,34 +1,37 @@
 import { generateShortHash } from '@lib/hash';
+import { error } from '@logger';
 import { parseStringPromise } from 'xml2js';
 import { InstanceReport, TestCase, TestSuite } from './types';
-import { assertForArray, getSpec, getTestCase } from './utils';
+import { ensureArray, getSpec, getTestCase, timeToMilliseconds } from './utils';
 
-export async function getPostmanInstances(combinedResult: string) {
+export async function getInstanceMapForPostman(
+  xmlInput: string
+): Promise<Map<string, InstanceReport>> {
   const instances: Map<string, InstanceReport> = new Map();
-  const result = await parseStringPromise(combinedResult, {
+  const parsedXMLInput = await parseStringPromise(xmlInput, {
     explicitArray: false,
     mergeAttrs: true,
   });
 
-  if (!result) {
-    console.error('Error parsing XML');
-    return instances;
+  if (!parsedXMLInput) {
+    error('Failed to parse XML input');
+    return new Map();
   }
 
-  const testsuites = assertForArray(result.testsuites.testsuite) as TestSuite[];
+  const testsuites = ensureArray<TestSuite>(
+    parsedXMLInput.testsuites.testsuite
+  );
 
   testsuites.forEach((suite: TestSuite) => {
     const startTime = new Date(suite?.timestamp ?? '');
-    const durationMillis = parseFloat(suite?.time ?? '0') * 1000;
+    const durationMillis = timeToMilliseconds(suite?.time);
     const endTime = new Date(startTime.getTime() + durationMillis);
+    const testcases = ensureArray(suite.testcase) as TestCase[];
 
-    const testcases = assertForArray(suite.testcase) as TestCase[];
+    let accTestTime = 0; // Accumulated test time
 
-    // Need this to sum each testcase time to the testsuite timestamp and see a difference in the startime
-    let accumulatedTestTime = 0;
-
-    const suiteJson = {
-      groupId: result.testsuites.name,
+    const suiteJson: InstanceReport = {
+      groupId: parsedXMLInput.testsuites.name,
       spec: getSpec(suite),
       worker: {
         workerIndex: 1,
@@ -49,10 +52,8 @@ export async function getPostmanInstances(combinedResult: string) {
           wallClockDuration: durationMillis,
         },
         tests: testcases?.map((test) => {
-          const newAccumulatedTestTime =
-            accumulatedTestTime + parseFloat(testcases[0].time ?? '0') * 1000;
-          accumulatedTestTime = newAccumulatedTestTime;
-          return getTestCase(test, suite, newAccumulatedTestTime);
+          accTestTime += timeToMilliseconds(testcases[0]?.time);
+          return getTestCase(test, suite, accTestTime);
         }),
       },
     };

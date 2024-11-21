@@ -1,33 +1,11 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFile } from 'fs-extra';
+import { join } from 'path';
 import * as xml2js from 'xml2js';
 import { TestSuite, TestSuites } from './types';
-import { join } from 'path';
+import { writeFileAsync } from '@lib';
 
-async function processTestSuites(
-  testsuites: TestSuite[]
-): Promise<TestSuite[]> {
-  const processedSuites: TestSuite[] = [];
-
-  for (let i = 0; i < testsuites.length; i++) {
-    const currentSuite = testsuites[i];
-    const nextSuite = testsuites[i + 1];
-
-    if (currentSuite.name === 'Root Suite' && nextSuite) {
-      if (currentSuite.file) {
-        nextSuite.file = currentSuite.file;
-      }
-      i++;
-      processedSuites.push(nextSuite);
-    } else if (currentSuite.name !== 'Root Suite') {
-      processedSuites.push(currentSuite);
-    }
-  }
-
-  return processedSuites;
-}
-
-export async function combineResults(inputFiles: string[]): Promise<string> {
-  let combinedTestsuites: TestSuites = {
+export async function combineInputFiles(inputFiles: string[]): Promise<string> {
+  const combinedTestSuites: TestSuites = {
     testsuites: {
       testsuite: [],
     },
@@ -39,16 +17,16 @@ export async function combineResults(inputFiles: string[]): Promise<string> {
   });
 
   for (const filePath of inputFiles) {
-    const content = readInputFile(filePath);
+    const content = await readFile(filePath, 'utf-8');
     const result = (await parser.parseStringPromise(content)) as TestSuites;
 
     if (result.testsuites?.testsuite) {
       const processedSuites = await processTestSuites(
         result.testsuites.testsuite
       );
-      combinedTestsuites.testsuites = {
+      combinedTestSuites.testsuites = {
         testsuite: [
-          ...(combinedTestsuites.testsuites?.testsuite || []),
+          ...(combinedTestSuites.testsuites?.testsuite || []),
           ...processedSuites,
         ],
       };
@@ -56,16 +34,31 @@ export async function combineResults(inputFiles: string[]): Promise<string> {
   }
 
   const builder = new xml2js.Builder();
-  return builder.buildObject(combinedTestsuites);
+  return builder.buildObject(combinedTestSuites);
 }
 
-export async function saveCombinedResultsFile(
-  combinedResults: string,
-  outputDir: string
-) {
-  writeFileSync(join(outputDir, 'currents.results.xml'), combinedResults);
+export async function saveXMLInput(outputDir: string, xmlInput: string) {
+  return writeFileAsync(join(outputDir, 'currents.results.xml'), xmlInput);
 }
 
-export function readInputFile(filePath: string) {
-  return readFileSync(filePath, 'utf-8');
+async function processTestSuites(
+  testsuites: TestSuite[]
+): Promise<TestSuite[]> {
+  return testsuites.reduce<TestSuite[]>(
+    (processedSuites, currentSuite, index) => {
+      const nextSuite = testsuites[index + 1];
+
+      if (currentSuite.name === 'Root Suite' && nextSuite) {
+        if (currentSuite.file) {
+          nextSuite.file = currentSuite.file;
+        }
+        processedSuites.push(nextSuite);
+      } else if (currentSuite.name !== 'Root Suite') {
+        processedSuites.push(currentSuite);
+      }
+
+      return processedSuites;
+    },
+    []
+  );
 }

@@ -1,18 +1,16 @@
-import { Config } from '@jest/types';
 import fs from 'fs-extra';
 
 import { debug as _debug } from '@debug';
 import { dim, error } from '@logger';
+import { join } from 'path';
+import { parseStringPromise } from 'xml2js';
 import { TestSuites } from '../../../../services/convert/types';
 import {
   generateTestId,
   getSpec,
   getTestTitle,
 } from '../../../../services/convert/utils';
-import { parseStringPromise } from 'xml2js';
-import { CLIArgs } from '../../types';
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
-import { join } from 'path';
 
 const debug = _debug.extend('junit-discovery');
 

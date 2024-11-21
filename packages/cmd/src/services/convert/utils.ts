@@ -1,55 +1,22 @@
+import crypto from 'node:crypto';
 import {
   ErrorSchema,
-  ExpectedStatus,
   Failure,
+  InstanceReportTest,
   InstanceReportTestAttempt,
   TestCase,
   TestCaseStatus,
   TestRunnerStatus,
   TestSuite,
 } from './types';
-import crypto from 'node:crypto';
-
-export function extractFailure(failure: any) {
-  const failureArray = [];
-  if (failure?.message) {
-    failureArray.push(failure?.message);
-  }
-  if (failure?._) {
-    failureArray.push(failure?._);
-  }
-  if (Array.isArray(failure)) {
-    let failureItem;
-    for (let i = 0; i < failure.length; i++) {
-      if (typeof failure[i] === 'object' && failure[i] !== null) {
-        failureItem = failure[i];
-        break;
-      }
-    }
-    return extractFailure(failureItem);
-  }
-  return failureArray;
-}
-
-export function mergeFailuresIntoMessage(failuresArray: string[]) {
-  if (!failuresArray) {
-    return;
-  }
-  if (failuresArray.length === 0) {
-    return;
-  }
-  return {
-    message: failuresArray.join(', '),
-  };
-}
 
 export function getTestCase(
   testCase: TestCase,
   suite: TestSuite,
-  accumulatedTestTime: number
-) {
-  const failures = assertForArray(testCase.failure);
-  const hasFailure = failures?.length ?? 0 > 0;
+  time: number
+): InstanceReportTest {
+  const failures = ensureArray<string | Failure>(testCase.failure);
+  const hasFailure = failures.length > 0;
 
   return {
     _t: getTimestampValue(suite?.timestamp ?? ''),
@@ -58,18 +25,13 @@ export function getTestCase(
       getSpec(suite)
     ),
     title: getTestTitle(testCase.name, suite.name),
-    state: (hasFailure ? 'failed' : 'passed') as TestCaseStatus,
+    state: hasFailure ? 'failed' : 'passed',
     isFlaky: getTestFlakiness(),
-    expectedStatus: (hasFailure ? 'skipped' : 'passed') as ExpectedStatus,
+    expectedStatus: hasFailure ? 'skipped' : 'passed',
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
-    retries: getTestRetries(failures ?? []),
-    attempts: getTestAttempts(
-      testCase,
-      failures ?? [],
-      suite.timestamp ?? '',
-      accumulatedTestTime
-    ),
+    retries: getTestRetries(failures),
+    attempts: getTestAttempts(testCase, failures, suite.timestamp ?? '', time),
   };
 }
 
@@ -94,15 +56,8 @@ function isValidDate(dateString: string) {
   return !isNaN(date.getTime());
 }
 
-export function getTestTitle(testName?: string, suiteName?: string) {
-  const title = [];
-  if (suiteName) {
-    title.push(suiteName);
-  }
-  if (testName) {
-    title.push(testName);
-  }
-  return title;
+export function getTestTitle(testName?: string, suiteName?: string): string[] {
+  return [suiteName, testName].filter(Boolean) as string[];
 }
 
 function getTestFlakiness() {
@@ -142,20 +97,20 @@ function getTestAttempts(
   testCase: TestCase,
   failures: (Failure | string)[],
   suiteTimestamp: string,
-  accumulatedTime: number
-) {
-  const testCaseTime = parseFloat(testCase?.time ?? '0') * 1000;
+  time: number
+): InstanceReportTestAttempt[] {
+  const testCaseTime = timeToMilliseconds(testCase.time);
   if (failures.length === 0) {
     return [
       {
-        _s: 'passed' as TestCaseStatus,
+        _s: 'passed',
         attempt: 1,
         workerIndex: 1,
         parallelIndex: 1,
         startTime: suiteTimestamp,
         steps: [],
         duration: testCaseTime,
-        status: 'passed' as TestRunnerStatus,
+        status: 'passed',
         stdout: getStdOut(testCase?.['system-out']),
         stderr: undefined,
         errors: undefined,
@@ -164,18 +119,15 @@ function getTestAttempts(
     ];
   }
 
-  const attempts: InstanceReportTestAttempt[] = [];
-  let attemptCounter = 1;
-  failures.forEach((item) => {
-    // There can be failure properties in testcase tag, with string value of true|false, so avoid
+  return failures.reduce<InstanceReportTestAttempt[]>((acc, item, index) => {
     if (item !== 'true' && item !== 'false') {
       const errors = getErrors(item);
-      attempts.push({
+      acc.push({
         _s: 'failed' as TestCaseStatus,
-        attempt: attemptCounter,
+        attempt: index + 1,
         workerIndex: 1,
         parallelIndex: 1,
-        startTime: getTestStartTime(accumulatedTime, suiteTimestamp),
+        startTime: getTestStartTime(time, suiteTimestamp),
         steps: [],
         duration: testCaseTime,
         status: 'passed' as TestRunnerStatus,
@@ -184,10 +136,9 @@ function getTestAttempts(
         errors: errors,
         error: errors ? errors[0] : undefined,
       });
-      attemptCounter++;
     }
-  });
-  return attempts;
+    return acc;
+  }, []);
 }
 
 function getStdOut(systemOut?: string) {
@@ -198,40 +149,39 @@ function getStdErr(systemErr?: string) {
   return systemErr ? [systemErr] : undefined;
 }
 
-function getErrors(failure: Failure | string) {
-  const errors: ErrorSchema[] = [];
-  if (failure !== 'true' && failure !== 'false') {
-    if (typeof failure === 'string') {
-      errors.push({
-        message: failure,
-      });
-    } else {
-      errors.push({
-        message: failure.message,
-        stack: failure._,
-        value: failure.type,
-      });
-    }
-  }
-  if (errors.length === 0) {
+function getErrors(failure: Failure | string): ErrorSchema[] | undefined {
+  if (failure === 'true' || failure === 'false') {
     return undefined;
   }
-  return errors;
+
+  const error: ErrorSchema =
+    typeof failure === 'string'
+      ? { message: failure }
+      : { message: failure.message, stack: failure._, value: failure.type };
+
+  return [error];
 }
 
-function getTestStartTime(accumulatedTestTime: number, suiteTimestamp: string) {
-  // This is the most accurate as the failure tag does not have time nor
-  const newStartTime = new Date(suiteTimestamp).getTime() + accumulatedTestTime;
+function getTestStartTime(accTestTime: number, suiteTimestamp: string): string {
+  const newStartTime = new Date(suiteTimestamp).getTime() + accTestTime;
   return new Date(newStartTime).toISOString();
 }
 
-export function getSpec(suite: TestSuite) {
+export function getSpec(suite: TestSuite): string {
   return suite.file ?? suite.name ?? 'No spec';
 }
 
-export function assertForArray(element: unknown) {
-  if (!element) {
+export function ensureArray<T>(value: unknown): T[] {
+  if (!value) {
     return [];
   }
-  return Array.isArray(element) ? element : [element];
+  return Array.isArray(value) ? value : [value];
+}
+
+export function secondsToMilliseconds(seconds: number) {
+  return Math.round(seconds * 1000);
+}
+
+export function timeToMilliseconds(time?: string): number {
+  return secondsToMilliseconds(parseFloat(time ?? '0'));
 }
