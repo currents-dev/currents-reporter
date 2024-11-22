@@ -125,7 +125,7 @@ export function jestStatusFromInvocations(testResults: TestCaseResult[]) {
 }
 
 export function getAttemptNumber(result: TestCaseResult) {
-  return result?.invocations ?? 1;
+  return (result?.invocations ?? 1) - 1;
 }
 
 // Test that has "passed" and "failed" invocations is `'flaky'`
