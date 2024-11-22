@@ -1,5 +1,10 @@
 import { debug } from '@debug';
-import { ensurePathExists, generateShortHash, writeFileAsync } from '@lib';
+import {
+  createFolder,
+  createUniqueFolder,
+  generateShortHash,
+  writeFileAsync,
+} from '@lib';
 import { info } from '@logger';
 import { join } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
@@ -14,10 +19,10 @@ export async function handleConvert() {
       throw new Error('Config is missing!');
     }
 
-    const reportDir = config.outputDir;
-    await ensurePathExists(reportDir);
-    const instancesDir = join(reportDir, 'instances');
-    await ensurePathExists(instancesDir, true);
+    const reportDir = config.outputDir
+      ? await createFolder(config.outputDir)
+      : await createUniqueFolder(process.cwd(), '.currents');
+    const instancesDir = await createFolder(join(reportDir, 'instances'));
 
     const reportConfig = getReportConfig(config);
     debug('Report config:', reportConfig);
@@ -29,7 +34,12 @@ export async function handleConvert() {
       JSON.stringify(reportConfig)
     );
 
-    const instances: Map<string, InstanceReport> = await getInstanceMap(config);
+    const instances: Map<string, InstanceReport> = await getInstanceMap({
+      inputFormat: config.inputFormat,
+      inputFiles: config.inputFiles,
+      framework: config.framework,
+      outputDir: reportDir,
+    });
 
     await Promise.all(
       Array.from(instances.entries()).map(([name, report]) =>

@@ -1,4 +1,8 @@
 import { debug as _debug } from '@debug';
+import {
+  REPORT_FRAMEWORKS,
+  REPORT_INPUT_FORMATS,
+} from '../../commands/convert/options';
 import { getValidatedConfig } from '../utils';
 import { configKeys, getEnvVariables } from './env';
 
@@ -8,7 +12,7 @@ export type ConvertCommandConfig = {
   /**
    * The format of the input test reports.
    */
-  inputFormat: string;
+  inputFormat: REPORT_INPUT_FORMATS;
 
   /**
    * The array of paths to the test reports to convert.
@@ -18,12 +22,12 @@ export type ConvertCommandConfig = {
   /**
    * The directory to save the converted test reports.
    */
-  outputDir: string;
+  outputDir?: string;
 
   /**
    * The testing framework used to generate the test reports.
    */
-  framework: string;
+  framework: REPORT_FRAMEWORKS;
 
   /**
    * The version of the testing framework used to generate the test reports.
@@ -39,13 +43,11 @@ export type ConvertCommandConfig = {
 type MandatoryConvertCommandConfigKeys =
   | 'inputFormat'
   | 'inputFiles'
-  | 'outputDir'
   | 'framework';
 
 const mandatoryConfigKeys: MandatoryConvertCommandConfigKeys[] = [
   'inputFormat',
   'inputFiles',
-  'outputDir',
   'framework',
 ];
 

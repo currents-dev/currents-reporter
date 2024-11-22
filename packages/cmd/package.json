@@ -65,6 +65,7 @@
     "tmp-promise": "^3.0.3",
     "ts-pattern": "^5.2.0",
     "unzipper": "^0.12.3",
+    "uuid": "^10.0.0",
     "xml2js": "^0.6.2"
   },
   "bin": {

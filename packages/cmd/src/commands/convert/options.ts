@@ -19,14 +19,20 @@ export const inputFileOption = new Option(
   '--input-file <pattern>',
   'the pattern to search for test reports'
 ).argParser(validateGlobPattern);
+
 export const outputDirOption = new Option(
   '-o, --output-dir <string>',
   'the directory to save the converted test reports'
 );
+
+export enum REPORT_FRAMEWORKS {
+  postman = 'postman',
+}
 export const frameworkOption = new Option(
   '--framework <string>',
   'the testing framework used to generate the test reports'
-);
+).choices(Object.values(REPORT_FRAMEWORKS));
+
 export const frameworkVersionOption = new Option(
   '--framework-version <string>',
   'the version of the testing framework used to generate the test reports'

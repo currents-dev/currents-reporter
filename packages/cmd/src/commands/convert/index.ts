@@ -18,7 +18,7 @@ const getExample = (name: string) => `
 ${chalk.bold('Examples')}
 
 Convert JUnit test reports to Currents format:
-${dim(`${name} ${COMMAND_NAME} --input-format junit --input-file <pattern> --output-dir <path> --framework <framework>`)}
+${dim(`${name} ${COMMAND_NAME} --input-format junit --input-file ./*.xml --framework postman`)}
 `;
 
 export const getConvertCommand = (name: string) => {

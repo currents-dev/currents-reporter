@@ -1,31 +1,46 @@
 import { warn } from '@logger';
-import { ConvertCommandConfig } from 'config/convert';
 import { readFile } from 'fs-extra';
-import { REPORT_INPUT_FORMATS } from '../../commands/convert/options';
+import {
+  REPORT_FRAMEWORKS,
+  REPORT_INPUT_FORMATS,
+} from '../../commands/convert/options';
 import { InstanceReport } from '../../types';
 import { combineInputFiles, saveXMLInput } from './combineInputFiles';
 import { getInstanceMapForPostman } from './getInstances';
 
-export async function getInstanceMap(
-  config: ConvertCommandConfig
-): Promise<Map<string, InstanceReport>> {
-  if (config.inputFormat === REPORT_INPUT_FORMATS.junit) {
+export async function getInstanceMap({
+  inputFormat,
+  inputFiles,
+  outputDir,
+  framework,
+}: {
+  inputFormat: REPORT_INPUT_FORMATS;
+  inputFiles: string[];
+  outputDir: string;
+  framework: REPORT_FRAMEWORKS;
+}): Promise<Map<string, InstanceReport>> {
+  if (inputFormat === REPORT_INPUT_FORMATS.junit) {
     const xmlInput =
-      config.inputFiles.length > 1
-        ? await combineInputFiles(config.inputFiles)
-        : await readFile(config.inputFiles[0], 'utf-8'); // inputFiles has at least one element
+      inputFiles.length > 1
+        ? await combineInputFiles(inputFiles)
+        : inputFiles.length === 1
+          ? await readFile(inputFiles[0], 'utf-8')
+          : '';
 
     const trimmedXMLInput = xmlInput.trim();
     if (trimmedXMLInput) {
-      await saveXMLInput(config.outputDir, trimmedXMLInput);
-      return getInstanceMapByFramework(config.framework, trimmedXMLInput);
+      await saveXMLInput(outputDir, trimmedXMLInput);
+      return getInstanceMapByFramework(framework, trimmedXMLInput);
     }
   }
 
   return new Map();
 }
 
-async function getInstanceMapByFramework(framework: string, xmlInput: string) {
+async function getInstanceMapByFramework(
+  framework: REPORT_FRAMEWORKS,
+  xmlInput: string
+) {
   switch (framework) {
     case 'postman':
       return getInstanceMapForPostman(xmlInput);
