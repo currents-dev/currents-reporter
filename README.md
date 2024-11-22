@@ -64,14 +64,31 @@ For more examples and usage options, run `npx currents cache --help`.
 
 ## Release
 
+Create and push new branch for release (to be merged to main after publishing). This is required because we don't accept pushes direct to main.
+
+```sh
+# git checkout -b release/{pkgname}-{version}
+git checkout -b release/cmd-1.1.0
+```
+
+Push that branch to the repo. (It has to be present on the remote for `release-it` to run).
+
+Release the package by running the release task which tags, and pushes the release. 
+
 ```sh
 cd ./packages/name
 
 # beta / alpha
-# npm run release --  --preRelease=beta|alpha
+# npm run release -- minor|patch --preRelease=beta|alpha
 npm run release
 ```
 
+You can create a PR from the release branch to be merged after publish.
+
 ## Publishing
 
-Use GitHub Actions Workflow to automatically publish new releases: https://github.com/currents-dev/currents-reporter/actions/workflows/publish.yaml
+Dispatch the GitHub Actions Workflow to publish new releases: https://github.com/currents-dev/currents-reporter/actions/workflows/publish.yaml
+
+Ensure to point the workflow at the release branch OR tag if the release branch has not already been merged to main.
+
+After the publish is complete, the release branch PR should be merged to main.
