@@ -6,7 +6,7 @@ import {
 } from '../../commands/convert/options';
 import { InstanceReport } from '../../types';
 import { combineInputFiles, saveXMLInput } from './combineInputFiles';
-import { getInstanceMapForPostman } from './getInstances';
+import { getInstanceMap as getInstanceMapForPostman } from './postman/instances';
 
 export async function getInstanceMap({
   inputFormat,
@@ -20,12 +20,12 @@ export async function getInstanceMap({
   framework: REPORT_FRAMEWORKS;
 }): Promise<Map<string, InstanceReport>> {
   if (inputFormat === REPORT_INPUT_FORMATS.junit) {
-    const xmlInput =
-      inputFiles.length > 1
-        ? await combineInputFiles(inputFiles)
-        : inputFiles.length === 1
-          ? await readFile(inputFiles[0], 'utf-8')
-          : '';
+    let xmlInput = '';
+    if (inputFiles.length > 1) {
+      xmlInput = await combineInputFiles(inputFiles);
+    } else if (inputFiles.length === 1) {
+      xmlInput = await readFile(inputFiles[0], 'utf-8');
+    }
 
     const trimmedXMLInput = xmlInput.trim();
     if (trimmedXMLInput) {
