@@ -102,7 +102,7 @@ function getTestAttempts(
     return [
       {
         _s: 'passed',
-        attempt: 1,
+        attempt: 0,
         workerIndex: 1,
         parallelIndex: 1,
         startTime: suiteTimestamp,
@@ -110,8 +110,8 @@ function getTestAttempts(
         duration: testCaseTime,
         status: 'passed',
         stdout: getStdOut(testCase?.['system-out']),
-        stderr: undefined,
-        errors: undefined,
+        stderr: [],
+        errors: [],
         error: undefined,
       },
     ];
@@ -122,7 +122,7 @@ function getTestAttempts(
       const errors = getErrors(item);
       acc.push({
         _s: 'failed' as TestCaseStatus,
-        attempt: index + 1,
+        attempt: index,
         workerIndex: 1,
         parallelIndex: 1,
         startTime: getTestStartTime(time, suiteTimestamp),
@@ -140,16 +140,16 @@ function getTestAttempts(
 }
 
 function getStdOut(systemOut?: string) {
-  return systemOut ? [systemOut] : undefined;
+  return systemOut ? [systemOut] : [];
 }
 
 function getStdErr(systemErr?: string) {
-  return systemErr ? [systemErr] : undefined;
+  return systemErr ? [systemErr] : [];
 }
 
-function getErrors(failure: Failure | string): ErrorSchema[] | undefined {
+function getErrors(failure: Failure | string): ErrorSchema[] {
   if (failure === 'true' || failure === 'false') {
-    return undefined;
+    return [];
   }
 
   const error: ErrorSchema =

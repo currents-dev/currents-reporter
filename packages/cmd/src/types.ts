@@ -54,10 +54,10 @@ export type InstanceReportTestAttempt = {
   duration: number;
   status: TestRunnerStatus;
 
-  stderr?: string[];
-  stdout?: string[];
+  stderr: string[];
+  stdout: string[];
 
-  errors?: ErrorSchema[];
+  errors: ErrorSchema[];
   error?: ErrorSchema;
 };
 
