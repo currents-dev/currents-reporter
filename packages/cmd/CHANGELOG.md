@@ -1,5 +1,23 @@
 # Changelog
 
+# [1.2.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.2...${npm.name}-v1.2.0) (2024-11-22)
+
+
+### Bug Fixes
+
+* added junit types, addressed feedback ([f028f64](https://github.com/currents-dev/currents-reporter/commit/f028f64d2ab59143940c778f0703e6b85c749334))
+* jest attempt fields ([2c2083c](https://github.com/currents-dev/currents-reporter/commit/2c2083cff46ad1edc8da9590f3b9302b79a86061))
+* optional framework config, specify framework config properties to be reported ([45cbc7a](https://github.com/currents-dev/currents-reporter/commit/45cbc7a99796ab59f0e2997722609f5c3ac171eb))
+* use npm ([e1b2823](https://github.com/currents-dev/currents-reporter/commit/e1b28234cd17358f4e4cd39be0823318e88cdede))
+
+
+### Features
+
+* add previousCiBuildId to run creation ([dfbb32e](https://github.com/currents-dev/currents-reporter/commit/dfbb32e8dd79190116d7e30dbf9b9db4a298fa8e))
+* added full test suite junit scanner ([e040f5e](https://github.com/currents-dev/currents-reporter/commit/e040f5eb075ce0431c3c259d341f46fcbb012ee7))
+* added junit originFramework support ([a89a591](https://github.com/currents-dev/currents-reporter/commit/a89a5912375d39df98e76d17cd0f14c2a8b17da4))
+* CircleCi cache ([db742e6](https://github.com/currents-dev/currents-reporter/commit/db742e61f7ecfb88a2be15369a565ef2af9807e8))
+
 ## [1.1.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.1...${npm.name}-v1.1.2) (2024-10-04)
 
 
