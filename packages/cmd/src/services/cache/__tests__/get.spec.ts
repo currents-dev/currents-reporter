@@ -1,4 +1,5 @@
 import { isAxiosError } from 'axios';
+import path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { retrieveCache } from '../../../api';
 import { PRESETS } from '../../../commands/cache/options';
@@ -44,7 +45,7 @@ const mockCacheResult = {
 };
 
 const mockMetaFile = { version: '1.0' };
-
+const mockedBuffer = Buffer.from(JSON.stringify(mockMetaFile));
 vi.mock('../../../config/cache');
 vi.mock('../../../env/ciProvider');
 vi.mock('../../../api');
@@ -60,9 +61,7 @@ describe('handleGetCache', () => {
     vi.mocked(getCacheCommandConfig).mockReturnValue(mockConfig);
     vi.mocked(getCI).mockReturnValue(mockCI);
     vi.mocked(retrieveCache).mockResolvedValue(mockCacheResult);
-    vi.mocked(download).mockResolvedValue(
-      Buffer.from(JSON.stringify(mockMetaFile))
-    );
+    vi.mocked(download).mockResolvedValue(mockedBuffer);
     vi.mocked(unzipBuffer).mockResolvedValue(undefined);
   });
 
@@ -76,8 +75,9 @@ describe('handleGetCache', () => {
     });
     expect(download).toHaveBeenCalledWith('http://cache.url');
     expect(unzipBuffer).toHaveBeenCalledWith(
-      expect.any(Buffer),
-      mockConfig.values?.outputDir
+      mockedBuffer,
+      // @ts-ignore
+      path.resolve(mockConfig.values?.outputDir)
     );
   };
 

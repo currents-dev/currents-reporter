@@ -1,10 +1,11 @@
 import { debug } from '@debug';
 import { isAxiosError } from 'axios';
+import path from 'path';
 import { retrieveCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
-import { success, warnWithNoTrace } from '../../logger';
+import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { unzipBuffer } from './fs';
 import { MetaFile } from './lib';
 import { download } from './network';
@@ -43,7 +44,7 @@ export async function handleGetCache() {
   });
 
   try {
-    await handleArchiveDownload({
+    const destination = await handleArchiveDownload({
       readUrl: result.readUrl,
       outputDir,
     });
@@ -54,6 +55,7 @@ export async function handleGetCache() {
       await handlePostLastRunPreset(config.values, ci, meta);
     }
 
+    info(dim('- restoring cache to'), destination);
     success('Cache restored. Cache ID: %s', result.cacheId);
   } catch (e) {
     if (isAxiosError(e)) {
@@ -80,8 +82,19 @@ async function handleArchiveDownload({
   outputDir?: string;
 }) {
   const buffer = await download(readUrl);
-  await unzipBuffer(buffer, outputDir || '.');
+  const destination = getOutputDir(outputDir);
+
+  await unzipBuffer(buffer, destination);
+
   debug('Cache downloaded');
+  return destination;
+}
+
+function getOutputDir(outputDir: string | undefined) {
+  const _outputDir = outputDir ?? process.cwd();
+  return path.isAbsolute(_outputDir)
+    ? _outputDir
+    : path.resolve(process.cwd(), _outputDir);
 }
 
 async function handleMetaDownload(readUrl: string) {

@@ -1,7 +1,6 @@
-import path from 'path';
+import { omit } from 'lodash';
 import { CacheSetCommandConfig } from '../../config/cache';
 import { warnWithNoTrace } from '../../logger';
-import { omit } from 'lodash';
 
 export type MetaFile = {
   id: string;
@@ -36,9 +35,6 @@ export function createMeta({
 
   return Buffer.from(JSON.stringify(meta));
 }
-
-export const getLastRunFilePath = (output?: string) =>
-  path.resolve(output ?? 'test-results', '.last-run.json');
 
 export function warn(error: unknown, msg: string) {
   if (error instanceof Error) {
