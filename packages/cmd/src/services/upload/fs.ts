@@ -1,6 +1,6 @@
+import { error } from '@logger';
 import fs from 'fs-extra';
 import path, { join, resolve } from 'path';
-import { error } from '@logger';
 import { ReportOptions } from './types';
 
 export async function resolveReportOptions(

@@ -6,9 +6,9 @@ import { gzip } from 'node:zlib';
 import { CurrentsConfig } from '../config/upload';
 import { debug as _debug } from '../debug';
 import { makeRequest } from '../http';
-import { FullTestSuite } from '../services/upload/discovery';
-import { InstanceReport } from '../services/upload/types';
 import { ClientType } from '../http/client';
+import { FullTestSuite } from '../services/upload/discovery';
+import { InstanceReport } from '../types';
 
 const debug = _debug.extend('api');
 const gzipPromise = promisify(gzip);
