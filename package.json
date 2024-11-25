@@ -7,7 +7,7 @@
   "license": "ISC",
   "workspaces": [
     "packages/*",
-    "examples"
+    "examples/*"
   ],
   "keywords": [
     "jest",
