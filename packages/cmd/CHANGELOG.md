@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.3.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.2.1...${npm.name}-v1.3.0-beta.0) (2024-11-25)
+
+
+### Bug Fixes
+
+* allow globs for cache set --path and last run preset ([b102a26](https://github.com/currents-dev/currents-reporter/commit/b102a26c46fa48ecb15f7161e7f32a21e977e8ed))
+
 # [1.2.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.2...${npm.name}-v1.2.0) (2024-11-25)
 
 
