@@ -1,5 +1,26 @@
 # Changelog
 
+# [1.2.0](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.1.0...${npm.name}-v1.2.0) (2024-11-25)
+
+
+### Bug Fixes
+
+* allow globs for cache set --path and last run preset ([b102a26](https://github.com/currents-dev/currents-reporter/commit/b102a26c46fa48ecb15f7161e7f32a21e977e8ed))
+* conversion script ([234bcd3](https://github.com/currents-dev/currents-reporter/commit/234bcd3124ec7d987f2d54a4fd5f81e813bd27ba))
+* currents convert command ([a5c28a6](https://github.com/currents-dev/currents-reporter/commit/a5c28a696b9113e762eb03cb950fbf702d11e970))
+* reuse types ([5c5585d](https://github.com/currents-dev/currents-reporter/commit/5c5585de93f0fc56a3285db14c06293467488469))
+* small refactor ([db563f7](https://github.com/currents-dev/currents-reporter/commit/db563f75418ec6578d4d77b704aa8b6dcf013dcb))
+
+
+### Features
+
+* add convert command ([c73ea86](https://github.com/currents-dev/currents-reporter/commit/c73ea86f5e292a20c28368715d140d9df283a490))
+* add enum for inputFormat option ([b6ed27d](https://github.com/currents-dev/currents-reporter/commit/b6ed27d06b418c9a9829581f1852302896e822ea))
+* added generate instances ([6d61fbf](https://github.com/currents-dev/currents-reporter/commit/6d61fbf475d991b04b182d3160d36b62e259a8fc))
+* added postman example ([4fb3de8](https://github.com/currents-dev/currents-reporter/commit/4fb3de8ad664b879f1964f2405f6c52ebe49815c))
+* Change to MIT license ([7a4d944](https://github.com/currents-dev/currents-reporter/commit/7a4d944dc8f28be4cd63d4cf731060f669b5a0b9))
+* use glob to parse --input-file option ([92098a9](https://github.com/currents-dev/currents-reporter/commit/92098a9e059b67db45c54cd8c9d6267f1e5f15ac))
+
 # [1.1.0](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.0.2...${npm.name}-v1.1.0) (2024-11-22)
 
 
