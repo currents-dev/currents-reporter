@@ -1,6 +1,6 @@
 # Changelog
 
-# [1.2.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.2...${npm.name}-v1.2.0) (2024-11-25)
+# [1.2.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.1.2...${npm.name}-v1.2.0) (2024-11-25)
 
 
 ### Bug Fixes
