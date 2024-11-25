@@ -19,7 +19,7 @@ export const idOption = new Option(
 
 export const pathOption = new Option(
   '--path <path>',
-  'Comma-separated list of paths to cache'
+  'Comma-separated list of paths to cache, enquote for globs e.g. "dist/**/*"'
 ).argParser(parseCommaSeparatedList);
 
 export enum PRESETS {

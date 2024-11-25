@@ -83,20 +83,3 @@ export async function unzipBuffer(
     d.extract({ path: outputDir, concurrency: 3 })
   );
 }
-
-export function filterPaths(filePaths: string[]) {
-  const baseDir = process.cwd();
-  return filePaths.filter((filePath) => {
-    const absolutePath = path.resolve(filePath);
-    const relativePath = path.relative(baseDir, absolutePath);
-
-    if (filePath.startsWith('..') || path.isAbsolute(relativePath)) {
-      warn(
-        `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
-      );
-      return false;
-    }
-
-    return true;
-  });
-}

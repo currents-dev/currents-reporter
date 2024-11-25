@@ -8,9 +8,10 @@ import {
 } from '../../../config/cache';
 import { getCI } from '../../../env/ciProvider';
 import { success } from '../../../logger';
-import { filterPaths, zipFilesToBuffer } from '../fs';
-import { createMeta, getLastRunFilePath } from '../lib';
+import { zipFilesToBuffer } from '../fs';
+import { createMeta } from '../lib';
 import { sendBuffer } from '../network';
+import { getLastRunFilePaths, getUploadPaths } from '../path';
 import { handleSetCache } from '../set';
 
 vi.mock('../../../config/cache');
@@ -20,6 +21,7 @@ vi.mock('../../../logger');
 vi.mock('../fs');
 vi.mock('../lib');
 vi.mock('../network');
+vi.mock('../path');
 
 describe('handleSetCache', () => {
   const mockConfig: {
@@ -58,7 +60,7 @@ describe('handleSetCache', () => {
     vi.mocked(createCache).mockResolvedValue(mockCreateCacheResult);
     vi.mocked(zipFilesToBuffer).mockResolvedValue(Buffer.from('zip archive'));
     vi.mocked(createMeta).mockReturnValue(Buffer.from('meta data'));
-    vi.mocked(getLastRunFilePath).mockReturnValue('.last-run.json');
+    vi.mocked(getLastRunFilePaths).mockResolvedValue(['.last-run.json']);
   });
 
   it('should throw an error if config type is not SET_COMMAND_CONFIG', async () => {
@@ -78,6 +80,7 @@ describe('handleSetCache', () => {
   });
 
   it('should throw an error if no paths available to upload', async () => {
+    vi.mocked(getUploadPaths).mockResolvedValue([]);
     vi.mocked(getCacheCommandConfig).mockReturnValue({
       ...mockConfig,
       values: { ...mockConfig.values, preset: undefined, path: [] },
@@ -89,7 +92,7 @@ describe('handleSetCache', () => {
 
   it('should call filterPaths and zipFilesToBuffer', async () => {
     await handleSetCache();
-    expect(filterPaths).toHaveBeenCalledWith(mockConfig.values.path);
+    expect(getUploadPaths).toHaveBeenCalledWith(mockConfig.values.path);
     expect(zipFilesToBuffer).toHaveBeenCalledWith(['.last-run.json']);
   });
 
@@ -136,7 +139,7 @@ describe('handleSetCache', () => {
 
   it('should call getLastRunFilePath if preset is lastRun', async () => {
     await handleSetCache();
-    expect(getLastRunFilePath).toHaveBeenCalledWith('outputDir');
+    expect(getLastRunFilePaths).toHaveBeenCalledWith('outputDir');
   });
 
   it('should throw error if handleArchiveUpload fails', async () => {

@@ -1,16 +1,18 @@
 import { debug } from '@debug';
+
 import { createCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
-import { success } from '../../logger';
-import { filterPaths, zipFilesToBuffer } from './fs';
-import { createMeta, getLastRunFilePath } from './lib';
+import { dim, info, success } from '../../logger';
+import { zipFilesToBuffer } from './fs';
+import { createMeta } from './lib';
 import {
   ContentType,
   getDefautUploadProgressHandler,
   sendBuffer,
 } from './network';
+import { getLastRunFilePaths, getUploadPaths } from './path';
 
 export async function handleSetCache() {
   const config = getCacheCommandConfig();
@@ -21,21 +23,11 @@ export async function handleSetCache() {
   const { recordKey, id, preset, pwOutputDir, matrixIndex, matrixTotal } =
     config.values;
 
-  const paths = config.values.path?.length
-    ? filterPaths(config.values.path)
-    : [];
-
-  const uploadPaths: string[] = [];
-
-  if (paths && paths.length > 0) {
-    uploadPaths.push(...paths);
-  }
-
+  const uploadPaths = await getUploadPaths(config.values.path);
   const ci = getCI();
 
   if (preset === PRESETS.lastRun) {
-    const lastRunPath = getLastRunFilePath(pwOutputDir);
-    uploadPaths.push(lastRunPath);
+    uploadPaths.push(...(await getLastRunFilePaths(pwOutputDir)));
   }
 
   if (uploadPaths.length === 0) {
@@ -51,12 +43,15 @@ export async function handleSetCache() {
       matrixTotal,
     },
   });
+  debug('Cache upload url created', { result });
 
   await handleArchiveUpload({
     archive: await zipFilesToBuffer(uploadPaths),
     cacheId: result.cacheId,
     uploadUrl: result.uploadUrl,
   });
+
+  info(uploadPaths.map((path) => `${dim('- uploading')} ${path}`).join('\n'));
 
   await handleMetaUpload({
     meta: createMeta({
