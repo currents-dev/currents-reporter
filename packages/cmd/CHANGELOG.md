@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.4.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.3.0...${npm.name}-v1.4.0) (2024-11-27)
+
+
+### Bug Fixes
+
+* add missing dependency ([006cf16](https://github.com/currents-dev/currents-reporter/commit/006cf161e6952d257808eb58bb285b43a5536b7e))
+
 # [1.3.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.2.1...${npm.name}-v1.3.0) (2024-11-25)
 
 
