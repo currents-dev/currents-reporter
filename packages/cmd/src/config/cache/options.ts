@@ -30,5 +30,6 @@ export function cacheSetCommandOptsToConfig(
     debug: options.debug,
     matrixIndex: options.matrixIndex,
     matrixTotal: options.matrixTotal,
+    continue: options.continue,
   };
 }

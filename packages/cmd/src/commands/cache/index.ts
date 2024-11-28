@@ -3,7 +3,8 @@ import { dim } from '@logger';
 import chalk from 'chalk';
 import { getCacheGetHandler } from './get';
 import {
-  continueOption,
+  continueGetOption,
+  continueSetOption,
   debugOption,
   idOption,
   matrixIndexOption,
@@ -63,6 +64,7 @@ export const getCacheSetCommand = () => {
     .addOption(pwOutputDirOption)
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
+    .addOption(continueSetOption)
     .action(getCacheSetHandler);
 
   return command;
@@ -80,7 +82,7 @@ export const getCacheGetCommand = () => {
     .addOption(debugOption)
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
-    .addOption(continueOption)
+    .addOption(continueGetOption)
     .action(getCacheGetHandler);
 
   return command;

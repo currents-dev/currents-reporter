@@ -73,7 +73,12 @@ function validatePositiveInteger(value: string) {
   return parsedValue;
 }
 
-export const continueOption = new Option(
+export const continueGetOption = new Option(
   '--continue',
   'Continue the script execution if the cache is not found'
+).default(false);
+
+export const continueSetOption = new Option(
+  '--continue',
+  'Continue the script execution if upload paths are not found'
 ).default(false);

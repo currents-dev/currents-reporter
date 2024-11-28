@@ -7,7 +7,7 @@ import {
   getCacheCommandConfig,
 } from '../../../config/cache';
 import { getCI } from '../../../env/ciProvider';
-import { success } from '../../../logger';
+import { success, warnWithNoTrace } from '../../../logger';
 import { zipFilesToBuffer } from '../fs';
 import { createMeta } from '../lib';
 import { sendBuffer } from '../network';
@@ -79,15 +79,40 @@ describe('handleSetCache', () => {
     await expect(handleSetCache()).rejects.toThrow('Config is missing!');
   });
 
-  it('should throw an error if no paths available to upload', async () => {
+  const testCacheNoPathsError = async (continueOnNoPaths: boolean) => {
+    (mockConfig.values as CacheCommandConfig & CacheSetCommandConfig).continue =
+      continueOnNoPaths;
+    const axiosError = { response: { status: 404 } };
     vi.mocked(getUploadPaths).mockResolvedValue([]);
     vi.mocked(getCacheCommandConfig).mockReturnValue({
       ...mockConfig,
-      values: { ...mockConfig.values, preset: undefined, path: [] },
+      values: {
+        ...mockConfig.values,
+        preset: undefined,
+        path: [],
+      },
     });
-    await expect(handleSetCache()).rejects.toThrow(
-      'No paths available to upload'
-    );
+
+    if (continueOnNoPaths) {
+      await handleSetCache();
+      expect(warnWithNoTrace).toHaveBeenCalledWith(
+        `No files available to upload: `
+      );
+      expect(createCache).toHaveBeenCalled();
+    } else {
+      await expect(handleSetCache()).rejects.toThrow(
+        `No files available to upload: `
+      );
+      expect(warnWithNoTrace).not.toHaveBeenCalled();
+    }
+  };
+
+  it('should throw an error if no paths available to upload and continueOnNoPaths is false', async () => {
+    await testCacheNoPathsError(false);
+  });
+
+  it('should warn and continue if no paths available to upload and continueOnNoPaths is true', async () => {
+    await testCacheNoPathsError(true);
   });
 
   it('should call filterPaths and zipFilesToBuffer', async () => {
