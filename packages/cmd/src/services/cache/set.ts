@@ -4,7 +4,7 @@ import { createCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
-import { dim, info, success } from '../../logger';
+import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { zipFilesToBuffer } from './fs';
 import { createMeta } from './lib';
 import {
@@ -20,18 +20,31 @@ export async function handleSetCache() {
     throw new Error('Config is missing!');
   }
 
-  const { recordKey, id, preset, pwOutputDir, matrixIndex, matrixTotal } =
-    config.values;
+  const {
+    recordKey,
+    id,
+    preset,
+    pwOutputDir,
+    matrixIndex,
+    matrixTotal,
+    continue: continueOnNoUpload,
+  } = config.values;
 
   const uploadPaths = await getUploadPaths(config.values.path);
+  const configUploadPaths: (string | undefined)[] = config.values.path || [];
   const ci = getCI();
 
   if (preset === PRESETS.lastRun) {
+    configUploadPaths.push(pwOutputDir);
     uploadPaths.push(...(await getLastRunFilePaths(pwOutputDir)));
   }
 
   if (uploadPaths.length === 0) {
-    throw new Error('No paths available to upload');
+    const message = `No files available to upload: ${configUploadPaths.filter(Boolean).join(',')}`;
+    if (!continueOnNoUpload) {
+      throw new Error(message);
+    }
+    warnWithNoTrace(message);
   }
 
   const result = await createCache({
@@ -45,13 +58,15 @@ export async function handleSetCache() {
   });
   debug('Cache upload url created', { result });
 
-  await handleArchiveUpload({
-    archive: await zipFilesToBuffer(uploadPaths),
-    cacheId: result.cacheId,
-    uploadUrl: result.uploadUrl,
-  });
+  if (uploadPaths.length > 0) {
+    await handleArchiveUpload({
+      archive: await zipFilesToBuffer(uploadPaths),
+      cacheId: result.cacheId,
+      uploadUrl: result.uploadUrl,
+    });
 
-  info(uploadPaths.map((path) => `${dim('- uploading')} ${path}`).join('\n'));
+    info(uploadPaths.map((path) => `${dim('- uploading')} ${path}`).join('\n'));
+  }
 
   await handleMetaUpload({
     meta: createMeta({

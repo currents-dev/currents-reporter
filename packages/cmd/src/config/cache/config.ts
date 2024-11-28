@@ -28,6 +28,7 @@ export type CacheSetCommandConfig = CacheCommandConfig &
   CommonConfig & {
     path?: string[];
     pwOutputDir?: string;
+    continue?: boolean;
   };
 
 export type CacheGetCommandConfig = CacheCommandConfig &
