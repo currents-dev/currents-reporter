@@ -43,7 +43,7 @@ const cacheSetCommandConfigKeys = {
     cli: '--matrix-total',
   },
   continue: {
-    name: 'Continue path missing',
+    name: 'Continue when upload path missing',
     cli: '--continue',
   },
 } as const;
