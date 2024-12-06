@@ -25,7 +25,7 @@ export async function getInstanceMap(
   }
 
   const testsuites = ensureArray<TestSuite>(
-    parsedXMLInput.testsuites.testsuite
+    parsedXMLInput.testsuites?.testsuite
   );
 
   const groupId = parsedXMLInput.testsuites.name;
@@ -33,7 +33,11 @@ export async function getInstanceMap(
   testsuites.forEach((suite: TestSuite) => {
     const suiteJson = createSuiteJson(suite, groupId);
     const fileNameHash = generateShortHash(suite?.name ?? '');
-    instances.set(fileNameHash, suiteJson);
+    
+    // Avoid creating testless instance files as the full test suite won't have it
+    if (suiteJson.results.tests.length !== 0) {
+      instances.set(fileNameHash, suiteJson);
+    }
   });
 
   return instances;

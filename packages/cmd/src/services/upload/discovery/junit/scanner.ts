@@ -4,8 +4,13 @@ import { debug as _debug } from '@debug';
 import { dim, error } from '@logger';
 import { join } from 'path';
 import { parseStringPromise } from 'xml2js';
-import { TestSuites } from '../../../../services/convert/types';
 import {
+  TestCase,
+  TestSuite,
+  TestSuites,
+} from '../../../../services/convert/types';
+import {
+  ensureArray,
   generateTestId,
   getSpec,
   getTestTitle,
@@ -43,7 +48,7 @@ export async function jUnitScanner(reportDir: string) {
 function parseToFullTestSuite(jsonContent: TestSuites) {
   const fullTestSuite: FullTestSuite = [];
 
-  const testsuites = jsonContent.testsuites?.testsuite;
+  const testsuites = ensureArray<TestSuite>(jsonContent.testsuites?.testsuite);
 
   const fullSuiteProject: FullSuiteProject = {
     name: jsonContent.testsuites?.name ?? 'No name',
@@ -52,7 +57,7 @@ function parseToFullTestSuite(jsonContent: TestSuites) {
   };
 
   testsuites?.forEach((suite) => {
-    const testcases = suite?.testcase;
+    const testcases = ensureArray<TestCase>(suite?.testcase);
 
     testcases?.forEach((testcase) => {
       const fullSuiteTest: FullSuiteTest = {
