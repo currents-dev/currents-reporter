@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.6.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.5.0...${npm.name}-v1.6.0) (2024-12-06)
+
+
+### Bug Fixes
+
+* add ensureArray to full test suite discovery, avoid creating testless instance files ([814ebdc](https://github.com/currents-dev/currents-reporter/commit/814ebdcad784a26a7c56bd264d8808392a0d1582))
+
 # [1.5.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.4.0...${npm.name}-v1.5.0) (2024-11-28)
 
 
