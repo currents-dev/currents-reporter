@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.5.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.4.0...${npm.name}-v1.5.0) (2024-11-28)
+
+
+### Features
+
+* Add the continue flag to cache set ([2e02e5a](https://github.com/currents-dev/currents-reporter/commit/2e02e5a07b869e9cbc22c54b310ad1829a853afb))
+
 # [1.4.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.3.0...${npm.name}-v1.4.0) (2024-11-27)
 
 
