@@ -62,9 +62,9 @@ export function getEnvVariables(): Partial<
     tag: process.env[configKeys.tag.env]
       ? process.env[configKeys.tag.env]?.split(',').map((i) => i.trim())
       : undefined,
-    disableTitleTags: !!process.env[configKeys.disableTitleTags.env],
-    removeTitleTags: !!process.env[configKeys.removeTitleTags.env],
-    debug: !!process.env[configKeys.debug.env],
+    disableTitleTags: process.env[configKeys.disableTitleTags.env],
+    removeTitleTags: process.env[configKeys.removeTitleTags.env],
+    debug: process.env[configKeys.debug.env],
     machineId: process.env[configKeys.machineId.env],
   };
 }
