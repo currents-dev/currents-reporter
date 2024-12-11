@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.0...${npm.name}-v1.6.1) (2024-12-11)
+
+
+### Bug Fixes
+
+* upload command options parsing ([1cb9dac](https://github.com/currents-dev/currents-reporter/commit/1cb9dac47ea67aff2dff024b5e553759a3b80c2f))
+
 # [1.6.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.5.0...${npm.name}-v1.6.0) (2024-12-06)
 
 
