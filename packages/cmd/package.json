@@ -57,7 +57,7 @@
     "jest-cli": "^29.7.0",
     "jest-config": "^29.7.0",
     "lodash": "^4.17.21",
-    "nanoid": "^3.3.8",
+    "nanoid": "^5.0.9",
     "pretty-ms": "^7.0.1",
     "proxy-from-env": "^1.1.0",
     "semver": "^7.6.0",
