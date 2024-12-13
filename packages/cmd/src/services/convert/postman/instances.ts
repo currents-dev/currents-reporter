@@ -5,7 +5,7 @@ import { InstanceReport } from '../../../types';
 import { TestCase, TestSuite } from '../types';
 import {
   ensureArray,
-  getSpec,
+  getSuiteName,
   getTestCase,
   timeToMilliseconds,
 } from '../utils';
@@ -31,9 +31,10 @@ export async function getInstanceMap(
   const groupId = parsedXMLInput.testsuites.name;
 
   testsuites.forEach((suite: TestSuite) => {
+    suite.name = getSuiteName(suite, testsuites);
     const suiteJson = createSuiteJson(suite, groupId);
-    const fileNameHash = generateShortHash(suite?.name ?? '');
-    
+    const fileNameHash = generateShortHash(suite.name);
+
     // Avoid creating testless instance files as the full test suite won't have it
     if (suiteJson.results.tests.length !== 0) {
       instances.set(fileNameHash, suiteJson);
@@ -53,7 +54,7 @@ function createSuiteJson(suite: TestSuite, groupId: string) {
 
   const suiteJson: InstanceReport = {
     groupId,
-    spec: getSpec(suite),
+    spec: suite.name ?? '',
     worker: {
       workerIndex: 1,
       parallelIndex: 1,

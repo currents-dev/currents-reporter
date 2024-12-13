@@ -12,7 +12,7 @@ import {
 import {
   ensureArray,
   generateTestId,
-  getSpec,
+  getSuiteName,
   getTestTitle,
 } from '../../../../services/convert/utils';
 import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
@@ -57,16 +57,17 @@ function parseToFullTestSuite(jsonContent: TestSuites) {
   };
 
   testsuites?.forEach((suite) => {
+    suite.name = getSuiteName(suite, testsuites);
     const testcases = ensureArray<TestCase>(suite?.testcase);
 
     testcases?.forEach((testcase) => {
       const fullSuiteTest: FullSuiteTest = {
         title: getTestTitle(testcase.name, suite.name),
-        spec: getSpec(suite),
+        spec: suite.name ?? '',
         tags: [],
         testId: generateTestId(
           getTestTitle(testcase.name, suite.name).join(', '),
-          getSpec(suite)
+          suite.name ?? ''
         ),
       };
 

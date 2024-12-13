@@ -20,7 +20,7 @@ export function getTestCase(
     _t: getTimestampValue(suite?.timestamp ?? ''),
     testId: generateTestId(
       getTestTitle(testCase.name, suite.name).join(', '),
-      getSpec(suite)
+      suite.name ?? ''
     ),
     title: getTestTitle(testCase.name, suite.name),
     state: hasFailure ? 'failed' : 'passed',
@@ -165,10 +165,6 @@ function getTestStartTime(accTestTime: number, suiteTimestamp: string): string {
   return new Date(newStartTime).toISOString();
 }
 
-export function getSpec(suite: TestSuite): string {
-  return suite.file ?? suite.name ?? 'No spec';
-}
-
 export function ensureArray<T>(value: unknown): T[] {
   if (!value) {
     return [];
@@ -182,4 +178,17 @@ export function secondsToMilliseconds(seconds: number) {
 
 export function timeToMilliseconds(time?: string): number {
   return secondsToMilliseconds(parseFloat(time ?? '0'));
+}
+
+export function getSuiteName(suite: TestSuite, testSuites: TestSuite[]) {
+  // There can be multiple testsuite with the same name but includes an ID to identify
+  if (!suite.file && testSuites.find((item) => item.name === suite.name)) {
+    return suite.id + ' / ' + suite.name;
+  }
+
+  if (suite.file) {
+    return suite.file;
+  }
+
+  return suite.name ?? '';
 }

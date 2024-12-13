@@ -28,6 +28,7 @@ export interface Property {
 }
 
 export interface TestSuite {
+  id?: string;
   name?: string;
   tests?: string;
   failures?: string;
