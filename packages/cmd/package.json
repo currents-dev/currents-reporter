@@ -46,7 +46,7 @@
     "axios": "^1.7.2",
     "axios-retry": "^4.5.0",
     "chalk": "^4.1.2",
-    "commander": "^11.1.0",
+    "commander": "^12.1.0",
     "debug": "^4.3.5",
     "dotenv": "^16.4.5",
     "execa": "^9.5.1",
