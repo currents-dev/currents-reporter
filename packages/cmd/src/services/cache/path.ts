@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { glob } from 'glob';
-import { warn } from './lib';
+import { MetaFile, warn } from './lib';
 
 export const getLastRunFilePaths = async (outputPath?: string) => {
   const prefix = path.resolve(outputPath ?? './test-results');
@@ -41,4 +41,10 @@ export function filterPaths(filePaths: string[]) {
 
     return true;
   });
+}
+
+export function wasLastRunFileUploaded(meta: MetaFile | null): boolean {
+  return meta
+    ? meta.path.some((p) => path.basename(p) === '.last-run.json')
+    : false;
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.1...${npm.name}-v1.6.2-beta.0) (2024-12-16)
+
+
+### Bug Fixes
+
+* cache get command, attach --last-failed flag only if pw was executed ([5cdad86](https://github.com/currents-dev/currents-reporter/commit/5cdad867e73b51bf720cad2660bbe499e4f143f4))
+
 ## [1.6.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.0...${npm.name}-v1.6.1) (2024-12-11)
 
 

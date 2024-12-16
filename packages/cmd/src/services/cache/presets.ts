@@ -5,12 +5,13 @@ import { PRESET_OUTPUT_PATH } from '../../commands/cache/options';
 import { CacheGetCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
 import {
+  CircleParams,
   GithubActionsParams,
   GitLabParams,
-  CircleParams,
 } from '../../env/types';
 import { writeFileAsync } from '../../lib';
 import { MetaFile } from './lib';
+import { wasLastRunFileUploaded } from './path';
 
 export async function handlePreLastRunPreset(
   config: CacheGetCommandConfig,
@@ -37,6 +38,9 @@ export async function handlePostLastRunPreset(
   meta: MetaFile
 ) {
   switch (ci.provider) {
+    case 'githubActions':
+      await dumpPWConfigForGHA(config, ci, meta);
+      break;
     case 'gitlab':
       await dumpPwConfigForGitlab(config, ci, meta);
       break;
@@ -62,12 +66,15 @@ async function dumpPwConfigForGitlab(
   const nodeIndex = parseIntSafe(ciParams.ciNodeIndex, 1);
   const jobTotal = parseIntSafe(ciParams.ciNodeTotal, 1);
 
-  const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
+  const wasPWExecuted = wasLastRunFileUploaded(meta);
+  const isLastFailed = runAttempt > 1 && wasPWExecuted;
+  const lastFailedOption = isLastFailed ? '--last-failed' : '';
 
   let shardOption = '';
   if (jobTotal > 1) {
-    shardOption =
-      runAttempt > 1 ? '--shard=1/1' : `--shard=${nodeIndex}/${jobTotal}`;
+    shardOption = isLastFailed
+      ? '--shard=1/1'
+      : `--shard=${nodeIndex}/${jobTotal}`;
   }
 
   const pwCliOptions = [lastFailedOption, shardOption]
@@ -85,18 +92,22 @@ RUN_ATTEMPT="${runAttempt}"
 
 async function dumpPWConfigForGHA(
   config: CacheGetCommandConfig,
-  ci: ReturnType<typeof getCI>
+  ci: ReturnType<typeof getCI>,
+  meta: MetaFile | null = null
 ) {
   const { matrixIndex, matrixTotal } = config;
   const ciParams = ci.params as GithubActionsParams;
   const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
 
-  const lastFailedOption = runAttempt > 1 ? '--last-failed' : '';
+  const wasPWExecuted = wasLastRunFileUploaded(meta);
+  const isLastFailed = runAttempt > 1 && wasPWExecuted;
+  const lastFailedOption = isLastFailed ? '--last-failed' : '';
 
   let shardOption = '';
   if (matrixTotal > 1) {
-    shardOption =
-      runAttempt > 1 ? '--shard=1/1' : `--shard=${matrixIndex}/${matrixTotal}`;
+    shardOption = isLastFailed
+      ? '--shard=1/1'
+      : `--shard=${matrixIndex}/${matrixTotal}`;
   }
 
   const pwCliOptions = [lastFailedOption, shardOption]
@@ -123,11 +134,13 @@ async function dumpPWConfigForCircle(
     prevWorkspaceId == ciParams.circleWorkflowWorkspaceId &&
     prevWorkflowId !== ciParams.circleWorkflowId;
 
-  const lastFailedOption = isRerun ? '--last-failed' : '';
+  const wasPWExecuted = wasLastRunFileUploaded(meta);
+  const isLastFailed = isRerun && wasPWExecuted;
+  const lastFailedOption = isLastFailed ? '--last-failed' : '';
 
   let shardOption = '';
   if (nodeTotal > 1) {
-    shardOption = isRerun
+    shardOption = isLastFailed
       ? '--shard=1/1'
       : `--shard=${nodeIndex + 1}/${nodeTotal}`;
   }
