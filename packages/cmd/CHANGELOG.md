@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.2-beta.0...${npm.name}-v1.6.2) (2024-12-16)
+
+
+### Bug Fixes
+
+* addressed feedback ([aaeb96a](https://github.com/currents-dev/currents-reporter/commit/aaeb96aa9d7722972975405771b12fee6affb8bb))
+* change getSuiteName ([518d989](https://github.com/currents-dev/currents-reporter/commit/518d98926422a2c9738e875124a983d077d29b8f))
+* instance files withe duplicated testsuite names ([8eef041](https://github.com/currents-dev/currents-reporter/commit/8eef04119ba324bc77aac38c21949b3af5a08b13))
+
 ## [1.6.2-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.1...${npm.name}-v1.6.2-beta.0) (2024-12-16)
 
 
