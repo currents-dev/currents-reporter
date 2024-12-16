@@ -57,17 +57,17 @@ function parseToFullTestSuite(jsonContent: TestSuites) {
   };
 
   testsuites?.forEach((suite) => {
-    suite.name = getSuiteName(suite, testsuites);
+    const suiteName = getSuiteName(suite, testsuites);
     const testcases = ensureArray<TestCase>(suite?.testcase);
 
     testcases?.forEach((testcase) => {
       const fullSuiteTest: FullSuiteTest = {
-        title: getTestTitle(testcase.name, suite.name),
-        spec: suite.name ?? '',
+        title: getTestTitle(testcase.name, suiteName),
+        spec: suiteName,
         tags: [],
         testId: generateTestId(
-          getTestTitle(testcase.name, suite.name).join(', '),
-          suite.name ?? ''
+          getTestTitle(testcase.name, suiteName).join(', '),
+          suiteName
         ),
       };
 

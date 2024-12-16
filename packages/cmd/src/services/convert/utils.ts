@@ -11,7 +11,8 @@ import { Failure, TestCase, TestSuite } from './types';
 export function getTestCase(
   testCase: TestCase,
   suite: TestSuite,
-  time: number
+  time: number,
+  suiteName: string
 ): InstanceReportTest {
   const failures = ensureArray<string | Failure>(testCase.failure);
   const hasFailure = failures.length > 0;
@@ -19,10 +20,10 @@ export function getTestCase(
   return {
     _t: getTimestampValue(suite?.timestamp ?? ''),
     testId: generateTestId(
-      getTestTitle(testCase.name, suite.name).join(', '),
-      suite.name ?? ''
+      getTestTitle(testCase.name, suiteName).join(', '),
+      suiteName
     ),
-    title: getTestTitle(testCase.name, suite.name),
+    title: getTestTitle(testCase.name, suiteName),
     state: hasFailure ? 'failed' : 'passed',
     isFlaky: getTestFlakiness(),
     expectedStatus: hasFailure ? 'skipped' : 'passed',
@@ -180,15 +181,21 @@ export function timeToMilliseconds(time?: string): number {
   return secondsToMilliseconds(parseFloat(time ?? '0'));
 }
 
-export function getSuiteName(suite: TestSuite, testSuites: TestSuite[]) {
+export function getSuiteName(currentSuite: TestSuite, allSuites: TestSuite[]) {
   // There can be multiple testsuite with the same name but includes an ID to identify
-  if (!suite.file && testSuites.find((item) => item.name === suite.name)) {
-    return suite.id + ' / ' + suite.name;
+  const suiteIndex = allSuites.findIndex(
+    (item) => item.name === currentSuite.name
+  );
+  if (!currentSuite.file && suiteIndex !== -1) {
+    if (!currentSuite.id && !currentSuite.name) {
+      return suiteIndex.toString();
+    }
+    return currentSuite.id + ' / ' + currentSuite.name;
   }
 
-  if (suite.file) {
-    return suite.file;
+  if (currentSuite.file) {
+    return currentSuite.file;
   }
 
-  return suite.name ?? '';
+  return currentSuite.name ?? '';
 }

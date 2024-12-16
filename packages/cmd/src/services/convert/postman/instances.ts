@@ -31,9 +31,9 @@ export async function getInstanceMap(
   const groupId = parsedXMLInput.testsuites.name;
 
   testsuites.forEach((suite: TestSuite) => {
-    suite.name = getSuiteName(suite, testsuites);
-    const suiteJson = createSuiteJson(suite, groupId);
-    const fileNameHash = generateShortHash(suite.name);
+    const suiteName = getSuiteName(suite, testsuites);
+    const suiteJson = createSuiteJson(suite, groupId, suiteName);
+    const fileNameHash = generateShortHash(suiteName);
 
     // Avoid creating testless instance files as the full test suite won't have it
     if (suiteJson.results.tests.length !== 0) {
@@ -44,7 +44,7 @@ export async function getInstanceMap(
   return instances;
 }
 
-function createSuiteJson(suite: TestSuite, groupId: string) {
+function createSuiteJson(suite: TestSuite, groupId: string, suiteName: string) {
   const startTime = new Date(suite?.timestamp ?? '');
   const durationMillis = timeToMilliseconds(suite?.time);
   const endTime = new Date(startTime.getTime() + durationMillis);
@@ -54,7 +54,7 @@ function createSuiteJson(suite: TestSuite, groupId: string) {
 
   const suiteJson: InstanceReport = {
     groupId,
-    spec: suite.name ?? '',
+    spec: suiteName,
     worker: {
       workerIndex: 1,
       parallelIndex: 1,
@@ -75,7 +75,7 @@ function createSuiteJson(suite: TestSuite, groupId: string) {
       },
       tests: testcases?.map((test) => {
         accTestTime += timeToMilliseconds(testcases[0]?.time);
-        return getTestCase(test, suite, accTestTime);
+        return getTestCase(test, suite, accTestTime, suiteName);
       }),
     },
   };
