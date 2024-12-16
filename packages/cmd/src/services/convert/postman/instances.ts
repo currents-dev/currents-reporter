@@ -30,8 +30,8 @@ export async function getInstanceMap(
 
   const groupId = parsedXMLInput.testsuites.name;
 
-  testsuites.forEach((suite: TestSuite) => {
-    const suiteName = getSuiteName(suite, testsuites);
+  testsuites.forEach((suite: TestSuite, index) => {
+    const suiteName = getSuiteName(suite, testsuites, index);
     const suiteJson = createSuiteJson(suite, groupId, suiteName);
     const fileNameHash = generateShortHash(suiteName);
 
