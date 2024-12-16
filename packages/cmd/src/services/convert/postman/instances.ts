@@ -5,7 +5,7 @@ import { InstanceReport } from '../../../types';
 import { TestCase, TestSuite } from '../types';
 import {
   ensureArray,
-  getSpec,
+  getSuiteName,
   getTestCase,
   timeToMilliseconds,
 } from '../utils';
@@ -30,10 +30,11 @@ export async function getInstanceMap(
 
   const groupId = parsedXMLInput.testsuites.name;
 
-  testsuites.forEach((suite: TestSuite) => {
-    const suiteJson = createSuiteJson(suite, groupId);
-    const fileNameHash = generateShortHash(suite?.name ?? '');
-    
+  testsuites.forEach((suite: TestSuite, index) => {
+    const suiteName = getSuiteName(suite, testsuites, index);
+    const suiteJson = createSuiteJson(suite, groupId, suiteName);
+    const fileNameHash = generateShortHash(suiteName);
+
     // Avoid creating testless instance files as the full test suite won't have it
     if (suiteJson.results.tests.length !== 0) {
       instances.set(fileNameHash, suiteJson);
@@ -43,7 +44,7 @@ export async function getInstanceMap(
   return instances;
 }
 
-function createSuiteJson(suite: TestSuite, groupId: string) {
+function createSuiteJson(suite: TestSuite, groupId: string, suiteName: string) {
   const startTime = new Date(suite?.timestamp ?? '');
   const durationMillis = timeToMilliseconds(suite?.time);
   const endTime = new Date(startTime.getTime() + durationMillis);
@@ -53,7 +54,7 @@ function createSuiteJson(suite: TestSuite, groupId: string) {
 
   const suiteJson: InstanceReport = {
     groupId,
-    spec: getSpec(suite),
+    spec: suiteName,
     worker: {
       workerIndex: 1,
       parallelIndex: 1,
@@ -74,7 +75,7 @@ function createSuiteJson(suite: TestSuite, groupId: string) {
       },
       tests: testcases?.map((test) => {
         accTestTime += timeToMilliseconds(testcases[0]?.time);
-        return getTestCase(test, suite, accTestTime);
+        return getTestCase(test, suite, accTestTime, suiteName);
       }),
     },
   };

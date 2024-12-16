@@ -7,11 +7,13 @@ import {
   TestRunnerStatus,
 } from '../../types';
 import { Failure, TestCase, TestSuite } from './types';
+import { isNumber } from 'lodash';
 
 export function getTestCase(
   testCase: TestCase,
   suite: TestSuite,
-  time: number
+  time: number,
+  suiteName: string
 ): InstanceReportTest {
   const failures = ensureArray<string | Failure>(testCase.failure);
   const hasFailure = failures.length > 0;
@@ -19,10 +21,10 @@ export function getTestCase(
   return {
     _t: getTimestampValue(suite?.timestamp ?? ''),
     testId: generateTestId(
-      getTestTitle(testCase.name, suite.name).join(', '),
-      getSpec(suite)
+      getTestTitle(testCase.name, suiteName).join(', '),
+      suiteName
     ),
-    title: getTestTitle(testCase.name, suite.name),
+    title: getTestTitle(testCase.name, suiteName),
     state: hasFailure ? 'failed' : 'passed',
     isFlaky: getTestFlakiness(),
     expectedStatus: hasFailure ? 'skipped' : 'passed',
@@ -165,10 +167,6 @@ function getTestStartTime(accTestTime: number, suiteTimestamp: string): string {
   return new Date(newStartTime).toISOString();
 }
 
-export function getSpec(suite: TestSuite): string {
-  return suite.file ?? suite.name ?? 'No spec';
-}
-
 export function ensureArray<T>(value: unknown): T[] {
   if (!value) {
     return [];
@@ -182,4 +180,72 @@ export function secondsToMilliseconds(seconds: number) {
 
 export function timeToMilliseconds(time?: string): number {
   return secondsToMilliseconds(parseFloat(time ?? '0'));
+}
+
+/**
+ * Generates a unique suite name based on the provided suite and allSuites array.
+ * The priority for the suite name is as follows:
+ * 1. `file` property of the suite.
+ * 2. `name` property of the suite.
+ * 3. `id` property of the suite.
+ * 4. If none of the above properties are available, it returns 'unknown'.
+ *
+ * If there are duplicates in the `allSuites` array based on the selected property,
+ * it appends the `id` or `index` to the suite name to ensure uniqueness.
+ *
+ * @param suite - The test suite object.
+ * @param allSuites - Array of all test suites.
+ * @param index - Optional index to include in the suite name for uniqueness.
+ * @returns The generated suite name.
+ */
+export function getSuiteName(
+  suite: TestSuite,
+  allSuites: TestSuite[],
+  index?: number
+) {
+  const includeIndex = isNumber(index) && index > 0;
+  const hasDuplicateId = !!suite.id && hasDuplicate(allSuites, 'id', suite.id);
+
+  if (suite.file) {
+    const hasDuplicateFile = hasDuplicate(allSuites, 'file', suite.file);
+
+    if (hasDuplicateFile && !hasDuplicateId) {
+      return `${suite.file} - ${suite.id}`;
+    }
+    if (hasDuplicateFile && includeIndex) {
+      return `${suite.file} - ${index}`;
+    }
+    return suite.file;
+  }
+
+  if (suite.name) {
+    const hasDuplicateName = hasDuplicate(allSuites, 'name', suite.name);
+
+    if (hasDuplicateName && !hasDuplicateId) {
+      return `${suite.name} - ${suite.id}`;
+    }
+    if (hasDuplicateName && includeIndex) {
+      return `${suite.name} - ${index}`;
+    }
+    return suite.name;
+  }
+
+  if (suite.id) {
+    if (hasDuplicateId && includeIndex) {
+      return `${suite.id} - ${index}`;
+    }
+    return suite.id;
+  }
+
+  if (includeIndex) {
+    return `unknown - ${index}`;
+  }
+  return 'unknown';
+}
+
+function hasDuplicate<T>(arr: T[], property: string, value: unknown) {
+  const filtered = arr.filter(
+    (obj) => (obj as Record<string, unknown>)[property] === value
+  );
+  return filtered.length > 1;
 }
