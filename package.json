@@ -1,10 +1,13 @@
 {
-  "name": "currents-jest-tool",
+  "name": "currents-reporter",
   "version": "0.0.0",
   "description": "",
   "private": true,
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
+  },
+  "license": "MIT",
   "workspaces": [
     "packages/*",
     "examples/*"

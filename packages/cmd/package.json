@@ -2,7 +2,10 @@
   "name": "@currents/cmd",
   "version": "1.6.2",
   "main": "./dist/index.js",
-  "author": "Currents Software Inc",
+  "author": {
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
+  },
   "license": "MIT",
   "description": "Currents CLI tools",
   "scripts": {

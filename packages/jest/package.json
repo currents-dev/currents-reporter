@@ -2,7 +2,10 @@
   "name": "@currents/jest",
   "version": "1.2.0",
   "main": "./dist/index.js",
-  "author": "Currents Software Inc",
+  "author": {
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
+  },
   "license": "MIT",
   "description": "Currents reporter for Jest",
   "scripts": {
