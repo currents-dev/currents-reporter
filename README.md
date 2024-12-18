@@ -2,11 +2,8 @@
 
 A monorepo which contains the following packages:
 
-- `@currents/jest` - a jest reporter that writes the test results to json files in a Currents friendly manner
-- `@currents/cmd` - exposes the `currents` command which is used to interact with Currents APIs. It includes the following commands:
-  - `upload` command - used to discover the full test suite and upload the test results into the Currents Dashboard
-  - `api` command - retrieves information about Currents entities
-  - `cache` command - provides a convenient way to store and receive test artifacts
+- `@currents/jest` - Currents jest reporter ([documentation](https://docs.currents.dev/resources/reporters/currents-jest)).
+- `@currents/cmd` - `currents` CLI command ([documentation](https://docs.currents.dev/resources/reporters/currents-cmd))
 - `examples` - a private package used to test the implementation
 
 ## Testing locally
@@ -73,7 +70,7 @@ git checkout -b release/cmd-1.1.0
 
 Push that branch to the repo. (It has to be present on the remote for `release-it` to run).
 
-Release the package by running the release task which tags, and pushes the release. 
+Release the package by running the release task which tags, and pushes the release.
 
 ```sh
 cd ./packages/name
