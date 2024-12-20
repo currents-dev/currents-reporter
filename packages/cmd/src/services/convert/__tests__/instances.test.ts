@@ -4,7 +4,7 @@ import { InstanceReport } from 'types';
 
 describe('getInstanceMap', () => {
   const xmlInput = `
-    <testsuites name="Postman Collection" tests="4" failures="0" errors="0" time="200">
+    <testsuites name="Test Collection" tests="4" failures="0" errors="0" time="200">
       <testsuite name="Test Suite 1" timestamp="2024-12-20T22:12:47.937Z" tests="2" failures="0" errors="0" skipped="0" time="10">
         <testcase classname="path/to/file.test.ts" name="Test Case 1" time="3"/>
         <testcase classname="path/to/file.test.ts" name="Test Case 2" time="7"/>

@@ -2,7 +2,7 @@
 
 exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
 {
-  "groupId": "Postman Collection",
+  "groupId": "Test Collection",
   "results": {
     "stats": {
       "failures": 0,
@@ -98,7 +98,7 @@ exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
 
 exports[`getInstanceMap > matches snapshot for Test Suite 2 1`] = `
 {
-  "groupId": "Postman Collection",
+  "groupId": "Test Collection",
   "results": {
     "stats": {
       "failures": 0,
