@@ -7,7 +7,6 @@ import {
 import { InstanceReport } from '../../types';
 import { combineInputFiles, saveXMLInput } from './combineInputFiles';
 import { getInstanceMap as getInstanceMapForPostman } from './postman/instances';
-import { getInstanceMap as getInstanceMapForVitest } from './vitest/instances';
 
 export async function getInstanceMap({
   inputFormat,
@@ -27,8 +26,9 @@ export async function getInstanceMap({
     } else if (inputFiles.length === 1) {
       xmlInput = await readFile(inputFiles[0], 'utf-8');
     }
-
+    console.log('xmlInput:', xmlInput)
     const trimmedXMLInput = xmlInput.trim();
+    console.log('trimmed:', trimmedXMLInput)
     if (trimmedXMLInput) {
       await saveXMLInput(outputDir, trimmedXMLInput);
       return getInstanceMapByFramework(framework, trimmedXMLInput);
@@ -46,7 +46,7 @@ async function getInstanceMapByFramework(
     case 'postman':
       return getInstanceMapForPostman(xmlInput);
     case 'vitest':
-      return getInstanceMapForVitest(xmlInput);
+      return getInstanceMapForPostman(xmlInput);
     default:
       warn('Unsupported framework: %s', framework);
       return new Map<string, InstanceReport>();

@@ -1,0 +1,193 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
+{
+  "groupId": "Postman Collection",
+  "results": {
+    "stats": {
+      "failures": 0,
+      "flaky": 0,
+      "passes": 2,
+      "pending": 0,
+      "skipped": 0,
+      "suites": 1,
+      "tests": 2,
+      "wallClockDuration": 10000,
+      "wallClockEndedAt": "2024-12-20T22:12:57.937Z",
+      "wallClockStartedAt": "2024-12-20T22:12:47.937Z",
+    },
+    "tests": [
+      {
+        "_t": 1734732767937,
+        "attempts": [
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "duration": 3000,
+            "error": undefined,
+            "errors": [],
+            "parallelIndex": 1,
+            "startTime": "2024-12-20T22:12:47.937Z",
+            "status": "passed",
+            "stderr": [],
+            "stdout": [],
+            "steps": [],
+            "workerIndex": 1,
+          },
+        ],
+        "expectedStatus": "passed",
+        "isFlaky": false,
+        "location": {
+          "column": 1,
+          "file": "",
+          "line": 1,
+        },
+        "retries": 0,
+        "state": "passed",
+        "testId": "5ce2a25c0c0ac67a",
+        "timeout": 0,
+        "title": [
+          "Test Suite 1",
+          "Test Case 1",
+        ],
+      },
+      {
+        "_t": 1734732767937,
+        "attempts": [
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "duration": 7000,
+            "error": undefined,
+            "errors": [],
+            "parallelIndex": 1,
+            "startTime": "2024-12-20T22:12:47.937Z",
+            "status": "passed",
+            "stderr": [],
+            "stdout": [],
+            "steps": [],
+            "workerIndex": 1,
+          },
+        ],
+        "expectedStatus": "passed",
+        "isFlaky": false,
+        "location": {
+          "column": 1,
+          "file": "",
+          "line": 1,
+        },
+        "retries": 0,
+        "state": "passed",
+        "testId": "865b7d9599598528",
+        "timeout": 0,
+        "title": [
+          "Test Suite 1",
+          "Test Case 2",
+        ],
+      },
+    ],
+  },
+  "spec": "Test Suite 1",
+  "startTime": "2024-12-20T22:12:47.937Z",
+  "worker": {
+    "parallelIndex": 1,
+    "workerIndex": 1,
+  },
+}
+`;
+
+exports[`getInstanceMap > matches snapshot for Test Suite 2 1`] = `
+{
+  "groupId": "Postman Collection",
+  "results": {
+    "stats": {
+      "failures": 0,
+      "flaky": 0,
+      "passes": 2,
+      "pending": 0,
+      "skipped": 0,
+      "suites": 1,
+      "tests": 2,
+      "wallClockDuration": 42000,
+      "wallClockEndedAt": "2024-12-20T22:13:39.937Z",
+      "wallClockStartedAt": "2024-12-20T22:12:57.937Z",
+    },
+    "tests": [
+      {
+        "_t": 1734732777937,
+        "attempts": [
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "duration": 12000,
+            "error": undefined,
+            "errors": [],
+            "parallelIndex": 1,
+            "startTime": "2024-12-20T22:12:57.937Z",
+            "status": "passed",
+            "stderr": [],
+            "stdout": [],
+            "steps": [],
+            "workerIndex": 1,
+          },
+        ],
+        "expectedStatus": "passed",
+        "isFlaky": false,
+        "location": {
+          "column": 1,
+          "file": "",
+          "line": 1,
+        },
+        "retries": 0,
+        "state": "passed",
+        "testId": "fb352e5c3cc422e6",
+        "timeout": 0,
+        "title": [
+          "Test Suite 2",
+          "Test Case 3",
+        ],
+      },
+      {
+        "_t": 1734732777937,
+        "attempts": [
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "duration": 30000,
+            "error": undefined,
+            "errors": [],
+            "parallelIndex": 1,
+            "startTime": "2024-12-20T22:12:57.937Z",
+            "status": "passed",
+            "stderr": [],
+            "stdout": [],
+            "steps": [],
+            "workerIndex": 1,
+          },
+        ],
+        "expectedStatus": "passed",
+        "isFlaky": false,
+        "location": {
+          "column": 1,
+          "file": "",
+          "line": 1,
+        },
+        "retries": 0,
+        "state": "passed",
+        "testId": "d7615409e164a73e",
+        "timeout": 0,
+        "title": [
+          "Test Suite 2",
+          "Test Case 4",
+        ],
+      },
+    ],
+  },
+  "spec": "Test Suite 2",
+  "startTime": "2024-12-20T22:12:57.937Z",
+  "worker": {
+    "parallelIndex": 1,
+    "workerIndex": 1,
+  },
+}
+`;
