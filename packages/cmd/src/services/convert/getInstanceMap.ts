@@ -26,9 +26,8 @@ export async function getInstanceMap({
     } else if (inputFiles.length === 1) {
       xmlInput = await readFile(inputFiles[0], 'utf-8');
     }
-    console.log('xmlInput:', xmlInput)
+
     const trimmedXMLInput = xmlInput.trim();
-    console.log('trimmed:', trimmedXMLInput)
     if (trimmedXMLInput) {
       await saveXMLInput(outputDir, trimmedXMLInput);
       return getInstanceMapByFramework(framework, trimmedXMLInput);
