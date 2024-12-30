@@ -1,5 +1,30 @@
-import { describe, it, expect } from 'vitest';
-import { getSuiteName } from '../utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  getSuiteName,
+  getTestCase,
+  secondsToMilliseconds,
+  timeToMilliseconds,
+} from '../utils';
+import {
+  instanceReportTestNoTime,
+  instanceReportTestNoTimestamp,
+  instanceReportTestWithFailure,
+  instanceReportTestWithoutFailure,
+  mockDate,
+  suiteNameNoTime,
+  suiteNameNoTimestamp,
+  suiteNameWithFailure,
+  suiteNameWithoutFailure,
+  suiteNoTime,
+  suiteNoTimestamp,
+  suiteWithFailure,
+  suiteWithoutFailure,
+  testCaseNoTime,
+  testCaseNoTimestamp,
+  testCaseWithFailure,
+  testCaseWithoutFailure,
+  time,
+} from './fixtures';
 
 describe('getSuiteName', () => {
   it.each([
@@ -120,4 +145,78 @@ describe('getSuiteName', () => {
   ])('%s', (_, suite, allSuites, index, expected) => {
     expect(getSuiteName(suite, allSuites, index)).toBe(expected);
   });
+});
+
+describe('getTestCase', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(mockDate);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each([
+    [
+      'should return the correct structure when the test case has a failure',
+      testCaseWithFailure,
+      suiteWithFailure,
+      suiteNameWithFailure,
+      instanceReportTestWithFailure,
+    ],
+    [
+      'should return the correct structure when the test case has no failure',
+      testCaseWithoutFailure,
+      suiteWithoutFailure,
+      suiteNameWithoutFailure,
+      instanceReportTestWithoutFailure,
+    ],
+    [
+      'should use the current date when the test case timestamp is not provided',
+      testCaseNoTimestamp,
+      suiteNoTimestamp,
+      suiteNameNoTimestamp,
+      instanceReportTestNoTimestamp,
+    ],
+    [
+      'should set the duration to 0 when test case time is not provided',
+      testCaseNoTime,
+      suiteNoTime,
+      suiteNameNoTime,
+      instanceReportTestNoTime,
+    ],
+  ])('%s', (_, testCase, suite, suiteName, expected) => {
+    expect(getTestCase(testCase, suite, time, suiteName)).toEqual(expected);
+  });
+});
+
+describe('secondsToMilliseconds', () => {
+  it.each([
+    [1, 1000],
+    [0.5, 500],
+    [0, 0],
+    [0.12345, 123],
+    [1000, 1000000],
+  ])('should convert %s seconds to %s milliseconds', (seconds, expectedMs) => {
+    const result = secondsToMilliseconds(seconds);
+    expect(result).toBe(expectedMs);
+  });
+});
+
+describe('timeToMilliseconds', () => {
+  it.each([
+    ['1.5', 1500],
+    ['0.25', 250],
+    ['2', 2000],
+    ['0', 0],
+    ['0.12345', 123],
+    ['invalid', 0],
+  ])(
+    'should converts time string "%s" to %s milliseconds',
+    (time, expectedMs) => {
+      const result = timeToMilliseconds(time);
+      expect(result).toBe(expectedMs);
+    }
+  );
 });
