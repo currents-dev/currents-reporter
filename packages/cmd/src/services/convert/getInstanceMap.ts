@@ -44,6 +44,8 @@ async function getInstanceMapByFramework(
   switch (framework) {
     case 'postman':
       return getInstanceMapForPostman(xmlInput);
+    case 'vitest':
+      return getInstanceMapForPostman(xmlInput);
     default:
       warn('Unsupported framework: %s', framework);
       return new Map<string, InstanceReport>();
