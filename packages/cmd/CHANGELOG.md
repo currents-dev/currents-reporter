@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.6.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.2...${npm.name}-v1.6.3) (2024-12-30)
+
 ## [1.6.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.2-beta.0...${npm.name}-v1.6.2) (2024-12-16)
 
 
