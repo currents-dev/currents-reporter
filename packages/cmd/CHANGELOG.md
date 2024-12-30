@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.3...${npm.name}-v1.6.4) (2024-12-30)
+
+
+### Reverts
+
+* Revert "Merge pull request #102 from currents-dev/dependabot/npm_and_yarn/pretty-ms-9.2.0" ([c71af0f](https://github.com/currents-dev/currents-reporter/commit/c71af0f628fa009458e18286748e33d97cbfcdd6)), closes [#102](https://github.com/currents-dev/currents-reporter/issues/102)
+* Revert "[CSR-0] chore: Bump chalk from 4.1.2 to 5.4.1" ([ea4922a](https://github.com/currents-dev/currents-reporter/commit/ea4922a37ba2ec26fce1babf854d05b47d0c0d28))
+
 ## [1.6.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.2...${npm.name}-v1.6.3) (2024-12-30)
 
 ## [1.6.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.2-beta.0...${npm.name}-v1.6.2) (2024-12-16)
