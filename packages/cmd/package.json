@@ -61,7 +61,7 @@
     "jest-config": "^29.7.0",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.8",
-    "pretty-ms": "^7.0.1",
+    "pretty-ms": "^9.2.0",
     "proxy-from-env": "^1.1.0",
     "semver": "^7.6.0",
     "source-map-support": "^0.5.21",
