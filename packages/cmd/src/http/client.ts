@@ -24,8 +24,12 @@ let _clients: Record<ClientType, AxiosInstance | null> = {
 };
 
 export function createClient(type: ClientType) {
+  const baseURL =
+    type === ClientType.API ? getAPIBaseUrl() : getRestAPIBaseUrl();
+  debug('client base url: %s', baseURL);
+
   const client = axios.create({
-    baseURL: type === ClientType.API ? getAPIBaseUrl() : getRestAPIBaseUrl(),
+    baseURL,
     // Setting no timeout means axios will wait forever for a response
     // and the actual timeout will be handled by the underlying network
     // stack
@@ -59,7 +63,9 @@ export function createClient(type: ClientType) {
 
     const args = {
       ..._.pick(config, 'method', 'url', 'headers'),
+      baseURL,
       data: Buffer.isBuffer(config.data) ? 'buffer' : (config.data as unknown),
+      params: config.params,
     };
 
     if (!retry) {
@@ -69,6 +75,7 @@ export function createClient(type: ClientType) {
         'network request retry: %o',
         getNetworkRequestDebugData({
           ...args,
+          baseURL,
           isRetry: true,
         })
       );
@@ -99,14 +106,17 @@ function getNetworkRequestDebugData(data: {
   headers: Record<string, string>;
   method?: string;
   url?: string;
+  baseURL: string;
   data: unknown;
+  params: unknown;
   isRetry?: boolean;
 }) {
   return {
     method: data.method,
-    baseUrl: getAPIBaseUrl(),
+    baseURL: data.baseURL,
     url: data.url,
     data: data.isRetry ? '<retry>' : getPayloadDebugData(data.data),
+    params: data.isRetry ? '<retry>' : data.params,
     headers: {
       ...data.headers,
       ['x-currents-key']: '***',
