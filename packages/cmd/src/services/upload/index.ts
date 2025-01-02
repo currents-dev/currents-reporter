@@ -3,9 +3,8 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
-import { nanoid, readJsonFile, writeFileAsync } from '@lib';
+import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
 import { info, warn } from '@logger';
-import { mapValues } from 'lodash';
 import path from 'path';
 import semver from 'semver';
 import {
@@ -215,10 +214,7 @@ async function createRun({
     previousCiBuildId: process.env.CURRENTS_PREVIOUS_CI_BUILD_ID,
   };
 
-  debug(
-    'Creating run: %o',
-    mapValues(payload, (v, k) => (k === 'recordKey' ? '******' : v))
-  );
+  debug('Creating run: %o', maskRecordKey(payload));
 
   return createRunApi(payload);
 }

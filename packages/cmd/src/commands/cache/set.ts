@@ -5,6 +5,7 @@ import {
   getCacheCommandConfig,
   setCacheSetCommandConfig,
 } from '../../config/cache';
+import { maskRecordKey } from '../../lib';
 import { handleSetCache } from '../../services';
 import { commandHandler } from '../utils';
 
@@ -19,10 +20,7 @@ export async function getCacheSetHandler(options: CacheSetCommandOpts) {
     setCacheSetCommandConfig(cacheSetCommandOptsToConfig(opts));
     const config = getCacheCommandConfig();
 
-    debug('Config: %o', {
-      ...config.values,
-      recordKey: config.values?.recordKey ? '*****' : undefined,
-    });
+    debug('Config: %o', maskRecordKey(config.values));
 
     await handleSetCache();
   }, options);

@@ -7,6 +7,7 @@ import { CurrentsConfig } from '../config/upload';
 import { debug as _debug } from '../debug';
 import { makeRequest } from '../http';
 import { ClientType } from '../http/client';
+import { maskRecordKey } from '../lib';
 import { FullTestSuite } from '../services/upload/discovery';
 import { InstanceReport } from '../types';
 
@@ -81,7 +82,7 @@ export type CreateRunResponse = {
 
 export async function createRun(params: CreateRunParams) {
   try {
-    debug('Run params: %o', params);
+    debug('Run params: %o', maskRecordKey(params));
     const data = await compressData(JSON.stringify(params));
 
     return makeRequest<CreateRunResponse, Buffer>(ClientType.API, {

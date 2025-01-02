@@ -1,3 +1,4 @@
+export * from './credentials';
 export * from './error';
 export * from './execa';
 export * from './fs';

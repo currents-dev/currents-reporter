@@ -1,5 +1,6 @@
 import { debug as _debug } from '@debug';
 
+import { maskApiKey } from '@lib';
 import { getValidatedConfig } from '../utils';
 import { configKeys, getEnvVariables } from './env';
 
@@ -78,7 +79,7 @@ export function setAPIGetRunCommandConfig(
     getEnvVariables,
     options
   );
-  debug('Resolved config: %o', _config);
+  debug('Resolved config: %o', maskApiKey(_config));
 }
 
 export function getAPIGetRunCommandConfig() {

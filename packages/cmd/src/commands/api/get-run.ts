@@ -4,6 +4,7 @@ import {
   getAPIGetRunCommandConfig,
   setAPIGetRunCommandConfig,
 } from '../../config/api';
+import { maskApiKey } from '../../lib';
 import { handleGetRun } from '../../services';
 import { commandHandler } from '../utils';
 
@@ -16,7 +17,7 @@ export async function getRunHandler(
     setAPIGetRunCommandConfig(opts);
     const config = getAPIGetRunCommandConfig();
 
-    debug('Config: %o', config);
+    debug('Config: %o', maskApiKey(config));
     await handleGetRun();
   }, options);
 }
