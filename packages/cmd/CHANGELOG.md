@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.4...${npm.name}-v1.6.5) (2025-01-02)
+
+
+### Bug Fixes
+
+* .. ([6b32d28](https://github.com/currents-dev/currents-reporter/commit/6b32d28a656bec8ede1db3a99167fa6b7b19ef66))
+* display the correct baseURL in the http client debug logs ([b80b276](https://github.com/currents-dev/currents-reporter/commit/b80b2766066e77e349b8c2590e480db0a4694d5e))
+* ensure date values are properly handled ([4a819ca](https://github.com/currents-dev/currents-reporter/commit/4a819cab3995cf52e7ab278f08373d485b0dac6a))
+* mask sensitive data ([5985aed](https://github.com/currents-dev/currents-reporter/commit/5985aedb5abfafcaa18e9bc0da3cc3b2a1832570))
+
 ## [1.6.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.3...${npm.name}-v1.6.4) (2024-12-30)
 
 
