@@ -1,5 +1,6 @@
 import { debug as _debug } from '@debug';
 
+import { maskRecordKey } from '../../lib';
 import { getValidatedConfig } from '../utils';
 import { configKeys, getEnvVariables } from './env';
 
@@ -64,7 +65,10 @@ export function setCacheSetCommandConfig(
       options
     ),
   };
-  debug('Resolved config: %o', _config);
+  debug('Resolved config: %o', {
+    ..._config,
+    values: maskRecordKey(_config.values),
+  });
 }
 
 export function setCacheGetCommandConfig(
@@ -79,7 +83,10 @@ export function setCacheGetCommandConfig(
       options
     ),
   };
-  debug('Resolved config: %o', _config);
+  debug('Resolved config: %o', {
+    ..._config,
+    values: maskRecordKey(_config.values),
+  });
 }
 
 export function getCacheCommandConfig() {

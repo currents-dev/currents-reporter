@@ -1,6 +1,7 @@
 import { debug as _debug } from '../debug';
 import { makeRequest } from '../http';
 import { ClientType } from '../http/client';
+import { maskRecordKey } from '../lib';
 
 const debug = _debug.extend('api');
 
@@ -32,7 +33,7 @@ export type CacheRetrievalResponse = {
 
 export async function createCache(params: CacheRequestParams) {
   try {
-    debug('Request params: %o', params);
+    debug('Request params: %o', maskRecordKey(params));
 
     return makeRequest<CacheCreationResponse, CacheRequestParams>(
       ClientType.API,

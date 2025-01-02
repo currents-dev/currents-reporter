@@ -2,6 +2,7 @@ import { info } from '@logger';
 import { getUploadCommand } from '.';
 
 import { getCurrentsConfig, setCurrentsConfig } from '../../config/upload';
+import { maskRecordKey } from '../../lib';
 import { handleCurrentsReport } from '../../services';
 import { commandHandler } from '../utils';
 import { CLIManager } from './cli-config';
@@ -14,10 +15,7 @@ export async function uploadHandler(
     setCurrentsConfig(cliManager.parsedConfig);
     const config = getCurrentsConfig();
 
-    info('Currents config: %o', {
-      ...config,
-      recordKey: config?.recordKey ? '*****' : undefined,
-    });
+    info('Currents config: %o', maskRecordKey(config));
 
     await handleCurrentsReport();
   }, options);
