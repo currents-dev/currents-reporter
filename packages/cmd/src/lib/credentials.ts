@@ -1,11 +1,14 @@
 type Payload = Record<string, unknown> | null;
 
-export function maskSecrets(payload: Payload, secrets: string[]): Payload {
+export function maskSensitiveFields(
+  payload: Payload,
+  fields: string[]
+): Payload {
   if (!payload) return payload;
 
   const maskedPayload = { ...payload };
 
-  secrets.forEach((secret) => {
+  fields.forEach((secret) => {
     if (maskedPayload.hasOwnProperty(secret)) {
       maskedPayload[secret] = '*****';
     }
@@ -15,9 +18,9 @@ export function maskSecrets(payload: Payload, secrets: string[]): Payload {
 }
 
 export function maskApiKey(payload: Payload): Payload {
-  return maskSecrets(payload, ['apiKey']);
+  return maskSensitiveFields(payload, ['apiKey']);
 }
 
 export function maskRecordKey(payload: Payload): Payload {
-  return maskSecrets(payload, ['recordKey', 'key']);
+  return maskSensitiveFields(payload, ['recordKey', 'key']);
 }
