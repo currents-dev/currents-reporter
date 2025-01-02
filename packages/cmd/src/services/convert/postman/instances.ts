@@ -5,8 +5,10 @@ import { InstanceReport } from '../../../types';
 import { TestCase, TestSuite } from '../types';
 import {
   ensureArray,
+  getISODateValue,
   getSuiteName,
   getTestCase,
+  getTimestampValue,
   timeToMilliseconds,
 } from '../utils';
 
@@ -44,13 +46,26 @@ export async function getInstanceMap(
   return instances;
 }
 
-function createSuiteJson(suite: TestSuite, groupId: string, suiteName: string) {
-  const startTime = new Date(suite?.timestamp ?? '');
-  const durationMillis = timeToMilliseconds(suite?.time);
-  const endTime = new Date(startTime.getTime() + durationMillis);
+export function createSuiteJson(
+  suite: TestSuite,
+  groupId: string,
+  suiteName: string
+) {
+  const startTime = getISODateValue(suite.timestamp ?? '');
+  const durationMillis = suite.time ? timeToMilliseconds(suite.time) : 0;
+  const endTime = new Date(
+    getTimestampValue(suite.timestamp ?? '') + durationMillis
+  );
   const testcases = ensureArray<TestCase>(suite.testcase);
 
   let accTestTime = 0;
+
+  const passes = testcases.filter(
+    (tc) => (tc.failure ?? []).length === 0
+  ).length;
+  const failures = testcases.filter(
+    (tc) => (tc.failure ?? []).length > 0
+  ).length;
 
   const suiteJson: InstanceReport = {
     groupId,
@@ -59,22 +74,24 @@ function createSuiteJson(suite: TestSuite, groupId: string, suiteName: string) {
       workerIndex: 1,
       parallelIndex: 1,
     },
-    startTime: startTime.toISOString(),
+    startTime,
     results: {
       stats: {
         suites: 1,
-        tests: parseInt(suite.tests ?? '0'),
-        passes: testcases?.filter((tc) => !tc?.failure).length,
+        tests: suite.tests ? parseInt(suite.tests) : 0,
+        passes,
         pending: 0,
         skipped: 0,
-        failures: testcases?.filter((tc) => tc?.failure).length,
+        failures,
         flaky: 0,
-        wallClockStartedAt: startTime.toISOString(),
+        wallClockStartedAt: startTime,
         wallClockEndedAt: endTime.toISOString(),
         wallClockDuration: durationMillis,
       },
       tests: testcases?.map((test) => {
-        accTestTime += timeToMilliseconds(testcases[0]?.time);
+        if (testcases[0]?.time) {
+          accTestTime += timeToMilliseconds(testcases[0].time);
+        }
         return getTestCase(test, suite, accTestTime, suiteName);
       }),
     },

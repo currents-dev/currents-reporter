@@ -1,3 +1,4 @@
+import { isNumber } from 'lodash';
 import crypto from 'node:crypto';
 import {
   ErrorSchema,
@@ -7,7 +8,6 @@ import {
   TestRunnerStatus,
 } from '../../types';
 import { Failure, TestCase, TestSuite } from './types';
-import { isNumber } from 'lodash';
 
 export function getTestCase(
   testCase: TestCase,
@@ -17,9 +17,10 @@ export function getTestCase(
 ): InstanceReportTest {
   const failures = ensureArray<string | Failure>(testCase.failure);
   const hasFailure = failures.length > 0;
+  const suiteTimestamp = suite?.timestamp ?? '';
 
   return {
-    _t: getTimestampValue(suite?.timestamp ?? ''),
+    _t: getTimestampValue(suiteTimestamp),
     testId: generateTestId(
       getTestTitle(testCase.name, suiteName).join(', '),
       suiteName
@@ -31,7 +32,12 @@ export function getTestCase(
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
-    attempts: getTestAttempts(testCase, failures, suite.timestamp ?? '', time),
+    attempts: getTestAttempts(
+      testCase,
+      failures,
+      getISODateValue(suiteTimestamp),
+      time
+    ),
   };
 }
 
@@ -44,11 +50,18 @@ export function generateTestId(testName: string, suiteName: string): string {
   return fullHash.substring(0, 16);
 }
 
-function getTimestampValue(timestamp: string) {
-  if (!isValidDate(timestamp)) {
-    return 0;
+export function getTimestampValue(dateString: string) {
+  if (!isValidDate(dateString)) {
+    return new Date().getTime();
   }
-  return new Date(timestamp).getTime();
+  return new Date(dateString).getTime();
+}
+
+export function getISODateValue(dateString: string) {
+  if (!isValidDate(dateString)) {
+    return new Date().toISOString();
+  }
+  return new Date(dateString).toISOString();
 }
 
 function isValidDate(dateString: string) {
@@ -99,7 +112,7 @@ function getTestAttempts(
   suiteTimestamp: string,
   time: number
 ): InstanceReportTestAttempt[] {
-  const testCaseTime = timeToMilliseconds(testCase.time);
+  const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
   if (failures.length === 0) {
     return [
       {
@@ -119,26 +132,29 @@ function getTestAttempts(
     ];
   }
 
-  return failures.reduce<InstanceReportTestAttempt[]>((acc, item, index) => {
-    if (item !== 'true' && item !== 'false') {
-      const errors = getErrors(item);
-      acc.push({
-        _s: 'failed' as TestCaseStatus,
-        attempt: index,
-        workerIndex: 1,
-        parallelIndex: 1,
-        startTime: getTestStartTime(time, suiteTimestamp),
-        steps: [],
-        duration: testCaseTime,
-        status: 'passed' as TestRunnerStatus,
-        stdout: getStdOut(testCase?.['system-out']),
-        stderr: getStdErr(testCase?.['system-err']),
-        errors: errors,
-        error: errors ? errors[0] : undefined,
-      });
-    }
-    return acc;
-  }, []);
+  return failures.reduce<InstanceReportTestAttempt[]>(
+    (attempts, failure, index) => {
+      if (failure !== 'true' && failure !== 'false') {
+        const errors = getErrors(failure);
+        attempts.push({
+          _s: 'failed' as TestCaseStatus,
+          attempt: index,
+          workerIndex: 1,
+          parallelIndex: 1,
+          startTime: getTestStartTime(time, suiteTimestamp),
+          steps: [],
+          duration: testCaseTime,
+          status: 'passed' as TestRunnerStatus,
+          stdout: getStdOut(testCase?.['system-out']),
+          stderr: getStdErr(testCase?.['system-err']),
+          errors: errors,
+          error: errors[0],
+        });
+      }
+      return attempts;
+    },
+    []
+  );
 }
 
 function getStdOut(systemOut?: string) {
@@ -163,7 +179,7 @@ function getErrors(failure: Failure | string): ErrorSchema[] {
 }
 
 function getTestStartTime(accTestTime: number, suiteTimestamp: string): string {
-  const newStartTime = new Date(suiteTimestamp).getTime() + accTestTime;
+  const newStartTime = getTimestampValue(suiteTimestamp) + accTestTime;
   return new Date(newStartTime).toISOString();
 }
 
@@ -178,8 +194,12 @@ export function secondsToMilliseconds(seconds: number) {
   return Math.round(seconds * 1000);
 }
 
-export function timeToMilliseconds(time?: string): number {
-  return secondsToMilliseconds(parseFloat(time ?? '0'));
+export function timeToMilliseconds(time: string): number {
+  const parsedTime = parseFloat(time);
+  if (isNaN(parsedTime)) {
+    return 0;
+  }
+  return secondsToMilliseconds(parsedTime);
 }
 
 /**
