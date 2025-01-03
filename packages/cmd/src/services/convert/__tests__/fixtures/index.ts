@@ -41,7 +41,7 @@ export const instanceReportTestWithFailure: InstanceReportTest = {
       startTime: new Date('2024-12-28T12:00:05Z').toISOString(),
       steps: [],
       duration: time,
-      status: 'passed',
+      status: 'failed',
       stdout: [],
       stderr: [],
       errors: [
