@@ -144,7 +144,7 @@ function getTestAttempts(
           startTime: getTestStartTime(time, suiteTimestamp),
           steps: [],
           duration: testCaseTime,
-          status: 'passed' as TestRunnerStatus,
+          status: 'failed' as TestRunnerStatus,
           stdout: getStdOut(testCase?.['system-out']),
           stderr: getStdErr(testCase?.['system-err']),
           errors: errors,
