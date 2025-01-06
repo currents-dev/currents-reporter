@@ -41,7 +41,7 @@
     "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
     "ts-pattern": "^5.6.0",
-    "uuid": "^11.0.3"
+    "uuid": "^11.0.4"
   },
   "peerDependencies": {
     "jest": ">=29.5.0"
