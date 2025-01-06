@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.5...${npm.name}-v1.6.6) (2025-01-06)
+
+
+### Bug Fixes
+
+* attempt status incorrect value ([aa9a4c7](https://github.com/currents-dev/currents-reporter/commit/aa9a4c7f5b815b0222304e5eb0fa98aa5a86df0d))
+* fixture status ([b1146da](https://github.com/currents-dev/currents-reporter/commit/b1146dad8f49c71cefd61771fe6b55a27fe02489))
+
 ## [1.6.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.4...${npm.name}-v1.6.5) (2025-01-02)
 
 
