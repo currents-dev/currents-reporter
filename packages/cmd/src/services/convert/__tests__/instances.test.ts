@@ -182,8 +182,6 @@ describe('createSuiteJson', () => {
         ).toBeCloseTo(expectedEndTime, -3);
         expect(suiteJson.groupId).toBe(groupId);
         expect(suiteJson.spec).toBe(spec);
-        expect(suiteJson.worker.workerIndex).toBe(1);
-        expect(suiteJson.worker.parallelIndex).toBe(1);
         expect(suiteJson.results.stats.failures).toBe(1);
       },
     ],

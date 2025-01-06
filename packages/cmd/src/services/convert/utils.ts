@@ -118,8 +118,6 @@ function getTestAttempts(
       {
         _s: 'passed',
         attempt: 0,
-        workerIndex: 1,
-        parallelIndex: 1,
         startTime: suiteTimestamp,
         steps: [],
         duration: testCaseTime,
@@ -139,8 +137,6 @@ function getTestAttempts(
         attempts.push({
           _s: 'failed' as TestCaseStatus,
           attempt: index,
-          workerIndex: 1,
-          parallelIndex: 1,
           startTime: getTestStartTime(time, suiteTimestamp),
           steps: [],
           duration: testCaseTime,

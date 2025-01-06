@@ -45,8 +45,6 @@ export type WorkerInfo = {
 export type InstanceReportTestAttempt = {
   _s: TestCaseStatus;
   attempt: number;
-  workerIndex: number;
-  parallelIndex: number;
 
   startTime: string;
   steps: unknown[];
