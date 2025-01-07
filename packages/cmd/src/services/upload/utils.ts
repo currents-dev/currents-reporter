@@ -4,7 +4,7 @@ export const sizeof = (value: unknown): number => {
 
 export const splitArrayIntoChunks = <T>(
   array: T[],
-  maxSizeInBytes: number = 10 * 1024 * 1024
+  maxSizeInBytes: number = 1 * 1024 * 1024
 ): T[][] => {
   const chunks: T[][] = [];
   let currentChunk: T[] = [];
