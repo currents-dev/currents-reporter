@@ -13,6 +13,7 @@ const debug = _debug.extend('cli');
 export async function getRunHandler(
   options: ReturnType<ReturnType<typeof getRunCommand>['opts']>
 ) {
+  console.log("############################################################");
   await commandHandler(async (opts) => {
     setAPIGetRunCommandConfig(opts);
     const config = getAPIGetRunCommandConfig();
