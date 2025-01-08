@@ -84,7 +84,6 @@ export async function createRun(params: CreateRunParams) {
   try {
     debug('Run params: %o', maskRecordKey(params));
     const data = await compressData(JSON.stringify(params));
-    console.log('PAYLOAD::', JSON.stringify(params));
 
     return makeRequest<CreateRunResponse, Buffer>(ClientType.API, {
       url: `v1/runs`,
