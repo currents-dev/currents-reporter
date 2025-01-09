@@ -26,7 +26,6 @@ import {
   getTestCaseId,
   getTestCaseStatus,
   getTestRunnerStatus,
-  getWorker,
   isTestFlaky,
   jestStatusFromInvocations,
   testToSpecName,
@@ -34,14 +33,13 @@ import {
 } from './lib';
 import { getReportConfig } from './lib/getReportConfig';
 import { info } from './logger';
-import { InstanceReport, JestTestCaseStatus, WorkerInfo } from './types';
+import { InstanceReport, JestTestCaseStatus } from './types';
 
 type TestCase = {
   id: string;
   timestamps: number[];
   title: string[];
   result: TestCaseResult[];
-  worker: WorkerInfo;
   config: Test['context']['config'];
   location?: {
     column?: number;
@@ -54,7 +52,6 @@ type SpecInfo = {
   specName: string;
   testCaseList: Record<string, TestCase>;
   specResult: TestResult | null;
-  worker: WorkerInfo;
 };
 
 type ReporterOptions = {
@@ -125,7 +122,6 @@ export default class CustomReporter implements Reporter {
       specName,
       testCaseList: {},
       specResult: null,
-      worker: getWorker(),
     };
 
     this.specInfoDeferred[specKey] = new Deferred<void>();
@@ -153,7 +149,6 @@ export default class CustomReporter implements Reporter {
         specName,
         testCaseList: {},
         specResult: null,
-        worker: getWorker(),
       };
 
       this.specInfoDeferred[specKey] = new Deferred<void>();
@@ -168,7 +163,6 @@ export default class CustomReporter implements Reporter {
         timestamps: [testCaseStartInfo.startedAt ?? new Date().getTime()],
         title: getTestCaseFullTitle(testCaseStartInfo),
         result: [],
-        worker: getWorker(),
         config: test.context.config,
       };
 
@@ -214,7 +208,6 @@ export default class CustomReporter implements Reporter {
         timestamps: [],
         title: getTestCaseFullTitle(testCaseResult),
         result: [],
-        worker: getWorker(),
         config: test.context.config,
         location: testCaseResult.location,
       };
@@ -258,7 +251,6 @@ export default class CustomReporter implements Reporter {
           timestamps: [],
           title: getTestCaseFullTitle(testCaseResult),
           result: [testCaseResult],
-          worker: getWorker(),
           config: test.context.config,
           location: testCaseResult.location,
         };
@@ -319,9 +311,6 @@ export default class CustomReporter implements Reporter {
                 _s: getTestCaseStatus(result.status as JestTestCaseStatus),
                 attempt: getAttemptNumber(result),
 
-                workerIndex: testCase.worker.workerIndex,
-                parallelIndex: testCase.worker.parallelIndex,
-
                 startTime:
                   testCase.timestamps.length && testCase.timestamps[index]
                     ? new Date(testCase.timestamps[index]).toISOString()
@@ -350,7 +339,6 @@ export default class CustomReporter implements Reporter {
     const result: InstanceReport = {
       groupId: this.specInfo[specKey].projectId,
       spec: this.specInfo[specKey].specName,
-      worker: this.specInfo[specKey].worker,
       startTime,
       results: {
         stats: {

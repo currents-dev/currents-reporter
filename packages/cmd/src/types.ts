@@ -37,11 +37,6 @@ export type LocationSchema = {
   file: string;
 };
 
-export type WorkerInfo = {
-  workerIndex: number;
-  parallelIndex: number;
-};
-
 export type InstanceReportTestAttempt = {
   _s: TestCaseStatus;
   attempt: number;
@@ -76,7 +71,6 @@ export type InstanceReportTest = {
 export type InstanceReport = {
   groupId: string;
   spec: string;
-  worker: WorkerInfo;
   startTime: string;
   results: {
     error?: string;
