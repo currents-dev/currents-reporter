@@ -61,15 +61,6 @@ export function getTestCaseId(
   return shortenedHash;
 }
 
-export function getWorker() {
-  const workerIndex = +(process.env.JEST_WORKER_ID || 1);
-
-  return {
-    workerIndex,
-    parallelIndex: workerIndex,
-  };
-}
-
 export function getTestCaseStatus(
   testStatus: JestTestCaseStatus
 ): TestCaseStatus {

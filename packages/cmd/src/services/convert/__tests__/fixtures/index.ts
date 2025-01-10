@@ -4,8 +4,6 @@ import { TestCase, TestSuite } from '../../types';
 export const mockDate = new Date('2024-12-28T12:00:00Z');
 export const time = 5000;
 export const location = { line: 1, column: 1 };
-export const workerIndex = 1;
-export const parallelIndex = 1;
 
 export const testCaseWithFailure: TestCase = {
   name: 'Test with failure',
@@ -36,8 +34,6 @@ export const instanceReportTestWithFailure: InstanceReportTest = {
     {
       _s: 'failed',
       attempt: 0,
-      workerIndex,
-      parallelIndex,
       startTime: new Date('2024-12-28T12:00:05Z').toISOString(),
       steps: [],
       duration: time,
@@ -89,8 +85,6 @@ export const instanceReportTestWithoutFailure: InstanceReportTest = {
     {
       _s: 'passed',
       attempt: 0,
-      workerIndex,
-      parallelIndex,
       startTime: mockDate.toISOString(),
       steps: [],
       duration: time,
@@ -131,8 +125,6 @@ export const instanceReportTestNoTimestamp: InstanceReportTest = {
     {
       _s: 'passed',
       attempt: 0,
-      workerIndex,
-      parallelIndex,
       startTime: mockDate.toISOString(),
       steps: [],
       duration: time,
@@ -173,8 +165,6 @@ export const instanceReportTestNoTime: InstanceReportTest = {
     {
       _s: 'passed',
       attempt: 0,
-      workerIndex: 1,
-      parallelIndex: 1,
       startTime: mockDate.toISOString(),
       steps: [],
       duration: 0,

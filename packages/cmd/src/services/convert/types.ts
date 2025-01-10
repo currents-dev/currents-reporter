@@ -1,7 +1,7 @@
 export type ReportConfig = {
   framework: string;
   frameworkVersion: string | null;
-  cliArgs: Record<string, unknown>;
+  cliArgs?: Record<string, unknown>;
   frameworkConfig: Record<string, unknown>;
 };
 

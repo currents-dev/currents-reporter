@@ -70,10 +70,6 @@ export function createSuiteJson(
   const suiteJson: InstanceReport = {
     groupId,
     spec: suiteName,
-    worker: {
-      workerIndex: 1,
-      parallelIndex: 1,
-    },
     startTime,
     results: {
       stats: {
