@@ -85,10 +85,6 @@ exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
   },
   "spec": "Test Suite 1",
   "startTime": "2024-12-20T22:12:47.937Z",
-  "worker": {
-    "parallelIndex": 1,
-    "workerIndex": 1,
-  },
 }
 `;
 
@@ -177,9 +173,5 @@ exports[`getInstanceMap > matches snapshot for Test Suite 2 1`] = `
   },
   "spec": "Test Suite 2",
   "startTime": "2024-12-20T22:12:57.937Z",
-  "worker": {
-    "parallelIndex": 1,
-    "workerIndex": 1,
-  },
 }
 `;
