@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.6...${npm.name}-v1.6.7) (2025-01-14)
+
+
+### Bug Fixes
+
+* remove worker ([8c2e09e](https://github.com/currents-dev/currents-reporter/commit/8c2e09e61d9520810406a8194185bb173b6664ff))
+* remove worker info from jest reporter ([f3e1e5d](https://github.com/currents-dev/currents-reporter/commit/f3e1e5d58fd50b13a10d20409993cf0f8054f57c))
+* removed workerIndex, parallelIndex from attempt and cliArgs from config file as they're unnecessary ([4b520f9](https://github.com/currents-dev/currents-reporter/commit/4b520f96617bdc23200aec00c2dd04336cde0f8f))
+* update snapshot ([3b05431](https://github.com/currents-dev/currents-reporter/commit/3b05431a25d3b5d5fc68ab9d4f264bd9b6860984))
+* update test snapshot ([eac97e4](https://github.com/currents-dev/currents-reporter/commit/eac97e4dd1a1fabc70830119d2e130e06e0333a6))
+
 ## [1.6.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.5...${npm.name}-v1.6.6) (2025-01-06)
 
 
