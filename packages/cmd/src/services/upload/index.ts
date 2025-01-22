@@ -241,7 +241,7 @@ function getMarkerFilePath(reportDir: string) {
   return path.join(reportDir, 'upload.marker.json');
 }
 
-function getFullTestSuiteFilePath(reportDir: string) {
+export function getFullTestSuiteFilePath(reportDir: string) {
   return path.join(reportDir, 'fullTestSuite.json');
 }
 

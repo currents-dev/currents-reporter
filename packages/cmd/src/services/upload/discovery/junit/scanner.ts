@@ -1,7 +1,7 @@
 import { debug as _debug } from '@debug';
 import { dim, error } from '@logger';
 import fs from 'fs-extra';
-import { join } from 'path';
+import { getFullTestSuiteFilePath } from 'services/upload';
 
 const debug = _debug.extend('junit-discovery');
 
@@ -12,7 +12,7 @@ export async function jUnitScanner(reportDir: string) {
     debug('running scanner: %o', reportDir);
 
     // jUnitFile is the path to the JUnit JSON file with the full test suite data
-    const fullTestSuitePath = join(reportDir, 'currents.fts.json');
+    const fullTestSuitePath = getFullTestSuiteFilePath(reportDir);
 
     process.env.CURRENTS_DISCOVERY_PATH = fullTestSuitePath;
 
