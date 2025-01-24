@@ -1,7 +1,7 @@
 import { debug as _debug } from '@debug';
 import { dim, error } from '@logger';
 import fs from 'fs-extra';
-import { getFullTestSuiteFilePath } from 'services/upload';
+import { getFullTestSuiteFilePath } from '../../../../services/upload';
 
 const debug = _debug.extend('junit-discovery');
 
