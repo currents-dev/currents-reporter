@@ -9,7 +9,9 @@ import { info } from '@logger';
 import { join } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { InstanceReport } from '../../types';
+import { getFullTestSuite } from './getFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
+import { getParsedXMLInput } from './getParsedXMLInput';
 import { getReportConfig } from './getReportConfig';
 
 export async function handleConvert() {
@@ -34,11 +36,26 @@ export async function handleConvert() {
       JSON.stringify(reportConfig)
     );
 
+    const parsedXMLInput = await getParsedXMLInput(
+      config.inputFiles,
+      reportDir
+    );
+
+    if (!parsedXMLInput) {
+      throw new Error('No valid XML JUnit report was found.');
+    }
+
+    const fullTestSuite = await getFullTestSuite(parsedXMLInput);
+
+    await writeFileAsync(
+      join(reportDir, 'fullTestSuite.json'),
+      JSON.stringify(fullTestSuite)
+    );
+
     const instances: Map<string, InstanceReport> = await getInstanceMap({
       inputFormat: config.inputFormat,
-      inputFiles: config.inputFiles,
       framework: config.framework,
-      outputDir: reportDir,
+      parsedXMLInput,
     });
 
     await Promise.all(

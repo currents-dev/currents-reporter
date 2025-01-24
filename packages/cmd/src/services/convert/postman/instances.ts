@@ -1,6 +1,4 @@
 import { generateShortHash } from '@lib/hash';
-import { error } from '@logger';
-import { parseStringPromise } from 'xml2js';
 import { InstanceReport } from '../../../types';
 import { TestCase, TestSuite } from '../types';
 import {
@@ -13,18 +11,9 @@ import {
 } from '../utils';
 
 export async function getInstanceMap(
-  xmlInput: string
+  parsedXMLInput: any
 ): Promise<Map<string, InstanceReport>> {
   const instances: Map<string, InstanceReport> = new Map();
-  const parsedXMLInput = await parseStringPromise(xmlInput, {
-    explicitArray: false,
-    mergeAttrs: true,
-  });
-
-  if (!parsedXMLInput) {
-    error('Failed to parse XML input');
-    return new Map();
-  }
 
   const testsuites = ensureArray<TestSuite>(
     parsedXMLInput.testsuites?.testsuite
