@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.6.8](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.7...${npm.name}-v1.6.8) (2025-01-30)
+
+
+### Bug Fixes
+
+* reduce default max size to 1MB ([500c933](https://github.com/currents-dev/currents-reporter/commit/500c933a801ad1027331242da12c842275a77c94))
+* remove log ([ea22468](https://github.com/currents-dev/currents-reporter/commit/ea224680087f61d8054479bebd686f055f6abeaf))
+
+
+### Features
+
+* allow reporting instance results in different requests ([3a55883](https://github.com/currents-dev/currents-reporter/commit/3a55883315ff2d6db3ccc8bea5d71d46f9de343e))
+
 ## [1.6.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.6...${npm.name}-v1.6.7) (2025-01-14)
 
 
