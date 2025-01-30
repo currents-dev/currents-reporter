@@ -63,7 +63,7 @@ export type CreateRunParams = {
   commit: Commit;
   tags: string[];
   ci: CI;
-  fullTestSuite: FullTestSuite;
+  fullTestSuite?: FullTestSuite;
   instances: InstanceReport[];
   config: RunCreationConfig;
 };

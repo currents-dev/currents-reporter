@@ -21,6 +21,7 @@ import {
   resolveReportOptions,
 } from './fs';
 import { ReportConfig, UploadMarkerInfo } from './types';
+import { splitArrayIntoChunks } from './utils';
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
@@ -137,15 +138,32 @@ export async function handleCurrentsReport() {
     }
 
     try {
+      // Divide the instance objects in chunks if the array exceeds 10MB
+      const chunks = splitArrayIntoChunks<InstanceReport>(instances);
+
+      // Call the /v1/runs endpoint with the fullTestSuite only, to create the run
       const response = await createRun({
         ci,
         group,
-        instances,
+        instances: [],
         fullTestSuite,
         config: runCreationConfig,
         machineId,
         framework,
       });
+
+      // Iterates over the instance chunks and sends the instances without the fullTestSuite
+      for (let i = 0; i < chunks.length; i++) {
+        await createRun({
+          ci,
+          group,
+          instances: chunks[i],
+          fullTestSuite: [],
+          config: runCreationConfig,
+          machineId,
+          framework,
+        });
+      }
 
       debug('Api response: %o', response);
 
@@ -182,7 +200,7 @@ async function createRun({
   ci: ReturnType<typeof getCI>;
   group: string;
   instances: InstanceReport[];
-  fullTestSuite: FullTestSuite;
+  fullTestSuite?: FullTestSuite;
   config: RunCreationConfig;
   machineId: string;
   framework: Framework;
