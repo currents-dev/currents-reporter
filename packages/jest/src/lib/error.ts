@@ -154,7 +154,7 @@ export function formatError(
       if (
         // @ts-ignore
         !error.snippet &&
-        (!file || fs.realpathSync(file) !== location.file)
+        (!file || fs.realpathSync(`${rootDir}/${file}`) !== location.file)
       ) {
         tokens.push('');
         tokens.push(
