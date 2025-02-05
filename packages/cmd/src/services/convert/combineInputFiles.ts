@@ -37,10 +37,6 @@ export async function combineInputFiles(inputFiles: string[]): Promise<string> {
   return builder.buildObject(combinedTestSuites);
 }
 
-export async function saveXMLInput(outputDir: string, xmlInput: string) {
-  return writeFileAsync(join(outputDir, 'currents.results.xml'), xmlInput);
-}
-
 async function processTestSuites(
   testsuites: TestSuite[]
 ): Promise<TestSuite[]> {
