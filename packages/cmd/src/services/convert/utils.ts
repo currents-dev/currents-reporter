@@ -18,6 +18,9 @@ export function getTestCase(
   const failures = ensureArray<string | Failure>(testCase.failure);
   const hasFailure = failures.length > 0;
   const suiteTimestamp = suite?.timestamp ?? '';
+  const skipped = 'skipped' in testCase;
+
+  const state = skipped ? 'skipped' : hasFailure ? 'failed' : 'passed';
 
   return {
     _t: getTimestampValue(suiteTimestamp),
@@ -26,9 +29,9 @@ export function getTestCase(
       suiteName
     ),
     title: getTestTitle(testCase.name, suiteName),
-    state: hasFailure ? 'failed' : 'passed',
+    state: state,
     isFlaky: getTestFlakiness(),
-    expectedStatus: hasFailure ? 'skipped' : 'passed',
+    expectedStatus: state,
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),

@@ -1,11 +1,11 @@
 // possible currents test case statuses from reported results
-export type TestCaseStatus = 'passed' | 'failed' | 'pending';
+export type TestCaseStatus = 'passed' | 'failed' | 'pending' | 'skipped';
 
 // currents values suitable for jest status
 export type TestRunnerStatus = 'passed' | 'failed' | 'skipped';
 
 // currents values suitable for jest expected status
-export type ExpectedStatus = 'passed' | 'skipped';
+export type ExpectedStatus = 'passed' | 'skipped' | 'failed';
 
 // jest test case statuses available in results
 export type JestTestCaseStatus = 'pending' | 'todo' | 'failed' | 'passed';

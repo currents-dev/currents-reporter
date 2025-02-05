@@ -60,12 +60,9 @@ export function createSuiteJson(
 
   let accTestTime = 0;
 
-  const passes = testcases.filter(
-    (tc) => (tc.failure ?? []).length === 0
-  ).length;
-  const failures = testcases.filter(
-    (tc) => (tc.failure ?? []).length > 0
-  ).length;
+  const failures = testcases.filter((tc) => 'failure' in tc).length;
+  const skipped = testcases.filter((tc) => 'skipped' in tc).length;
+  const passes = testcases.length - failures - skipped;
 
   const suiteJson: InstanceReport = {
     groupId,
@@ -77,7 +74,7 @@ export function createSuiteJson(
         tests: suite.tests ? parseInt(suite.tests) : 0,
         passes,
         pending: 0,
-        skipped: 0,
+        skipped,
         failures,
         flaky: 0,
         wallClockStartedAt: startTime,
