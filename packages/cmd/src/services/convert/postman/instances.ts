@@ -71,7 +71,7 @@ export function createSuiteJson(
     results: {
       stats: {
         suites: 1,
-        tests: suite.tests ? parseInt(suite.tests) : 0,
+        tests: testcases.length,
         passes,
         pending: 0,
         skipped,
