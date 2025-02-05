@@ -20,7 +20,7 @@ import path from 'path';
 import StackUtils from 'stack-utils';
 import url from 'url';
 import { ErrorSchema, LocationSchema } from '../types';
-import debug from 'debug';
+import { debug } from '../lib/debug';
 
 function parseErrorString(errorString: string) {
   // Remove ANSI escape codes for easier parsing
