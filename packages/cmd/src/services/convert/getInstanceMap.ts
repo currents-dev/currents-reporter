@@ -9,14 +9,14 @@ import { getInstanceMap as getInstanceMapForPostman } from './postman/instances'
 export async function getInstanceMap({
   inputFormat,
   framework,
-  parsedXMLInput,
+  parsedXMLInputs,
 }: {
   inputFormat: REPORT_INPUT_FORMATS;
   framework: REPORT_FRAMEWORKS;
-  parsedXMLInput: any;
+  parsedXMLInputs: any;
 }): Promise<Map<string, InstanceReport>> {
   if (inputFormat === REPORT_INPUT_FORMATS.junit) {
-    return getInstanceMapByFramework(framework, parsedXMLInput);
+    return getInstanceMapByFramework(framework, parsedXMLInputs);
   }
 
   return new Map();

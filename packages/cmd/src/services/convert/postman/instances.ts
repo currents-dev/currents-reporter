@@ -11,25 +11,28 @@ import {
 } from '../utils';
 
 export async function getInstanceMap(
-  parsedXMLInput: any
+  parsedXMLInputs: any[]
 ): Promise<Map<string, InstanceReport>> {
   const instances: Map<string, InstanceReport> = new Map();
 
-  const testsuites = ensureArray<TestSuite>(
-    parsedXMLInput.testsuites?.testsuite
-  );
+  parsedXMLInputs.forEach(async (item) => {
+    const parsedXMLInput = item;
+    const testsuites = ensureArray<TestSuite>(
+      parsedXMLInput.testsuites?.testsuite
+    );
 
-  const groupId = parsedXMLInput.testsuites.name;
+    const groupId = parsedXMLInput.testsuites.name;
 
-  testsuites.forEach((suite: TestSuite, index) => {
-    const suiteName = getSuiteName(suite, testsuites, index);
-    const suiteJson = createSuiteJson(suite, groupId, suiteName);
-    const fileNameHash = generateShortHash(suiteName);
+    testsuites.forEach((suite: TestSuite, index) => {
+      const suiteName = getSuiteName(suite, testsuites, index);
+      const suiteJson = createSuiteJson(suite, groupId, suiteName);
+      const fileNameHash = generateShortHash(suiteName);
 
-    // Avoid creating testless instance files as the full test suite won't have it
-    if (suiteJson.results.tests.length !== 0) {
-      instances.set(fileNameHash, suiteJson);
-    }
+      // Avoid creating testless instance files as the full test suite won't have it
+      if (suiteJson.results.tests.length !== 0) {
+        instances.set(fileNameHash, suiteJson);
+      }
+    });
   });
 
   return instances;

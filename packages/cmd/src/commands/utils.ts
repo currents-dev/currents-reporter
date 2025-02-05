@@ -23,6 +23,7 @@ export async function commandHandler<T extends Record<string, unknown>>(
     await action(commandOptions);
     process.exit(0);
   } catch (e) {
+    console.log("ERR::", e)
     error((e as Error).message);
     const exitCode = e instanceof CommanderError ? e.exitCode : 1;
     process.exit(exitCode);

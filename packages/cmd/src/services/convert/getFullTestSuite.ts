@@ -11,38 +11,43 @@ import {
   getTestTitle,
 } from './utils';
 
-export async function getFullTestSuite(parsedXMLInput: any) {
+export async function getFullTestSuite(parsedXMLInputs: any[]) {
   const fullTestSuite: FullTestSuite = [];
 
-  const testsuites = ensureArray<TestSuite>(
-    parsedXMLInput.testsuites?.testsuite
-  );
+  parsedXMLInputs.forEach(async (item) => {
+    const parsedXMLInput = item;
 
-  const fullSuiteProject: FullSuiteProject = {
-    name: parsedXMLInput.testsuites?.name ?? 'No name',
-    tags: [],
-    tests: [],
-  };
+    const testsuites = ensureArray<TestSuite>(
+      parsedXMLInput.testsuites?.testsuite
+    );
+    console.log('TESTSUITES::', testsuites);
 
-  testsuites?.forEach((suite) => {
-    const suiteName = getSuiteName(suite, testsuites);
-    const testcases = ensureArray<TestCase>(suite?.testcase);
+    const fullSuiteProject: FullSuiteProject = {
+      name: parsedXMLInput.testsuites?.name ?? 'No name',
+      tags: [],
+      tests: [],
+    };
 
-    testcases?.forEach((testcase) => {
-      const fullSuiteTest: FullSuiteTest = {
-        title: getTestTitle(testcase.name, suiteName),
-        spec: suiteName,
-        tags: [],
-        testId: generateTestId(
-          getTestTitle(testcase.name, suiteName).join(', '),
-          suiteName
-        ),
-      };
+    testsuites?.forEach((suite) => {
+      const suiteName = getSuiteName(suite, testsuites);
+      const testcases = ensureArray<TestCase>(suite?.testcase);
 
-      fullSuiteProject.tests.push(fullSuiteTest);
+      testcases?.forEach((testcase) => {
+        const fullSuiteTest: FullSuiteTest = {
+          title: getTestTitle(testcase.name, suiteName),
+          spec: suiteName,
+          tags: [],
+          testId: generateTestId(
+            getTestTitle(testcase.name, suiteName).join(', '),
+            suiteName
+          ),
+        };
+
+        fullSuiteProject.tests.push(fullSuiteTest);
+      });
     });
+    fullTestSuite.push(fullSuiteProject);
   });
-  fullTestSuite.push(fullSuiteProject);
 
   return fullTestSuite;
 }

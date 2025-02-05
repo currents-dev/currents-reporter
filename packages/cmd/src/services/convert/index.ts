@@ -36,16 +36,18 @@ export async function handleConvert() {
       JSON.stringify(reportConfig)
     );
 
-    const parsedXMLInput = await getParsedXMLInput(
+    const parsedXMLInputs = await getParsedXMLInput(
       config.inputFiles,
       reportDir
     );
 
-    if (!parsedXMLInput) {
+    if (!parsedXMLInputs) {
       throw new Error('No valid XML JUnit report was found.');
     }
 
-    const fullTestSuite = await getFullTestSuite(parsedXMLInput);
+    console.log("PARSED::", JSON.stringify(parsedXMLInputs))
+
+    const fullTestSuite = await getFullTestSuite(parsedXMLInputs);
 
     await writeFileAsync(
       join(reportDir, 'fullTestSuite.json'),
@@ -55,7 +57,7 @@ export async function handleConvert() {
     const instances: Map<string, InstanceReport> = await getInstanceMap({
       inputFormat: config.inputFormat,
       framework: config.framework,
-      parsedXMLInput,
+      parsedXMLInputs,
     });
 
     await Promise.all(

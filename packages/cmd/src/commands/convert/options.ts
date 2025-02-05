@@ -40,9 +40,16 @@ export const frameworkVersionOption = new Option(
 );
 
 function validateGlobPattern(value: string) {
-  const result = glob.globSync(value);
-  if (result.length === 0) {
-    throw new InvalidArgumentError('No files found with the provided pattern');
+  const patterns = value.split(',').map((pattern) => pattern.trim());
+
+  const allResults = patterns.reduce((acc, pattern) => {
+    const result = glob.globSync(pattern);
+    return [...acc, ...result];
+  }, [] as string[]);
+
+  if (allResults.length === 0) {
+    throw new InvalidArgumentError('No files found with the provided patterns');
   }
-  return result;
+
+  return allResults;
 }
