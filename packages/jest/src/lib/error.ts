@@ -20,6 +20,7 @@ import path from 'path';
 import StackUtils from 'stack-utils';
 import url from 'url';
 import { ErrorSchema, LocationSchema } from '../types';
+import debug from 'debug';
 
 function parseErrorString(errorString: string) {
   // Remove ANSI escape codes for easier parsing
@@ -151,16 +152,20 @@ export function formatError(
     location = parsed.location;
     if (location) {
       // Convert /var/folders to /private/var/folders on Mac.
-      if (
-        // @ts-ignore
-        !error.snippet &&
-        (!file || fs.realpathSync(`${rootDir}/${file}`) !== location.file)
-      ) {
-        tokens.push('');
-        tokens.push(
-          chalk.gray(`   at `) +
-            `${relativeFilePath(rootDir, location.file)}:${location.line}`
-        );
+      try {
+        if (
+          // @ts-ignore
+          !error.snippet &&
+          (!file || fs.realpathSync(`${rootDir}/${file}`) !== location.file)
+        ) {
+          tokens.push('');
+          tokens.push(
+            chalk.gray(`   at `) +
+              `${relativeFilePath(rootDir, location.file)}:${location.line}`
+          );
+        }
+      } catch (e) {
+        debug(`No file found: ${JSON.stringify(e)}`);
       }
       tokens.push('');
       // @ts-ignore
@@ -181,6 +186,7 @@ export function formatError(
         }
       }
     }
+
     tokens.push('');
     tokens.push(parsed.stackLines.join('\n'));
   } else if (error.message) {
