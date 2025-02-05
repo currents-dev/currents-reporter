@@ -4,7 +4,6 @@ import { ConvertCommandConfig } from './config';
 export function convertCommandOptsToConfig(
   options: ConvertCommandOpts
 ): Partial<ConvertCommandConfig> {
-  console.log("INP::", options.inputFile)
   return {
     inputFiles: options.inputFile,
     inputFormat: options.inputFormat,

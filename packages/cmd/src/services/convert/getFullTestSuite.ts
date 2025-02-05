@@ -20,7 +20,6 @@ export async function getFullTestSuite(parsedXMLInputs: any[]) {
     const testsuites = ensureArray<TestSuite>(
       parsedXMLInput.testsuites?.testsuite
     );
-    console.log('TESTSUITES::', testsuites);
 
     const fullSuiteProject: FullSuiteProject = {
       name: parsedXMLInput.testsuites?.name ?? 'No name',

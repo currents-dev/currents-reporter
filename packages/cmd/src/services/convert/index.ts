@@ -45,8 +45,6 @@ export async function handleConvert() {
       throw new Error('No valid XML JUnit report was found.');
     }
 
-    console.log("PARSED::", JSON.stringify(parsedXMLInputs))
-
     const fullTestSuite = await getFullTestSuite(parsedXMLInputs);
 
     await writeFileAsync(
