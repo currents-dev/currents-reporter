@@ -21,7 +21,7 @@ export async function getInstanceMap(
       parsedXMLInput.testsuites?.testsuite
     );
 
-    const groupId = parsedXMLInput.testsuites.name;
+    const groupId = parsedXMLInput.testsuites?.name;
 
     testsuites.forEach((suite: TestSuite, index) => {
       const suiteName = getSuiteName(suite, testsuites, index);

@@ -3,21 +3,23 @@ import { InstanceReport } from '../../../types';
 import { createSuiteJson, getInstanceMap } from '../postman/instances';
 import { timeToMilliseconds } from '../utils';
 import { mockDate } from './fixtures';
+import { getParsedXMLInput } from '../getParsedXMLInput';
+import { parseStringPromise } from 'xml2js';
 
 describe('getInstanceMap', () => {
   it('should return an empty Map when the XML input is empty', async () => {
-    expect(await getInstanceMap('')).toEqual(new Map());
+    expect(await getInstanceMap([])).toEqual(new Map());
   });
 
   it('should return an empty Map when the test suite array is empty', async () => {
-    expect(await getInstanceMap('<testsuites></testsuites>')).toEqual(
+    expect(await getInstanceMap(['<testsuites></testsuites>'])).toEqual(
       new Map()
     );
   });
 
   it('should return an empty Map when instances have no tests', async () => {
     expect(
-      await getInstanceMap('<testsuites><testsuite></testsuite></testsuites>')
+      await getInstanceMap(['<testsuites><testsuite></testsuite></testsuites>'])
     ).toEqual(new Map());
   });
 
@@ -46,7 +48,11 @@ describe('getInstanceMap', () => {
   }
 
   beforeEach(async () => {
-    instanceMap = await getInstanceMap(xmlInput);
+    const parsedXMLInput = await parseStringPromise(xmlInput, {
+      explicitArray: false,
+      mergeAttrs: true,
+    });
+    instanceMap = await getInstanceMap([parsedXMLInput]);
   });
 
   it('returns a map of instances', () => {
