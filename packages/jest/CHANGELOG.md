@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.1](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.0...${npm.name}-v1.2.1) (2025-02-05)
+
+
+### Bug Fixes
+
+* fix: use the rootDir on fs.realpathSync ([c2322a2](https://github.com/currents-dev/currents-reporter/commit/c2322a28790624bc113a6f09e7877f975fdaa976))
+* remove worker info from jest reporter ([f3e1e5d](https://github.com/currents-dev/currents-reporter/commit/f3e1e5d58fd50b13a10d20409993cf0f8054f57c))
+
+
 # [1.2.0](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.1.0...${npm.name}-v1.2.0) (2024-11-25)
 
 
