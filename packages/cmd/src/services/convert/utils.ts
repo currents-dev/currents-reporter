@@ -35,12 +35,14 @@ export function getTestCase(
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
-    attempts: getTestAttempts(
-      testCase,
-      failures,
-      getISODateValue(suiteTimestamp),
-      time
-    ),
+    attempts: skipped
+      ? []
+      : getTestAttempts(
+          testCase,
+          failures,
+          getISODateValue(suiteTimestamp),
+          time
+        ),
   };
 }
 
