@@ -23,7 +23,7 @@ export async function getInstanceMap(
     testsuites.forEach((suite: TestSuite, index) => {
       const suiteName = getSuiteName(suite, testsuites, index);
       const suiteJson = createSuiteJson(suite, groupId, suiteName);
-      const fileNameHash = generateShortHash(suiteName);
+      const fileNameHash = generateShortHash(groupId + suiteName);
 
       // Avoid creating testless instance files as the full test suite won't have it
       if (suiteJson.results.tests.length !== 0) {
