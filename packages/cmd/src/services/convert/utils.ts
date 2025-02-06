@@ -35,14 +35,13 @@ export function getTestCase(
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
-    attempts: skipped
-      ? []
-      : getTestAttempts(
-          testCase,
-          failures,
-          getISODateValue(suiteTimestamp),
-          time
-        ),
+    attempts: getTestAttempts(
+      testCase,
+      failures,
+      getISODateValue(suiteTimestamp),
+      time,
+      skipped
+    ),
   };
 }
 
@@ -115,9 +114,26 @@ function getTestAttempts(
   testCase: TestCase,
   failures: (Failure | string)[],
   suiteTimestamp: string,
-  time: number
+  time: number,
+  skipped?: boolean
 ): InstanceReportTestAttempt[] {
   const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
+  if (skipped) {
+    return [
+      {
+        _s: 'pending',
+        attempt: 0,
+        startTime: suiteTimestamp,
+        steps: [],
+        duration: testCaseTime,
+        status: 'skipped',
+        stdout: getStdOut(testCase?.['system-out']),
+        stderr: [],
+        errors: [],
+        error: undefined,
+      },
+    ];
+  }
   if (failures.length === 0) {
     return [
       {
