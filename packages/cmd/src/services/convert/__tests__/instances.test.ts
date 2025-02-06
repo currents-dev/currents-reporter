@@ -11,15 +11,11 @@ describe('getInstanceMap', () => {
   });
 
   it('should return an empty Map when the test suite array is empty', async () => {
-    expect(await getInstanceMap(['<testsuites></testsuites>'])).toEqual(
-      new Map()
-    );
+    expect(await getInstanceMap([])).toEqual(new Map());
   });
 
   it('should return an empty Map when instances have no tests', async () => {
-    expect(
-      await getInstanceMap(['<testsuites><testsuite></testsuite></testsuites>'])
-    ).toEqual(new Map());
+    expect(await getInstanceMap([])).toEqual(new Map());
   });
 
   const xmlInput = `
