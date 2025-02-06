@@ -22,6 +22,7 @@ import {
 } from './fs';
 import { ReportConfig, UploadMarkerInfo } from './types';
 import { splitArrayIntoChunks } from './utils';
+import { getFullTestSuiteFilePath } from './path';
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
@@ -239,10 +240,6 @@ async function createRun({
 
 function getMarkerFilePath(reportDir: string) {
   return path.join(reportDir, 'upload.marker.json');
-}
-
-export function getFullTestSuiteFilePath(reportDir: string) {
-  return path.join(reportDir, 'fullTestSuite.json');
 }
 
 function getTraceFilePath(reportDir: string) {

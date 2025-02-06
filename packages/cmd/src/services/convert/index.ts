@@ -3,15 +3,16 @@ import {
   createFolder,
   createUniqueFolder,
   generateShortHash,
-  writeFileAsync,
+  writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
 import { join } from 'path';
+import { getFullTestSuiteFilePath } from '../upload/path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { InstanceReport } from '../../types';
 import { getFullTestSuite } from './getFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
-import { getParsedXMLInput } from './getParsedXMLInput';
+import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
 
 export async function handleConvert() {
@@ -31,36 +32,33 @@ export async function handleConvert() {
 
     info('[currents] Convertion files: %s', config.inputFiles.join(', '));
 
-    await writeFileAsync(
+    await writeFileAsyncIfNotExists(
       join(reportDir, 'config.json'),
       JSON.stringify(reportConfig)
     );
 
-    const parsedXMLInputs = await getParsedXMLInput(
-      config.inputFiles,
-      reportDir
-    );
+    const parsedXMLArray = await getParsedXMLArray(config.inputFiles);
 
-    if (!parsedXMLInputs) {
+    if (parsedXMLArray.length === 0) {
       throw new Error('No valid XML JUnit report was found.');
     }
 
-    const fullTestSuite = await getFullTestSuite(parsedXMLInputs);
+    const fullTestSuite = await getFullTestSuite(parsedXMLArray);
 
-    await writeFileAsync(
-      join(reportDir, 'fullTestSuite.json'),
+    await writeFileAsyncIfNotExists(
+      getFullTestSuiteFilePath(reportDir),
       JSON.stringify(fullTestSuite)
     );
 
     const instances: Map<string, InstanceReport> = await getInstanceMap({
       inputFormat: config.inputFormat,
       framework: config.framework,
-      parsedXMLInputs,
+      parsedXMLArray,
     });
 
     await Promise.all(
       Array.from(instances.entries()).map(([name, report]) =>
-        writeFileAsync(
+        writeFileAsyncIfNotExists(
           join(instancesDir, `${generateShortHash(name)}.json`),
           JSON.stringify(report)
         )

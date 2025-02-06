@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { parseStringPromise } from 'xml2js';
 import { InstanceReport } from '../../../types';
 import { createSuiteJson, getInstanceMap } from '../postman/instances';
 import { timeToMilliseconds } from '../utils';
 import { mockDate } from './fixtures';
-import { getParsedXMLInput } from '../getParsedXMLInput';
-import { parseStringPromise } from 'xml2js';
 
 describe('getInstanceMap', () => {
   it('should return an empty Map when the XML input is empty', async () => {

@@ -1,6 +1,6 @@
 import { generateShortHash } from '@lib/hash';
 import { InstanceReport } from '../../../types';
-import { TestCase, TestSuite } from '../types';
+import { TestCase, TestSuite, TestSuites } from '../types';
 import {
   ensureArray,
   getISODateValue,
@@ -11,17 +11,14 @@ import {
 } from '../utils';
 
 export async function getInstanceMap(
-  parsedXMLInputs: any[]
+  parsedXMLArray: TestSuites[]
 ): Promise<Map<string, InstanceReport>> {
   const instances: Map<string, InstanceReport> = new Map();
 
-  parsedXMLInputs.forEach(async (item) => {
-    const parsedXMLInput = item;
-    const testsuites = ensureArray<TestSuite>(
-      parsedXMLInput.testsuites?.testsuite
-    );
+  parsedXMLArray.forEach((item) => {
+    const testsuites = ensureArray<TestSuite>(item.testsuites?.testsuite);
 
-    const groupId = parsedXMLInput.testsuites?.name;
+    const groupId = item.testsuites?.name ?? 'No name';
 
     testsuites.forEach((suite: TestSuite, index) => {
       const suiteName = getSuiteName(suite, testsuites, index);

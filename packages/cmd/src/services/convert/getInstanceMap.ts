@@ -5,18 +5,19 @@ import {
 } from '../../commands/convert/options';
 import { InstanceReport } from '../../types';
 import { getInstanceMap as getInstanceMapForPostman } from './postman/instances';
+import { TestSuites } from './types';
 
 export async function getInstanceMap({
   inputFormat,
   framework,
-  parsedXMLInputs,
+  parsedXMLArray,
 }: {
   inputFormat: REPORT_INPUT_FORMATS;
   framework: REPORT_FRAMEWORKS;
-  parsedXMLInputs: any;
+  parsedXMLArray: TestSuites[];
 }): Promise<Map<string, InstanceReport>> {
   if (inputFormat === REPORT_INPUT_FORMATS.junit) {
-    return getInstanceMapByFramework(framework, parsedXMLInputs);
+    return getInstanceMapByFramework(framework, parsedXMLArray);
   }
 
   return new Map();
@@ -24,13 +25,13 @@ export async function getInstanceMap({
 
 async function getInstanceMapByFramework(
   framework: REPORT_FRAMEWORKS,
-  parsedXMLInput: any
+  parsedXMLArray: TestSuites[]
 ) {
   switch (framework) {
     case 'postman':
-      return getInstanceMapForPostman(parsedXMLInput);
+      return getInstanceMapForPostman(parsedXMLArray);
     case 'vitest':
-      return getInstanceMapForPostman(parsedXMLInput);
+      return getInstanceMapForPostman(parsedXMLArray);
     default:
       warn('Unsupported framework: %s', framework);
       return new Map<string, InstanceReport>();

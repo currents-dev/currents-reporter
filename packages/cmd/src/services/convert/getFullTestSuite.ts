@@ -3,7 +3,7 @@ import {
   FullSuiteTest,
   FullTestSuite,
 } from '../upload/discovery';
-import { TestCase, TestSuite } from './types';
+import { TestCase, TestSuite, TestSuites } from './types';
 import {
   ensureArray,
   generateTestId,
@@ -11,18 +11,14 @@ import {
   getTestTitle,
 } from './utils';
 
-export async function getFullTestSuite(parsedXMLInputs: any[]) {
+export async function getFullTestSuite(parsedXMLInputs: TestSuites[]) {
   const fullTestSuite: FullTestSuite = [];
 
-  parsedXMLInputs.forEach(async (item) => {
-    const parsedXMLInput = item;
-
-    const testsuites = ensureArray<TestSuite>(
-      parsedXMLInput.testsuites?.testsuite
-    );
+  parsedXMLInputs.forEach((item) => {
+    const testsuites = ensureArray<TestSuite>(item.testsuites?.testsuite);
 
     const fullSuiteProject: FullSuiteProject = {
-      name: parsedXMLInput.testsuites?.name ?? 'No name',
+      name: item.testsuites?.name ?? 'No name',
       tags: [],
       tests: [],
     };
