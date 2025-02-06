@@ -5,7 +5,7 @@ export type TestCaseStatus = 'passed' | 'failed' | 'pending';
 export type TestRunnerStatus = 'passed' | 'failed' | 'skipped';
 
 // currents values suitable for jest expected status
-export type ExpectedStatus = 'passed' | 'skipped';
+export type ExpectedStatus = 'passed' | 'pending' | 'failed';
 
 // jest test case statuses available in results
 export type JestTestCaseStatus = 'pending' | 'todo' | 'failed' | 'passed';

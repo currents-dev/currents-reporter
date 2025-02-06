@@ -168,7 +168,7 @@ describe('createSuiteJson', () => {
         ],
       },
       (suiteJson: InstanceReport) => {
-        expect(suiteJson.results.stats.passes).toBe(2);
+        expect(suiteJson.results.stats.passes).toBe(0);
       },
     ],
     [
@@ -182,7 +182,7 @@ describe('createSuiteJson', () => {
         ).toBeCloseTo(expectedEndTime, -3);
         expect(suiteJson.groupId).toBe(groupId);
         expect(suiteJson.spec).toBe(spec);
-        expect(suiteJson.results.stats.failures).toBe(1);
+        expect(suiteJson.results.stats.failures).toBe(2);
       },
     ],
   ])('%s', async (_, suite, assertion) => {

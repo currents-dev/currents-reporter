@@ -26,7 +26,7 @@ export const instanceReportTestWithFailure: InstanceReportTest = {
   title: [suiteNameWithFailure, 'Test with failure'],
   state: 'failed',
   isFlaky: false,
-  expectedStatus: 'skipped',
+  expectedStatus: 'passed',
   timeout: 0,
   location: { ...location, file: 'testfile.ts' },
   retries: 1,

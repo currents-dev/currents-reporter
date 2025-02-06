@@ -18,6 +18,9 @@ export function getTestCase(
   const failures = ensureArray<string | Failure>(testCase.failure);
   const hasFailure = failures.length > 0;
   const suiteTimestamp = suite?.timestamp ?? '';
+  const skipped = 'skipped' in testCase;
+
+  const state = skipped ? 'pending' : hasFailure ? 'failed' : 'passed';
 
   return {
     _t: getTimestampValue(suiteTimestamp),
@@ -26,9 +29,9 @@ export function getTestCase(
       suiteName
     ),
     title: getTestTitle(testCase.name, suiteName),
-    state: hasFailure ? 'failed' : 'passed',
+    state: state,
     isFlaky: getTestFlakiness(),
-    expectedStatus: hasFailure ? 'skipped' : 'passed',
+    expectedStatus: 'passed',
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
@@ -36,7 +39,8 @@ export function getTestCase(
       testCase,
       failures,
       getISODateValue(suiteTimestamp),
-      time
+      time,
+      skipped
     ),
   };
 }
@@ -110,9 +114,26 @@ function getTestAttempts(
   testCase: TestCase,
   failures: (Failure | string)[],
   suiteTimestamp: string,
-  time: number
+  time: number,
+  skipped?: boolean
 ): InstanceReportTestAttempt[] {
   const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
+  if (skipped) {
+    return [
+      {
+        _s: 'pending',
+        attempt: 0,
+        startTime: suiteTimestamp,
+        steps: [],
+        duration: testCaseTime,
+        status: 'skipped',
+        stdout: getStdOut(testCase?.['system-out']),
+        stderr: [],
+        errors: [],
+        error: undefined,
+      },
+    ];
+  }
   if (failures.length === 0) {
     return [
       {
