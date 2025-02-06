@@ -1,7 +1,6 @@
 describe('describe block 1', () => {
   it('expect 1 to match 1', () => {
     expect(1).toBe(1);
-    process.exit(1)
   });
 
   it.todo('todo test');
