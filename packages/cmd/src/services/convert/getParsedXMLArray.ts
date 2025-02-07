@@ -17,8 +17,9 @@ export async function getParsedXMLArray(
 }
 
 const getParsedXMLInput = async (XMLString: string) => {
-  if (XMLString.trim()) {
-    const parsedXMLInput = await parseStringPromise(XMLString.trim(), {
+  const trimmedXMLString = XMLString.trim();
+  if (trimmedXMLString) {
+    const parsedXMLInput = await parseStringPromise(trimmedXMLString, {
       explicitArray: false,
       mergeAttrs: true,
     });

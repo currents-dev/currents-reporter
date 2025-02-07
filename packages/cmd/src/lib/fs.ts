@@ -36,7 +36,7 @@ export async function writeFileAsyncIfNotExists(
       return filePath;
     } catch {
       // File doesn't exist, create it
-      await writeFileAsync(filePath, content);
+      await fs.writeFile(filePath, content, 'utf8');
       return filePath;
     }
   } catch (err) {

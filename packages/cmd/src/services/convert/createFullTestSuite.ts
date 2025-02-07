@@ -11,7 +11,7 @@ import {
   getTestTitle,
 } from './utils';
 
-export async function getFullTestSuite(parsedXMLInputs: TestSuites[]) {
+export function createFullTestSuite(parsedXMLInputs: TestSuites[]) {
   const fullTestSuite: FullTestSuite = [];
 
   parsedXMLInputs.forEach((item) => {

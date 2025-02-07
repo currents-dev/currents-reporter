@@ -10,7 +10,7 @@ import { join } from 'path';
 import { getFullTestSuiteFilePath } from '../upload/path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { InstanceReport } from '../../types';
-import { getFullTestSuite } from './getFullTestSuite';
+import { createFullTestSuite } from './createFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
@@ -43,7 +43,7 @@ export async function handleConvert() {
       throw new Error('No valid XML JUnit report was found.');
     }
 
-    const fullTestSuite = await getFullTestSuite(parsedXMLArray);
+    const fullTestSuite = createFullTestSuite(parsedXMLArray);
 
     await writeFileAsyncIfNotExists(
       getFullTestSuiteFilePath(reportDir),
