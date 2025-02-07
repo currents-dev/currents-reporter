@@ -16,8 +16,8 @@ export const inputFormatOption = new Option(
 ).choices(Object.values(REPORT_INPUT_FORMATS));
 
 export const inputFileOption = new Option(
-  '--input-file <pattern>',
-  'the pattern to search for test reports'
+  '--input-file <pattern>,<pattern>',
+  'comma separated patterns to search multiple test report files'
 ).argParser(validateGlobPattern);
 
 export const outputDirOption = new Option(
