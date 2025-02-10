@@ -16,8 +16,8 @@ export const inputFormatOption = new Option(
 ).choices(Object.values(REPORT_INPUT_FORMATS));
 
 export const inputFileOption = new Option(
-  '--input-file <pattern>',
-  'the pattern to search for test reports'
+  '--input-file <patterns>',
+  'comma-separated glob patterns to match report file paths (e.g., "report1.xml,report2.xml")'
 ).argParser(validateGlobPattern);
 
 export const outputDirOption = new Option(
@@ -40,9 +40,13 @@ export const frameworkVersionOption = new Option(
 );
 
 function validateGlobPattern(value: string) {
-  const result = glob.globSync(value);
-  if (result.length === 0) {
-    throw new InvalidArgumentError('No files found with the provided pattern');
+  const patterns = value.split(',').map((pattern) => pattern.trim());
+
+  const allResults = glob.globSync(patterns);
+
+  if (allResults.length === 0) {
+    throw new InvalidArgumentError('No files found with the provided patterns');
   }
-  return result;
+
+  return allResults;
 }

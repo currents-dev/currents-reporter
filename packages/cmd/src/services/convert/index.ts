@@ -3,13 +3,16 @@ import {
   createFolder,
   createUniqueFolder,
   generateShortHash,
-  writeFileAsync,
+  writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
 import { join } from 'path';
+import { getFullTestSuiteFilePath } from '../upload/path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { InstanceReport } from '../../types';
+import { createFullTestSuite } from './createFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
+import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
 
 export async function handleConvert() {
@@ -29,21 +32,33 @@ export async function handleConvert() {
 
     info('[currents] Convertion files: %s', config.inputFiles.join(', '));
 
-    await writeFileAsync(
+    await writeFileAsyncIfNotExists(
       join(reportDir, 'config.json'),
       JSON.stringify(reportConfig)
     );
 
+    const parsedXMLArray = await getParsedXMLArray(config.inputFiles);
+
+    if (parsedXMLArray.length === 0) {
+      throw new Error('No valid XML JUnit report was found.');
+    }
+
+    const fullTestSuite = createFullTestSuite(parsedXMLArray);
+
+    await writeFileAsyncIfNotExists(
+      getFullTestSuiteFilePath(reportDir),
+      JSON.stringify(fullTestSuite)
+    );
+
     const instances: Map<string, InstanceReport> = await getInstanceMap({
       inputFormat: config.inputFormat,
-      inputFiles: config.inputFiles,
       framework: config.framework,
-      outputDir: reportDir,
+      parsedXMLArray,
     });
 
     await Promise.all(
       Array.from(instances.entries()).map(([name, report]) =>
-        writeFileAsync(
+        writeFileAsyncIfNotExists(
           join(instancesDir, `${generateShortHash(name)}.json`),
           JSON.stringify(report)
         )

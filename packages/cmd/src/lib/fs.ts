@@ -24,6 +24,27 @@ export async function writeFileAsync(filePath: string, content: string) {
   }
 }
 
+export async function writeFileAsyncIfNotExists(
+  filePath: string,
+  content: string
+) {
+  try {
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+      // If we reach here, file exists
+      return filePath;
+    } catch {
+      // File doesn't exist, create it
+      await fs.writeFile(filePath, content, 'utf8');
+      return filePath;
+    }
+  } catch (err) {
+    error(`Error writing file at ${filePath}:`, err);
+    throw err;
+  }
+}
+
 export async function ensurePathExists(
   filePath: string,
   isDirectory?: boolean

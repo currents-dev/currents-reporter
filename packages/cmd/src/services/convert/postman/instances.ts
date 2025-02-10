@@ -1,8 +1,6 @@
 import { generateShortHash } from '@lib/hash';
-import { error } from '@logger';
-import { parseStringPromise } from 'xml2js';
 import { InstanceReport } from '../../../types';
-import { TestCase, TestSuite } from '../types';
+import { TestCase, TestSuite, TestSuites } from '../types';
 import {
   ensureArray,
   getISODateValue,
@@ -13,34 +11,25 @@ import {
 } from '../utils';
 
 export async function getInstanceMap(
-  xmlInput: string
+  parsedXMLArray: TestSuites[]
 ): Promise<Map<string, InstanceReport>> {
   const instances: Map<string, InstanceReport> = new Map();
-  const parsedXMLInput = await parseStringPromise(xmlInput, {
-    explicitArray: false,
-    mergeAttrs: true,
-  });
 
-  if (!parsedXMLInput) {
-    error('Failed to parse XML input');
-    return new Map();
-  }
+  parsedXMLArray.forEach((item) => {
+    const testsuites = ensureArray<TestSuite>(item.testsuites?.testsuite);
 
-  const testsuites = ensureArray<TestSuite>(
-    parsedXMLInput.testsuites?.testsuite
-  );
+    const groupId = item.testsuites?.name ?? 'No name';
 
-  const groupId = parsedXMLInput.testsuites.name;
+    testsuites.forEach((suite: TestSuite, index) => {
+      const suiteName = getSuiteName(suite, testsuites, index);
+      const suiteJson = createSuiteJson(suite, groupId, suiteName);
+      const fileNameHash = generateShortHash(groupId + suiteName);
 
-  testsuites.forEach((suite: TestSuite, index) => {
-    const suiteName = getSuiteName(suite, testsuites, index);
-    const suiteJson = createSuiteJson(suite, groupId, suiteName);
-    const fileNameHash = generateShortHash(suiteName);
-
-    // Avoid creating testless instance files as the full test suite won't have it
-    if (suiteJson.results.tests.length !== 0) {
-      instances.set(fileNameHash, suiteJson);
-    }
+      // Avoid creating testless instance files as the full test suite won't have it
+      if (suiteJson.results.tests.length !== 0) {
+        instances.set(fileNameHash, suiteJson);
+      }
+    });
   });
 
   return instances;
