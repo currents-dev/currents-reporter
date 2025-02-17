@@ -57,7 +57,7 @@ vi.mock('../../../logger');
 
 describe('handleGetCache', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     vi.mocked(getCacheCommandConfig).mockReturnValue(mockConfig);
     vi.mocked(getCI).mockReturnValue(mockCI);
     vi.mocked(retrieveCache).mockResolvedValue(mockCacheResult);
