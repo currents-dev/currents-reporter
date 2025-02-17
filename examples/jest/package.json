@@ -9,7 +9,7 @@
     "build": "echo \"No build specified\" && exit 0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.24.3",
+    "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.24.1",
     "@currents/jest": "*",
     "@currents/cmd": "*",
