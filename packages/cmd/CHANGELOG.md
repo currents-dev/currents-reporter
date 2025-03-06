@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.9](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.8...${npm.name}-v1.6.9) (2025-03-06)
+
+### Features
+
+support WebDriverIO as valid framework in the `convert` command ([f9940f0](https://github.com/currents-dev/currents-reporter/commit/f9940f0ff7d8016356b145b007fb6f9e55b811b7))
+
 ## [1.6.8](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.7...${npm.name}-v1.6.8) (2025-01-30)
 
 
