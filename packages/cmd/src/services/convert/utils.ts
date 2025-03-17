@@ -204,7 +204,7 @@ export function ensureArray<T>(value: unknown): T[] {
   if (!value) {
     return [];
   }
-  return Array.isArray(value) ? value : [value];
+  return Array.isArray(value) ? value : [value as T];
 }
 
 export function secondsToMilliseconds(seconds: number) {
