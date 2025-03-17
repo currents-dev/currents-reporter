@@ -10,9 +10,13 @@ A monorepo which contains the following packages:
 
 - `npm i`
 - `npm run build`
-- `cd ./examples`
+
 
 ### Creating a report
+
+#### Creating a report using Jest
+
+- `cd examples/jest`
 
 Run `npm run test` to run example spec files.
 

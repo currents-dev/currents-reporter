@@ -4,8 +4,8 @@
   "description": "",
   "private": true,
   "scripts": {
-    "test": "jest",
-    "report": "CURRENTS_API_URL=http://localhost:1234 currents --project-id=xW2Ijf --key=9bqJY1huXL2l3ONF",
+    "test": "jest --verbose",
+    "report": "CURRENTS_API_URL=https://cy-staging.currents.dev currents --project-id=oB2sOh --key=X7BlDKpmGvrwQoOh",
     "build": "echo \"No build specified\" && exit 0"
   },
   "devDependencies": {

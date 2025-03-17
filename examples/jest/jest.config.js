@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   reporters: [
-    // "default",
+    "default",
     ['@currents/jest', {}],
   ],
   projects: [
