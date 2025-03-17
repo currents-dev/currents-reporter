@@ -1,0 +1,17 @@
+{
+    "name": "examples-postman",
+    "version": "0.0.0",
+    "description": "",
+    "private": true,
+    "scripts": {
+      "convert": "npx currents convert --input-format=junit --input-file=tests.xml --framework=postman",
+      "report": "CURRENTS_API_URL=http://localhost:1234 currents --project-id=oB2sOh --key=X7BlDKpmGvrwQoOh",
+      "build": "echo \"No build specified\" && exit 0"
+    },
+    "devDependencies": {
+      "@currents/cmd": "*"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+  }
