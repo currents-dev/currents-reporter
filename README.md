@@ -6,6 +6,19 @@ A monorepo which contains the following packages:
 - `@currents/cmd` - `currents` CLI command ([documentation](https://docs.currents.dev/resources/reporters/currents-cmd))
 - `examples` - a private package used to test the implementation
 
+## Develop and contribute
+- run `npm i`
+- run `npm run dev`
+
+* in case you would like to test the `examples` folder, please run the `npm link` command as well:
+- go the desired package. i.e. `cd packages/cmd`
+- run `npm link` - This will create a global symlink to the package.
+- go the desired examples folder. i.e. `cd examples/postman`
+- run `npm link @currents/cmd`. 
+- Now you can call the `currents` command and it will call the local repo code. 
+
+notice: the `npm run dev` is compiling and building the package on each change, in case it is not running you will have to manually call the build command.
+
 ## Testing locally
 
 - `npm i`
