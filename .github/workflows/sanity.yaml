@@ -1,0 +1,64 @@
+name: Sanity tests
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  sanity:
+    name: "Sanity tests"
+    runs-on: ubuntu-22.04
+    container: mcr.microsoft.com/playwright:v1.49.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+          cache: "npm"
+      
+      - name: Install dependencies
+        run: |
+          npm install --ci
+  
+      - name: Build packages
+        run: |
+            npm run build
+            # install again to create symlink in .bin
+            npm install --ci
+
+      # - name: Run tests - run all tests under e2e folder.
+      #   env:
+      #     FILE_CURRENTS_RECORD_KEY: "WQwnNa9ghgK9vTgb"
+      #     FILE_CURRENTS_PROJECT_ID: "gzfWyn"
+      #   run: |
+      #     cd e2e
+      #     IGNORED_DIRS=("node_modules" "test-results" "files" "utils")
+
+      #     # Function to recursively process directories
+      #     process_directories() {
+      #       local current_dir="$1"
+
+      #       # Loop through all items in the current directory
+      #       for item in "$current_dir"/*; do
+      #         if [ -d "$item" ]; then
+      #           local dir_name=$(basename "$item")
+
+      #           # Skip if the directory is in the ignored list
+      #           if [[ ! " ${IGNORED_DIRS[@]} " =~ " $dir_name " ]]; then
+      #             cd $item
+      #             echo "Now inside directory: $item"
+      #             CURRENTS_API_URL=https://cy-staging.currents.dev npx pwc --key WQwnNa9ghgK9vTgb --project-id gzfWyn
+                  
+      #             # Recursively process the subdirectory
+      #             process_directories "$item"
+      #           fi
+      #         fi
+      #       done
+      #     }
+
+      #     # Start processing from the current directory
+      #     process_directories "$(pwd)"
+      #   shell: bash
