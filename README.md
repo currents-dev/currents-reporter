@@ -37,7 +37,7 @@ For a custom path for the report directory, set an absolute path to the `reportD
 
 ### Uploading the results
 
-Set the `projectId`, `recordKey` and optionlly the `ciBuildId`. Run `npx currents upload --help` for details.
+Set the `projectId`, `recordKey` and optionally the `ciBuildId`. Run `npx currents upload --help` for details.
 
 Run `npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents upload`
 
