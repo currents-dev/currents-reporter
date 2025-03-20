@@ -51,7 +51,7 @@ describe('Single Spec', () => {
 
   it('generates correctly formatted failures', async () => {
     const failures = stdout.match(/<failure/g);
-    
+
     expect(failures).toHaveLength(2);
     expect(stdout).toContain(`<testsuites name="NodeJS" tests="5" failures="${failures!.length}"`)
     expect(stdout).toContain(
