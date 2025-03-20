@@ -13,7 +13,8 @@
     "types": "tsc --noEmit",
     "rm": "rimraf dist",
     "build": "tsup-node --minify --dts",
-    "dev": "tsup-node --watch --dts"
+    "dev": "tsup-node --watch --dts",
+    "publish:npm": "npm run rm  && npm run build && ./publish.js"
   },
   "engines": {
     "node": ">=18.20.4"
