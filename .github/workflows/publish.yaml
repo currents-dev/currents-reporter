@@ -20,6 +20,7 @@ on:
         options:
           - '@currents/cmd'
           - '@currents/jest'
+          - '@currents/node-test-reporter'
 
 jobs:
   publish:
