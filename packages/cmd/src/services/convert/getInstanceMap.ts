@@ -4,6 +4,7 @@ import {
   REPORT_INPUT_FORMATS,
 } from '../../commands/convert/options';
 import { InstanceReport } from '../../types';
+import { getInstanceMap as getInstanceMapForNode } from './node/instances';
 import { getInstanceMap as getInstanceMapForPostman } from './postman/instances';
 import { TestSuites } from './types';
 import { getInstanceMap as getInstanceMapForVitest } from './vitest/instances';
@@ -30,6 +31,8 @@ async function getInstanceMapByFramework(
   parsedXMLArray: TestSuites[]
 ) {
   switch (framework) {
+    case REPORT_FRAMEWORKS.node:
+      return getInstanceMapForNode(parsedXMLArray);
     case REPORT_FRAMEWORKS.postman:
       return getInstanceMapForPostman(parsedXMLArray);
     case REPORT_FRAMEWORKS.vitest:
