@@ -25,7 +25,7 @@ export const projectOption = new Option(
 
 export const tagOption = new Option(
   '-t, --tag <tag>',
-  'Comma-separated list of tags for the run'
+  'Filter by comma-separated list of tags'
 ).argParser(parseCommaSeparatedList);
 
 export const debugOption = new Option('--debug', 'Enable debug logging')
@@ -34,7 +34,7 @@ export const debugOption = new Option('--debug', 'Enable debug logging')
 
 export const branchOption = new Option(
   '-b, --branch <branch>',
-  'Branch name for the recorded run'
+  'Filter by git branch name'
 );
 
 export const pwLastRunOption = new Option(
