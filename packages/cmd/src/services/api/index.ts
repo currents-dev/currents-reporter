@@ -51,6 +51,7 @@ async function handleOutput(
   if (config.output) {
     await ensurePathExists(config.output);
     await writeFile(config.output, data, 'utf-8');
+    info(`Successfully written to ${config.output}`);
   } else {
     info(data);
   }

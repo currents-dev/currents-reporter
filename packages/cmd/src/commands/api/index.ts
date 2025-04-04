@@ -21,10 +21,10 @@ ${chalk.bold('Examples')}
 Obtain run data by --ci-build-id:
 ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`)}
 
-Obtain most recent run data by filters:
+Obtain the most recent run data by filters:
 ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`)}
 
-Obtain last run data that matches the Playwright "test-results/.last-run.json":
+Obtain run data by --ci-build-id, save the failed test in a format compatible with Playwright --last-failed:
 ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`)}
 
 `;
@@ -32,6 +32,7 @@ ${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-bui
 export const getApiCommand = (name: string) => {
   const command = new Command()
     .command(COMMAND_NAME)
+    .description(`Interact with the Currents API`)
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
     .addCommand(getRunCommand(name));
@@ -42,7 +43,7 @@ export const getApiCommand = (name: string) => {
 export const getRunCommand = (name: string) => {
   const command = new Command()
     .name('get-run')
-    .description(`Receive information from Currents API ${getExample(name)}`)
+    .description(`Retrieve run data from Currents API ${getExample(name)}`)
     .allowUnknownOption()
     .addOption(apiKeyOption)
     .addOption(debugOption)
