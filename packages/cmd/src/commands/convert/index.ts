@@ -28,7 +28,7 @@ export const getConvertCommand = (name: string) => {
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
     .description(
-      `Convert test reports to Currents format
+      `Convert reports from various testing frameworks to Currents format
 ${getExample(name)}`
     )
     .addOption(debugOption)
