@@ -39,5 +39,5 @@ export const branchOption = new Option(
 
 export const pwLastRunOption = new Option(
   '--pw-last-run',
-  'Generate output formatted for Playwright ".last-run.json"'
+  'Create Playwright ".last-run.json" file with the failed test(s) from the run'
 );
