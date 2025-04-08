@@ -15,6 +15,7 @@ export type CacheRequestParams = {
   ci: Record<string, unknown>;
   id?: string;
   config?: CacheRequestConfigParams;
+  withCiBuildId?: boolean;
 };
 
 export type CacheCreationResponse = {
@@ -22,6 +23,7 @@ export type CacheCreationResponse = {
   orgId: string;
   uploadUrl: string;
   metaUploadUrl: string;
+  ciBuildId?: string;
 };
 
 export type CacheRetrievalResponse = {
