@@ -2,10 +2,10 @@ name: unit-tests
 on:
   push:
     branches:
-    - main
+      - main
   pull_request:
     branches:
-    - main
+      - main
 
 jobs:
   currentsUnitTests:
