@@ -74,7 +74,7 @@ jobs:
           since_last_remote_commit: 'true'
           files: packages/**
           files_ignore: packages/eslint-config-custom/**
- 
+
       - name: Successful deploy
         if: ${{ steps.changed-files.outputs.any_changed != 'true' || !(contains(needs.*.result, 'failure')) }}
         run: exit 0

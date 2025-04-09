@@ -1,144 +1,128 @@
 {
-	"info": {
-		"_postman_id": "e1e87782-7e0d-48dc-a937-3f6e1b931edc",
-		"name": "Tests",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "966223"
-	},
-	"item": [
-		{
-			"name": "Currents API",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Response status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"",
-							"pm.test(\"Response time is less than 200ms\", function () {",
-							"  pm.expect(pm.response.responseTime).to.be.below(200);",
-							"});",
-							"",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.expect(pm.response.code).to.equal(200);",
-							"});",
-							"",
-							"pm.test(\"Validate the response schema for required fields and data types\", function () {",
-							"    const responseData = pm.response.json();",
-							"",
-							"    pm.expect(responseData).to.be.an('object');",
-							"    pm.expect(responseData.status).to.be.a('string');",
-							"    pm.expect(responseData.data).to.be.an('object');",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer your-api-key",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "https://api.currents.dev/v1/runs/previous?projectId=your-project-id&ciBuildId=your-ci-build-id&pwLastRun=true",
-					"protocol": "https",
-					"host": [
-						"api",
-						"currents",
-						"dev"
-					],
-					"path": [
-						"v1",
-						"runs",
-						"previous"
-					],
-					"query": [
-						{
-							"key": "projectId",
-							"value": "your-project-id"
-						},
-						{
-							"key": "ciBuildId",
-							"value": "your-ci-build-id"
-						},
-						{
-							"key": "pwLastRun",
-							"value": "true"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Run",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Response status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"",
-							"pm.test(\"Response time is less than 200ms\", function () {",
-							"  pm.expect(pm.response.responseTime).to.be.below(200);",
-							"});",
-							"",
-							"",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.expect(pm.response.code).to.equal(200);",
-							"});",
-							"",
-							"pm.test(\"Validate the response schema for required fields and data types\", function () {",
-							"    const responseData = pm.response.json();",
-							"",
-							"    pm.expect(responseData).to.be.an('object');",
-							"    pm.expect(responseData.status).to.be.a('string');",
-							"    pm.expect(responseData.data).to.be.an('object');",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer your-api-key",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "https://api.currents.dev/v1/runs/your-run-id",
-					"protocol": "https",
-					"host": [
-						"api",
-						"currents",
-						"dev"
-					],
-					"path": [
-						"v1",
-						"runs",
-						"your-run-id"
-					]
-				}
-			},
-			"response": []
-		}
-	]
+  "info": {
+    "_postman_id": "e1e87782-7e0d-48dc-a937-3f6e1b931edc",
+    "name": "Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "966223"
+  },
+  "item": [
+    {
+      "name": "Currents API",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Response status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Response time is less than 200ms\", function () {",
+              "  pm.expect(pm.response.responseTime).to.be.below(200);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test(\"Validate the response schema for required fields and data types\", function () {",
+              "    const responseData = pm.response.json();",
+              "",
+              "    pm.expect(responseData).to.be.an('object');",
+              "    pm.expect(responseData.status).to.be.a('string');",
+              "    pm.expect(responseData.data).to.be.an('object');",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer your-api-key",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.currents.dev/v1/runs/previous?projectId=your-project-id&ciBuildId=your-ci-build-id&pwLastRun=true",
+          "protocol": "https",
+          "host": ["api", "currents", "dev"],
+          "path": ["v1", "runs", "previous"],
+          "query": [
+            {
+              "key": "projectId",
+              "value": "your-project-id"
+            },
+            {
+              "key": "ciBuildId",
+              "value": "your-ci-build-id"
+            },
+            {
+              "key": "pwLastRun",
+              "value": "true"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Run",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Response status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Response time is less than 200ms\", function () {",
+              "  pm.expect(pm.response.responseTime).to.be.below(200);",
+              "});",
+              "",
+              "",
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test(\"Validate the response schema for required fields and data types\", function () {",
+              "    const responseData = pm.response.json();",
+              "",
+              "    pm.expect(responseData).to.be.an('object');",
+              "    pm.expect(responseData.status).to.be.a('string');",
+              "    pm.expect(responseData.data).to.be.an('object');",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer your-api-key",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.currents.dev/v1/runs/your-run-id",
+          "protocol": "https",
+          "host": ["api", "currents", "dev"],
+          "path": ["v1", "runs", "your-run-id"]
+        }
+      },
+      "response": []
+    }
+  ]
 }
