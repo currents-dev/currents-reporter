@@ -29,7 +29,7 @@ export enum REPORT_FRAMEWORKS {
   postman = 'postman',
   node = 'node',
   vitest = 'vitest',
-  wdio = 'wdio'
+  wdio = 'wdio',
 }
 export const frameworkOption = new Option(
   '--framework <string>',

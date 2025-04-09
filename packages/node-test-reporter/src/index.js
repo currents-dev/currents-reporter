@@ -1,3 +1,3 @@
-import junitReporter from './reporter.js'
+import junitReporter from './reporter.js';
 
-export default junitReporter
+export default junitReporter;

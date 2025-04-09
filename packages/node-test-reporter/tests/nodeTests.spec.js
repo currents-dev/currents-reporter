@@ -23,8 +23,8 @@ describe('Nested Tests', () => {
       });
 
       it('should "fail"', () => {
-          assert.strictEqual(1 + 1, 3);
-        });
+        assert.strictEqual(1 + 1, 3);
+      });
     });
   });
 });

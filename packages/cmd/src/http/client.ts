@@ -119,7 +119,7 @@ function getNetworkRequestDebugData(data: {
     params: data.isRetry ? '<retry>' : data.params,
     headers: {
       ...data.headers,
-      'Authorization': 'Bearer ***',
+      Authorization: 'Bearer ***',
       ['x-currents-key']: '***',
     },
   };

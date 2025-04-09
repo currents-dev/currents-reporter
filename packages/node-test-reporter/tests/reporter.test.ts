@@ -9,13 +9,20 @@ describe('Single Spec', () => {
   let stdout = '';
 
   beforeAll(() => {
-    const child = spawnSync('node', ['--test', '--test-reporter', reporter, path.resolve('./tests/nodeTests.spec.js')]);
+    const child = spawnSync('node', [
+      '--test',
+      '--test-reporter',
+      reporter,
+      path.resolve('./tests/nodeTests.spec.js'),
+    ]);
     stderr = child.stderr.toString();
     stdout = child.stdout.toString();
   });
 
   it('generates expected XML output', async () => {
-    expect(stdout).toMatch(/<testsuites name="NodeJS" tests="5" failures="2" errors="0" skipped="0" time="[\d\.]+"/);
+    expect(stdout).toMatch(
+      /<testsuites name="NodeJS" tests="5" failures="2" errors="0" skipped="0" time="[\d\.]+"/
+    );
     expect(stdout).toContain(
       `<failure message="Expected values to be strictly equal:
 
@@ -53,7 +60,9 @@ describe('Single Spec', () => {
     const failures = stdout.match(/<failure/g);
 
     expect(failures).toHaveLength(2);
-    expect(stdout).toContain(`<testsuites name="NodeJS" tests="5" failures="${failures!.length}"`)
+    expect(stdout).toContain(
+      `<testsuites name="NodeJS" tests="5" failures="${failures!.length}"`
+    );
     expect(stdout).toContain(
       `<failure message="Expected values to be strictly equal:
 
@@ -89,12 +98,12 @@ describe('Single Spec', () => {
     [
       '<testcase name="Nested Tests &gt; Nested Test 1 &gt; should pass"',
       '<testcase name="Nested Tests &gt; Nested Test 1 &gt; Nested Test 2 &gt; should pass"',
-    ].forEach(testCase => {
+    ].forEach((testCase) => {
       expect(stdout).toContain(testCase);
-    })
+    });
   });
 
   it('formats special characters correctly', async () => {
-    ['&quot;', '&gt;'].forEach(symbol => expect(stdout).toContain(symbol));
+    ['&quot;', '&gt;'].forEach((symbol) => expect(stdout).toContain(symbol));
   });
 });

@@ -92,7 +92,9 @@ function getFullTestName(test) {
   const testName = test.name.replace(/"/g, '&quot;');
 
   // If there are parent names, join them with ' > ', otherwise use the test name alone.
-  return describeNames.length ? `${describeNames.join(' > ')} > ${testName}` : testName;
+  return describeNames.length
+    ? `${describeNames.join(' > ')} > ${testName}`
+    : testName;
 }
 
 /**
@@ -104,7 +106,7 @@ function getFullTestName(test) {
  *   `true` if a child element or property with the specified tag exists; otherwise, `false`.
  */
 function hasChildWithTag(node, tag) {
-  return node?.children?.some(child => child.tag === tag) || node?.[tag];
+  return node?.children?.some((child) => child.tag === tag) || node?.[tag];
 }
 
 /**
@@ -123,28 +125,30 @@ function traverseChildren(childNode, suiteElement) {
   // If the node represents a suite, iterate recursively over its children.
   if (childNode.isSuite) {
     // Generate a unique full name for the suite.
-    childNode.children.forEach(grandChild => traverseChildren(grandChild, suiteElement));
+    childNode.children.forEach((grandChild) =>
+      traverseChildren(grandChild, suiteElement)
+    );
   } else {
     // Generate a unique full name for the test case.
     const fullTestName = getFullTestName(childNode);
     const testCaseElement = suiteElement.ele('testcase', {
       name: fullTestName,
-      time: childNode.time
+      time: childNode.time,
     });
 
     // Process each child of the test case for skipped, todo, or failure information.
-    childNode.children.forEach(grandChild => {
+    childNode.children.forEach((grandChild) => {
       // Add a skipped element if the test was skipped or marked as todo.
       if (['skipped', 'todo'].includes(grandChild.type)) {
         testCaseElement.ele('skipped', {
           message: grandChild.message,
-          type: grandChild.type === 'todo' ? 'todo' : undefined
+          type: grandChild.type === 'todo' ? 'todo' : undefined,
         });
       } else if (grandChild.type) {
         // Add a failure element if the test encountered an error.
         const failureElement = testCaseElement.ele('failure', {
           message: `${grandChild.message}\n${formatError(grandChild.stack)}`,
-          type: grandChild.type
+          type: grandChild.type,
         });
 
         // Depending on whether the stack is an object, use different methods to add text data.
@@ -180,7 +184,7 @@ function updateTestMetrics(event, currentTest, state) {
     currentTest.children.push({
       nesting: event.data.nesting + 1,
       type: 'skipped',
-      message: event.data.skip
+      message: event.data.skip,
     });
   }
 
@@ -189,7 +193,7 @@ function updateTestMetrics(event, currentTest, state) {
     currentTest.children.push({
       nesting: event.data.nesting + 1,
       type: 'todo',
-      message: event.data.todo
+      message: event.data.todo,
     });
   }
 
@@ -209,7 +213,7 @@ function updateTestMetrics(event, currentTest, state) {
     // Attach failure summary to the current test.
     Object.assign(currentTest, {
       failures: 1,
-      failure: error?.message || ''
+      failure: error?.message || '',
     });
   }
 }
@@ -238,13 +242,16 @@ function convertToXML(node, parentElement, suiteMap) {
   and then process its children recursively. */
   if (node.isSuite) {
     // Generate a unique suite name based on the file path.
-    const suiteName = node.file.replace(process.cwd(), '').replace(/"/g, '&quot;');
+    const suiteName = node.file
+      .replace(process.cwd(), '')
+      .replace(/"/g, '&quot;');
     // Create or reuse the suite element based on the suite name.
-    const suiteElement = suiteMap.get(suiteName)
-      || createSuiteElement(suiteName, node, parentElement, suiteMap);
+    const suiteElement =
+      suiteMap.get(suiteName) ||
+      createSuiteElement(suiteName, node, parentElement, suiteMap);
 
     // Process each child of the suite for skipped, todo, or failure information.
-    node.children.forEach(child => traverseChildren(child, suiteElement));
+    node.children.forEach((child) => traverseChildren(child, suiteElement));
   }
 }
 
@@ -300,7 +307,7 @@ function finalizeXML(root, state, suiteMap) {
   root.att('time', state.totalTime.toFixed(6));
 
   // Convert all recorded test roots to XML segments.
-  state.roots.forEach(suite => {
+  state.roots.forEach((suite) => {
     // Skip comment strings.
     if (typeof suite !== 'string') convertToXML(suite, root, suiteMap);
   });
@@ -322,12 +329,13 @@ function finalizeXML(root, state, suiteMap) {
  */
 function handleTestResult(event, state) {
   // Ensure there is an active suite; if not, create a root-level suite.
-  if (!state.currentSuite) startTest({ data: { name: 'root', nesting: 0 } }, state);
+  if (!state.currentSuite)
+    startTest({ data: { name: 'root', nesting: 0 } }, state);
 
   // If the current suite does not match the event's test details, start a new test.
   if (
-    state.currentSuite.name !== event.data.name
-    || state.currentSuite.nesting !== event.data.nesting
+    state.currentSuite.name !== event.data.name ||
+    state.currentSuite.nesting !== event.data.nesting
   ) {
     startTest(event, state);
   }
@@ -344,9 +352,11 @@ function handleTestResult(event, state) {
   state.totalTime += Number(currentTest.time);
 
   // Determine if any child nodes indicate failure or skipped status.
-  const isFailure = node => hasChildWithTag(node, 'failure');
-  const isSkipped = node => hasChildWithTag(node, 'skipped');
-  const nonCommentChildren = currentTest.children.filter(child => typeof child !== 'string');
+  const isFailure = (node) => hasChildWithTag(node, 'failure');
+  const isSkipped = (node) => hasChildWithTag(node, 'skipped');
+  const nonCommentChildren = currentTest.children.filter(
+    (child) => typeof child !== 'string'
+  );
 
   // If there are non-comment children, treat the test as a suite and recalculate metrics.
   if (nonCommentChildren.length) {
@@ -386,7 +396,9 @@ export default async function* junitReporter(source) {
     roots: [],
   };
   const suiteMap = new Map();
-  const root = create({ version: '1.0', encoding: 'UTF-8' }).ele('testsuites', { name: 'NodeJS' });
+  const root = create({ version: '1.0', encoding: 'UTF-8' }).ele('testsuites', {
+    name: 'NodeJS',
+  });
 
   // eslint-disable-next-line no-restricted-syntax
   for await (const event of source) {
@@ -408,4 +420,4 @@ export default async function* junitReporter(source) {
 
   finalizeXML(root, state, suiteMap);
   yield root.end({ prettyPrint: true });
-};
+}
