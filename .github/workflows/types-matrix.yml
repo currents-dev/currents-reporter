@@ -21,7 +21,9 @@ jobs:
         with:
           since_last_remote_commit: true
           files: packages/**
-          files_ignore: packages/eslint-config-custom/**
+          files_ignore: |
+            packages/eslint-config-custom/**
+            packages/node-test-reporter/**
 
       - name: Generate Matrix
         id: generate-matrix
