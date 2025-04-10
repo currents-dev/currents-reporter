@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const pkg = require('./package.json');
-const { Command } = require('commander');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import { Command } from 'commander';
 
 const program = new Command()
   .name('publish')
@@ -18,7 +17,7 @@ if (!options.tag) {
   process.exit(1);
 }
 console.log(process.cwd());
-// fs.copyFileSync("./CHANGELOG.md", "./CHANGELOG.md");
+
 fs.copyFileSync('../../LICENSE.md', './LICENSE.md');
 execSync(`npm pack --dry-run && npm publish --tag ${options.tag}`, {
   cwd: './',
