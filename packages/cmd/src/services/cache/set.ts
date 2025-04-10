@@ -55,8 +55,13 @@ export async function handleSetCache() {
       matrixIndex,
       matrixTotal,
     },
+    withCiBuildId: ci.ciBuildId.source === 'server',
   });
   debug('Cache upload url created', { result });
+
+  if (result.ciBuildId) {
+    ci.ciBuildId.value = result.ciBuildId;
+  }
 
   if (uploadPaths.length > 0) {
     await handleArchiveUpload({

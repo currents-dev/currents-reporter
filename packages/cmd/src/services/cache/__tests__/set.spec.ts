@@ -129,6 +129,7 @@ describe('handleSetCache', () => {
       ci: mockCI,
       id: 'testId',
       config: { matrixIndex: 0, matrixTotal: 1 },
+      withCiBuildId: false,
     });
 
     expect(sendBuffer).toHaveBeenCalledWith(
@@ -151,6 +152,36 @@ describe('handleSetCache', () => {
       },
       'application/json',
       undefined
+    );
+  });
+
+  it('should request the ciBuildId from server and write it to meta file', async () => {
+    const localCI: ReturnType<typeof getCI> = {
+      ...mockCI,
+      ciBuildId: { source: 'server', value: null },
+    };
+    vi.mocked(getCI).mockReturnValue(localCI);
+    vi.mocked(createCache).mockResolvedValue({
+      ...mockCreateCacheResult,
+      ciBuildId: 'mockCiBuildId',
+    });
+    await handleSetCache();
+
+    expect(createCache).toHaveBeenCalledWith({
+      recordKey: 'testKey',
+      ci: localCI,
+      id: 'testId',
+      config: { matrixIndex: 0, matrixTotal: 1 },
+      withCiBuildId: true,
+    });
+
+    expect(createMeta).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ci: {
+          ...localCI,
+          ciBuildId: { source: 'server', value: 'mockCiBuildId' },
+        },
+      })
     );
   });
 
