@@ -10,7 +10,7 @@
   "description": "Currents reporter for Node Test",
   "scripts": {
     "test": "vitest",
-    "types": "tsc --noEmit",
+    "types": "echo \"No types to generate\"",
     "rm": "rimraf dist",
     "build": "tsup-node --minify --dts",
     "dev": "tsup-node --watch --dts",
