@@ -24,7 +24,11 @@
   "files": [
     "dist",
     "!**/*.map",
-    "!**/*/*.map"
+    "!**/*/*.map",
+    "LICENSE.md",
+    "README.md",
+    "CHANGELOG.md",
+    "AUTHORS"
   ],
   "keywords": [
     "node",
