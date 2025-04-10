@@ -19,7 +19,7 @@ if (!options.tag) {
 console.log(process.cwd());
 
 fs.copyFileSync('../../LICENSE.md', './LICENSE.md');
-execSync(`npm pack --dry-run && npm publish --tag ${options.tag}`, {
+execSync(`npm pack --dry-run && npm publish --access public --tag ${options.tag}`, {
   cwd: './',
   stdio: 'inherit',
 });
