@@ -1,5 +1,15 @@
 # Changelog
 
+# [1.7.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.10...${npm.name}-v1.7.0) (2025-04-10)
+
+### Features
+
+* Add support for Node as a framework for the convert command
+
+### Bug Fixes
+
+* remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
+
 ## [1.6.10](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.9...${npm.name}-v1.6.10) (2025-04-04)
 
 ### Bug Fixes
