@@ -23,7 +23,7 @@ export type CacheCreationResponse = {
   orgId: string;
   uploadUrl: string;
   metaUploadUrl: string;
-  ciBuildId?: string;
+  ciBuildId?: string | null;
 };
 
 export type CacheRetrievalResponse = {
