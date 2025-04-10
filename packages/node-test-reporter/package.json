@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "author": {
-    "name": "Business Insider"
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
   },
   "type": "module",
   "license": "MIT",
