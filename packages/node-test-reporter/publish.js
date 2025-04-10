@@ -1,7 +1,8 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
-const pkg = require('./package.json');
-const { Command } = require('commander');
+#!/usr/bin/env node
+
+import { execSync } from 'child_process';
+import fs from 'fs';
+import { Command } from 'commander';
 
 const program = new Command()
   .name('publish')
@@ -10,14 +11,15 @@ const program = new Command()
 program.parse(process.argv);
 const options = program.opts();
 
+console.log(options);
 if (!options.tag) {
   console.log('No tag supplied: beta or latest');
   process.exit(1);
 }
+console.log(process.cwd());
 
-fs.copyFileSync('../CHANGELOG.md', './CHANGELOG.md');
 fs.copyFileSync('../../LICENSE.md', './LICENSE.md');
-execSync(`npm pack --dry-run && npm publish --tag ${options.tag}`, {
+execSync(`npm pack --dry-run && npm publish --access public --tag ${options.tag}`, {
   cwd: './',
   stdio: 'inherit',
 });
