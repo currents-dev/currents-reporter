@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { execSync } = require('child_process');
 const fs = require('fs');
 const pkg = require('./package.json');
@@ -10,12 +12,13 @@ const program = new Command()
 program.parse(process.argv);
 const options = program.opts();
 
+console.log(options);
 if (!options.tag) {
   console.log('No tag supplied: beta or latest');
   process.exit(1);
 }
-
-fs.copyFileSync('../CHANGELOG.md', './CHANGELOG.md');
+console.log(process.cwd());
+// fs.copyFileSync("./CHANGELOG.md", "./CHANGELOG.md");
 fs.copyFileSync('../../LICENSE.md', './LICENSE.md');
 execSync(`npm pack --dry-run && npm publish --tag ${options.tag}`, {
   cwd: './',
