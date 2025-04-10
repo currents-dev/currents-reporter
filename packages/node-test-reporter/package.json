@@ -1,0 +1,46 @@
+{
+  "name": "@currents/node-test-reporter",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": {
+    "name": "Business Insider"
+  },
+  "type": "module",
+  "license": "MIT",
+  "description": "Currents reporter for Node Test",
+  "scripts": {
+    "test": "vitest",
+    "types": "echo \"No types to generate\"",
+    "rm": "rimraf dist",
+    "build": "tsup-node --minify --dts",
+    "dev": "tsup-node --watch --dts",
+    "publish:npm": "npm run rm  && npm run build && ./publish.js"
+  },
+  "engines": {
+    "node": ">=18.20.4"
+  },
+  "files": [
+    "dist",
+    "!**/*.map",
+    "!**/*/*.map"
+  ],
+  "keywords": [
+    "node",
+    "node test",
+    "node dashboard",
+    "cloud dashboard",
+    "reporter",
+    "currents",
+    "tests reporter",
+    "ci"
+  ],
+  "dependencies": {
+    "xmlbuilder2": "^3.1.1"
+  },
+  "devDependencies": {
+    "commander": "^12.1.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.4.0",
+    "vitest": "^3.0.8"
+  }
+}
