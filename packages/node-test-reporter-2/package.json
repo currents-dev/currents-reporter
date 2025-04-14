@@ -1,0 +1,75 @@
+{
+  "name": "@currents/node-test-reporter-2",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": {
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
+  },
+  "type": "module",
+  "license": "MIT",
+  "description": "Currents reporter for Node Test",
+  "scripts": {
+    "test": "vitest --run --passWithNoTests",
+    "rm": "rimraf dist",
+    "types": "tsc --noEmit",
+    "build": "tsup-node --minify --dts",
+    "dev": "tsup-node --watch --dts",
+    "release": "release-it",
+    "publish:npm": "npm run rm  && npm run build && ./publish.js"
+  },
+  "engines": {
+    "node": ">=18.20.4"
+  },
+  "files": [
+    "dist",
+    "!**/*.map",
+    "!**/*/*.map",
+    "LICENSE.md",
+    "README.md",
+    "CHANGELOG.md",
+    "AUTHORS"
+  ],
+  "keywords": [
+    "node",
+    "node test",
+    "node dashboard",
+    "cloud dashboard",
+    "reporter",
+    "currents",
+    "tests reporter",
+    "ci"
+  ],
+  "dependencies": {
+    "debug": "^4.4.0",
+    "xmlbuilder2": "^3.1.1"
+  },
+  "devDependencies": {
+    "@release-it/conventional-changelog": "^10.0.0",
+    "commander": "^12.1.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.4.0",
+    "vitest": "^3.0.8"
+  },
+  "release-it": {
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true,
+      "releaseName": "${npm.name} v${version}"
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular",
+        "header": "# Changelog",
+        "ignoreVersion": true,
+        "infile": "./CHANGELOG.md"
+      }
+    },
+    "git": {
+      "commitMessage": "chore: release ${npm.name} v${version}",
+      "tagName": "${npm.name}-v${version}"
+    }
+  }
+}
