@@ -154,6 +154,24 @@ describe('handleSetCache', () => {
     );
   });
 
+  it('should omit ci.ciBuildId from meta when null', async () => {
+    const localCI: ReturnType<typeof getCI> = {
+      ...mockCI,
+      ciBuildId: { source: 'server', value: null },
+    };
+    vi.mocked(getCI).mockReturnValue(localCI);
+    await handleSetCache();
+
+    expect(createMeta).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ci: {
+          ...localCI,
+          ciBuildId: undefined,
+        },
+      })
+    );
+  });
+
   it('should log success message when cache is uploaded', async () => {
     await handleSetCache();
     expect(success).toHaveBeenCalledWith(

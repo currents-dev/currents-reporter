@@ -1,5 +1,6 @@
 import { debug } from '@debug';
 
+import { omit } from 'lodash';
 import { createCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
@@ -72,7 +73,8 @@ export async function handleSetCache() {
     meta: createMeta({
       cacheId: result.cacheId,
       config: config.values,
-      ci,
+      // Exclude ciBuildId from meta if it's null
+      ci: ci.ciBuildId.value ? ci : omit(ci, 'ciBuildId'),
       orgId: result.orgId,
       path: uploadPaths,
     }),
