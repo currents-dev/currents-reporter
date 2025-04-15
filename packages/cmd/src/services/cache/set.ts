@@ -73,8 +73,7 @@ export async function handleSetCache() {
     meta: createMeta({
       cacheId: result.cacheId,
       config: config.values,
-      // Exclude ciBuildId from meta if it's null
-      ci: ci.ciBuildId.value ? ci : omit(ci, 'ciBuildId'),
+      ci: getCIForMeta(ci),
       orgId: result.orgId,
       path: uploadPaths,
     }),
@@ -141,4 +140,11 @@ async function handleMetaUpload({
     debug('Failed to upload cache meta', error);
     throw error;
   }
+}
+
+function getCIForMeta(ci: ReturnType<typeof getCI>) {
+  // exclude ciBuildId from meta file if the source is server or random
+  return ci.ciBuildId.source === 'server' || ci.ciBuildId.source === 'random'
+    ? omit(ci, 'ciBuildId')
+    : ci;
 }

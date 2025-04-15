@@ -154,23 +154,34 @@ describe('handleSetCache', () => {
     );
   });
 
-  it('should omit ci.ciBuildId from meta when null', async () => {
-    const localCI: ReturnType<typeof getCI> = {
-      ...mockCI,
-      ciBuildId: { source: 'server', value: null },
-    };
-    vi.mocked(getCI).mockReturnValue(localCI);
-    await handleSetCache();
+  it.each([
+    ['server', { source: 'server', value: null } as const],
+    ['random', { source: 'random', value: 'auto-ci-build-id' } as const],
+  ])(
+    'should omit ci.ciBuildId from meta when ci.ciBuildId.source is %s',
+    async (
+      _source: string,
+      ciBuildId:
+        | { source: 'server'; value: null }
+        | { source: 'random'; value: string }
+    ) => {
+      const localCI: ReturnType<typeof getCI> = {
+        ...mockCI,
+        ciBuildId,
+      };
+      vi.mocked(getCI).mockReturnValue(localCI);
+      await handleSetCache();
 
-    expect(createMeta).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ci: {
-          ...localCI,
-          ciBuildId: undefined,
-        },
-      })
-    );
-  });
+      expect(createMeta).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ci: {
+            ...localCI,
+            ciBuildId: undefined,
+          },
+        })
+      );
+    }
+  );
 
   it('should log success message when cache is uploaded', async () => {
     await handleSetCache();
