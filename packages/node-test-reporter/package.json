@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@release-it/conventional-changelog": "^10.0.0",
-    "commander": "^12.1.0",
+    "commander": "^13.1.0",
     "rimraf": "^6.0.1",
     "tsup": "^8.4.0",
     "vitest": "^3.0.8"
