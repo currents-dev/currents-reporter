@@ -1,182 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="NodeJS" tests="48" failures="10" errors="0" skipped="3" time="0.167841">
-  <testsuite name="/annotations.test.mjs" timestamp="2025-04-15T09:25:29.290Z" hostname="Yohays-MacBook-Pro.local" errors="0" tests="4" failures="0" skipped="0" time="0.006910">
-    <testcase name="Math Operations &gt; Addition &gt; should return 4 when adding 2 + 2" time="0.000407"/>
-    <testcase name="Math Operations &gt; Addition &gt; should return 0 when adding -2 + 2" time="0.000108">
-      <skipped message="true"/>
+<testsuites name="root">
+  <testsuite name="annotations.test.mjs" timestamp="2025-04-16T14:53:21.975Z" hostname="Yohays-MacBook-Pro.local" failures="0" skipped="4" time="0.008467">
+    <testcase name="Math Operations &gt; Addition &gt; should return 4 when adding 2 + 2" time="0.000361"/>
+    <testcase name="Math Operations &gt; Addition &gt; should return 0 when adding -2 + 2" time="0.0001">
+      <skipped/>
     </testcase>
-    <testcase name="Math Operations &gt; Addition &gt; should handle floating point addition" time="0.000046">
-      <skipped message="true" type="todo"/>
+    <testcase name="Math Operations &gt; Addition &gt; should handle floating point addition" time="0.000044">
+      <skipped type="todo"/>
     </testcase>
-    <testcase name="Math Operations &gt; Subtraction" time="0.000337">
-      <skipped message="true"/>
+    <testcase name="Math Operations &gt; Subtraction" time="0.000191" testNumber="2">
+      <skipped/>
     </testcase>
-    <testcase name="Math Operations &gt; Multiplication" time="0.000194">
-      <skipped message="true" type="todo"/>
+    <testcase name="Math Operations &gt; Multiplication" time="0.000087" testNumber="3">
+      <skipped type="todo"/>
     </testcase>
-    <testcase name="Math Operations &gt; Division &gt; should return 2 when dividing 4 / 2" time="0.001225"/>
-    <testcase name="Math Operations &gt; Division &gt; should throw an error when dividing by 0" time="0.000282"/>
+    <testcase name="Math Operations &gt; Division &gt; should return 2 when dividing 4 / 2" time="0.000282"/>
+    <testcase name="Math Operations &gt; Division &gt; should throw an error when dividing by 0" time="0.000402"/>
   </testsuite>
-  <testsuite name="/hooks.test.mjs" timestamp="2025-04-15T09:25:29.297Z" hostname="Yohays-MacBook-Pro.local" errors="0" tests="8" failures="5" skipped="0" time="0.005728">
-    <testcase name="hooks demo &gt; with setup and teardown" time="0.001201"/>
-    <testcase name="hooks demo &gt; another one for Yohay" time="0.000063"/>
-    <testcase name="hooks demo &gt; another one for Yohay 2" time="0.000109"/>
-    <testcase name="hooks demo &gt; another one for Yohay 3" time="0.002190">
-      <failure message="Expected values to be strictly equal:
-
-1 !== 2
-
+  <testsuite name="bailout.test.mjs" timestamp="2025-04-16T14:53:21.981Z" hostname="Yohays-MacBook-Pro.local" failures="1" skipped="0" time="0.041068">
+    <testcase name="/Users/ynahmany/Documents/github/currents/currents-reporter/examples/node-test-reporter/bailout.test.mjs" time="0.041068">
+      <failure type="testCodeFailure" message="test failed
 {
   &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
   &quot;failureType&quot;: &quot;testCodeFailure&quot;,
-  &quot;cause&quot;: {
-    &quot;generatedMessage&quot;: true,
-    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
-    &quot;actual&quot;: 1,
-    &quot;expected&quot;: 2,
-    &quot;operator&quot;: &quot;strictEqual&quot;
-  }
+  &quot;cause&quot;: &quot;test failed&quot;,
+  &quot;exitCode&quot;: 1,
+  &quot;signal&quot;: null
 }
-" type="testCodeFailure"><![CDATA[{
+"><![CDATA[{
   "code": "ERR_TEST_FAILURE",
   "failureType": "testCodeFailure",
-  "cause": {
-    "generatedMessage": true,
-    "code": "ERR_ASSERTION",
-    "actual": 1,
-    "expected": 2,
-    "operator": "strictEqual"
-  }
-}
-]]></failure>
-    </testcase>
-    <testcase name="hooks demo &gt; another one for Yohay 4" time="0.000148">
-      <failure message="Expected values to be strictly equal:
-
-1 !== 2
-
-{
-  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
-  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
-  &quot;cause&quot;: {
-    &quot;generatedMessage&quot;: true,
-    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
-    &quot;actual&quot;: 1,
-    &quot;expected&quot;: 2,
-    &quot;operator&quot;: &quot;strictEqual&quot;
-  }
-}
-" type="testCodeFailure"><![CDATA[{
-  "code": "ERR_TEST_FAILURE",
-  "failureType": "testCodeFailure",
-  "cause": {
-    "generatedMessage": true,
-    "code": "ERR_ASSERTION",
-    "actual": 1,
-    "expected": 2,
-    "operator": "strictEqual"
-  }
-}
-]]></failure>
-    </testcase>
-    <testcase name="hooks demo &gt; another one for Yohay 5" time="0.000152">
-      <failure message="Expected values to be strictly equal:
-
-1 !== 3
-
-{
-  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
-  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
-  &quot;cause&quot;: {
-    &quot;generatedMessage&quot;: true,
-    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
-    &quot;actual&quot;: 1,
-    &quot;expected&quot;: 3,
-    &quot;operator&quot;: &quot;strictEqual&quot;
-  }
-}
-" type="testCodeFailure"><![CDATA[{
-  "code": "ERR_TEST_FAILURE",
-  "failureType": "testCodeFailure",
-  "cause": {
-    "generatedMessage": true,
-    "code": "ERR_ASSERTION",
-    "actual": 1,
-    "expected": 3,
-    "operator": "strictEqual"
-  }
-}
-]]></failure>
-    </testcase>
-    <testcase name="hooks demo &gt; another one for Yohay 6" time="0.000063">
-      <failure message="Expected values to be strictly equal:
-
-1 !== 4
-
-{
-  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
-  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
-  &quot;cause&quot;: {
-    &quot;generatedMessage&quot;: true,
-    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
-    &quot;actual&quot;: 1,
-    &quot;expected&quot;: 4,
-    &quot;operator&quot;: &quot;strictEqual&quot;
-  }
-}
-" type="testCodeFailure"><![CDATA[{
-  "code": "ERR_TEST_FAILURE",
-  "failureType": "testCodeFailure",
-  "cause": {
-    "generatedMessage": true,
-    "code": "ERR_ASSERTION",
-    "actual": 1,
-    "expected": 4,
-    "operator": "strictEqual"
-  }
-}
-]]></failure>
-    </testcase>
-    <testcase name="hooks demo &gt; another one for Yohay 7" time="0.000673">
-      <failure message="Expected values to be strictly equal:
-
-1 !== 5
-
-{
-  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
-  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
-  &quot;cause&quot;: {
-    &quot;generatedMessage&quot;: true,
-    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
-    &quot;actual&quot;: 1,
-    &quot;expected&quot;: 5,
-    &quot;operator&quot;: &quot;strictEqual&quot;
-  }
-}
-" type="testCodeFailure"><![CDATA[{
-  "code": "ERR_TEST_FAILURE",
-  "failureType": "testCodeFailure",
-  "cause": {
-    "generatedMessage": true,
-    "code": "ERR_ASSERTION",
-    "actual": 1,
-    "expected": 5,
-    "operator": "strictEqual"
-  }
+  "cause": "test failed",
+  "exitCode": 1,
+  "signal": null
 }
 ]]></failure>
     </testcase>
   </testsuite>
-  <testsuite name="/nesting.test.mjs" timestamp="2025-04-15T09:25:29.298Z" hostname="Yohays-MacBook-Pro.local" errors="0" tests="4" failures="0" skipped="0" time="0.003215">
-    <testcase name="Math Operations &gt; Addition &gt; should return 5 when adding 2 and 3" time="0.000419"/>
-    <testcase name="Math Operations &gt; Addition &gt; should return 0 when adding -1 and 1" time="0.000118"/>
-    <testcase name="Math Operations &gt; Subtraction &gt; should return 1 when subtracting 3 from 4" time="0.000160"/>
-    <testcase name="Math Operations &gt; Subtraction &gt; should return -2 when subtracting 3 from 1" time="0.000053"/>
-    <testcase name="Math Operations &gt; Multiplication &gt; should return 6 when multiplying 2 and 3" time="0.000067"/>
-    <testcase name="Math Operations &gt; Multiplication &gt; should return 0 when multiplying any number by 0" time="0.000093"/>
-    <testcase name="Math Operations &gt; Division &gt; should return 2 when dividing 6 by 3" time="0.000121"/>
-    <testcase name="Math Operations &gt; Division &gt; should throw an error when dividing by 0" time="0.000416">
-      <failure message="Missing expected exception.
+  <testsuite name="edge-cases.test.mjs" timestamp="2025-04-16T14:53:21.981Z" hostname="Yohays-MacBook-Pro.local" failures="1" skipped="0" time="0.040401">
+    <testcase name="/Users/ynahmany/Documents/github/currents/currents-reporter/examples/node-test-reporter/edge-cases.test.mjs" time="0.040401">
+      <failure type="testCodeFailure" message="test failed
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: &quot;test failed&quot;,
+  &quot;exitCode&quot;: 1,
+  &quot;signal&quot;: null
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": "test failed",
+  "exitCode": 1,
+  "signal": null
+}
+]]></failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="hooks.test.mjs" timestamp="2025-04-16T14:53:21.981Z" hostname="Yohays-MacBook-Pro.local" failures="0" skipped="0" time="0.001287">
+    <testcase name="hooks demo" time="0.000862"/>
+    <testcase name="hooks demo &gt; with setup and teardown" time="0.000425"/>
+  </testsuite>
+  <testsuite name="nesting.test.mjs" timestamp="2025-04-16T14:53:21.982Z" hostname="Yohays-MacBook-Pro.local" failures="3" skipped="0" time="0.011179">
+    <testcase name="Math Operations &gt; Addition &gt; should return 5 when adding 2 and 3" time="0.000404"/>
+    <testcase name="Math Operations &gt; Addition &gt; should return 0 when adding -1 and 1" time="0.000114"/>
+    <testcase name="Math Operations &gt; Subtraction &gt; should return 1 when subtracting 3 from 4" time="0.000467"/>
+    <testcase name="Math Operations &gt; Subtraction &gt; should return -2 when subtracting 3 from 1" time="0.000107"/>
+    <testcase name="Math Operations &gt; Multiplication &gt; should return 6 when multiplying 2 and 3" time="0.000145"/>
+    <testcase name="Math Operations &gt; Multiplication &gt; should return 0 when multiplying any number by 0" time="0.000186"/>
+    <testcase name="Math Operations &gt; Division &gt; should return 2 when dividing 6 by 3" time="0.000305"/>
+    <testcase name="Math Operations &gt; Division &gt; should throw an error when dividing by 0" time="0.000833">
+      <failure type="testCodeFailure" message="Missing expected exception.
 {
   &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
   &quot;failureType&quot;: &quot;testCodeFailure&quot;,
@@ -187,7 +81,7 @@
     &quot;operator&quot;: &quot;throws&quot;
   }
 }
-" type="testCodeFailure"><![CDATA[{
+"><![CDATA[{
   "code": "ERR_TEST_FAILURE",
   "failureType": "testCodeFailure",
   "cause": {
@@ -200,9 +94,17 @@
 ]]></failure>
     </testcase>
   </testsuite>
-  <testsuite name="/simple.test.mjs" timestamp="2025-04-15T09:25:29.299Z" hostname="Yohays-MacBook-Pro.local" errors="0" tests="1" failures="1" skipped="0" time="0.001119">
-    <testcase name="Math operations - incorrect addition &gt; should return 5" time="0.000901">
-      <failure message="Expected values to be strictly equal:
+  <testsuite name="retries.test.mjs" timestamp="2025-04-16T14:53:21.984Z" hostname="Yohays-MacBook-Pro.local" failures="0" skipped="0" time="0.000668">
+    <testcase name="retrying flaky test" time="0.000668"/>
+  </testsuite>
+  <testsuite name="simple.test.mjs" timestamp="2025-04-16T14:53:21.984Z" hostname="Yohays-MacBook-Pro.local" failures="2" skipped="0" time="0.002224">
+    <testcase name="Math operations - addition" time="0.000567"/>
+    <testcase name="Math operations - subtraction" time="0.000057"/>
+    <testcase name="Math operations - multiplication" time="0.000051"/>
+    <testcase name="Math operations - division" time="0.000049"/>
+    <testcase name="Math operations - division by zero" time="0.000052"/>
+    <testcase name="Math operations - incorrect addition" time="0.000816">
+      <failure type="testCodeFailure" message="Expected values to be strictly equal:
 
 4 !== 5
 
@@ -217,7 +119,36 @@
     &quot;operator&quot;: &quot;strictEqual&quot;
   }
 }
-" type="testCodeFailure"><![CDATA[{
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "generatedMessage": true,
+    "code": "ERR_ASSERTION",
+    "actual": 4,
+    "expected": 5,
+    "operator": "strictEqual"
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="Math operations - incorrect addition &gt; should return 5" time="0.000632">
+      <failure type="testCodeFailure" message="Expected values to be strictly equal:
+
+4 !== 5
+
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;generatedMessage&quot;: true,
+    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
+    &quot;actual&quot;: 4,
+    &quot;expected&quot;: 5,
+    &quot;operator&quot;: &quot;strictEqual&quot;
+  }
+}
+"><![CDATA[{
   "code": "ERR_TEST_FAILURE",
   "failureType": "testCodeFailure",
   "cause": {
@@ -231,25 +162,49 @@
 ]]></failure>
     </testcase>
   </testsuite>
-  <testsuite name="/subtests.test.mjs" timestamp="2025-04-15T09:25:29.299Z" hostname="Yohays-MacBook-Pro.local" errors="0" tests="2" failures="0" skipped="0" time="0.000999">
-    <testcase name="Main test with subtests &gt; adds numbers" time="0.000357"/>
+  <testsuite name="subtests.test.mjs" timestamp="2025-04-16T14:53:21.987Z" hostname="Yohays-MacBook-Pro.local" failures="0" skipped="2" time="0.030405999999999996">
+    <testcase name="Main test with subtests" time="0.001003"/>
+    <testcase name="Main test with subtests &gt; adds numbers" time="0.000354"/>
     <testcase name="Main test with subtests &gt; subtracts numbers" time="0.000051"/>
-    <testcase name="Table-driven cases &gt; adds 1 + 2 = 3" time="0.000120"/>
-    <testcase name="Table-driven cases &gt; adds 4 + 5 = 9" time="0.000041"/>
-    <testcase name="User actions &gt; Login &gt; with correct credentials" time="0.000174"/>
+    <testcase name="Table-driven cases" time="0.000282"/>
+    <testcase name="Table-driven cases &gt; adds 1 + 2 = 3" time="0.000118"/>
+    <testcase name="Table-driven cases &gt; adds 4 + 5 = 9" time="0.000039"/>
+    <testcase name="User actions" time="0.001435"/>
+    <testcase name="User actions &gt; Login" time="0.001152"/>
+    <testcase name="User actions &gt; Login &gt; with correct credentials" time="0.000161"/>
     <testcase name="User actions &gt; Login &gt; with wrong credentials" time="0.000066"/>
-    <testcase name="User actions &gt; Logout" time="0.000130"/>
-    <testcase name="Async data fetch &gt; simulated fetch" time="0.010827"/>
-    <testcase name="Options demo &gt; concurrent test" time="0.000123"/>
-    <testcase name="Options demo &gt; this is skipped" time="0.000041">
-      <skipped message="true"/>
+    <testcase name="User actions &gt; Logout" time="0.000131"/>
+    <testcase name="Async data fetch" time="0.01197"/>
+    <testcase name="Async data fetch &gt; simulated fetch" time="0.011835"/>
+    <testcase name="Options demo" time="0.000602"/>
+    <testcase name="Options demo &gt; concurrent test" time="0.000152"/>
+    <testcase name="Options demo &gt; this is skipped" time="0.00004">
+      <skipped/>
     </testcase>
-    <testcase name="Options demo &gt; this is not a TODO" time="0.000106"/>
-    <testcase name="Options demo &gt; this is a TODO" time="0.000040">
-      <skipped message="true" type="todo"/>
+    <testcase name="Options demo &gt; this is not a TODO" time="0.000089"/>
+    <testcase name="Options demo &gt; this is a TODO" time="0.000038">
+      <skipped type="todo"/>
     </testcase>
-    <testcase name="Setup example &gt; uses sharedValue" time="0.000171"/>
-    <testcase name="Setup example &gt; still has access" time="0.000049"/>
-    <testcase name="Early exit example &gt; initial check" time="0.000037"/>
+    <testcase name="Setup example" time="0.000311"/>
+    <testcase name="Setup example &gt; uses sharedValue" time="0.000173"/>
+    <testcase name="Setup example &gt; still has access" time="0.000047"/>
+    <testcase name="Early exit example" time="0.000321"/>
+    <testcase name="Early exit example &gt; initial check" time="0.000036"/>
+  </testsuite>
+  <testsuite name="timeout.test.mjs" timestamp="2025-04-16T14:53:21.994Z" hostname="Yohays-MacBook-Pro.local" failures="1" skipped="0" time="0.001527">
+    <testcase name="this will timeout" time="0.001527">
+      <failure type="cancelledByParent" message="Promise resolution is still pending but the event loop has already resolved
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;cancelledByParent&quot;,
+  &quot;cause&quot;: &quot;Promise resolution is still pending but the event loop has already resolved&quot;
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "cancelledByParent",
+  "cause": "Promise resolution is still pending but the event loop has already resolved"
+}
+]]></failure>
+    </testcase>
   </testsuite>
 </testsuites>
