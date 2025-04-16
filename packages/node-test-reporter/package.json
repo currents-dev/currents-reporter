@@ -1,6 +1,6 @@
 {
   "name": "@currents/node-test-reporter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "author": {
     "name": "Currents Software Inc",
