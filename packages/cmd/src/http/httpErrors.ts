@@ -66,6 +66,11 @@ function handle4xx<T, D>(
         data
       );
     })
+    .with(404, () => {
+      log.warn(
+        `[currents] ${error.response?.config.method} ${error.response?.config.url} - 404 Not Found from cloud service`,
+      );
+    })
     .with(429, () => {
       log.warn(
         `[currents] ${error.response?.config.method} ${error.response?.config.url} - 429 Too Many Requests from cloud service`
