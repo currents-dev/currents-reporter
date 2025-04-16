@@ -1,6 +1,7 @@
 import { debug as _debug } from '@debug';
 
-import { maskApiKey } from '@lib';
+import { maskApiKey, ValidationError } from '@lib';
+import { error } from '@logger';
 import { getValidatedConfig } from '../utils';
 import { configKeys, getEnvVariables } from './env';
 
@@ -68,6 +69,20 @@ const mandatoryConfigKeys: MandatoryAPICommandConfigKeys[] = [
   'projectId',
 ];
 
+export const apiGetRunCustomValidation = (
+  config: APICommandConfig & APIGetRunCommandConfig
+) => {
+  const { ciBuildId, tag, branch } = config;
+  const count = [ciBuildId, tag, branch].filter(Boolean).length;
+  const isValid = count === 1 || (tag && branch && !ciBuildId);
+  if (!isValid) {
+    error(
+      '"ciBuildId", "tag", "branch" or a combination of "tag" and "branch" are expected to be provided'
+    );
+    throw new ValidationError('Missing or invalid parameters');
+  }
+};
+
 let _config: (APICommandConfig & APIGetRunCommandConfig) | null = null;
 
 export function setAPIGetRunCommandConfig(
@@ -77,7 +92,8 @@ export function setAPIGetRunCommandConfig(
     configKeys,
     mandatoryConfigKeys,
     getEnvVariables,
-    options
+    options,
+    apiGetRunCustomValidation
   );
   debug('Resolved config: %o', maskApiKey(_config));
 }

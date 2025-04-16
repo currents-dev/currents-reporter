@@ -52,7 +52,8 @@ export function getValidatedConfig<T extends ConfigKeys, R>(
   getEnvVariables: () => Partial<
     Record<keyof R, string | string[] | boolean | number | undefined>
   >,
-  options?: Partial<R>
+  options?: Partial<R>,
+  customValidation?: (config: R) => void
 ) {
   const result = {
     ...removeUndefined(options),
@@ -72,6 +73,10 @@ export function getValidatedConfig<T extends ConfigKeys, R>(
       throw new ValidationError('Missing required config variable');
     }
   });
+
+  if (typeof customValidation === 'function') {
+    customValidation(result as R);
+  }
 
   return result as R;
 }
