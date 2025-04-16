@@ -1,6 +1,6 @@
 {
   "name": "@currents/node-test-reporter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "author": {
     "name": "Currents Software Inc",
@@ -10,9 +10,9 @@
   "license": "MIT",
   "description": "Currents reporter for Node Test",
   "scripts": {
-    "test": "vitest",
-    "types": "echo \"No types to generate\"",
+    "test": "vitest --run --passWithNoTests",
     "rm": "rimraf dist",
+    "types": "tsc --noEmit",
     "build": "tsup-node --minify --dts",
     "dev": "tsup-node --watch --dts",
     "release": "release-it",
@@ -41,6 +41,7 @@
     "ci"
   ],
   "dependencies": {
+    "debug": "^4.4.0",
     "xmlbuilder2": "^3.1.1"
   },
   "devDependencies": {

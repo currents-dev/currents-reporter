@@ -21,7 +21,6 @@ on:
           - '@currents/cmd'
           - '@currents/jest'
           - '@currents/node-test-reporter'
-          - '@currents/node-test-reporter-2'
 
 jobs:
   publish:
