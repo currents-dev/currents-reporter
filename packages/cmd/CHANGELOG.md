@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.10...${npm.name}-v1.7.1) (2025-04-16)
+
+
+### Bug Fixes
+
+* api get-run: exit early if no right set of parameters provided ([96e69e6](https://github.com/currents-dev/currents-reporter/commit/96e69e606876dbb514d7e19e340d42990bb5a1f0))
+* http formatting for 404 errors ([c1170b2](https://github.com/currents-dev/currents-reporter/commit/c1170b2606e999af51bd57a3464b10c599dd9aec))
+* omit ciBuildId from cache meta file when null ([#203](https://github.com/currents-dev/currents-reporter/issues/203)) ([72c2362](https://github.com/currents-dev/currents-reporter/commit/72c23625d1f4ad78a5ef4c4fc8386c2d6f985bbd))
+* remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
+
+
+### Features
+
+* add node reporter v2 ([dae78a9](https://github.com/currents-dev/currents-reporter/commit/dae78a9a15df18751e7e139a134abe492003a3e3))
+
 # [1.7.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.10...${npm.name}-v1.7.0) (2025-04-10)
 
 ### Features
