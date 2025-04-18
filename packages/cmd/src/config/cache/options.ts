@@ -31,5 +31,6 @@ export function cacheSetCommandOptsToConfig(
     matrixIndex: options.matrixIndex,
     matrixTotal: options.matrixTotal,
     continue: options.continue,
+    saveToHistory: options.saveToHistory,
   };
 }

@@ -22,6 +22,8 @@ export type CacheCreationResponse = {
   orgId: string;
   uploadUrl: string;
   metaUploadUrl: string;
+  historyUploadUrl: string;
+  historyMetaUploadUrl: string;
 };
 
 export type CacheRetrievalResponse = {

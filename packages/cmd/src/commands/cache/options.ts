@@ -82,3 +82,8 @@ export const continueSetOption = new Option(
   '--continue',
   'Continue the script execution if upload paths are not found'
 ).default(false);
+
+export const saveToHistoryOption = new Option(
+  '--save-to-history',
+  'Save the uploaded cache to history for debugging purposes'
+).default(false);
