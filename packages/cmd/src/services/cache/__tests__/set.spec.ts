@@ -50,6 +50,8 @@ describe('handleSetCache', () => {
     cacheId: 'cacheId123',
     uploadUrl: 'http://upload.url',
     metaUploadUrl: 'http://meta.url',
+    historyUploadUrl: 'http://upload-123.url',
+    historyMetaUploadUrl: 'http://meta-123.url',
     orgId: 'org123',
   };
 
@@ -148,6 +150,42 @@ describe('handleSetCache', () => {
         contentType: 'application/json',
         name: 'cacheId123_meta',
         uploadUrl: 'http://meta.url',
+      },
+      'application/json',
+      undefined
+    );
+  });
+
+  it('should upload history cache and meta data', async () => {
+    vi.mocked(getCacheCommandConfig).mockReturnValue({
+      type: 'SET_COMMAND_CONFIG',
+      values: {
+        ...mockConfig.values,
+        saveToHistory: true,
+      },
+    });
+
+    await handleSetCache();
+
+    expect(sendBuffer).toHaveBeenCalledTimes(4);
+    expect(sendBuffer).toHaveBeenNthCalledWith(
+      3,
+      {
+        buffer: Buffer.from('zip archive'),
+        contentType: 'application/zip',
+        name: 'cacheId123',
+        uploadUrl: mockCreateCacheResult.historyUploadUrl,
+      },
+      'application/zip',
+      undefined
+    );
+    expect(sendBuffer).toHaveBeenNthCalledWith(
+      4,
+      {
+        buffer: Buffer.from('meta data'),
+        contentType: 'application/json',
+        name: 'cacheId123_meta',
+        uploadUrl: mockCreateCacheResult.historyMetaUploadUrl,
       },
       'application/json',
       undefined
