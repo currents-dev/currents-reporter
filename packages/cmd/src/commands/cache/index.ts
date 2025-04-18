@@ -6,6 +6,7 @@ import {
   continueGetOption,
   continueSetOption,
   debugOption,
+  saveToHistoryOption,
   idOption,
   matrixIndexOption,
   matrixTotalOption,
@@ -65,6 +66,7 @@ export const getCacheSetCommand = () => {
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
     .addOption(continueSetOption)
+    .addOption(saveToHistoryOption)
     .action(getCacheSetHandler);
 
   return command;

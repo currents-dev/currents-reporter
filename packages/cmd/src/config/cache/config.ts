@@ -30,6 +30,7 @@ export type CacheSetCommandConfig = CacheCommandConfig &
     path?: string[];
     pwOutputDir?: string;
     continue?: boolean;
+    saveToHistory?: boolean;
   };
 
 export type CacheGetCommandConfig = CacheCommandConfig &
