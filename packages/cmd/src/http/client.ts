@@ -3,6 +3,7 @@ import axiosRetry from 'axios-retry';
 import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
+import { reporterVersion } from '../env/versions';
 import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from './httpConfig';
 import {
   getDelay,
@@ -44,18 +45,9 @@ export function createClient(type: ClientType) {
     // @ts-ignore
     const retry = config['axios-retry']?.retryCount ?? 0;
 
-    // const currentsConfig = getCurrentsConfig();
-    // config.headers.set({
-    //   ...headers,
-    //   "x-currents-idempotency-key":
-    //     config.headers["x-currents-idempotency-key"] ?? nanoid(),
-    //   "x-jest-request-attempt": retry,
-    //   "x-currents-key": currentsConfig?.recordKey ?? null,
-    // });
-
-    // if (currentsConfig?.machineId) {
-    //   config.headers.set("x-currents-machine-id", currentsConfig.machineId);
-    // }
+    config.headers.set({
+      'x-cmd-version': reporterVersion,
+    });
 
     if (!config.headers.get('Content-Type')) {
       config.headers.set('Content-Type', 'application/json');

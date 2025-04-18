@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios';
 import path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { retrieveCache } from '../../../api';
+import { retrieveCache, retrieveCacheReadUrls } from '../../../api';
 import { PRESETS } from '../../../commands/cache/options';
 import {
   CacheCommandConfig,
@@ -37,15 +37,26 @@ const mockCI: ReturnType<typeof getCI> = {
   params: {},
 };
 
-const mockCacheResult = {
-  readUrl: 'http://cache.url',
-  metaReadUrl: 'http://meta.url',
+const mockedCacheResponse = {
+  refMetaReadUrl: 'http://meta.url',
   cacheId: 'cacheId123',
   orgId: 'org123',
 };
 
-const mockMetaFile = { version: '1.0' };
-const mockedBuffer = Buffer.from(JSON.stringify(mockMetaFile));
+const mockedMetaFile = {
+  version: '1.0',
+  cacheKey: 'cache-key',
+  metaCacheKey: 'meta-cache-key',
+};
+
+const mockedBuffer = Buffer.from(JSON.stringify(mockedMetaFile));
+
+const mockCacheReadUrlsResponse = {
+  orgId: 'org123',
+  readUrl: 'http://cache.url',
+  metaReadUrl: 'http://meta.url',
+};
+
 vi.mock('../../../config/cache');
 vi.mock('../../../env/ciProvider');
 vi.mock('../../../api');
@@ -57,10 +68,13 @@ vi.mock('../../../logger');
 
 describe('handleGetCache', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     vi.mocked(getCacheCommandConfig).mockReturnValue(mockConfig);
     vi.mocked(getCI).mockReturnValue(mockCI);
-    vi.mocked(retrieveCache).mockResolvedValue(mockCacheResult);
+    vi.mocked(retrieveCache).mockResolvedValue(mockedCacheResponse);
+    vi.mocked(retrieveCacheReadUrls).mockResolvedValue(
+      mockCacheReadUrlsResponse
+    );
     vi.mocked(download).mockResolvedValue(mockedBuffer);
     vi.mocked(unzipBuffer).mockResolvedValue(undefined);
   });
@@ -73,7 +87,12 @@ describe('handleGetCache', () => {
       id: 'testId',
       config: { matrixIndex: 0, matrixTotal: 1 },
     });
-    expect(download).toHaveBeenCalledWith('http://cache.url');
+    expect(retrieveCacheReadUrls).toHaveBeenCalledWith({
+      recordKey: 'testKey',
+      cacheKey: mockedMetaFile.cacheKey,
+    });
+    expect(download).toHaveBeenNthCalledWith(1, 'http://meta.url');
+    expect(download).toHaveBeenNthCalledWith(2, 'http://cache.url');
     expect(unzipBuffer).toHaveBeenCalledWith(
       mockedBuffer,
       // @ts-ignore
@@ -114,7 +133,7 @@ describe('handleGetCache', () => {
     await handleGetCache();
     expect(download).toHaveBeenCalledWith('http://meta.url');
     expect(jsonParseSpy).toHaveBeenCalledWith(
-      Buffer.from(JSON.stringify(mockMetaFile)).toString('utf-8')
+      Buffer.from(JSON.stringify(mockedMetaFile)).toString('utf-8')
     );
   });
 
@@ -123,7 +142,7 @@ describe('handleGetCache', () => {
     expect(handlePostLastRunPreset).toHaveBeenCalledWith(
       mockConfig.values,
       mockCI,
-      undefined
+      mockedMetaFile
     );
   });
 
@@ -131,7 +150,7 @@ describe('handleGetCache', () => {
     await handleGetCache();
     expect(success).toHaveBeenCalledWith(
       'Cache restored. Cache ID: %s',
-      mockCacheResult.cacheId
+      mockedCacheResponse.cacheId
     );
   });
 
@@ -140,17 +159,17 @@ describe('handleGetCache', () => {
       continueOnCacheMiss;
     const axiosError = { response: { status: 404 } };
     vi.mocked(isAxiosError).mockReturnValue(true);
-    vi.mocked(retrieveCache).mockResolvedValueOnce(mockCacheResult);
+    vi.mocked(retrieveCache).mockResolvedValueOnce(mockedCacheResponse);
     vi.mocked(download).mockRejectedValue(axiosError);
 
     if (continueOnCacheMiss) {
       await handleGetCache();
       expect(warnWithNoTrace).toHaveBeenCalledWith(
-        `Cache with ID "${mockCacheResult.cacheId}" not found`
+        `Cache with ID "${mockedCacheResponse.cacheId}" not found`
       );
     } else {
       await expect(handleGetCache()).rejects.toThrow(
-        `Cache with ID "${mockCacheResult.cacheId}" not found`
+        `Cache with ID "${mockedCacheResponse.cacheId}" not found`
       );
       expect(warnWithNoTrace).not.toHaveBeenCalled();
     }
