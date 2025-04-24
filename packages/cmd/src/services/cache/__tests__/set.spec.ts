@@ -168,8 +168,7 @@ describe('handleSetCache', () => {
     await handleSetCache();
 
     expect(sendBuffer).toHaveBeenCalledTimes(4);
-    expect(sendBuffer).toHaveBeenNthCalledWith(
-      3,
+    expect(sendBuffer).toHaveBeenCalledWith(
       {
         buffer: Buffer.from('zip archive'),
         contentType: 'application/zip',
@@ -179,8 +178,7 @@ describe('handleSetCache', () => {
       'application/zip',
       undefined
     );
-    expect(sendBuffer).toHaveBeenNthCalledWith(
-      4,
+    expect(sendBuffer).toHaveBeenCalledWith(
       {
         buffer: Buffer.from('meta data'),
         contentType: 'application/json',

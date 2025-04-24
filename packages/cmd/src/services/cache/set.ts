@@ -60,47 +60,34 @@ export async function handleSetCache() {
   });
   debug('Cache upload url created', { result });
 
-  if (uploadPaths.length > 0) {
-    await handleArchiveUpload({
-      archive: await zipFilesToBuffer(uploadPaths),
-      cacheId: result.cacheId,
-      uploadUrl: result.uploadUrl,
-    });
-
-    info(uploadPaths.map((path) => `${dim('- uploading')} ${path}`).join('\n'));
-  }
-
   const ciForMeta = getCIForMeta(ci);
 
-  await handleMetaUpload({
-    meta: createMeta({
-      cacheId: result.cacheId,
-      config: config.values,
-      ci: ciForMeta,
-      orgId: result.orgId,
-      path: uploadPaths,
-    }),
-    cacheId: result.cacheId,
-    uploadUrl: result.metaUploadUrl,
-  });
+  const archive =
+    uploadPaths.length > 0 ? await zipFilesToBuffer(uploadPaths) : null;
+  const uploads = [];
 
-  success('Cache uploaded. Cache ID: %s', result.cacheId);
-
-  if (saveToHistory) {
-    if (uploadPaths.length > 0) {
-      await handleArchiveUpload({
-        archive: await zipFilesToBuffer(uploadPaths),
+  if (archive) {
+    uploads.push(
+      handleArchiveUpload({
+        archive,
         cacheId: result.cacheId,
-        uploadUrl: result.historyUploadUrl,
-      });
+        uploadUrl: result.uploadUrl,
+      }).then(() => logUploadPaths('Cache upload:', uploadPaths))
+    );
 
-      info(
-        'History cache upload:\n' +
-          uploadPaths.map((path) => `${dim('- uploading')} ${path}`).join('\n')
+    if (saveToHistory) {
+      uploads.push(
+        handleArchiveUpload({
+          archive,
+          cacheId: result.cacheId,
+          uploadUrl: result.historyUploadUrl,
+        }).then(() => logUploadPaths('History cache upload:', uploadPaths))
       );
     }
+  }
 
-    await handleMetaUpload({
+  uploads.push(
+    handleMetaUpload({
       meta: createMeta({
         cacheId: result.cacheId,
         config: config.values,
@@ -109,11 +96,29 @@ export async function handleSetCache() {
         path: uploadPaths,
       }),
       cacheId: result.cacheId,
-      uploadUrl: result.historyMetaUploadUrl,
-    });
+      uploadUrl: result.metaUploadUrl,
+    }).then(() => success('Cache uploaded. Cache ID: %s', result.cacheId))
+  );
 
-    success('History cache uploaded. Cache ID: %s', result.cacheId);
+  if (saveToHistory) {
+    uploads.push(
+      handleMetaUpload({
+        meta: createMeta({
+          cacheId: result.cacheId,
+          config: config.values,
+          ci: ciForMeta,
+          orgId: result.orgId,
+          path: uploadPaths,
+        }),
+        cacheId: result.cacheId,
+        uploadUrl: result.historyMetaUploadUrl,
+      }).then(() =>
+        success('History cache uploaded. Cache ID: %s', result.cacheId)
+      )
+    );
   }
+
+  await Promise.all(uploads);
 }
 
 async function handleArchiveUpload({
@@ -179,4 +184,11 @@ function getCIForMeta(ci: ReturnType<typeof getCI>) {
   return ci.ciBuildId.source === 'server' || ci.ciBuildId.source === 'random'
     ? omit(ci, 'ciBuildId')
     : ci;
+}
+
+function logUploadPaths(prefix: string, paths: string[]) {
+  info(
+    `${prefix}\n` +
+      paths.map((path) => `${dim('- uploading')} ${path}`).join('\n')
+  );
 }
