@@ -57,14 +57,21 @@ let _config:
 export function setCacheSetCommandConfig(
   options?: Partial<NonNullable<(typeof _config)['values']>>
 ) {
+  const values = getValidatedConfig(
+    configKeys,
+    mandatoryConfigKeys,
+    getEnvVariables,
+    options
+  );
+
+  const isDebugEnabled = values.debug || !!process.env.DEBUG;
+
   _config = {
     type: 'SET_COMMAND_CONFIG',
-    values: getValidatedConfig(
-      configKeys,
-      mandatoryConfigKeys,
-      getEnvVariables,
-      options
-    ),
+    values: {
+      ...values,
+      saveToHistory: isDebugEnabled ? true : values.saveToHistory,
+    },
   };
   debug('Resolved config: %o', {
     ..._config,
