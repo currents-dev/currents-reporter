@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios';
 import path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { retrieveCache, retrieveCacheReadUrls } from '../../../api';
+import { getRefCacheMeta, retrieveCache } from '../../../api';
 import { PRESETS } from '../../../commands/cache/options';
 import {
   CacheCommandConfig,
@@ -38,9 +38,10 @@ const mockCI: ReturnType<typeof getCI> = {
 };
 
 const mockedCacheResponse = {
-  refMetaReadUrl: 'http://meta.url',
-  cacheId: 'cacheId123',
   orgId: 'org123',
+  readUrl: 'http://cache.url',
+  metaReadUrl: 'http://meta.url',
+  cacheId: 'cacheId123',
 };
 
 const mockedMetaFile = {
@@ -51,10 +52,10 @@ const mockedMetaFile = {
 
 const mockedBuffer = Buffer.from(JSON.stringify(mockedMetaFile));
 
-const mockCacheReadUrlsResponse = {
+const mockedCacheRetrievelResponse = {
+  refMetaReadUrl: 'http://meta.url',
+  cacheId: 'cacheId123',
   orgId: 'org123',
-  readUrl: 'http://cache.url',
-  metaReadUrl: 'http://meta.url',
 };
 
 vi.mock('../../../config/cache');
@@ -72,8 +73,8 @@ describe('handleGetCache', () => {
     vi.mocked(getCacheCommandConfig).mockReturnValue(mockConfig);
     vi.mocked(getCI).mockReturnValue(mockCI);
     vi.mocked(retrieveCache).mockResolvedValue(mockedCacheResponse);
-    vi.mocked(retrieveCacheReadUrls).mockResolvedValue(
-      mockCacheReadUrlsResponse
+    vi.mocked(getRefCacheMeta).mockResolvedValue(
+      mockedCacheRetrievelResponse
     );
     vi.mocked(download).mockResolvedValue(mockedBuffer);
     vi.mocked(unzipBuffer).mockResolvedValue(undefined);
@@ -83,13 +84,14 @@ describe('handleGetCache', () => {
     await handleGetCache();
     expect(retrieveCache).toHaveBeenCalledWith({
       recordKey: 'testKey',
+      cacheKey: mockedMetaFile.cacheKey,
+
+    });
+    expect(getRefCacheMeta).toHaveBeenCalledWith({
+      recordKey: 'testKey',
       ci: mockCI,
       id: 'testId',
       config: { matrixIndex: 0, matrixTotal: 1 },
-    });
-    expect(retrieveCacheReadUrls).toHaveBeenCalledWith({
-      recordKey: 'testKey',
-      cacheKey: mockedMetaFile.cacheKey,
     });
     expect(download).toHaveBeenNthCalledWith(1, 'http://meta.url');
     expect(download).toHaveBeenNthCalledWith(2, 'http://cache.url');

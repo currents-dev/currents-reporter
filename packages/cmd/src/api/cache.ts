@@ -17,7 +17,7 @@ export type CacheRequestParams = {
   config?: CacheRequestConfigParams;
 };
 
-export type CacheReadUrlsRequestParams = {
+export type CacheRetrievalParams = {
   recordKey: string;
   cacheKey: string;
   metaCacheKey?: string;
@@ -33,13 +33,13 @@ export type CacheCreationResponse = {
   refMetaUploadUrl: string;
 };
 
-export type CacheRetrievalResponse = {
+export type CacheMetaResponse = {
   cacheId: string;
   orgId: string;
   refMetaReadUrl: string;
 };
 
-export type CacheReadUrlsResponse = {
+export type CacheRetrievalResponse = {
   orgId: string;
   readUrl: string;
   metaReadUrl?: string;
@@ -63,11 +63,11 @@ export async function createCache(params: CacheRequestParams) {
   }
 }
 
-export async function retrieveCache(params: CacheRequestParams) {
+export async function retrieveCache(params: CacheRetrievalParams) {
   try {
     debug('Request params: %o', params);
 
-    return makeRequest<CacheRetrievalResponse, CacheRequestParams>(
+    return makeRequest<CacheRetrievalResponse, CacheRetrievalParams>(
       ClientType.API,
       {
         url: 'cache/v2/download',
@@ -81,22 +81,17 @@ export async function retrieveCache(params: CacheRequestParams) {
   }
 }
 
-export async function retrieveCacheReadUrls(
-  params: CacheReadUrlsRequestParams
-) {
+export async function getRefCacheMeta(params: CacheRequestParams) {
   try {
     debug('Request params: %o', params);
 
-    return makeRequest<CacheReadUrlsResponse, CacheReadUrlsRequestParams>(
-      ClientType.API,
-      {
-        url: 'cache/meta',
-        method: 'POST',
-        data: params,
-      }
-    ).then((res) => res.data);
+    return makeRequest<CacheMetaResponse, CacheRequestParams>(ClientType.API, {
+      url: 'cache/meta',
+      method: 'POST',
+      data: params,
+    }).then((res) => res.data);
   } catch (err) {
-    debug('Failed to retrieve cache read URLs:', err);
+    debug('Failed to retrieve reference cache meta:', err);
     throw err;
   }
 }
