@@ -1,5 +1,17 @@
 # Changelog
 
+# [1.8.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.7.1...${npm.name}-v1.8.0-beta.0) (2025-04-29)
+
+
+### Bug Fixes
+
+* .. ([0ad449f](https://github.com/currents-dev/currents-reporter/commit/0ad449fe5a4c5df624bed4c13d9cf255e68baf13))
+
+
+### Features
+
+* refactor cache commands implementation ([c3ed749](https://github.com/currents-dev/currents-reporter/commit/c3ed749f1adca0b70f1d08b84ceed9b3a2dfbbc6))
+
 ## [1.7.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.10...${npm.name}-v1.7.1) (2025-04-16)
 
 
