@@ -90,7 +90,7 @@ async function handleArchiveDownload({
 
   await unzipBuffer(buffer, destination);
 
-  info('Cache downloaded', { readUrl, destination });
+  debug('Cache downloaded', { readUrl, destination });
   return destination;
 }
 
@@ -104,6 +104,6 @@ function getOutputDir(outputDir: string | undefined) {
 async function handleMetaDownload(readUrl: string) {
   const buffer = await download(readUrl);
   const meta = JSON.parse(buffer.toString('utf-8')) as RefMetaFile;
-  info('Meta file downloaded: %O', meta);
+  debug('Meta file downloaded: %O', meta);
   return meta;
 }

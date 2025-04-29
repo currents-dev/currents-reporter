@@ -73,7 +73,7 @@ export async function handleSetCache() {
         uploadUrl: result.uploadUrl,
       }).then(() => {
         logUploadPaths(uploadPaths);
-        info('Cache archive uploaded', {
+        debug('Cache archive uploaded', {
           uploadUrl: result.uploadUrl,
         });
       })
@@ -92,7 +92,7 @@ export async function handleSetCache() {
       cacheId: result.cacheId,
       uploadUrl: result.metaUploadUrl,
     }).then(() =>
-      info('Meta uploaded', {
+      debug('Meta uploaded', {
         uploadUrl: result.metaUploadUrl,
       })
     ),
@@ -109,7 +109,7 @@ export async function handleSetCache() {
       cacheId: result.cacheId,
       uploadUrl: result.refMetaUploadUrl,
     }).then(() =>
-      info('Ref meta uploaded', {
+      debug('Ref meta uploaded', {
         uploadUrl: result.refMetaUploadUrl,
       })
     )
