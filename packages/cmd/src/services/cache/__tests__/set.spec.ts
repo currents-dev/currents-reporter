@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { createCache } from '../../../api';
 import { PRESETS } from '../../../commands/cache/options';
 import {
@@ -50,6 +50,9 @@ describe('handleSetCache', () => {
     cacheId: 'cacheId123',
     uploadUrl: 'http://upload.url',
     metaUploadUrl: 'http://meta.url',
+    refMetaUploadUrl: 'http://meta-123.url',
+    cacheKey: 'cache-key',
+    metaCacheKey: 'meta-cache-key',
     orgId: 'org123',
   };
 
@@ -152,6 +155,62 @@ describe('handleSetCache', () => {
       'application/json',
       undefined
     );
+  });
+
+  it('should upload history cache and meta data', async () => {
+    vi.mocked(getCacheCommandConfig).mockReturnValue({
+      type: 'SET_COMMAND_CONFIG',
+      values: {
+        ...mockConfig.values,
+      },
+    });
+
+    await handleSetCache();
+
+    expect(sendBuffer).toHaveBeenCalledTimes(3);
+
+    const actualCalls = (sendBuffer as Mock).mock.calls;
+
+    const expectedCalls = [
+      [
+        {
+          buffer: Buffer.from('zip archive'),
+          contentType: 'application/zip',
+          name: 'cacheId123',
+          uploadUrl: mockCreateCacheResult.uploadUrl,
+        },
+        'application/zip',
+        undefined,
+      ],
+      [
+        {
+          buffer: Buffer.from('meta data'),
+          contentType: 'application/json',
+          name: 'cacheId123_meta',
+          uploadUrl: mockCreateCacheResult.metaUploadUrl,
+        },
+        'application/json',
+        undefined,
+      ],
+      [
+        {
+          buffer: Buffer.from('meta data'),
+          contentType: 'application/json',
+          name: 'cacheId123_meta',
+          uploadUrl: mockCreateCacheResult.refMetaUploadUrl,
+        },
+        'application/json',
+        undefined,
+      ],
+    ];
+
+    // Helper to stringify args for deep equality without reference issues
+    const normalize = (args: any[]) => JSON.stringify(args);
+
+    const actualNormalized = actualCalls.map(normalize).sort();
+    const expectedNormalized = expectedCalls.map(normalize).sort();
+
+    expect(actualNormalized).toEqual(expectedNormalized);
   });
 
   it.each([

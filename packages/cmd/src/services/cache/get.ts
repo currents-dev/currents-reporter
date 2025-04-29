@@ -1,13 +1,13 @@
 import { debug } from '@debug';
 import { isAxiosError } from 'axios';
 import path from 'path';
-import { retrieveCache } from '../../api';
+import { getRefCacheMeta, retrieveCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
 import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { unzipBuffer } from './fs';
-import { MetaFile } from './lib';
+import { RefMetaFile } from './lib';
 import { download } from './network';
 import { handlePostLastRunPreset, handlePreLastRunPreset } from './presets';
 
@@ -33,7 +33,7 @@ export async function handleGetCache() {
     await handlePreLastRunPreset(config.values, ci);
   }
 
-  const result = await retrieveCache({
+  const { cacheId, refMetaReadUrl } = await getRefCacheMeta({
     recordKey,
     ci,
     id,
@@ -44,23 +44,28 @@ export async function handleGetCache() {
   });
 
   try {
-    const destination = await handleArchiveDownload({
-      readUrl: result.readUrl,
-      outputDir,
+    const meta = await handleMetaDownload(refMetaReadUrl);
+
+    const { readUrl } = await retrieveCache({
+      recordKey,
+      cacheKey: meta.cacheKey,
     });
 
-    const meta = await handleMetaDownload(result.metaReadUrl);
+    const destination = await handleArchiveDownload({
+      readUrl,
+      outputDir,
+    });
 
     if (preset === PRESETS.lastRun) {
       await handlePostLastRunPreset(config.values, ci, meta);
     }
 
     info(dim('- restoring cache to'), destination);
-    success('Cache restored. Cache ID: %s', result.cacheId);
+    success('Cache restored. Cache ID: %s', cacheId);
   } catch (e) {
     if (isAxiosError(e)) {
       if (e.response?.status === 403 || e.response?.status === 404) {
-        const message = `Cache with ID "${result.cacheId}" not found`;
+        const message = `Cache with ID "${cacheId}" not found`;
         if (continueOnCacheMiss) {
           warnWithNoTrace(message);
           return;
@@ -86,7 +91,7 @@ async function handleArchiveDownload({
 
   await unzipBuffer(buffer, destination);
 
-  debug('Cache downloaded');
+  debug('Cache downloaded', { readUrl, destination });
   return destination;
 }
 
@@ -99,7 +104,7 @@ function getOutputDir(outputDir: string | undefined) {
 
 async function handleMetaDownload(readUrl: string) {
   const buffer = await download(readUrl);
-  const meta = JSON.parse(buffer.toString('utf-8')) as MetaFile;
-  debug('Meta file: %O', meta);
+  const meta = JSON.parse(buffer.toString('utf-8')) as RefMetaFile;
+  debug('Meta file downloaded: %O', meta);
   return meta;
 }

@@ -11,19 +11,32 @@ export type MetaFile = {
   createdAt: string;
 };
 
+export type RefMetaKeys = {
+  cacheKey: string;
+  metaCacheKey: string;
+};
+
+export type RefMetaFile = MetaFile & RefMetaKeys;
+
+type CreateMetaParams = {
+  config: CacheSetCommandConfig;
+  cacheId: string;
+  orgId: string;
+  path: string[];
+  ci: Record<string, unknown>;
+  cacheKey?: string;
+  metaCacheKey?: string;
+};
+
 export function createMeta({
   config,
   cacheId,
   orgId,
   path,
   ci,
-}: {
-  config: CacheSetCommandConfig;
-  cacheId: string;
-  orgId: string;
-  path: string[];
-  ci: Record<string, unknown>;
-}) {
+  cacheKey,
+  metaCacheKey,
+}: CreateMetaParams) {
   const meta = {
     id: cacheId,
     orgId,
@@ -31,6 +44,8 @@ export function createMeta({
     path,
     ci,
     createdAt: new Date().toISOString(),
+    cacheKey,
+    metaCacheKey,
   };
 
   return Buffer.from(JSON.stringify(meta));

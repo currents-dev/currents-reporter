@@ -59,28 +59,63 @@ export async function handleSetCache() {
   });
   debug('Cache upload url created', { result });
 
-  if (uploadPaths.length > 0) {
-    await handleArchiveUpload({
-      archive: await zipFilesToBuffer(uploadPaths),
-      cacheId: result.cacheId,
-      uploadUrl: result.uploadUrl,
-    });
+  const ciForMeta = getCIForMeta(ci);
 
-    info(uploadPaths.map((path) => `${dim('- uploading')} ${path}`).join('\n'));
+  const archive =
+    uploadPaths.length > 0 ? await zipFilesToBuffer(uploadPaths) : null;
+  const uploads = [];
+
+  if (archive) {
+    uploads.push(
+      handleArchiveUpload({
+        archive,
+        cacheId: result.cacheId,
+        uploadUrl: result.uploadUrl,
+      }).then(() => {
+        logUploadPaths(uploadPaths);
+        debug('Cache archive uploaded', {
+          uploadUrl: result.uploadUrl,
+        });
+      })
+    );
   }
 
-  await handleMetaUpload({
-    meta: createMeta({
+  uploads.push(
+    handleMetaUpload({
+      meta: createMeta({
+        cacheId: result.cacheId,
+        config: config.values,
+        ci: ciForMeta,
+        orgId: result.orgId,
+        path: uploadPaths,
+      }),
       cacheId: result.cacheId,
-      config: config.values,
-      ci: getCIForMeta(ci),
-      orgId: result.orgId,
-      path: uploadPaths,
-    }),
-    cacheId: result.cacheId,
-    uploadUrl: result.metaUploadUrl,
-  });
+      uploadUrl: result.metaUploadUrl,
+    }).then(() =>
+      debug('Meta uploaded', {
+        uploadUrl: result.metaUploadUrl,
+      })
+    ),
+    handleMetaUpload({
+      meta: createMeta({
+        cacheId: result.cacheId,
+        config: config.values,
+        ci: ciForMeta,
+        orgId: result.orgId,
+        path: uploadPaths,
+        cacheKey: result.cacheKey,
+        metaCacheKey: result.metaCacheKey,
+      }),
+      cacheId: result.cacheId,
+      uploadUrl: result.refMetaUploadUrl,
+    }).then(() =>
+      debug('Ref meta uploaded', {
+        uploadUrl: result.refMetaUploadUrl,
+      })
+    )
+  );
 
+  await Promise.all(uploads);
   success('Cache uploaded. Cache ID: %s', result.cacheId);
 }
 
@@ -147,4 +182,11 @@ function getCIForMeta(ci: ReturnType<typeof getCI>) {
   return ci.ciBuildId.source === 'server' || ci.ciBuildId.source === 'random'
     ? omit(ci, 'ciBuildId')
     : ci;
+}
+
+function logUploadPaths(paths: string[]) {
+  info(
+    `Cache upload paths:\n` +
+      paths.map((path) => `${dim('- uploading')} ${path}`).join('\n')
+  );
 }
