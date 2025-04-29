@@ -85,7 +85,7 @@ async function dumpPwConfigForGitlab(
     config.presetOutput ?? PRESET_OUTPUT_PATH,
     `EXTRA_PW_FLAGS="${pwCliOptions}"
 EXTRA_PWCP_FLAGS="${lastFailedOption}"
-RUN_ATTEMPT="${runAttempt}"
+RUN_ATTEMPT=${runAttempt}
 `
   );
 }
