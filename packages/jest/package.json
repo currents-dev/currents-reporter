@@ -21,7 +21,7 @@
   "devDependencies": {
     "@jest/reporters": "^29.7.0",
     "@jest/types": "^29.6.3",
-    "@release-it/conventional-changelog": "^10.0.0",
+    "@release-it/conventional-changelog": "^10.0.1",
     "@types/babel__code-frame": "^7.0.6",
     "@types/fs-extra": "^11.0.4",
     "@types/lodash": "^4.17.16",
