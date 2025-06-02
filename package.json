@@ -32,7 +32,7 @@
   "devDependencies": {
     "eslint-config-custom": "*",
     "prettier": "^3.5.3",
-    "turbo": "^2.5.0"
+    "turbo": "^2.5.4"
   },
   "packageManager": "npm@10.5.0"
 }
