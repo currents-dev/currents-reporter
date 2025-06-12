@@ -34,5 +34,8 @@
     "prettier": "^3.5.3",
     "turbo": "^2.5.0"
   },
+  "overrides": {
+    "brace-expansion": "2.0.1"
+  },
   "packageManager": "npm@10.5.0"
 }
