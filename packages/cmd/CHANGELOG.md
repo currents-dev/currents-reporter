@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.9.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.4) (2025-06-12)
+
 ## [1.9.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.3) (2025-06-12)
 
 ## [1.9.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.1...${npm.name}-v1.9.2) (2025-06-12)
