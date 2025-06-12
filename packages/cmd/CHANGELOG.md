@@ -1,5 +1,17 @@
 # Changelog
 
+# [1.9.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.7.1...${npm.name}-v1.9.0) (2025-06-12)
+
+
+### Bug Fixes
+
+* Cache Run Attempts with GitLab ([#217](https://github.com/currents-dev/currents-reporter/issues/217)) ([a11d0ae](https://github.com/currents-dev/currents-reporter/commit/a11d0ae0687ee37b406c584624c89edb2edd41b2))
+
+
+### Features
+
+* refactor cache commands implementation ([#216](https://github.com/currents-dev/currents-reporter/issues/216)) ([3e21aab](https://github.com/currents-dev/currents-reporter/commit/3e21aab612a08ba556bc28517a3c581e91bbbae3))
+
 # [1.8.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.7.1...${npm.name}-v1.8.0) (2025-04-30)
 
 
