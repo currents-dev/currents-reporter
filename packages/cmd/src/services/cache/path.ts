@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { glob } from 'glob';
+import { globby, globbySync } from 'globby';
 import { MetaFile, warn } from './lib';
 
 export const getLastRunFilePaths = async (outputPath?: string) => {
@@ -11,7 +11,7 @@ export const getLastRunFilePaths = async (outputPath?: string) => {
     path.resolve(prefix, '.last-run.json'),
   ];
 
-  return glob(patterns);
+  return globbySync(patterns);
 };
 
 export const getUploadPaths = async (pathPatterns: string[] = []) => {
@@ -20,7 +20,7 @@ export const getUploadPaths = async (pathPatterns: string[] = []) => {
   const uploadPaths: string[] = [];
 
   if (filteredPaths.length > 0) {
-    uploadPaths.push(...(await glob(pathPatterns)));
+    uploadPaths.push(...(await globby(pathPatterns)));
   }
   return uploadPaths;
 };

@@ -1,5 +1,5 @@
-import { Option, InvalidArgumentError } from '@commander-js/extra-typings';
-import { glob } from 'glob';
+import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
+import { globbySync } from 'globby';
 import { configKeys } from '../../config/convert';
 import { getEnvironmentVariableName } from '../../config/utils';
 
@@ -44,7 +44,7 @@ export const frameworkVersionOption = new Option(
 function validateGlobPattern(value: string) {
   const patterns = value.split(',').map((pattern) => pattern.trim());
 
-  const allResults = glob.globSync(patterns);
+  const allResults = globbySync(patterns);
 
   if (allResults.length === 0) {
     throw new InvalidArgumentError('No files found with the provided patterns');
