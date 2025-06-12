@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { glob } from 'glob';
+import { glob } from 'fast-glob';
 import { MetaFile, warn } from './lib';
 
 export const getLastRunFilePaths = async (outputPath?: string) => {

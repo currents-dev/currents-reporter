@@ -1,5 +1,5 @@
 import { Option, InvalidArgumentError } from '@commander-js/extra-typings';
-import { glob } from 'glob';
+import { glob } from 'fast-glob';
 import { configKeys } from '../../config/convert';
 import { getEnvironmentVariableName } from '../../config/utils';
 
