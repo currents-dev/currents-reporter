@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.1...${npm.name}-v1.9.2) (2025-06-12)
+
+
+### Bug Fixes
+
+* update override to cmd ([#244](https://github.com/currents-dev/currents-reporter/issues/244)) ([958fe28](https://github.com/currents-dev/currents-reporter/commit/958fe2883255356d73587fd9b29f6a362422ea68))
+
 ## [1.9.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.0...${npm.name}-v1.9.1) (2025-06-12)
 
 # [1.9.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.7.1...${npm.name}-v1.9.0) (2025-06-12)
