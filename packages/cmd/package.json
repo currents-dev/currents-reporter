@@ -72,9 +72,6 @@
     "uuid": "^11.1.0",
     "xml2js": "^0.6.2"
   },
-  "overrides": {
-    "minimatch": "10.0.1"
-  },
   "bin": {
     "currents": "./dist/bin/index.js",
     "currents-cli": "./dist/bin/index.js"
