@@ -1,5 +1,73 @@
 # Changelog
 
+## [1.2.2](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.0...${npm.name}-v1.2.2) (2025-06-13)
+
+
+### Bug Fixes
+
+* .. ([e182cc7](https://github.com/currents-dev/currents-reporter/commit/e182cc7b66ae42ad3a0c32bc5fa8e343fd63069e))
+* .. ([6b32d28](https://github.com/currents-dev/currents-reporter/commit/6b32d28a656bec8ede1db3a99167fa6b7b19ef66))
+* add changelog changes ([e7322b6](https://github.com/currents-dev/currents-reporter/commit/e7322b61de24a5f47536a02920ab4311db36952b))
+* add ensureArray to full test suite discovery, avoid creating testless instance files ([814ebdc](https://github.com/currents-dev/currents-reporter/commit/814ebdcad784a26a7c56bd264d8808392a0d1582))
+* add groupId for filename hash to avoid overwritting ([cfe38da](https://github.com/currents-dev/currents-reporter/commit/cfe38da5324276a08f586184b48847bd9fe4cfaf))
+* add missing dependency ([006cf16](https://github.com/currents-dev/currents-reporter/commit/006cf161e6952d257808eb58bb285b43a5536b7e))
+* addressed feedback ([aaeb96a](https://github.com/currents-dev/currents-reporter/commit/aaeb96aa9d7722972975405771b12fee6affb8bb))
+* api get-run: exit early if no right set of parameters provided ([96e69e6](https://github.com/currents-dev/currents-reporter/commit/96e69e606876dbb514d7e19e340d42990bb5a1f0))
+* attempt status incorrect value ([aa9a4c7](https://github.com/currents-dev/currents-reporter/commit/aa9a4c7f5b815b0222304e5eb0fa98aa5a86df0d))
+* broken test ([1c3e813](https://github.com/currents-dev/currents-reporter/commit/1c3e8132f66da8ae61174a973cd40b9c8a760438))
+* cache get command, attach --last-failed flag only if pw was executed ([5cdad86](https://github.com/currents-dev/currents-reporter/commit/5cdad867e73b51bf720cad2660bbe499e4f143f4))
+* Cache Run Attempts with GitLab ([#217](https://github.com/currents-dev/currents-reporter/issues/217)) ([a11d0ae](https://github.com/currents-dev/currents-reporter/commit/a11d0ae0687ee37b406c584624c89edb2edd41b2))
+* change getSuiteName ([518d989](https://github.com/currents-dev/currents-reporter/commit/518d98926422a2c9738e875124a983d077d29b8f))
+* display the correct baseURL in the http client debug logs ([b80b276](https://github.com/currents-dev/currents-reporter/commit/b80b2766066e77e349b8c2590e480db0a4694d5e))
+* don't use reduce use glob instead ([2dd88ee](https://github.com/currents-dev/currents-reporter/commit/2dd88ee8f2bf11d8df25eb22639861a3e6df7424))
+* ensure date values are properly handled ([4a819ca](https://github.com/currents-dev/currents-reporter/commit/4a819cab3995cf52e7ab278f08373d485b0dac6a))
+* fixture status ([b1146da](https://github.com/currents-dev/currents-reporter/commit/b1146dad8f49c71cefd61771fe6b55a27fe02489))
+* getFullTestSuiteFilePath, modify writeFileAsync ([34b6efc](https://github.com/currents-dev/currents-reporter/commit/34b6efcd55e828f704ce027dd47ed88681c6b4dc))
+* http formatting for 404 errors ([c1170b2](https://github.com/currents-dev/currents-reporter/commit/c1170b2606e999af51bd57a3464b10c599dd9aec))
+* Improve command descriptions for API and convert commands ([#194](https://github.com/currents-dev/currents-reporter/issues/194)) ([93599e8](https://github.com/currents-dev/currents-reporter/commit/93599e8f0c2b4b6206411fd4128ae4a69894a103))
+* incorrect import path ([73199f4](https://github.com/currents-dev/currents-reporter/commit/73199f433a6e150dfe25002e69cc38664284f9a0))
+* instance files withe duplicated testsuite names ([8eef041](https://github.com/currents-dev/currents-reporter/commit/8eef04119ba324bc77aac38c21949b3af5a08b13))
+* mask sensitive data ([5985aed](https://github.com/currents-dev/currents-reporter/commit/5985aedb5abfafcaa18e9bc0da3cc3b2a1832570))
+* omit ciBuildId from cache meta file when null ([#203](https://github.com/currents-dev/currents-reporter/issues/203)) ([72c2362](https://github.com/currents-dev/currents-reporter/commit/72c23625d1f4ad78a5ef4c4fc8386c2d6f985bbd))
+* passes, failed, skipped tests counting ([#146](https://github.com/currents-dev/currents-reporter/issues/146)) ([ca0e246](https://github.com/currents-dev/currents-reporter/commit/ca0e2466bb6d11cf4b01b52337db5f84b8cdf5d7))
+* reduce default max size to 1MB ([500c933](https://github.com/currents-dev/currents-reporter/commit/500c933a801ad1027331242da12c842275a77c94))
+* remove combine files functionality ([eea7b2f](https://github.com/currents-dev/currents-reporter/commit/eea7b2f1512ce28b1de6e632b60d404b05430285))
+* remove log ([ea22468](https://github.com/currents-dev/currents-reporter/commit/ea224680087f61d8054479bebd686f055f6abeaf))
+* remove logs ([fb0bc58](https://github.com/currents-dev/currents-reporter/commit/fb0bc584bbd865d0ba167b39642ed8fc469a5f91))
+* remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
+* remove unrelated change ([c40d74d](https://github.com/currents-dev/currents-reporter/commit/c40d74d30aadf3e175aa8679f6b0fa29f6bc4da6))
+* remove worker ([8c2e09e](https://github.com/currents-dev/currents-reporter/commit/8c2e09e61d9520810406a8194185bb173b6664ff))
+* remove worker info from jest reporter ([f3e1e5d](https://github.com/currents-dev/currents-reporter/commit/f3e1e5d58fd50b13a10d20409993cf0f8054f57c))
+* remove xml file generation ([67b7cf5](https://github.com/currents-dev/currents-reporter/commit/67b7cf5d843f85ea1464bdf3d5a8f8c92faf9e25))
+* removed any and added types, refactor functions, relocate functions ([91c3878](https://github.com/currents-dev/currents-reporter/commit/91c3878d9e1ac1217a3cce591b7a576b4572d749))
+* removed workerIndex, parallelIndex from attempt and cliArgs from config file as they're unnecessary ([4b520f9](https://github.com/currents-dev/currents-reporter/commit/4b520f96617bdc23200aec00c2dd04336cde0f8f))
+* report correct test status for jest reporter ([50a59dd](https://github.com/currents-dev/currents-reporter/commit/50a59ddc7bed731f5fd766096a4de284e8c0284c))
+* test for instance map ([d629c68](https://github.com/currents-dev/currents-reporter/commit/d629c685cb9e3b22a9217258e2c4096dc3df2510))
+* update override to cmd ([#244](https://github.com/currents-dev/currents-reporter/issues/244)) ([958fe28](https://github.com/currents-dev/currents-reporter/commit/958fe2883255356d73587fd9b29f6a362422ea68))
+* update snapshot ([3b05431](https://github.com/currents-dev/currents-reporter/commit/3b05431a25d3b5d5fc68ab9d4f264bd9b6860984))
+* update test snapshot ([eac97e4](https://github.com/currents-dev/currents-reporter/commit/eac97e4dd1a1fabc70830119d2e130e06e0333a6))
+* updated input file flag description ([e4e671d](https://github.com/currents-dev/currents-reporter/commit/e4e671d163d01266c1121d564325ddb0b8d1b97c))
+* upload command options parsing ([1cb9dac](https://github.com/currents-dev/currents-reporter/commit/1cb9dac47ea67aff2dff024b5e553759a3b80c2f))
+* use fs to write file, change create full test suite name, remove unneeded async ([1256d74](https://github.com/currents-dev/currents-reporter/commit/1256d743bf6980a8ce13786ee9ce259a4344fd52))
+
+
+### Features
+
+* add node reporter v2 ([dae78a9](https://github.com/currents-dev/currents-reporter/commit/dae78a9a15df18751e7e139a134abe492003a3e3))
+* Add the continue flag to cache set ([2e02e5a](https://github.com/currents-dev/currents-reporter/commit/2e02e5a07b869e9cbc22c54b310ad1829a853afb))
+* added full test suite generation for convert command ([dbf45b0](https://github.com/currents-dev/currents-reporter/commit/dbf45b0b0168776119e46d4de76dd4a965e896d2))
+* added the option for adding multiple xml files in the convert command. it allows multiple groups ([7c74921](https://github.com/currents-dev/currents-reporter/commit/7c749219d9442c2316fd8674ea3f0a0a009ddd25))
+* allow reporting instance results in different requests ([3a55883](https://github.com/currents-dev/currents-reporter/commit/3a55883315ff2d6db3ccc8bea5d71d46f9de343e))
+* get full test suite from JSON file ([ed2a082](https://github.com/currents-dev/currents-reporter/commit/ed2a0825b8dc9dfbf54467f3a992cc1e544c37c8))
+* refactor cache commands implementation ([#216](https://github.com/currents-dev/currents-reporter/issues/216)) ([3e21aab](https://github.com/currents-dev/currents-reporter/commit/3e21aab612a08ba556bc28517a3c581e91bbbae3))
+* support wdio framework, separate each instance map framework ([f9940f0](https://github.com/currents-dev/currents-reporter/commit/f9940f0ff7d8016356b145b007fb6f9e55b811b7))
+
+
+### Reverts
+
+* Revert "Merge pull request #102 from currents-dev/dependabot/npm_and_yarn/pretty-ms-9.2.0" ([c71af0f](https://github.com/currents-dev/currents-reporter/commit/c71af0f628fa009458e18286748e33d97cbfcdd6)), closes [#102](https://github.com/currents-dev/currents-reporter/issues/102)
+* Revert "[CSR-0] chore: Bump chalk from 4.1.2 to 5.4.1" ([ea4922a](https://github.com/currents-dev/currents-reporter/commit/ea4922a37ba2ec26fce1babf854d05b47d0c0d28))
+
 ## [1.2.1](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.0...${npm.name}-v1.2.1) (2025-02-05)
 
 
