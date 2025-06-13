@@ -1,5 +1,6 @@
 import { Test, TestCaseResult } from '@jest/reporters';
 import type { Circus } from '@jest/types';
+import { maxBy } from 'lodash';
 import crypto from 'node:crypto';
 import {
   ExpectedStatus,
@@ -106,13 +107,18 @@ export function getExpectedStatus(status: JestTestCaseStatus): ExpectedStatus {
   }
 }
 
-export function jestStatusFromInvocations(testResults: TestCaseResult[]) {
-  const statuses = testResults.map((r) => r.status as JestTestCaseStatus);
-  if (statuses.every((status) => status === statuses[0])) {
-    return statuses[0];
+export function jestStatusFromInvocations(
+  testResults: TestCaseResult[]
+): JestTestCaseStatus {
+  if (testResults.length === 0) {
+    return 'failed';
   }
 
-  return 'failed';
+  const resultWithMaxInvocation =
+    maxBy(testResults, (r) => r.invocations ?? 0) ??
+    testResults[testResults.length - 1];
+
+  return resultWithMaxInvocation.status as JestTestCaseStatus;
 }
 
 export function getAttemptNumber(result: TestCaseResult) {
