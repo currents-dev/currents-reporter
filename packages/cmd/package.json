@@ -65,7 +65,7 @@
     "proxy-from-env": "^1.1.0",
     "semver": "^7.7.1",
     "source-map-support": "^0.5.21",
-    "tmp": "^0.2.3",
+    "tmp": "^0.2.5",
     "tmp-promise": "^3.0.3",
     "ts-pattern": "^5.7.0",
     "unzipper": "^0.12.3",
