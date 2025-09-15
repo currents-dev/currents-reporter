@@ -57,7 +57,7 @@
     "getos": "^3.2.1",
     "globby": "^11.1.0",
     "https-proxy-agent": "^7.0.4",
-    "jest-cli": "^29.7.0",
+    "jest-cli": "^30.1.3",
     "jest-config": "^29.7.0",
     "lodash": "^4.17.21",
     "nanoid": "^3.3.8",
