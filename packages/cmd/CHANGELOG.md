@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.5) (2025-10-06)
+
+
+### Bug Fixes
+
+* use posix pathing to build last run file paths [CSR-3199] ([#292](https://github.com/currents-dev/currents-reporter/issues/292)) ([2ac7063](https://github.com/currents-dev/currents-reporter/commit/2ac7063fba53df8bbe80b2abd11ccee4f22aee74))
+
 ## [1.9.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.4) (2025-06-12)
 
 ### Bug fixes
