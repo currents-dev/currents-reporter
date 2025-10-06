@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.5-beta.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.5-beta.0) (2025-10-06)
+
+
+### Bug Fixes
+
+* use posix pathing to build last run file paths on Windows ([0d07df1](https://github.com/currents-dev/currents-reporter/commit/0d07df1581f11392e2725722c5762907ea392e1e))
+
 ## [1.9.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.4) (2025-06-12)
 
 ### Bug fixes
