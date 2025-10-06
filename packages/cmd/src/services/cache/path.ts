@@ -6,8 +6,8 @@ export const getLastRunFilePaths = async (outputPath?: string) => {
   const prefix = path.resolve(outputPath ?? './test-results');
 
   const patterns = [
-    path.resolve(prefix, '**/.last-run.json'),
-    path.resolve(prefix, '.last-run.json'),
+    path.posix.join(prefix.replace(/\\/g, '/'), '**/.last-run.json'),
+    path.posix.join(prefix.replace(/\\/g, '/'), '.last-run.json'),
   ];
 
   return globby.sync(patterns);
