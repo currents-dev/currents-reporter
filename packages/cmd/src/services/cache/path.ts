@@ -19,7 +19,9 @@ export const getUploadPaths = async (pathPatterns: string[] = []) => {
   const uploadPaths: string[] = [];
 
   if (filteredPaths.length > 0) {
-    uploadPaths.push(...globby.sync(pathPatterns));
+    uploadPaths.push(
+      ...globby.sync(pathPatterns.map((p) => p.replace(/\\/g, '/')))
+    );
   }
   return uploadPaths;
 };
