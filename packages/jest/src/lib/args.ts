@@ -1,23 +1,34 @@
-import { yargsOptions } from 'jest-cli';
-import { hideBin } from 'yargs/helpers';
-import yargs from 'yargs/yargs';
-
 export function getJestArgv() {
-  const argv = yargs(hideBin(process.argv))
-    .options(yargsOptions)
-    .parse() as Record<string, unknown>;
-
-  const options = Object.keys(argv)
-    .filter((key) => key in yargsOptions)
-    .reduce<Record<string, unknown>>((acc, key) => {
-      acc[key] = argv[key];
-
-      return acc;
-    }, {});
+  const args = process.argv.slice(2);
+  const options: Record<string, unknown> = {};
+  const positional: string[] = [];
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg.startsWith('--')) {
+      const key = arg.slice(2);
+      const nextArg = args[i + 1];
+      
+      if (nextArg && !nextArg.startsWith('-')) {
+        options[key] = nextArg;
+        i++;
+      } else {
+        options[key] = true;
+      }
+    } else if (arg.startsWith('-')) {
+      // Handle short flags like -t
+      const key = arg.slice(1);
+      options[key] = true;
+    } else {
+      // Positional argument
+      positional.push(arg);
+    }
+  }
 
   return {
     ...options,
-    _: argv._,
-    $0: argv.$0,
+    _: positional,
+    $0: process.argv[1] || 'jest',
   };
 }
