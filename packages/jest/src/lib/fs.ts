@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { error } from '../logger';
 import { debug } from './debug';
 
 export function generateUniqueDirName(): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const uniqueId = uuidv4();
+  const uniqueId = randomUUID();
   return `${timestamp}-${uniqueId}`;
 }
 
