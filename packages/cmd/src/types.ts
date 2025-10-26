@@ -64,6 +64,7 @@ export type InstanceReportTest = {
   expectedStatus?: ExpectedStatus;
   annotations?: unknown[];
   timeout: number;
+  tags?: string[];
   location: LocationSchema;
   attempts: InstanceReportTestAttempt[];
 };

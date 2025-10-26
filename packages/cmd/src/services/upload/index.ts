@@ -20,9 +20,9 @@ import {
   getInstanceReportList,
   resolveReportOptions,
 } from './fs';
+import { getFullTestSuiteFilePath } from './path';
 import { ReportConfig, UploadMarkerInfo } from './types';
 import { splitArrayIntoChunks } from './utils';
-import { getFullTestSuiteFilePath } from './path';
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
@@ -64,15 +64,12 @@ export async function handleCurrentsReport() {
       runUrl: markerInfo.response.runUrl,
       isoDate: markerInfo.isoDate,
     });
+  }
 
-    const fullTestSuiteFileExists = await checkPathExists(
-      fullTestSuiteFilePath
-    );
-
-    if (fullTestSuiteFileExists) {
-      fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
-      debug('Full test suite file detected: %s', fullTestSuiteFilePath);
-    }
+  const fullTestSuiteFileExists = await checkPathExists(fullTestSuiteFilePath);
+  if (fullTestSuiteFileExists) {
+    fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
+    debug('Full test suite file detected: %s', fullTestSuiteFilePath);
   }
 
   if (!fullTestSuite) {
