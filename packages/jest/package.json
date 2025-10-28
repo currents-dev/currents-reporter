@@ -1,6 +1,6 @@
 {
   "name": "@currents/jest",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "./dist/index.js",
   "author": {
     "name": "Currents Software Inc",

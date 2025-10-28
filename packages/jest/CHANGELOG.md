@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.3](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.2...${npm.name}-v1.2.3) (2025-10-28)
+
+
+### Bug Fixes
+
+* use posix pathing to build last run file paths [CSR-3199] ([#292](https://github.com/currents-dev/currents-reporter/issues/292)) ([2ac7063](https://github.com/currents-dev/currents-reporter/commit/2ac7063fba53df8bbe80b2abd11ccee4f22aee74))
+
+
+### Features
+
+* add optional tags property to InstanceReportTest type and refactor handleCurrentsReport function for clarity ([0b1f494](https://github.com/currents-dev/currents-reporter/commit/0b1f4943986d002db8c0275395cb58532c90d7c1))
+
 ## [1.2.2](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.0...${npm.name}-v1.2.2) (2025-06-13)
 
 
