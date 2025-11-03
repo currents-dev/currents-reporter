@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.9",
-    "@babel/preset-typescript": "^7.24.1",
+    "@babel/preset-typescript": "^7.28.5",
     "@currents/jest": "*",
     "@currents/cmd": "*",
     "@types/jest": "^29.5.12",
