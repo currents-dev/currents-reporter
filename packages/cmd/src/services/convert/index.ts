@@ -1,5 +1,6 @@
 import { debug } from '@debug';
 import {
+  copyFileAsync,
   createFolder,
   createUniqueFolder,
   generateShortHash,
@@ -89,9 +90,67 @@ export async function handleConvert() {
               );
               artifacts.push({
                 path: join('artifacts', fileName),
-                type: 'stderr',
+                type: 'stdout',
                 contentType: 'text/plain',
               });
+            }
+
+            const logsForAttachments = [
+              ...(attempt.stdout ?? []),
+              ...(attempt.stderr ?? []),
+            ];
+
+            for (const log of logsForAttachments) {
+              const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
+              for (const match of matches) {
+                const sourcePath = match[1];
+                const ext =
+                  sourcePath.split('.').pop()?.toLowerCase() ?? '';
+
+                let type: import('../../types').Artifact['type'] = 'attachment';
+                let contentType = 'application/octet-stream';
+
+                if (ext === 'mp4' || ext === 'webm') {
+                  type = 'video';
+                  contentType = ext === 'mp4' ? 'video/mp4' : 'video/webm';
+                } else if (
+                  ext === 'png' ||
+                  ext === 'jpg' ||
+                  ext === 'jpeg' ||
+                  ext === 'bmp'
+                ) {
+                  type = 'screenshot';
+                  contentType =
+                    ext === 'png'
+                      ? 'image/png'
+                      : ext === 'bmp'
+                      ? 'image/bmp'
+                      : 'image/jpeg';
+                }
+
+                const artifactExt = ext || 'bin';
+                const fileName = `${generateShortHash(
+                  test.testId + attempt.attempt + sourcePath
+                )}.${artifactExt}`;
+
+                try {
+                  await copyFileAsync(
+                    sourcePath,
+                    join(artifactsDir, fileName)
+                  );
+                  artifacts.push({
+                    path: join('artifacts', fileName),
+                    type,
+                    contentType,
+                  });
+                } catch (e) {
+                  debug(
+                    'Failed to copy attachment artifact %s: %o',
+                    sourcePath,
+                    e
+                  );
+                }
+              }
             }
 
             if (artifacts.length > 0) {

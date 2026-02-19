@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="1" failures="0" errors="0" time="0.299">
+    <testsuite name="artifacts.test.ts" timestamp="2026-02-19T17:18:52.245Z" hostname="Miguels-Laptop.local" tests="1" failures="0" errors="0" skipped="0" time="0.008130708">
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates a screenshot artifact and logs attachment marker" time="0.0065645">
+            <system-out>
+[[ATTACHMENT|/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/vitest-screenshot.bmp]]
+
+            </system-out>
+        </testcase>
+    </testsuite>
+</testsuites>

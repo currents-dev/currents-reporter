@@ -1,0 +1,19 @@
+{
+  "name": "examples-vitest",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "vitest --reporter=default --reporter=junit --outputFile=./junit.xml || true",
+    "convert": "npx currents convert --input-format=junit --input-file=./junit.xml --framework=vitest",
+    "build": "echo \"No build specified\" && exit 0"
+  },
+  "devDependencies": {
+    "@currents/cmd": "*",
+    "vitest": "^2.1.9"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+

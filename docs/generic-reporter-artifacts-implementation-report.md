@@ -245,7 +245,199 @@ Hand this to the agent implementing the client:
 
 ---
 
-## 6. Summary for the Other Agent
+## 6. JUnit XML + `currents convert` + Vitest
+
+This section explains how to attach artifacts when you are **not** using a native Currents reporter, but instead:
+
+- Run tests with a framework that can emit **JUnit XML** (for example, Vitest).
+- Use `npx currents convert --input-format=junit` to produce Currents JSON.
+
+The key idea is:
+
+- Each JUnit `<testcase>` can include a `<system-out>` element.
+- `currents convert` reads `<system-out>` for each test and:
+  - Stores the text as a `stdout` artifact file.
+  - Scans for **attachment markers** to create screenshot/video/attachment artifacts at the **attempt level**.
+
+### 6.1 Attachment Marker Format in JUnit
+
+When converting from JUnit, artifacts are discovered using the same marker format that we use for Jest:
+
+- Marker format inside `<system-out>`:
+
+```text
+[[ATTACHMENT|/absolute/or/relative/path/to/file.ext]]
+```
+
+- Every occurrence of this marker in a test’s `system-out` or `system-err` is interpreted as **one artifact** for that test attempt.
+- The converter determines `type` and `contentType` from the file extension:
+  - `*.png`, `*.jpg`, `*.jpeg`, `*.bmp` → `type: "screenshot"`, `contentType: "image/png" | "image/jpeg" | "image/bmp"`.
+  - `*.mp4`, `*.webm` → `type: "video"`, `contentType: "video/mp4" | "video/webm"`.
+  - Any other extension → `type: "attachment"`, `contentType: "application/octet-stream"`.
+- The converter copies the original file into the generated report directory under:
+
+```text
+.currents/<timestamp>-<uuid>/artifacts/<hash>.<ext>
+```
+
+and uses this new relative path in the artifact reference.
+
+### 6.2 Mapping JUnit Tests to Artifacts
+
+In JUnit XML, each `<testcase>` is already a single test with its own `system-out`:
+
+```xml
+<testcase name="should generate screenshot">
+  <system-out>
+    <![CDATA[
+      Generated screenshot at /path/to/screenshot.png
+      [[ATTACHMENT|/path/to/screenshot.png]]
+    ]]>
+  </system-out>
+</testcase>
+```
+
+The converter:
+
+- Builds one `InstanceReport` test per `<testcase>`.
+- Creates a single attempt for that test.
+- Takes the `system-out` value as `attempt.stdout[0]`.
+- Parses all `[[ATTACHMENT|...]]` markers in that string and attaches the resulting artifacts to that attempt.
+
+There is no need to manually specify line numbers or extra IDs: the **JUnit `<testcase>` boundary** is enough to map logs and artifacts to the right test.
+
+### 6.3 Converter Behavior for Stdout/Stderr
+
+When converting JUnit reports, `currents convert` also generates text artifacts for logs:
+
+- If `attempt.stdout` has content:
+  - A file is created in the report `artifacts` folder containing the joined `stdout` lines.
+  - An artifact is added:
+
+    ```json
+    {
+      "path": "artifacts/<hash>-stdout.txt",
+      "type": "stdout",
+      "contentType": "text/plain"
+    }
+    ```
+
+- If `attempt.stderr` has content:
+  - A file is created in the report `artifacts` folder containing the joined `stderr` lines.
+  - An artifact is added with `type: "stdout"` and `contentType: "text/plain"` (stderr is grouped under the `stdout` artifact type for API compatibility).
+
+Attachment markers inside either `stdout` or `stderr` are processed as described in 6.1.
+
+### 6.4 Vitest Example (Built-in JUnit Reporter)
+
+Vitest has a built-in JUnit reporter. A minimal setup that:
+
+- Runs Vitest.
+- Produces `junit.xml`.
+- Embeds attachment markers for artifacts.
+- Converts to Currents format using `currents convert`.
+
+is provided in [`examples/vitest`](file:///Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest).
+
+#### Vitest config
+
+[`vitest.config.ts`](file:///Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/vitest.config.ts#L1-L8):
+
+```ts
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    reporters: [
+      'default',
+      ['junit', { outputFile: './junit.xml' }],
+    ],
+  },
+});
+```
+
+#### Vitest test that generates an artifact
+
+[`artifacts.test.ts`](file:///Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts.test.ts#L1-L69) generates a BMP image and logs an attachment marker:
+
+```ts
+const artifactsDir = join(process.cwd(), 'artifacts');
+
+beforeAll(() => {
+  if (!fs.existsSync(artifactsDir)) {
+    fs.mkdirSync(artifactsDir, { recursive: true });
+  }
+});
+
+it('generates a screenshot artifact and logs attachment marker', () => {
+  const screenshotPath = join(artifactsDir, 'vitest-screenshot.bmp');
+  // (code that writes a BMP file to screenshotPath)
+  fs.writeFileSync(screenshotPath, buffer);
+  console.log(`[[ATTACHMENT|${screenshotPath}]]`);
+  expect(fs.existsSync(screenshotPath)).toBe(true);
+});
+```
+
+Running:
+
+```bash
+cd examples/vitest
+npm test
+```
+
+produces `junit.xml` in the project root, with `<system-out>` containing the `[[ATTACHMENT|...]]` marker.
+
+Converting to Currents format:
+
+```bash
+npx currents convert --input-format=junit --input-file=./junit.xml --framework=vitest
+```
+
+creates a `.currents/...` directory with:
+
+- `instances/*.json` – Currents instance reports.
+- `artifacts/*.bmp` – copied screenshot file referenced from the instance JSON as a `screenshot` artifact.
+- `artifacts/*.txt` – stdout/stderr log artifacts.
+
+### 6.5 What Users Need To Do (JUnit-based Flows)
+
+For any JUnit-compatible framework (Vitest, Node test reporter, Postman, etc.), to make tests match their artifacts:
+
+1. **Enable JUnit output**
+   - Configure your test runner to emit JUnit XML (e.g. Vitest `reporters: ['default', ['junit', { outputFile: './junit.xml' }]]`).
+
+2. **Generate artifacts inside tests**
+   - Write files (screenshots, videos, logs) to a location that will still exist when you run `currents convert` (absolute paths or paths relative to the project root work best).
+
+3. **Log attachment markers per test**
+   - From within each test, log one marker per artifact:
+
+     ```ts
+     console.log(`[[ATTACHMENT|${absoluteOrRelativePathToFile}]]`);
+     ```
+
+   - Ensure your JUnit reporter includes console output in `<system-out>` for each `<testcase>`.
+
+4. **Run `currents convert`**
+
+   ```bash
+   npx currents convert \
+     --input-format=junit \
+     --input-file=./junit.xml \
+     --framework=<your-framework>   # e.g. vitest, node, postman
+   ```
+
+5. **Upload with `currents upload` (optional)**
+   - Use `currents upload` pointing at the generated `.currents/...` directory as usual.
+
+As long as the JUnit XML contains the `[[ATTACHMENT|...]]` markers inside each `<testcase>`’s `system-out`, the converter will:
+
+- Copy the referenced files into the report `artifacts` folder.
+- Attach them to the correct test attempts with appropriate `type` and `contentType`.
+
+---
+
+## 7. Summary for the Other Agent
 
 **Goal:** Implement artifact upload in the **client** that uses the generic run API.
 
