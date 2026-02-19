@@ -47,3 +47,22 @@ export async function writeFileAsync(
     throw err;
   }
 }
+
+export async function copyFileAsync(source: string, destination: string) {
+  try {
+    await fs.copy(source, destination);
+    debug('File copied from %s to %s', source, destination);
+  } catch (err) {
+    error(`Error copying file from ${source} to ${destination}:`, err);
+    throw err;
+  }
+}
+
+export async function readFileAsync(filePath: string, encoding: BufferEncoding = 'utf8') {
+  try {
+    return await fs.readFile(filePath, encoding);
+  } catch (err) {
+    error(`Error reading file at ${filePath}:`, err);
+    throw err;
+  }
+}

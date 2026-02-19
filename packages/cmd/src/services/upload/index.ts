@@ -5,9 +5,12 @@ import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
 import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
 import { info, warn } from '@logger';
+import axios from 'axios';
+import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 import {
+  ArtifactUploadInstruction,
   Framework,
   RunCreationConfig,
   createRun as createRunApi,
@@ -150,9 +153,17 @@ export async function handleCurrentsReport() {
         framework,
       });
 
+      if (response.artifactUploadUrls && response.artifactUploadUrls.length > 0) {
+        await uploadArtifacts(
+          response.artifactUploadUrls,
+          reportOptions.reportDir,
+          []
+        );
+      }
+
       // Iterates over the instance chunks and sends the instances without the fullTestSuite
       for (let i = 0; i < chunks.length; i++) {
-        await createRun({
+        const chunkResponse = await createRun({
           ci,
           group,
           instances: chunks[i],
@@ -161,6 +172,17 @@ export async function handleCurrentsReport() {
           machineId,
           framework,
         });
+
+        if (
+          chunkResponse.artifactUploadUrls &&
+          chunkResponse.artifactUploadUrls.length > 0
+        ) {
+          await uploadArtifacts(
+            chunkResponse.artifactUploadUrls,
+            reportOptions.reportDir,
+            chunks[i]
+          );
+        }
       }
 
       debug('Api response: %o', response);
@@ -247,5 +269,61 @@ function isEmptyTestSuite(testSuite: FullTestSuite) {
   return (
     testSuite.length === 0 ||
     testSuite.some((project) => project.tests.length === 0)
+  );
+}
+
+async function uploadArtifacts(
+  instructions: ArtifactUploadInstruction[],
+  reportDir: string,
+  instances: InstanceReport[]
+) {
+  const contentTypeMap = new Map<string, string>();
+
+  for (const instance of instances) {
+    if (instance.artifacts) {
+      instance.artifacts.forEach((a) =>
+        contentTypeMap.set(a.path, a.contentType)
+      );
+    }
+    for (const test of instance.results.tests) {
+      if (test.artifacts) {
+        test.artifacts.forEach((a) =>
+          contentTypeMap.set(a.path, a.contentType)
+        );
+      }
+      for (const attempt of test.attempts) {
+        if (attempt.artifacts) {
+          attempt.artifacts.forEach((a) =>
+            contentTypeMap.set(a.path, a.contentType)
+          );
+        }
+      }
+    }
+  }
+
+  debug('Uploading %d artifacts', instructions.length);
+
+  await Promise.all(
+    instructions.map(async (instruction) => {
+      try {
+        const filePath = path.join(reportDir, instruction.path);
+        if (!(await fs.pathExists(filePath))) {
+          warn('Artifact file not found: %s', filePath);
+          return;
+        }
+
+        const fileBuffer = await fs.readFile(filePath);
+        const contentType =
+          contentTypeMap.get(instruction.path) || 'application/octet-stream';
+
+        await axios.put(instruction.uploadUrl, fileBuffer, {
+          headers: {
+            'Content-Type': contentType,
+          },
+        });
+      } catch (err) {
+        debug('Failed to upload artifact %s: %o', instruction.path, err);
+      }
+    })
   );
 }

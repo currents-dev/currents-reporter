@@ -15,6 +15,8 @@ import {
   Deferred,
   createFolder,
   createUniqueFolder,
+  copyFileAsync,
+  readFileAsync,
   debug,
   formatError,
   generateShortHash,
@@ -109,7 +111,7 @@ export default class CustomReporter implements Reporter {
     this.reportDirDeferred.resolve();
   }
 
-  async onTestFileStart(test: Test): Promise<void> {
+  async onTestStart(test: Test): Promise<void> {
     const specName = testToSpecName(test);
     const projectId = getProjectId(test);
 
@@ -272,6 +274,102 @@ export default class CustomReporter implements Reporter {
     const wallClockDuration =
       testResult.perfStats.end - testResult.perfStats.start;
 
+    const artifactsDir = await createFolder(join(this.reportDir, 'artifacts'));
+
+    // Parse attachments from console logs
+    const attachmentLogs = (testResult.console ?? [])
+      .filter((log) => log.message.startsWith('[[ATTACHMENT|'))
+      .map((log) => {
+        const match = log.message.match(/\[\[ATTACHMENT\|([^\]]+)\]\]/);
+        const filePath = match ? match[1] : '';
+        const lineMatch = log.origin.match(/:(\d+):\d+\)/);
+        const line = lineMatch ? parseInt(lineMatch[1], 10) : 0;
+        return { filePath, line };
+      })
+      .filter((a) => a.filePath);
+
+    // Parse stdout/stderr logs
+    const stdioLogs = (testResult.console ?? [])
+      .filter((log) => !log.message.startsWith('[[ATTACHMENT|'))
+      .map((log) => {
+        const lineMatch = log.origin.match(/:(\d+):\d+\)/);
+        const line = lineMatch ? parseInt(lineMatch[1], 10) : 0;
+        return { message: log.message, type: log.type, line };
+      });
+
+    // Sort test cases to help with assignment
+    const sortedTestCases = Object.values(
+      this.specInfo[specKey].testCaseList
+    ).sort((a, b) => (a.location?.line ?? 0) - (b.location?.line ?? 0));
+
+    try {
+      const fileContent = await readFileAsync(testResult.testFilePath);
+      const fileLines = fileContent.split('\n');
+
+      for (const testCase of sortedTestCases) {
+        if ((testCase.location?.line ?? 1) <= 1) {
+          const title = testCase.title[testCase.title.length - 1];
+          const lineIdx = fileLines.findIndex(
+            (l) =>
+              l.includes(`it('${title}'`) ||
+              l.includes(`it("${title}"`) ||
+              l.includes(`test('${title}'`) ||
+              l.includes(`test("${title}"`)
+          );
+          if (lineIdx !== -1) {
+            if (!testCase.location) {
+              testCase.location = {
+                line: lineIdx + 1,
+                column: 1,
+              };
+            } else {
+              testCase.location.line = lineIdx + 1;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debug('Failed to read test file or parse lines: %o', e);
+    }
+
+    // Re-sort after potential line updates
+    sortedTestCases.sort((a, b) => (a.location?.line ?? 0) - (b.location?.line ?? 0));
+
+    // Assign attachments to test cases
+    const attachmentsByTestId: Record<string, typeof attachmentLogs> = {};
+    attachmentLogs.forEach((att) => {
+      // Find owner: test case with max line <= att.line
+      let owner = sortedTestCases[0];
+      for (const tc of sortedTestCases) {
+        if ((tc.location?.line ?? 0) <= att.line) {
+          owner = tc;
+        } else {
+          break;
+        }
+      }
+      if (owner) {
+        if (!attachmentsByTestId[owner.id]) attachmentsByTestId[owner.id] = [];
+        attachmentsByTestId[owner.id].push(att);
+      }
+    });
+
+    const stdioByTestId: Record<string, typeof stdioLogs> = {};
+    stdioLogs.forEach((log) => {
+      // Find owner: test case with max line <= log.line
+      let owner = sortedTestCases[0];
+      for (const tc of sortedTestCases) {
+        if ((tc.location?.line ?? 0) <= log.line) {
+          owner = tc;
+        } else {
+          break;
+        }
+      }
+      if (owner) {
+        if (!stdioByTestId[owner.id]) stdioByTestId[owner.id] = [];
+        stdioByTestId[owner.id].push(log);
+      }
+    });
+
     const tests = await Promise.all(
       Object.values(this.specInfo[specKey].testCaseList).map(
         async (testCase) => {
@@ -294,41 +392,135 @@ export default class CustomReporter implements Reporter {
               line: testCase.location?.line ?? 1,
             },
             retries: testCase.result.length,
-            attempts: testCase.result.map((result, index) => {
-              const errors = (result.failureMessages ?? []).map((i) =>
-                getError(
-                  formatError(
-                    testCase.config.rootDir,
-                    new Error(i),
-                    false,
-                    specName
+            attempts: await Promise.all(
+              testCase.result.map(async (result, index) => {
+                const errors = (result.failureMessages ?? []).map((i) =>
+                  getError(
+                    formatError(
+                      testCase.config.rootDir,
+                      new Error(i),
+                      false,
+                      specName
+                    ),
+                    testCase.config.rootDir
+                  )
+                );
+
+                const stderr = result.failureMessages ?? [];
+                const artifacts: import('./types').Artifact[] = [];
+
+                if (index === 0) {
+                  const myLogs = stdioByTestId[testCase.id] ?? [];
+                  const stdoutLogs = myLogs
+                    .filter((l) => l.type !== 'error' && l.type !== 'warn')
+                    .map((l) => l.message);
+                  const stderrLogs = myLogs
+                    .filter((l) => l.type === 'error' || l.type === 'warn')
+                    .map((l) => l.message);
+
+                  if (stdoutLogs.length > 0) {
+                    const fileName = `${generateShortHash(
+                      testCase.id + 'stdout'
+                    )}.txt`;
+                    await writeFileAsync(
+                      artifactsDir,
+                      fileName,
+                      stdoutLogs.join('\n')
+                    );
+                    artifacts.push({
+                      path: join('artifacts', fileName),
+                      type: 'stdout',
+                      contentType: 'text/plain',
+                    });
+                  }
+
+                  if (stderrLogs.length > 0) {
+                     const fileName = `${generateShortHash(
+                       testCase.id + 'stderr-log'
+                     )}.txt`;
+                     await writeFileAsync(
+                       artifactsDir,
+                       fileName,
+                       stderrLogs.join('\n')
+                     );
+                     artifacts.push({
+                       path: join('artifacts', fileName),
+                       type: 'stdout',
+                       contentType: 'text/plain',
+                     });
+                   }
+ 
+                   if (stderr.length > 0) {
+                     const fileName = `${generateShortHash(
+                       testCase.id + index + 'stderr'
+                     )}.txt`;
+                     await writeFileAsync(artifactsDir, fileName, stderr.join('\n'));
+                     artifacts.push({
+                       path: join('artifacts', fileName),
+                       type: 'stdout',
+                       contentType: 'text/plain',
+                     });
+                   }
+
+                  const myAttachments = attachmentsByTestId[testCase.id] ?? [];
+                  for (const att of myAttachments) {
+                    const ext = att.filePath.split('.').pop() ?? '';
+                    let type = 'attachment';
+                    let contentType = 'application/octet-stream';
+
+                    if (['mp4', 'webm'].includes(ext)) {
+                      type = 'video';
+                      contentType = ext === 'mp4' ? 'video/mp4' : 'video/webm';
+                    }
+                    if (['png', 'jpg', 'jpeg', 'bmp'].includes(ext)) {
+                      type = 'screenshot';
+                      contentType = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/bmp';
+                    }
+
+                    const fileName = `${generateShortHash(
+                      testCase.id + att.filePath
+                    )}.${ext}`;
+
+                    try {
+                      await copyFileAsync(
+                        att.filePath,
+                        join(artifactsDir, fileName)
+                      );
+                      artifacts.push({
+                        path: join('artifacts', fileName),
+                        type,
+                        contentType,
+                      });
+                    } catch (e) {
+                      debug('Failed to copy artifact %s: %o', att.filePath, e);
+                    }
+                  }
+                }
+
+                return {
+                  _s: getTestCaseStatus(result.status as JestTestCaseStatus),
+                  attempt: getAttemptNumber(result),
+
+                  startTime:
+                    testCase.timestamps.length && testCase.timestamps[index]
+                      ? new Date(testCase.timestamps[index]).toISOString()
+                      : startTime,
+                  steps: [],
+
+                  duration: testCase.result[index].duration ?? 0,
+                  status: getTestRunnerStatus(
+                    result.status as JestTestCaseStatus
                   ),
-                  testCase.config.rootDir
-                )
-              );
 
-              return {
-                _s: getTestCaseStatus(result.status as JestTestCaseStatus),
-                attempt: getAttemptNumber(result),
+                  stdout: [],
+                  stderr,
+                  artifacts,
 
-                startTime:
-                  testCase.timestamps.length && testCase.timestamps[index]
-                    ? new Date(testCase.timestamps[index]).toISOString()
-                    : startTime,
-                steps: [],
-
-                duration: testCase.result[index].duration ?? 0,
-                status: getTestRunnerStatus(
-                  result.status as JestTestCaseStatus
-                ),
-
-                stdout: [],
-                stderr: result.failureMessages ?? [],
-
-                errors,
-                error: errors[0],
-              };
-            }),
+                  errors,
+                  error: errors[0],
+                };
+              })
+            ),
           };
         }
       )

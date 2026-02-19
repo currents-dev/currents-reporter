@@ -56,6 +56,52 @@ export async function handleConvert() {
       parsedXMLArray,
     });
 
+    const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
+
+    await Promise.all(
+      Array.from(instances.values()).map(async (report) => {
+        for (const test of report.results.tests) {
+          for (const attempt of test.attempts) {
+            const artifacts: import('../../types').Artifact[] = [];
+
+            if (attempt.stdout && attempt.stdout.length > 0) {
+              const fileName = `${generateShortHash(
+                test.testId + attempt.attempt + 'stdout'
+              )}.txt`;
+              await writeFileAsyncIfNotExists(
+                join(artifactsDir, fileName),
+                attempt.stdout.join('\n')
+              );
+              artifacts.push({
+                path: join('artifacts', fileName),
+                type: 'stdout',
+                contentType: 'text/plain',
+              });
+            }
+
+            if (attempt.stderr && attempt.stderr.length > 0) {
+              const fileName = `${generateShortHash(
+                test.testId + attempt.attempt + 'stderr'
+              )}.txt`;
+              await writeFileAsyncIfNotExists(
+                join(artifactsDir, fileName),
+                attempt.stderr.join('\n')
+              );
+              artifacts.push({
+                path: join('artifacts', fileName),
+                type: 'stderr',
+                contentType: 'text/plain',
+              });
+            }
+
+            if (artifacts.length > 0) {
+              attempt.artifacts = artifacts;
+            }
+          }
+        }
+      })
+    );
+
     await Promise.all(
       Array.from(instances.entries()).map(([name, report]) =>
         writeFileAsyncIfNotExists(
