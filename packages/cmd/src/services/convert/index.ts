@@ -16,6 +16,19 @@ import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
 
+function extractAttachmentsFromLog(
+  log: string
+): { sourcePath: string; ext: string }[] {
+  const out: { sourcePath: string; ext: string }[] = [];
+  const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
+  for (const match of matches) {
+    const sourcePath = match[1];
+    const ext = sourcePath.split('.').pop()?.toLowerCase() ?? '';
+    out.push({ sourcePath, ext });
+  }
+  return out;
+}
+
 export async function handleConvert() {
   try {
     const config = getConvertCommandConfig();
@@ -101,11 +114,8 @@ export async function handleConvert() {
             ];
 
             for (const log of logsForAttachments) {
-              const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
-              for (const match of matches) {
-                const sourcePath = match[1];
-                const ext =
-                  sourcePath.split('.').pop()?.toLowerCase() ?? '';
+              const attachments = extractAttachmentsFromLog(log);
+              for (const { sourcePath, ext } of attachments) {
 
                 let type: Artifact['type'] = 'attachment';
                 let contentType = 'application/octet-stream';
