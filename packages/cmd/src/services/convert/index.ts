@@ -7,7 +7,7 @@ import {
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
-import { join } from 'path';
+import { join, extname } from 'path';
 import { getFullTestSuiteFilePath } from '../upload/path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { Artifact, InstanceReport } from '../../types';
@@ -23,7 +23,7 @@ function extractAttachmentsFromLog(
   const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
   for (const match of matches) {
     const sourcePath = match[1];
-    const ext = sourcePath.split('.').pop()?.toLowerCase() ?? '';
+    const ext = extname(sourcePath).slice(1).toLowerCase();
     out.push({ sourcePath, ext });
   }
   return out;
