@@ -10,7 +10,7 @@ import { info } from '@logger';
 import { join } from 'path';
 import { getFullTestSuiteFilePath } from '../upload/path';
 import { getConvertCommandConfig } from '../../config/convert';
-import { InstanceReport } from '../../types';
+import { Artifact, InstanceReport } from '../../types';
 import { createFullTestSuite } from './createFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
@@ -63,7 +63,7 @@ export async function handleConvert() {
       Array.from(instances.values()).map(async (report) => {
         for (const test of report.results.tests) {
           for (const attempt of test.attempts) {
-            const artifacts: import('../../types').Artifact[] = [];
+            const artifacts: Artifact[] = [];
 
             if (attempt.stdout && attempt.stdout.length > 0) {
               const fileName = `${generateShortHash(
@@ -107,7 +107,7 @@ export async function handleConvert() {
                 const ext =
                   sourcePath.split('.').pop()?.toLowerCase() ?? '';
 
-                let type: import('../../types').Artifact['type'] = 'attachment';
+                let type: Artifact['type'] = 'attachment';
                 let contentType = 'application/octet-stream';
 
                 if (ext === 'mp4' || ext === 'webm') {
