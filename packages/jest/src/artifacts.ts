@@ -137,8 +137,8 @@ export async function createAttemptArtifacts({
       });
     }
 
-    const myAttachments = attachmentsByTestId[testCaseId] ?? [];
-    for (const att of myAttachments) {
+    const testCaseAttachments = attachmentsByTestId[testCaseId] ?? [];
+    for (const att of testCaseAttachments) {
       const ext = att.filePath.split('.').pop() ?? '';
       let type = 'attachment';
       let contentType = 'application/octet-stream';
