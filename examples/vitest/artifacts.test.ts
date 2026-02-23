@@ -11,6 +11,23 @@ describe('Vitest JUnit artifacts', () => {
     }
   });
 
+  it('generates stdout and stderr', () => {
+    console.log('This is a stdout message from the test');
+    console.error('This is a stderr message from the test');
+    expect(true).toBe(true);
+  });
+
+  it('generates a generic attachment and logs attachment marker', () => {
+    const attachmentPath = join(artifactsDir, 'attachment-sample.txt');
+    fs.writeFileSync(
+      attachmentPath,
+      'Sample attachment content for upload\n',
+      'utf8'
+    );
+    console.log(`[[ATTACHMENT|${attachmentPath}]]`);
+    expect(fs.existsSync(attachmentPath)).toBe(true);
+  });
+
   it('generates a video artifact and logs attachment marker', () => {
     const videoPath = join(artifactsDir, 'vitest-video.mp4');
     const validMp4Base64 =
