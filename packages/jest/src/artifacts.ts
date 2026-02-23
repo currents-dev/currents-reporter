@@ -95,11 +95,11 @@ export async function createAttemptArtifacts({
   const artifacts: Artifact[] = [];
 
   if (attemptIndex === 0) {
-    const myLogs = stdioByTestId[testCaseId] ?? [];
-    const stdoutLogs = myLogs
+    const testCaseLogs = stdioByTestId[testCaseId] ?? [];
+    const stdoutLogs = testCaseLogs
       .filter((l) => l.type !== 'error' && l.type !== 'warn')
       .map((l) => l.message);
-    const stderrLogs = myLogs
+    const stderrLogs = testCaseLogs
       .filter((l) => l.type === 'error' || l.type === 'warn')
       .map((l) => l.message);
 
