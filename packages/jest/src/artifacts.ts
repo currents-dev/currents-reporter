@@ -58,8 +58,8 @@ export async function prepareArtifacts({
 }: ArtifactsPreparationInput): Promise<ArtifactsPreparationResult> {
   const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
 
-  const attachmentLogs = parseAttachmentLogs(testResult.console);
-  const stdioLogs = parseStdioLogs(testResult.console);
+  const attachmentLogs = parseAttachmentLogs(testResult.console, testFilePath);
+  const stdioLogs = parseStdioLogs(testResult.console, testFilePath);
 
   const sortedTestCases = [...testCases].sort(
     (a, b) => (a.location?.line ?? 0) - (b.location?.line ?? 0)
@@ -175,30 +175,50 @@ export async function createAttemptArtifacts({
   return artifacts;
 }
 
-function getLineFromOrigin(origin: string | undefined): number {
-  const lineMatch = origin?.match(/:(\d+):\d+\)/);
-  return lineMatch ? parseInt(lineMatch[1], 10) : 0;
+/** Prefer line from stack frame that references the test file so logs group to the right test. */
+function getLineFromOrigin(
+  origin: string | undefined,
+  testFilePath: string
+): number {
+  if (!origin) return 0;
+  const testFileName = testFilePath.split(/[/\\]/).pop() ?? '';
+  const lines = origin.split('\n');
+  // Prefer the frame that references the test file (user code)
+  for (const line of lines) {
+    if (testFileName && line.includes(testFileName)) {
+      const lineMatch = line.match(/:(\d+):\d+/);
+      if (lineMatch) return parseInt(lineMatch[1], 10);
+    }
+  }
+  // Fallback: use last frame in stack (deepest = user code); Jest origin may not contain path
+  const allMatches = [...origin.matchAll(/:(\d+):\d+/g)];
+  const last = allMatches[allMatches.length - 1];
+  return last ? parseInt(last[1], 10) : 0;
 }
 
 function parseAttachmentLogs(
-  consoleEntries: TestResult['console']
+  consoleEntries: TestResult['console'],
+  testFilePath: string
 ): AttachmentLog[] {
   return (consoleEntries ?? [])
     .filter((log) => log.message.startsWith(ATTACHMENT_LOG_PREFIX))
     .map((log) => {
       const match = log.message.match(/\[\[ATTACHMENT\|([^\]]+)\]\]/);
       const filePath = match ? match[1] : '';
-      const line = getLineFromOrigin(log.origin);
+      const line = getLineFromOrigin(log.origin, testFilePath);
       return { filePath, line };
     })
     .filter((a) => a.filePath);
 }
 
-function parseStdioLogs(consoleEntries: TestResult['console']): StdioLog[] {
+function parseStdioLogs(
+  consoleEntries: TestResult['console'],
+  testFilePath: string
+): StdioLog[] {
   return (consoleEntries ?? [])
     .filter((log) => !log.message.startsWith(ATTACHMENT_LOG_PREFIX))
     .map((log) => {
-      const line = getLineFromOrigin(log.origin);
+      const line = getLineFromOrigin(log.origin, testFilePath);
       return { message: log.message, type: log.type, line };
     });
 }

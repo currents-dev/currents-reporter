@@ -317,24 +317,23 @@ export default class CustomReporter implements Reporter {
                   )
                 );
 
-                const stderr = result.failureMessages ?? [];
                 const artifacts = await createAttemptArtifacts({
                   artifactsDir,
                   testCaseId: testCase.id,
                   attemptIndex: index,
-                  stderrMessages: stderr,
+                  stderrMessages: result.failureMessages ?? [],
                   attachmentsByTestId,
                   stdioByTestId,
                 });
 
-                const stdout =
-                  index === 0
-                    ? (stdioByTestId[testCase.id] ?? [])
-                        .filter(
-                          (l) => l.type !== 'error' && l.type !== 'warn'
-                        )
-                        .map((l) => l.message)
-                    : [];
+                const testCaseLogs = index === 0 ? stdioByTestId[testCase.id] ?? [] : [];
+                const stdout = testCaseLogs
+                  .filter((l) => l.type !== 'error' && l.type !== 'warn')
+                  .map((l) => l.message);
+                const stderrLogs = testCaseLogs
+                  .filter((l) => l.type === 'error' || l.type === 'warn')
+                  .map((l) => l.message);
+                const stderr = [...stderrLogs, ...(result.failureMessages ?? [])];
 
                 return {
                   _s: getTestCaseStatus(result.status as JestTestCaseStatus),
