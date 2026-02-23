@@ -175,6 +175,11 @@ export async function createAttemptArtifacts({
   return artifacts;
 }
 
+function getLineFromOrigin(origin: string | undefined): number {
+  const lineMatch = origin?.match(/:(\d+):\d+\)/);
+  return lineMatch ? parseInt(lineMatch[1], 10) : 0;
+}
+
 function parseAttachmentLogs(
   consoleEntries: TestResult['console']
 ): AttachmentLog[] {
@@ -183,8 +188,7 @@ function parseAttachmentLogs(
     .map((log) => {
       const match = log.message.match(/\[\[ATTACHMENT\|([^\]]+)\]\]/);
       const filePath = match ? match[1] : '';
-      const lineMatch = log.origin.match(/:(\d+):\d+\)/);
-      const line = lineMatch ? parseInt(lineMatch[1], 10) : 0;
+      const line = getLineFromOrigin(log.origin);
       return { filePath, line };
     })
     .filter((a) => a.filePath);
@@ -194,8 +198,7 @@ function parseStdioLogs(consoleEntries: TestResult['console']): StdioLog[] {
   return (consoleEntries ?? [])
     .filter((log) => !log.message.startsWith(ATTACHMENT_LOG_PREFIX))
     .map((log) => {
-      const lineMatch = log.origin.match(/:(\d+):\d+\)/);
-      const line = lineMatch ? parseInt(lineMatch[1], 10) : 0;
+      const line = getLineFromOrigin(log.origin);
       return { message: log.message, type: log.type, line };
     });
 }
