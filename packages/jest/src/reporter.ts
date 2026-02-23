@@ -327,6 +327,15 @@ export default class CustomReporter implements Reporter {
                   stdioByTestId,
                 });
 
+                const stdout =
+                  index === 0
+                    ? (stdioByTestId[testCase.id] ?? [])
+                        .filter(
+                          (l) => l.type !== 'error' && l.type !== 'warn'
+                        )
+                        .map((l) => l.message)
+                    : [];
+
                 return {
                   _s: getTestCaseStatus(result.status as JestTestCaseStatus),
                   attempt: getAttemptNumber(result),
@@ -342,7 +351,7 @@ export default class CustomReporter implements Reporter {
                     result.status as JestTestCaseStatus
                   ),
 
-                  stdout: [],
+                  stdout,
                   stderr,
                   artifacts,
 
