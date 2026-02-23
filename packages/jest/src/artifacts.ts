@@ -238,51 +238,42 @@ async function updateTestCaseLocationsFromFile(
   }
 }
 
-function groupAttachmentsByTestId(
-  attachmentLogs: AttachmentLog[],
-  sortedTestCases: TestCaseForArtifacts[]
-): Record<string, AttachmentLog[]> {
-  const attachmentsByTestId: Record<string, AttachmentLog[]> = {};
+function groupByTestId<T>(
+  items: T[],
+  sortedTestCases: TestCaseForArtifacts[],
+  getLine: (item: T) => number
+): Record<string, T[]> {
+  const byTestId: Record<string, T[]> = {};
 
-  attachmentLogs.forEach((att) => {
+  items.forEach((item) => {
     let owner = sortedTestCases[0];
     for (const tc of sortedTestCases) {
-      if ((tc.location?.line ?? 0) <= att.line) {
+      if ((tc.location?.line ?? 0) <= getLine(item)) {
         owner = tc;
       } else {
         break;
       }
     }
     if (owner) {
-      if (!attachmentsByTestId[owner.id]) attachmentsByTestId[owner.id] = [];
-      attachmentsByTestId[owner.id].push(att);
+      if (!byTestId[owner.id]) byTestId[owner.id] = [];
+      byTestId[owner.id].push(item);
     }
   });
 
-  return attachmentsByTestId;
+  return byTestId;
+}
+
+function groupAttachmentsByTestId(
+  attachmentLogs: AttachmentLog[],
+  sortedTestCases: TestCaseForArtifacts[]
+): Record<string, AttachmentLog[]> {
+  return groupByTestId(attachmentLogs, sortedTestCases, (att) => att.line);
 }
 
 function groupStdioByTestId(
   stdioLogs: StdioLog[],
   sortedTestCases: TestCaseForArtifacts[]
 ): Record<string, StdioLog[]> {
-  const stdioByTestId: Record<string, StdioLog[]> = {};
-
-  stdioLogs.forEach((log) => {
-    let owner = sortedTestCases[0];
-    for (const tc of sortedTestCases) {
-      if ((tc.location?.line ?? 0) <= log.line) {
-        owner = tc;
-      } else {
-        break;
-      }
-    }
-    if (owner) {
-      if (!stdioByTestId[owner.id]) stdioByTestId[owner.id] = [];
-      stdioByTestId[owner.id].push(log);
-    }
-  });
-
-  return stdioByTestId;
+  return groupByTestId(stdioLogs, sortedTestCases, (log) => log.line);
 }
 
