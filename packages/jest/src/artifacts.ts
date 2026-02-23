@@ -3,6 +3,8 @@ import type { Test, TestCaseResult, TestResult } from '@jest/reporters';
 import { copyFileAsync, createFolder, debug, generateShortHash, readFileAsync, writeFileAsync } from './lib';
 import type { Artifact } from './types';
 
+const ATTACHMENT_LOG_PREFIX = '[[ATTACHMENT|';
+
 type AttachmentLog = {
   filePath: string;
   line: number;
@@ -177,7 +179,7 @@ function parseAttachmentLogs(
   consoleEntries: TestResult['console']
 ): AttachmentLog[] {
   return (consoleEntries ?? [])
-    .filter((log) => log.message.startsWith('[[ATTACHMENT|'))
+    .filter((log) => log.message.startsWith(ATTACHMENT_LOG_PREFIX))
     .map((log) => {
       const match = log.message.match(/\[\[ATTACHMENT\|([^\]]+)\]\]/);
       const filePath = match ? match[1] : '';
@@ -190,7 +192,7 @@ function parseAttachmentLogs(
 
 function parseStdioLogs(consoleEntries: TestResult['console']): StdioLog[] {
   return (consoleEntries ?? [])
-    .filter((log) => !log.message.startsWith('[[ATTACHMENT|'))
+    .filter((log) => !log.message.startsWith(ATTACHMENT_LOG_PREFIX))
     .map((log) => {
       const lineMatch = log.origin.match(/:(\d+):\d+\)/);
       const line = lineMatch ? parseInt(lineMatch[1], 10) : 0;
