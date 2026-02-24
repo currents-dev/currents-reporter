@@ -124,18 +124,28 @@ describe('handleConvert artifacts', () => {
     const stdoutArtifact = attempt.artifacts?.find(
       (a) => a.type === 'stdout'
     );
+    const stderrArtifact = attempt.artifacts?.find(
+      (a) => a.type === 'stderr'
+    );
     const attachmentArtifact = attempt.artifacts?.find(
       (a) => a.type === 'screenshot'
     );
 
     expect(stdoutArtifact).toBeDefined();
+    expect(stderrArtifact).toBeDefined();
     expect(attachmentArtifact).toBeDefined();
 
     expect(stdoutArtifact?.contentType).toBe('text/plain');
+    expect(stderrArtifact?.contentType).toBe('text/plain');
     expect(attachmentArtifact?.contentType).toBe('image/bmp');
 
     if (stdoutArtifact) {
       const p = join(baseDir, stdoutArtifact.path);
+      expect(await fs.pathExists(p)).toBe(true);
+    }
+
+    if (stderrArtifact) {
+      const p = join(baseDir, stderrArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
     }
 

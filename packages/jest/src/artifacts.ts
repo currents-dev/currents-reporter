@@ -120,7 +120,7 @@ export async function createAttemptArtifacts({
       await writeFileAsync(artifactsDir, fileName, stderrLogs.join('\n'));
       artifacts.push({
         path: join('artifacts', fileName),
-        type: 'stdout',
+        type: 'stderr',
         contentType: 'text/plain',
       });
     }
@@ -132,7 +132,7 @@ export async function createAttemptArtifacts({
       await writeFileAsync(artifactsDir, fileName, stderrMessages.join('\n'));
       artifacts.push({
         path: join('artifacts', fileName),
-        type: 'stdout',
+        type: 'stderr',
         contentType: 'text/plain',
       });
     }

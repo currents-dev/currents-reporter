@@ -103,7 +103,7 @@ export async function handleConvert() {
               );
               artifacts.push({
                 path: join('artifacts', fileName),
-                type: 'stdout',
+                type: 'stderr',
                 contentType: 'text/plain',
               });
             }

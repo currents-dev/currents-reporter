@@ -76,6 +76,11 @@ describe('CustomReporter artifacts', () => {
         origin: `${testFilePath}:10:1)`,
         type: 'log',
       },
+      {
+        message: 'stderr message',
+        origin: `${testFilePath}:10:1)`,
+        type: 'error',
+      },
     ];
 
     const testResult: TestResult = {
@@ -114,15 +119,24 @@ describe('CustomReporter artifacts', () => {
     const stdoutArtifact = attempt.artifacts?.find(
       (a) => a.type === 'stdout'
     );
+    const stderrArtifact = attempt.artifacts?.find(
+      (a) => a.type === 'stderr'
+    );
     const attachmentArtifact = attempt.artifacts?.find(
       (a) => a.type === 'screenshot'
     );
 
     expect(stdoutArtifact).toBeDefined();
+    expect(stderrArtifact).toBeDefined();
     expect(attachmentArtifact).toBeDefined();
 
     if (stdoutArtifact) {
       const p = join(baseDir, stdoutArtifact.path);
+      expect(await fs.pathExists(p)).toBe(true);
+    }
+
+    if (stderrArtifact) {
+      const p = join(baseDir, stderrArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
     }
 
