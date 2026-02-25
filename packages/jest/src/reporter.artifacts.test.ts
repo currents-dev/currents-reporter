@@ -119,25 +119,19 @@ describe('CustomReporter artifacts', () => {
     const stdoutArtifact = attempt.artifacts?.find(
       (a) => a.type === 'stdout'
     );
-    const stderrArtifact = attempt.artifacts?.find(
-      (a) => a.type === 'stderr'
-    );
     const attachmentArtifact = attempt.artifacts?.find(
       (a) => a.type === 'screenshot'
     );
 
     expect(stdoutArtifact).toBeDefined();
-    expect(stderrArtifact).toBeDefined();
     expect(attachmentArtifact).toBeDefined();
 
     if (stdoutArtifact) {
       const p = join(baseDir, stdoutArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
-    }
-
-    if (stderrArtifact) {
-      const p = join(baseDir, stderrArtifact.path);
-      expect(await fs.pathExists(p)).toBe(true);
+      const content = await fs.readFile(p, 'utf8');
+      expect(content).toContain('stdout message');
+      expect(content).toContain('[stderr] stderr message');
     }
 
     if (attachmentArtifact) {

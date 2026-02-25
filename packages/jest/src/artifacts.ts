@@ -96,43 +96,23 @@ export async function createAttemptArtifacts({
 
   if (attemptIndex === 0) {
     const testCaseLogs = stdioByTestId[testCaseId] ?? [];
-    const stdoutLogs = testCaseLogs
-      .filter((l) => l.type !== 'error' && l.type !== 'warn')
-      .map((l) => l.message);
-    const stderrLogs = testCaseLogs
-      .filter((l) => l.type === 'error' || l.type === 'warn')
-      .map((l) => l.message);
+    const combinedLogs = testCaseLogs.map((l) => {
+      if (l.type === 'error' || l.type === 'warn') {
+        return `[stderr] ${l.message}`;
+      }
+      return l.message;
+    });
 
-    if (stdoutLogs.length > 0) {
+    if (stderrMessages.length > 0) {
+      combinedLogs.push(...stderrMessages.map((m) => `[stderr] ${m}`));
+    }
+
+    if (combinedLogs.length > 0) {
       const fileName = `${generateShortHash(testCaseId + 'stdout')}.txt`;
-      await writeFileAsync(artifactsDir, fileName, stdoutLogs.join('\n'));
+      await writeFileAsync(artifactsDir, fileName, combinedLogs.join('\n'));
       artifacts.push({
         path: join('artifacts', fileName),
         type: 'stdout',
-        contentType: 'text/plain',
-      });
-    }
-
-    if (stderrLogs.length > 0) {
-      const fileName = `${generateShortHash(
-        testCaseId + 'stderr-log'
-      )}.txt`;
-      await writeFileAsync(artifactsDir, fileName, stderrLogs.join('\n'));
-      artifacts.push({
-        path: join('artifacts', fileName),
-        type: 'stderr',
-        contentType: 'text/plain',
-      });
-    }
-
-    if (stderrMessages.length > 0) {
-      const fileName = `${generateShortHash(
-        testCaseId + attemptIndex + 'stderr'
-      )}.txt`;
-      await writeFileAsync(artifactsDir, fileName, stderrMessages.join('\n'));
-      artifacts.push({
-        path: join('artifacts', fileName),
-        type: 'stderr',
         contentType: 'text/plain',
       });
     }

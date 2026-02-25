@@ -78,32 +78,29 @@ export async function handleConvert() {
           for (const attempt of test.attempts) {
             const artifacts: Artifact[] = [];
 
+            const combinedLogs: string[] = [];
+
             if (attempt.stdout && attempt.stdout.length > 0) {
+              combinedLogs.push(...attempt.stdout);
+            }
+
+            if (attempt.stderr && attempt.stderr.length > 0) {
+              combinedLogs.push(
+                ...attempt.stderr.map((l) => `[stderr] ${l}`)
+              );
+            }
+
+            if (combinedLogs.length > 0) {
               const fileName = `${generateShortHash(
                 test.testId + attempt.attempt + 'stdout'
               )}.txt`;
               await writeFileAsyncIfNotExists(
                 join(artifactsDir, fileName),
-                attempt.stdout.join('\n')
+                combinedLogs.join('\n')
               );
               artifacts.push({
                 path: join('artifacts', fileName),
                 type: 'stdout',
-                contentType: 'text/plain',
-              });
-            }
-
-            if (attempt.stderr && attempt.stderr.length > 0) {
-              const fileName = `${generateShortHash(
-                test.testId + attempt.attempt + 'stderr'
-              )}.txt`;
-              await writeFileAsyncIfNotExists(
-                join(artifactsDir, fileName),
-                attempt.stderr.join('\n')
-              );
-              artifacts.push({
-                path: join('artifacts', fileName),
-                type: 'stderr',
                 contentType: 'text/plain',
               });
             }

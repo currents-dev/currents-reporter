@@ -119,34 +119,27 @@ describe('handleConvert artifacts', () => {
     const attempt = testEntry.attempts[0];
 
     expect(attempt.artifacts).toBeDefined();
-    expect(attempt.artifacts?.length).toBe(3);
+    expect(attempt.artifacts?.length).toBe(2);
 
     const stdoutArtifact = attempt.artifacts?.find(
       (a) => a.type === 'stdout'
-    );
-    const stderrArtifact = attempt.artifacts?.find(
-      (a) => a.type === 'stderr'
     );
     const attachmentArtifact = attempt.artifacts?.find(
       (a) => a.type === 'screenshot'
     );
 
     expect(stdoutArtifact).toBeDefined();
-    expect(stderrArtifact).toBeDefined();
     expect(attachmentArtifact).toBeDefined();
 
     expect(stdoutArtifact?.contentType).toBe('text/plain');
-    expect(stderrArtifact?.contentType).toBe('text/plain');
     expect(attachmentArtifact?.contentType).toBe('image/bmp');
 
     if (stdoutArtifact) {
       const p = join(baseDir, stdoutArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
-    }
-
-    if (stderrArtifact) {
-      const p = join(baseDir, stderrArtifact.path);
-      expect(await fs.pathExists(p)).toBe(true);
+      const content = await fs.readFile(p, 'utf8');
+      expect(content).toContain('log line');
+      expect(content).toContain('[stderr] stderr line');
     }
 
     if (attachmentArtifact) {
@@ -155,6 +148,6 @@ describe('handleConvert artifacts', () => {
     }
 
     const writtenArtifacts = await fs.readdir(artifactsDir);
-    expect(writtenArtifacts.length).toBe(3);
+    expect(writtenArtifacts.length).toBe(2);
   });
 });
