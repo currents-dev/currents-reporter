@@ -62,6 +62,7 @@ export async function prepareArtifacts({
   const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
 
   const propertyLogs = parsePropertyLogs(testResult.console, testFilePath);
+  const attachmentLogs = parseAttachmentLogs(testResult.console, testFilePath);
   const stdioLogs = parseStdioLogs(testResult.console, testFilePath);
 
   // Read file-based artifacts
@@ -121,6 +122,15 @@ export async function prepareArtifacts({
     }),
     sortedTestCases
   );
+
+  // Group attachment logs and merge them into propertyLogsByTestId
+  const attachmentLogsByTestId = groupPropertyLogsByTestId(attachmentLogs, sortedTestCases);
+  for (const [testId, logs] of Object.entries(attachmentLogsByTestId)) {
+    if (!propertyLogsByTestId[testId]) {
+      propertyLogsByTestId[testId] = [];
+    }
+    propertyLogsByTestId[testId].push(...logs);
+  }
   
   // Distribute file-based test artifacts to tests
   const testFileArtifacts = fileArtifacts.filter(fa => fa.currentTestName && fa.artifact.level !== 'spec');
@@ -361,27 +371,7 @@ function parsePropertyLogs(
       // Or just currents.artifact={...} (eqIndex would be -1 or check if content starts with {)
       if (content.trim().startsWith('{')) {
         try {
-          // If the user logs `currents.artifact={"foo":"bar"}`, the key is empty string? No.
-          // PROPERTY_LOG_PREFIX is "currents.artifact."
-          // So log is "currents.artifact.{\"foo\":\"bar\"}" ?? 
-          // Wait, usually prefix is "currents.artifact.". 
-          // If user logs `console.log('currents.artifact.={"a":1}')`?
-          
-          // Let's assume we want to support `console.log('currents.artifact=' + JSON.stringify(...))`
-          // But the prefix check expects `currents.artifact.`
-          
-          // If we change the requirement to just match the prefix, we can parse the rest.
-          // But let's look at how the prefix is defined.
-          // Assuming PROPERTY_LOG_PREFIX = "currents.artifact."
-          
-          // If user does: console.log("currents.artifact.=" + JSON...) -> content is "=" + JSON
-          // If user does: console.log("currents.artifact." + JSON...) -> content is JSON
-          
           const json = JSON.parse(content);
-          // Return a special key to indicate this is a full artifact object
-          // We can't return multiple PropertyLogs from one map iteration easily unless we use flatMap
-          // But here we are mapping 1:1.
-          // Let's return the JSON as value and a special key.
           return { key: 'JSON_ARTIFACT', value: JSON.stringify(json), line };
         } catch (e) {
           // Not JSON, fall through to key=value parsing
@@ -396,6 +386,62 @@ function parsePropertyLogs(
       return { key, value, line };
     })
     .filter((a): a is PropertyLog => a !== null);
+}
+
+function parseAttachmentLogs(
+  consoleEntries: TestResult['console'],
+  testFilePath: string
+): PropertyLog[] {
+  return (consoleEntries ?? [])
+    .map((log) => {
+      // Look for [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]] pattern
+      
+      // We use a regex that optionally captures a second parameter (level)
+      // Format: [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]]
+      // The path cannot contain ']', so we use [^\]|]+ for path segment if followed by another |?
+      // Simpler: [[ATTACHMENT| part1 (| part2)? ]]
+      
+      const matches = [...log.message.matchAll(/\[\[ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g)];
+      if (matches.length === 0) return [];
+      
+      const line = getLineFromOrigin(log.origin, testFilePath);
+      
+      return matches.map(match => {
+        const filePath = match[1].trim();
+        const levelRaw = match[2]?.trim();
+        
+        // Validate level if provided, default to 'attempt'
+        let level = 'attempt';
+        if (levelRaw && ['spec', 'test', 'attempt'].includes(levelRaw)) {
+          level = levelRaw;
+        }
+
+        const artifact = {
+          path: filePath,
+          type: inferArtifactType(filePath),
+          contentType: 'application/octet-stream', 
+          level: level, 
+        };
+        
+        return {
+          key: 'JSON_ARTIFACT',
+          value: JSON.stringify(artifact),
+          line
+        };
+      });
+    })
+    .flat();
+}
+
+function inferArtifactType(filePath: string): Artifact['type'] {
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  if (!ext) return 'attachment';
+  
+  if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) return 'screenshot';
+  if (['mp4', 'webm', 'mov'].includes(ext)) return 'video';
+  if (['json', 'txt', 'log', 'xml'].includes(ext)) return 'attachment';
+  
+  return 'attachment';
 }
 
 async function updateTestCaseLocationsFromFile(
@@ -521,4 +567,3 @@ function groupStdioByTestId(
 ): Record<string, StdioLog[]> {
   return groupByTestId(stdioLogs, sortedTestCases, (log) => log.line);
 }
-

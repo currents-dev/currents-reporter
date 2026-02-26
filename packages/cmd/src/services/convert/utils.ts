@@ -87,17 +87,30 @@ function getTestAndAttemptArtifacts(testCase: TestCase): {
   return { testArtifacts, attemptArtifacts };
 }
 
-function extractArtifactsFromLog(log: string): Artifact[] {
+export function extractArtifactsFromLog(log: string): Artifact[] {
   const artifacts: Artifact[] = [];
   
-  // Legacy format: [[ATTACHMENT|path]]
-  const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
+  // Format: [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]]
+  // Regex: \[\[ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]
+  // Capture group 1: path (until next | or ])
+  // Capture group 2: optional level (until ])
+  
+  const matches = log.matchAll(/\[\[ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g);
   for (const match of matches) {
-    const sourcePath = match[1];
+    const sourcePath = match[1].trim();
+    const levelRaw = match[2]?.trim();
+    
+    // Default level is 'attempt' unless specified otherwise
+    let level: 'spec' | 'test' | 'attempt' = 'attempt';
+    if (levelRaw && ['spec', 'test', 'attempt'].includes(levelRaw)) {
+      level = levelRaw as 'spec' | 'test' | 'attempt';
+    }
+
     artifacts.push({
         path: sourcePath,
-        type: 'attachment', // Default type
+        type: 'attachment', // Default type, caller might refine based on extension
         contentType: 'application/octet-stream', // Default content type
+        level: level
     });
   }
 

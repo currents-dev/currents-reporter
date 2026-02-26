@@ -68,6 +68,29 @@ describe('My Feature', () => {
 });
 ```
 
+#### Alternative: Console Log Attachments
+
+If you prefer not to import the `attachArtifact` helper, you can use the same console log marker supported by the `convert` command. The reporter will automatically detect this pattern in `stdout`.
+
+**Marker:** `[[ATTACHMENT|path/to/file|level]]`
+
+*   **path**: Absolute or relative path to the artifact file.
+*   **level** (Optional): `attempt` | `test` | `spec`. Defaults to `attempt`.
+*   **Type:** Inferred from file extension (e.g., `.png` -> screenshot).
+
+```typescript
+it('should upload screenshot via log', () => {
+  // ... test logic
+  const screenshotPath = '/path/to/screenshot.png';
+  
+  // Default (Attempt Level)
+  console.log(`[[ATTACHMENT|${screenshotPath}]]`);
+  
+  // Explicit Test Level
+  console.log(`[[ATTACHMENT|${screenshotPath}|test]]`);
+});
+```
+
 ### 4. Running Tests
 
 Run your tests as usual. The artifacts will be collected automatically.
@@ -124,7 +147,10 @@ You can add `<property>` tags to your JUnit XML to explicitly define artifacts.
 
 If you cannot modify the XML properties (which is common with standard reporters), you can print a specific marker to `stdout` during the test. This method works with almost any test runner because they all capture console output into the report.
 
-**Marker:** `[[ATTACHMENT|path/to/file]]`
+**Marker:** `[[ATTACHMENT|path/to/file|level]]`
+
+*   **path**: Path to the artifact file.
+*   **level** (Optional): `attempt` | `test` | `spec`. Defaults to `attempt`.
 
 The CLI will infer the artifact type from the file extension (e.g., `.png` -> screenshot, `.mp4` -> video).
 
@@ -133,7 +159,8 @@ The CLI will infer the artifact type from the file extension (e.g., `.png` -> sc
 ```text
 Starting test...
 Error: Element not found
-[[ATTACHMENT|/app/test-results/screenshots/failure.png]]
+[[ATTACHMENT|/app/test-results/screenshots/failure.png|attempt]]
+[[ATTACHMENT|/app/test-results/logs/metadata.json|test]]
 Test failed.
 ```
 

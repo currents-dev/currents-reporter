@@ -43,6 +43,7 @@ export interface Artifact {
   contentType: string;
   name?: string;
   metadata?: Record<string, string>;
+  level?: 'spec' | 'test' | 'attempt';
 }
 
 export type InstanceReportTestAttempt = {
