@@ -107,36 +107,59 @@ export const attachScreenshot = (path: string, name?: string) => attachArtifact(
  */
 export const attachFile = (path: string, name?: string, level?: ArtifactLevel) => attachArtifact(path, 'attachment', undefined, name, level); 
 
-const attemptState = new Map<string, { count: number, lastAssertionCount: number }>();
+const attemptState = new Map<string, number>();
 
 /**
  * Get the current attempt number (0-indexed) for the running test.
- * This is a heuristic based on assertion calls, as Jest does not expose the attempt number directly.
- * It works reliably if the test makes assertions. If a test fails before any assertions, the retry count might be incorrect.
+ * This is a heuristic based on expect.getState() persistence.
+ * We store the attempt number in the test state using expect.setState().
+ * Since Jest resets the state between test runs (including retries),
+ * absence of our key indicates a new attempt.
  */
 export function getAttempt(): number {
   try {
+    const symbols = Object.getOwnPropertySymbols(global);
+    const stateSymbol = symbols.find(s => s.toString() === 'Symbol(JEST_STATE_SYMBOL)');
+    
+    if (stateSymbol) {
+      // @ts-ignore
+      const jestState = global[stateSymbol];
+      if (jestState && jestState.currentlyRunningTest && typeof jestState.currentlyRunningTest.invocations === 'number') {
+        return jestState.currentlyRunningTest.invocations - 1;
+      }
+    }
+
+    // Fallback heuristic
     // @ts-ignore
     const state = expect.getState();
     const key = `${state.testPath}#${state.currentTestName}`;
-    const assertions = state.assertionCalls || 0;
     
-    let entry = attemptState.get(key);
-    if (!entry) {
-      entry = { count: 0, lastAssertionCount: assertions };
-      attemptState.set(key, entry);
+    // Check if we already determined the attempt for this execution context
+    // @ts-ignore
+    if (typeof state.currentsAttempt === 'number') {
+      // @ts-ignore
+      return state.currentsAttempt;
+    }
+
+    // If not in local state, it means a new attempt execution started
+    let count = attemptState.get(key);
+    
+    if (count === undefined) {
+      // First time seeing this test
+      count = 0;
     } else {
-      if (assertions < entry.lastAssertionCount) {
-        // Assertion count reset detected -> Retry
-        entry.count++;
-        entry.lastAssertionCount = assertions;
-      } else {
-        // Same run, update last assertion count
-        entry.lastAssertionCount = assertions;
-      }
+      // We saw this test before, so this must be a retry
+      count++;
     }
     
-    return entry.count;
+    // Update global map
+    attemptState.set(key, count);
+    
+    // Update local state for subsequent calls in this attempt
+    // @ts-ignore
+    expect.setState({ currentsAttempt: count });
+    
+    return count;
   } catch (e) {
     return 0;
   }

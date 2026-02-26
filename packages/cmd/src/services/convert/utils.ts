@@ -81,7 +81,10 @@ function getTestAndAttemptArtifacts(testCase: TestCase): {
     if (!attemptArtifacts.has(0)) {
         attemptArtifacts.set(0, []);
     }
-    attemptArtifacts.get(0)!.push(...stdoutArtifacts);
+    // We must clone the artifacts because the convert command modifies the artifact.path in place
+    // If we share the same object reference, the second time it's processed (e.g. as attempt artifact after test artifact),
+    // the path will point to the destination folder instead of the source.
+    attemptArtifacts.get(0)!.push(...stdoutArtifacts.map(a => ({ ...a })));
   }
 
   return { testArtifacts, attemptArtifacts };

@@ -17,31 +17,106 @@ describe('Vitest JUnit artifacts', () => {
     expect(true).toBe(true);
   });
 
-  it('generates spec, test, and attempt level artifacts via XML properties', () => {
+  it('generates spec, test, and attempt level artifacts via JSON logs', () => {
     // Prepare artifact files
-    const specArtifact = join(artifactsDir, 'spec-artifact.txt');
-    fs.writeFileSync(specArtifact, 'Spec level artifact content\n', 'utf8');
-    
-    const testArtifact = join(artifactsDir, 'test-artifact.txt');
-    fs.writeFileSync(testArtifact, 'Test level artifact content\n', 'utf8');
-    
-    const attemptArtifact = join(artifactsDir, 'attempt-artifact.txt');
-    fs.writeFileSync(attemptArtifact, 'Attempt level artifact content\n', 'utf8');
+    const specArtifact = join(artifactsDir, 'spec-artifact.json.txt');
+    fs.writeFileSync(
+      specArtifact,
+      'Spec level artifact content (JSON)\n',
+      'utf8'
+    );
 
-    // 1. Spec Level Artifact (Index 0)
-    console.log(`currents.artifact.spec.0.path=${specArtifact}`);
-    console.log(`currents.artifact.spec.0.type=spec-log`);
-    console.log(`currents.artifact.spec.0.contentType=text/plain`);
+    const testArtifact = join(artifactsDir, 'test-artifact.json.txt');
+    fs.writeFileSync(
+      testArtifact,
+      'Test level artifact content (JSON)\n',
+      'utf8'
+    );
 
-    // 2. Test Level Artifact (Index 0)
-    console.log(`currents.artifact.test.0.path=${testArtifact}`);
-    console.log(`currents.artifact.test.0.type=test-metadata`);
-    console.log(`currents.artifact.test.0.contentType=text/plain`);
+    const attemptArtifact = join(artifactsDir, 'attempt-artifact.json.txt');
+    fs.writeFileSync(
+      attemptArtifact,
+      'Attempt level artifact content (JSON)\n',
+      'utf8'
+    );
 
-    // 3. Attempt Level Artifact (Attempt 0, Artifact 0)
-    console.log(`currents.artifact.attempt.0.0.path=${attemptArtifact}`);
-    console.log(`currents.artifact.attempt.0.0.type=screenshot`);
-    console.log(`currents.artifact.attempt.0.0.contentType=text/plain`);
+    // 1. Spec Level Artifact via JSON
+    console.log(
+      'currents.artifact.' +
+        JSON.stringify({
+          path: specArtifact,
+          type: 'attachment',
+          contentType: 'text/plain',
+          level: 'spec',
+        })
+    );
+
+    // 2. Test Level Artifact via JSON
+    console.log(
+      'currents.artifact.' +
+        JSON.stringify({
+          path: testArtifact,
+          type: 'attachment',
+          contentType: 'text/plain',
+          level: 'test',
+        })
+    );
+
+    // 3. Attempt Level Artifact via JSON
+    console.log(
+      'currents.artifact.' +
+        JSON.stringify({
+          path: attemptArtifact,
+          type: 'screenshot',
+          contentType: 'text/plain',
+          level: 'attempt',
+        })
+    );
+
+    expect(true).toBe(true);
+  });
+
+  it('generates artifacts via [[ATTACHMENT]] tag with explicit levels', () => {
+    const specPath = join(artifactsDir, 'spec-attachment.txt');
+    fs.writeFileSync(specPath, 'Spec attachment', 'utf8');
+
+    const testPath = join(artifactsDir, 'test-attachment.txt');
+    fs.writeFileSync(testPath, 'Test attachment', 'utf8');
+
+    const attemptPath = join(artifactsDir, 'attempt-attachment.txt');
+    fs.writeFileSync(attemptPath, 'Attempt attachment', 'utf8');
+
+    // [[ATTACHMENT|path|level]]
+    console.log(`[[ATTACHMENT|${specPath}|spec]]`);
+    console.log(`[[ATTACHMENT|${testPath}|test]]`);
+    console.log(`[[ATTACHMENT|${attemptPath}|attempt]]`);
+
+    // Default is attempt
+    const defaultPath = join(artifactsDir, 'default-attachment.txt');
+    fs.writeFileSync(defaultPath, 'Default attachment', 'utf8');
+    console.log(`[[ATTACHMENT|${defaultPath}]]`);
+
+    expect(true).toBe(true);
+  });
+
+  it('attaches log files as artifacts', () => {
+    const logPath = join(artifactsDir, 'app.log');
+    fs.writeFileSync(
+      logPath,
+      '2024-01-01 12:00:00 [INFO] Application started\n2024-01-01 12:00:01 [WARN] Low memory',
+      'utf8'
+    );
+
+    // Attach as a generic file/log
+    console.log(
+      'currents.artifact.' +
+        JSON.stringify({
+          path: logPath,
+          type: 'attachment',
+          contentType: 'text/plain',
+          level: 'test',
+        })
+    );
 
     expect(true).toBe(true);
   });
@@ -129,5 +204,41 @@ describe('Vitest JUnit artifacts', () => {
     console.log(`[[ATTACHMENT|${jpegPath}]]`);
     expect(fs.existsSync(jpegPath)).toBe(true);
   });
-});
 
+  it('generates artifacts for multiple attempts', { retry: 2 }, () => {
+    // This test simulates a flaky test by using a counter stored in a file or global variable
+    // However, Vitest runs in parallel and isolated environments usually.
+    // To simulate attempts in a single run, we can't easily force Vitest to retry unless we configure it.
+    // But we can simulate the *logging* of artifacts that would happen in multiple attempts.
+
+    // In a real scenario, the test runner would run this test block multiple times.
+    // For this example, we will just manually log artifacts as if they were from different attempts,
+    // although in a single execution they will all be attached to the current (single) attempt.
+
+    // WAIT: The user wants "an example with 2 attempts".
+    // Vitest supports retries. Let's use `retry: 2` in the config or test options.
+
+    // We need a way to know which attempt we are in.
+    // Vitest doesn't expose "current attempt" easily in the test body.
+    // But we can use a stateful variable outside the test if isolation is disabled, or use a file.
+
+    const attemptFile = join(artifactsDir, 'attempt-count.txt');
+    let attempt = 0;
+    if (fs.existsSync(attemptFile)) {
+      attempt = parseInt(fs.readFileSync(attemptFile, 'utf8'), 10);
+    }
+    attempt++;
+    fs.writeFileSync(attemptFile, attempt.toString(), 'utf8');
+
+    const artifactPath = join(artifactsDir, `attempt-${attempt}.txt`);
+    fs.writeFileSync(artifactPath, `Artifact for attempt ${attempt}`, 'utf8');
+
+    console.log(`[[ATTACHMENT|${artifactPath}]]`);
+
+    if (attempt < 2) {
+      throw new Error('Simulated failure for attempt ' + attempt);
+    }
+
+    expect(true).toBe(true);
+  });
+});

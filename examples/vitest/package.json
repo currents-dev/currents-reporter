@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest --reporter=default --reporter=junit --outputFile=./junit.xml || true",
     "convert": "npx currents convert --input-format=junit --input-file=./junit.xml --framework=vitest",
-    "report": "CURRENTS_API_URL=http://localhost:1234 currents --project-id=1icSVW --key=Msaxqej2u6fzboAM",
+    "report": "CURRENTS_API_URL=http://localhost:1234 currents --project-id=PrZ3j8 --key=IRmZjZWBkkd3jqve",
     "build": "echo \"No build specified\" && exit 0"
   },
   "devDependencies": {
