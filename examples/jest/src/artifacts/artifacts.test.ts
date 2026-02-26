@@ -1,21 +1,28 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { attachFile } from '@currents/jest';
+
+const artifactsDir = path.join(__dirname, '..', '..', 'artifacts');
+if (!fs.existsSync(artifactsDir)) {
+  fs.mkdirSync(artifactsDir, { recursive: true });
+}
 
 describe('Artifacts Test', () => {
-  it('should generate stdout and stderr', () => {
-    console.log('This is a stdout message from the test');
-    console.error('This is a stderr message from the test');
-    expect(true).toBe(true);
-  });
+  it('should upload spec, test, and attempt level artifacts', () => {
+    // Prepare artifact files
+    const specArtifact = path.join(artifactsDir, 'spec-artifact.txt');
+    fs.writeFileSync(specArtifact, 'Spec level artifact content\n', 'utf8');
+    
+    const testArtifact = path.join(artifactsDir, 'test-artifact.txt');
+    fs.writeFileSync(testArtifact, 'Test level artifact content\n', 'utf8');
+    
+    const attemptArtifact = path.join(artifactsDir, 'attempt-artifact.txt');
+    fs.writeFileSync(attemptArtifact, 'Attempt level artifact content\n', 'utf8');
 
-  it('should upload an attachment', () => {
-    const artifactsDir = path.join(__dirname, '..', '..', 'artifacts');
-    if (!fs.existsSync(artifactsDir)) {
-      fs.mkdirSync(artifactsDir, { recursive: true });
-    }
-    const attachmentPath = path.join(artifactsDir, 'attachment-sample.txt');
-    fs.writeFileSync(attachmentPath, 'Sample attachment content for upload\n', 'utf8');
-    console.log(`[[ATTACHMENT|${attachmentPath}]]`);
-    expect(fs.existsSync(attachmentPath)).toBe(true);
+    attachFile(specArtifact, undefined, 'spec');
+    attachFile(testArtifact, undefined, 'test');
+    attachFile(attemptArtifact);
+
+    expect(true).toBe(true);
   });
 });

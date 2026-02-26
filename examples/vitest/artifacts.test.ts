@@ -17,15 +17,33 @@ describe('Vitest JUnit artifacts', () => {
     expect(true).toBe(true);
   });
 
-  it('generates a generic attachment and logs attachment marker', () => {
-    const attachmentPath = join(artifactsDir, 'attachment-sample.txt');
-    fs.writeFileSync(
-      attachmentPath,
-      'Sample attachment content for upload\n',
-      'utf8'
-    );
-    console.log(`[[ATTACHMENT|${attachmentPath}]]`);
-    expect(fs.existsSync(attachmentPath)).toBe(true);
+  it('generates spec, test, and attempt level artifacts via XML properties', () => {
+    // Prepare artifact files
+    const specArtifact = join(artifactsDir, 'spec-artifact.txt');
+    fs.writeFileSync(specArtifact, 'Spec level artifact content\n', 'utf8');
+    
+    const testArtifact = join(artifactsDir, 'test-artifact.txt');
+    fs.writeFileSync(testArtifact, 'Test level artifact content\n', 'utf8');
+    
+    const attemptArtifact = join(artifactsDir, 'attempt-artifact.txt');
+    fs.writeFileSync(attemptArtifact, 'Attempt level artifact content\n', 'utf8');
+
+    // 1. Spec Level Artifact (Index 0)
+    console.log(`currents.artifact.spec.0.path=${specArtifact}`);
+    console.log(`currents.artifact.spec.0.type=spec-log`);
+    console.log(`currents.artifact.spec.0.contentType=text/plain`);
+
+    // 2. Test Level Artifact (Index 0)
+    console.log(`currents.artifact.test.0.path=${testArtifact}`);
+    console.log(`currents.artifact.test.0.type=test-metadata`);
+    console.log(`currents.artifact.test.0.contentType=text/plain`);
+
+    // 3. Attempt Level Artifact (Attempt 0, Artifact 0)
+    console.log(`currents.artifact.attempt.0.0.path=${attemptArtifact}`);
+    console.log(`currents.artifact.attempt.0.0.type=screenshot`);
+    console.log(`currents.artifact.attempt.0.0.contentType=text/plain`);
+
+    expect(true).toBe(true);
   });
 
   it('generates a video artifact and logs attachment marker', () => {

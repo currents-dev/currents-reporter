@@ -30,11 +30,12 @@ import {
   jestStatusFromInvocations,
   testToSpecName,
   writeFileAsync,
+  removeFolder,
 } from './lib';
 import { createAttemptArtifacts, prepareArtifacts } from './artifacts';
 import { getReportConfig } from './lib/getReportConfig';
 import { info } from './logger';
-import { InstanceReport, JestTestCaseStatus } from './types';
+import { InstanceReport, JestTestCaseStatus, InstanceReportTest } from './types';
 
 type TestCase = {
   id: string;
@@ -86,6 +87,9 @@ export default class CustomReporter implements Reporter {
     options: ReporterOnStartOptions
   ): Promise<void> {
     debug('Run started');
+
+    // Clean up previous run's artifacts
+    await removeFolder(join(process.cwd(), '.currents-artifacts'));
 
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
@@ -273,7 +277,7 @@ export default class CustomReporter implements Reporter {
     const wallClockDuration =
       testResult.perfStats.end - testResult.perfStats.start;
 
-    const { artifactsDir, attachmentsByTestId, stdioByTestId } =
+    const { artifactsDir, propertyLogsByTestId, stdioByTestId, specArtifacts } =
       await prepareArtifacts({
         reportDir: this.reportDir,
         testResult,
@@ -281,7 +285,7 @@ export default class CustomReporter implements Reporter {
         testCases: Object.values(this.specInfo[specKey].testCaseList),
       });
 
-    const tests = await Promise.all(
+    const tests: InstanceReportTest[] = await Promise.all(
       Object.values(this.specInfo[specKey].testCaseList).map(
         async (testCase) => {
           const testCaseKey = getTestCaseKey(projectId, specName, testCase.id);
@@ -317,23 +321,26 @@ export default class CustomReporter implements Reporter {
                   )
                 );
 
-                const artifacts = await createAttemptArtifacts({
+                const { testArtifacts, attemptArtifacts } = await createAttemptArtifacts({
                   artifactsDir,
                   testCaseId: testCase.id,
                   attemptIndex: index,
-                  stderrMessages: result.failureMessages ?? [],
-                  attachmentsByTestId,
-                  stdioByTestId,
+                  propertyLogsByTestId,
                 });
 
                 const testCaseLogs = index === 0 ? stdioByTestId[testCase.id] ?? [] : [];
+                
                 const stdout = testCaseLogs
                   .filter((l) => l.type !== 'error' && l.type !== 'warn')
                   .map((l) => l.message);
-                const stderrLogs = testCaseLogs
+                const stderr = testCaseLogs
                   .filter((l) => l.type === 'error' || l.type === 'warn')
                   .map((l) => l.message);
-                const stderr = [...stderrLogs, ...(result.failureMessages ?? [])];
+
+                // Add failure messages to stderr
+                if (result.failureMessages) {
+                  stderr.push(...result.failureMessages);
+                }
 
                 return {
                   _s: getTestCaseStatus(result.status as JestTestCaseStatus),
@@ -352,7 +359,8 @@ export default class CustomReporter implements Reporter {
 
                   stdout,
                   stderr,
-                  artifacts,
+                  artifacts: attemptArtifacts,
+                  _testArtifacts: index === 0 ? testArtifacts : [],
 
                   errors,
                   error: errors[0],
@@ -366,10 +374,20 @@ export default class CustomReporter implements Reporter {
 
     const flakyCount = tests.filter((t) => t.isFlaky).length;
 
+    // Move test-level artifacts from attempts to test object
+    tests.forEach((t) => {
+      const firstAttempt = t.attempts[0];
+      if (firstAttempt && (firstAttempt as any)._testArtifacts) {
+        t.artifacts = (firstAttempt as any)._testArtifacts;
+        delete (firstAttempt as any)._testArtifacts;
+      }
+    });
+
     const result: InstanceReport = {
       groupId: this.specInfo[specKey].projectId,
       spec: this.specInfo[specKey].specName,
       startTime,
+      artifacts: specArtifacts,
       results: {
         stats: {
           suites: 1,

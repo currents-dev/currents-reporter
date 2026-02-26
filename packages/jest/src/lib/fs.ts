@@ -31,6 +31,15 @@ export async function createFolder(folderPath: string) {
   }
 }
 
+export async function removeFolder(folderPath: string) {
+  try {
+    await fs.remove(folderPath);
+    debug('Folder removed', folderPath);
+  } catch (err) {
+    debug(`Failed to remove folder at ${folderPath}:`, err);
+  }
+}
+
 export async function writeFileAsync(
   basePath: string,
   fileName: string,

@@ -1,13 +1,14 @@
 import { isNumber } from 'lodash';
 import crypto from 'node:crypto';
 import {
+  Artifact,
   ErrorSchema,
   InstanceReportTest,
   InstanceReportTestAttempt,
   TestCaseStatus,
   TestRunnerStatus,
 } from '../../types';
-import { Failure, TestCase, TestSuite } from './types';
+import { Failure, Property, TestCase, TestSuite } from './types';
 
 export function getTestCase(
   testCase: TestCase,
@@ -22,6 +23,8 @@ export function getTestCase(
 
   const state = skipped ? 'pending' : hasFailure ? 'failed' : 'passed';
 
+  const { testArtifacts, attemptArtifacts } = getTestAndAttemptArtifacts(testCase);
+
   return {
     _t: getTimestampValue(suiteTimestamp),
     testId: generateTestId(
@@ -35,14 +38,195 @@ export function getTestCase(
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
+    artifacts: testArtifacts,
     attempts: getTestAttempts(
       testCase,
       failures,
       getISODateValue(suiteTimestamp),
       time,
+      attemptArtifacts,
       skipped
     ),
   };
+}
+
+export function getSpecArtifacts(suite: TestSuite): Artifact[] {
+  const properties = ensureArray<Property>(suite.properties?.property);
+  return parseArtifactsFromProperties(properties, 'spec');
+}
+
+function getTestAndAttemptArtifacts(testCase: TestCase): {
+  testArtifacts: Artifact[];
+  attemptArtifacts: Map<number, Artifact[]>;
+} {
+  const properties = ensureArray<Property>(testCase.properties?.property);
+  let testArtifacts = parseArtifactsFromProperties(properties, 'test');
+  let attemptArtifacts = parseAttemptArtifactsFromProperties(properties);
+
+  if (testCase['system-out']) {
+    const stdouts = ensureArray<string>(testCase['system-out']);
+    const stdout = stdouts.join('\n');
+    const stdoutArtifacts = extractArtifactsFromLog(stdout);
+    
+    // Add to test artifacts
+    testArtifacts.push(...stdoutArtifacts);
+    
+    // Add to first attempt artifacts
+    // NOTE: The documentation states that attempt-level artifacts are attached to specific attempts.
+    // However, stdout logs are generally associated with the test execution.
+    // If the test has multiple attempts (retries), the XML might aggregate stdout or provide it per attempt.
+    // Here we conservatively attach to the first attempt (index 0) if it exists,
+    // OR ideally we should check if stdout contains attempt-specific info.
+    // For now, attaching to attempt 0 is consistent with previous logic.
+    if (!attemptArtifacts.has(0)) {
+        attemptArtifacts.set(0, []);
+    }
+    attemptArtifacts.get(0)!.push(...stdoutArtifacts);
+  }
+
+  return { testArtifacts, attemptArtifacts };
+}
+
+function extractArtifactsFromLog(log: string): Artifact[] {
+  const artifacts: Artifact[] = [];
+  
+  // Legacy format: [[ATTACHMENT|path]]
+  const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
+  for (const match of matches) {
+    const sourcePath = match[1];
+    artifacts.push({
+        path: sourcePath,
+        type: 'attachment', // Default type
+        contentType: 'application/octet-stream', // Default content type
+    });
+  }
+
+  // New JSON format: currents.artifact.{"path":...}
+  const jsonMatches = log.matchAll(/currents\.artifact\.(\{.*?\})/g);
+  for (const match of jsonMatches) {
+    try {
+        const artifact = JSON.parse(match[1]);
+        if (artifact.path && artifact.type && artifact.contentType) {
+            artifacts.push(artifact);
+        }
+    } catch (e) {}
+  }
+
+  return artifacts;
+}
+
+function parseArtifactsFromProperties(properties: Property[], level: 'spec' | 'test'): Artifact[] {
+  const artifactMap = new Map<number, Partial<Artifact>>();
+  const jsonArtifacts: Artifact[] = [];
+
+  for (const prop of properties) {
+    if (!prop.name || !prop.value) continue;
+
+    if (prop.name === 'currents.artifact.JSON_ARTIFACT') {
+      try {
+        const artifact = JSON.parse(prop.value);
+        if (artifact.path && artifact.type && artifact.contentType) {
+          jsonArtifacts.push(artifact);
+        }
+      } catch (e) {}
+      continue;
+    }
+
+    const regex = new RegExp(`^currents\\.artifact\\.${level}\\.(\\d+)\\.(.+)$`);
+    const match = prop.name.match(regex);
+    if (!match) continue;
+
+    const [, indexStr, field] = match;
+    const index = parseInt(indexStr, 10);
+
+    if (!artifactMap.has(index)) {
+      artifactMap.set(index, {});
+    }
+
+    const artifact = artifactMap.get(index)!;
+    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+      (artifact as any)[field] = prop.value;
+    }
+  }
+
+  const indexedArtifacts = Array.from(artifactMap.values())
+    .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
+
+  return [...indexedArtifacts, ...jsonArtifacts];
+}
+
+function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number, Artifact[]> {
+  const attemptArtifactsMap = new Map<number, Map<number, Partial<Artifact>>>();
+  const jsonArtifactsMap = new Map<number, Artifact[]>();
+
+  for (const prop of properties) {
+    if (!prop.name || !prop.value) continue;
+
+    if (prop.name === 'currents.artifact.JSON_ARTIFACT') {
+       // JSON artifacts are currently only supported at test/spec level, not attempt level explicitly
+       // unless we encode attempt info in the key or value.
+       // However, the current helper implementation uses console.log which might end up in properties
+       // if the test runner captures stdout as properties (JUnit usually doesn't capture stdout as properties).
+       // JUnit properties are usually env vars or specific annotations.
+       // If the input is JUnit XML, properties are <property name="..." value="..." />.
+       // Our helpers use console.log, which goes to <system-out>.
+       
+       // Wait, if the user uses `attachArtifact` helper, it logs to console.
+       // Does `convert` command parse <system-out>?
+       // The `convert` command implementation I read in `index.ts` uses `extractAttachmentsFromLog` which parses `[[ATTACHMENT|...]]`.
+       // It does NOT seem to parse `currents.artifact` from logs, only from XML properties!
+       
+       // So for `convert` to work with the new helpers, the helpers must produce output that `convert` can understand
+       // OR `convert` must be updated to parse `currents.artifact` from <system-out> as well.
+       
+       // The current `convert` implementation in `utils.ts` parses `currents.artifact` from *properties*.
+       // Jest reporter captures console logs and puts them into the report.
+       // But if we are using `convert` command, we are likely converting a JUnit XML report from another tool (like wdio, or just generic junit).
+       
+       // If the user uses `currents-jest` reporter, they don't use `convert`.
+       // `convert` is for when you have a JUnit XML file and want to upload it to Currents.
+       
+       // So the user's question "how does the artifact helpers works for convert command?" implies:
+       // "If I use these helpers in a test framework that outputs JUnit XML (not Jest reporter), will `convert` pick them up?"
+       
+       // If the test framework captures stdout and puts it in <system-out>, we need to parse <system-out> for these JSON logs.
+       // Currently `convert` implementation in `index.ts` has `extractAttachmentsFromLog` but it only looks for `[[ATTACHMENT|...]]`.
+       
+       // So I need to update `convert` to ALSO parse `currents.artifact...` from logs (system-out).
+       continue;
+    }
+
+    const match = prop.name.match(/^currents\.artifact\.attempt\.(\d+)\.(\d+)\.(.+)$/);
+    if (!match) continue;
+
+    const [, attemptIndexStr, artifactIndexStr, field] = match;
+    const attemptIndex = parseInt(attemptIndexStr, 10);
+    const artifactIndex = parseInt(artifactIndexStr, 10);
+
+    if (!attemptArtifactsMap.has(attemptIndex)) {
+      attemptArtifactsMap.set(attemptIndex, new Map());
+    }
+
+    const artifactsMap = attemptArtifactsMap.get(attemptIndex)!;
+    if (!artifactsMap.has(artifactIndex)) {
+      artifactsMap.set(artifactIndex, {});
+    }
+
+    const artifact = artifactsMap.get(artifactIndex)!;
+    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+      (artifact as any)[field] = prop.value;
+    }
+  }
+
+  const result = new Map<number, Artifact[]>();
+  for (const [attemptIndex, artifactsMap] of attemptArtifactsMap.entries()) {
+    const artifacts = Array.from(artifactsMap.values())
+      .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
+    if (artifacts.length > 0) {
+      result.set(attemptIndex, artifacts);
+    }
+  }
+  return result;
 }
 
 export function generateTestId(testName: string, suiteName: string): string {
@@ -115,6 +299,7 @@ function getTestAttempts(
   failures: (Failure | string)[],
   suiteTimestamp: string,
   time: number,
+  attemptArtifacts: Map<number, Artifact[]>,
   skipped?: boolean
 ): InstanceReportTestAttempt[] {
   const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
@@ -129,6 +314,7 @@ function getTestAttempts(
         status: 'skipped',
         stdout: getStdOut(testCase?.['system-out']),
         stderr: getStdErr(testCase?.['system-err']),
+        artifacts: attemptArtifacts.get(0),
         errors: [],
         error: undefined,
       },
@@ -145,6 +331,7 @@ function getTestAttempts(
         status: 'passed',
         stdout: getStdOut(testCase?.['system-out']),
         stderr: getStdErr(testCase?.['system-err']),
+        artifacts: attemptArtifacts.get(0),
         errors: [],
         error: undefined,
       },
@@ -155,6 +342,13 @@ function getTestAttempts(
     (attempts, failure, index) => {
       if (failure !== 'true' && failure !== 'false') {
         const errors = getErrors(failure);
+        
+        // For failed attempts, we assign stdout/stderr to the first attempt (index 0)
+        // or potentially all of them depending on how we interpret "aggregated to the test".
+        // Usually JUnit XML provides one system-out/err per testcase, not per failure/attempt.
+        // So we can attach it to all, or just the first.
+        // Let's attach to all attempts derived from this testcase, as they share the same XML node.
+        
         attempts.push({
           _s: 'failed' as TestCaseStatus,
           attempt: index,
@@ -164,6 +358,7 @@ function getTestAttempts(
           status: 'failed' as TestRunnerStatus,
           stdout: getStdOut(testCase?.['system-out']),
           stderr: getStdErr(testCase?.['system-err']),
+          artifacts: attemptArtifacts.get(index),
           errors: errors,
           error: errors[0],
         });

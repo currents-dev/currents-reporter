@@ -3,7 +3,7 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
-import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
+import { maskRecordKey, nanoid, readJsonFile, writeFileAsync, generateShortHash } from '@lib';
 import { info, warn } from '@logger';
 import axios from 'axios';
 import fs from 'fs-extra';
@@ -14,6 +14,7 @@ import {
   Framework,
   RunCreationConfig,
   createRun as createRunApi,
+  uploadStdout as uploadStdoutApi,
 } from '../../api';
 import { getCurrentsConfig } from '../../config/upload';
 import { InstanceReport } from '../../types';
@@ -169,6 +170,13 @@ export async function handleCurrentsReport() {
           framework,
         });
 
+        // Upload stdout for each instance in the chunk
+        await Promise.all(
+          chunks[i].map(async (instance) => {
+            await handleInstanceStdout(instance, chunkResponse.runId, runCreationConfig);
+          })
+        );
+
         if (
           chunkResponse.artifactUploadUrls &&
           chunkResponse.artifactUploadUrls.length > 0
@@ -253,6 +261,43 @@ async function createRun({
   return createRunApi(payload);
 }
 
+async function handleInstanceStdout(
+  instance: InstanceReport,
+  runId: string,
+  config: RunCreationConfig
+) {
+  try {
+    const { default: XXH } = await import('xxhashjs');
+    const combined = runId + instance.groupId + instance.spec;
+    const instanceId = XXH.h64(combined, 0).toString(16).padStart(16, '0');
+
+    // Aggregate stdout from all attempts
+    // We also include stderr as the user requested aggregation of both
+    // Contract: "Aggregate on the client (e.g. concatenate all attempt stdout and stderr for that instance into one string)."
+    const logs: string[] = [];
+    
+    instance.results.tests.forEach((test) => {
+      test.attempts.forEach((attempt) => {
+        if (attempt.stdout && attempt.stdout.length > 0) {
+          logs.push(...attempt.stdout);
+        }
+        if (attempt.stderr && attempt.stderr.length > 0) {
+          // Prefix stderr to distinguish
+          logs.push(...attempt.stderr.map(l => `[stderr] ${l}`));
+        }
+      });
+    });
+
+    if (logs.length > 0) {
+      const aggregatedStdout = logs.join('\n');
+      await uploadStdoutApi(instanceId, aggregatedStdout, config);
+      debug('Uploaded aggregated stdout for instance %s (id: %s)', instance.spec, instanceId);
+    }
+  } catch (e) {
+    warn('Failed to upload aggregated stdout for instance %s: %o', instance.spec, e);
+  }
+}
+
 function getMarkerFilePath(reportDir: string) {
   return path.join(reportDir, 'upload.marker.json');
 }
@@ -275,24 +320,20 @@ async function uploadArtifacts(
 ) {
   const contentTypeMap = new Map<string, string>();
 
-  for (const instance of instances) {
-    if (instance.artifacts) {
-      instance.artifacts.forEach((a) =>
-        contentTypeMap.set(a.path, a.contentType)
-      );
+  const processArtifacts = (artifacts?: any[]) => {
+    if (artifacts) {
+      artifacts.forEach((a) => contentTypeMap.set(a.path, a.contentType));
     }
+  };
+
+  for (const instance of instances) {
+    processArtifacts(instance.artifacts);
+    
     for (const test of instance.results.tests) {
-      if (test.artifacts) {
-        test.artifacts.forEach((a) =>
-          contentTypeMap.set(a.path, a.contentType)
-        );
-      }
+      processArtifacts(test.artifacts);
+      
       for (const attempt of test.attempts) {
-        if (attempt.artifacts) {
-          attempt.artifacts.forEach((a) =>
-            contentTypeMap.set(a.path, a.contentType)
-          );
-        }
+        processArtifacts(attempt.artifacts);
       }
     }
   }

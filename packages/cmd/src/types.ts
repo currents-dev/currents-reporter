@@ -55,8 +55,8 @@ export type InstanceReportTestAttempt = {
   duration: number;
   status: TestRunnerStatus;
 
-  stderr: string[];
-  stdout: string[];
+  stderr?: string[];
+  stdout?: string[];
   artifacts?: Artifact[];
 
   errors: ErrorSchema[];

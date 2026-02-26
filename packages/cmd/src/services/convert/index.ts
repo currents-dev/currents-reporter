@@ -18,14 +18,39 @@ import { getReportConfig } from './getReportConfig';
 
 function extractAttachmentsFromLog(
   log: string
-): { sourcePath: string; ext: string }[] {
-  const out: { sourcePath: string; ext: string }[] = [];
+): { sourcePath: string; ext: string; type?: string; contentType?: string }[] {
+  const out: { sourcePath: string; ext: string; type?: string; contentType?: string }[] = [];
+  
+  // Legacy format: [[ATTACHMENT|path]]
   const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
   for (const match of matches) {
     const sourcePath = match[1];
     const ext = extname(sourcePath).slice(1).toLowerCase();
     out.push({ sourcePath, ext });
   }
+
+  // New JSON format: currents.artifact.{"path":...}
+  // The log might contain multiple artifacts or lines.
+  // We need to scan for "currents.artifact.{...}"
+  // Since logs can be messy, let's use a regex that captures the JSON part.
+  const jsonMatches = log.matchAll(/currents\.artifact\.(\{.*?\})/g);
+  for (const match of jsonMatches) {
+    try {
+        const artifact = JSON.parse(match[1]);
+        if (artifact.path) {
+            const ext = extname(artifact.path).slice(1).toLowerCase();
+            out.push({ 
+                sourcePath: artifact.path, 
+                ext,
+                type: artifact.type,
+                contentType: artifact.contentType
+            });
+        }
+    } catch (e) {
+        // Ignore invalid JSON
+    }
+  }
+
   return out;
 }
 
@@ -74,94 +99,75 @@ export async function handleConvert() {
 
     await Promise.all(
       Array.from(instances.values()).map(async (report) => {
-        for (const test of report.results.tests) {
-          for (const attempt of test.attempts) {
-            const artifacts: Artifact[] = [];
-
-            const combinedLogs: string[] = [];
-
-            if (attempt.stdout && attempt.stdout.length > 0) {
-              combinedLogs.push(...attempt.stdout);
-            }
-
-            if (attempt.stderr && attempt.stderr.length > 0) {
-              combinedLogs.push(
-                ...attempt.stderr.map((l) => `[stderr] ${l}`)
-              );
-            }
-
-            if (combinedLogs.length > 0) {
+        // Spec-level artifacts
+        if (report.artifacts) {
+          for (const artifact of report.artifacts) {
+            try {
               const fileName = `${generateShortHash(
-                test.testId + attempt.attempt + 'stdout'
-              )}.txt`;
-              await writeFileAsyncIfNotExists(
-                join(artifactsDir, fileName),
-                combinedLogs.join('\n')
+                report.spec + artifact.path
+              )}.${extname(artifact.path).slice(1) || 'bin'}`;
+              await copyFileAsync(
+                artifact.path,
+                join(artifactsDir, fileName)
               );
-              artifacts.push({
-                path: join('artifacts', fileName),
-                type: 'stdout',
-                contentType: 'text/plain',
-              });
+              // Update path to relative path in artifacts folder
+              artifact.path = join('artifacts', fileName);
+            } catch (e) {
+              debug(
+                'Failed to copy spec artifact %s: %o',
+                artifact.path,
+                e
+              );
             }
+          }
+        }
 
-            const logsForAttachments = [
-              ...(attempt.stdout ?? []),
-              ...(attempt.stderr ?? []),
-            ];
-
-            for (const log of logsForAttachments) {
-              const attachments = extractAttachmentsFromLog(log);
-              for (const { sourcePath, ext } of attachments) {
-
-                let type: Artifact['type'] = 'attachment';
-                let contentType = 'application/octet-stream';
-
-                if (ext === 'mp4' || ext === 'webm') {
-                  type = 'video';
-                  contentType = ext === 'mp4' ? 'video/mp4' : 'video/webm';
-                } else if (
-                  ext === 'png' ||
-                  ext === 'jpg' ||
-                  ext === 'jpeg' ||
-                  ext === 'bmp'
-                ) {
-                  type = 'screenshot';
-                  contentType =
-                    ext === 'png'
-                      ? 'image/png'
-                      : ext === 'bmp'
-                      ? 'image/bmp'
-                      : 'image/jpeg';
-                }
-
-                const artifactExt = ext || 'bin';
+        for (const test of report.results.tests) {
+          // Test-level artifacts
+          if (test.artifacts) {
+            for (const artifact of test.artifacts) {
+              try {
                 const fileName = `${generateShortHash(
-                  test.testId + attempt.attempt + sourcePath
-                )}.${artifactExt}`;
+                  test.testId + artifact.path
+                )}.${extname(artifact.path).slice(1) || 'bin'}`;
+                await copyFileAsync(
+                  artifact.path,
+                  join(artifactsDir, fileName)
+                );
+                // Update path to relative path in artifacts folder
+                artifact.path = join('artifacts', fileName);
+              } catch (e) {
+                debug(
+                  'Failed to copy test artifact %s: %o',
+                  artifact.path,
+                  e
+                );
+              }
+            }
+          }
 
+          for (const attempt of test.attempts) {
+            // Attempt-level artifacts
+            if (attempt.artifacts) {
+              for (const artifact of attempt.artifacts) {
                 try {
+                  const fileName = `${generateShortHash(
+                    test.testId + attempt.attempt + artifact.path
+                  )}.${extname(artifact.path).slice(1) || 'bin'}`;
                   await copyFileAsync(
-                    sourcePath,
+                    artifact.path,
                     join(artifactsDir, fileName)
                   );
-                  artifacts.push({
-                    path: join('artifacts', fileName),
-                    type,
-                    contentType,
-                  });
+                  // Update path to relative path in artifacts folder
+                  artifact.path = join('artifacts', fileName);
                 } catch (e) {
                   debug(
-                    'Failed to copy attachment artifact %s: %o',
-                    sourcePath,
+                    'Failed to copy attempt artifact %s: %o',
+                    artifact.path,
                     e
                   );
                 }
               }
-            }
-
-            if (artifacts.length > 0) {
-              attempt.artifacts = artifacts;
             }
           }
         }

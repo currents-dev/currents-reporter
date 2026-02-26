@@ -1,6 +1,6 @@
 import { Commit } from '@env/gitInfo';
 import { CiProvider, CiProviderData } from '@env/types';
-import { error } from '@logger';
+import { error, warn } from '@logger';
 import { promisify } from 'node:util';
 import { gzip } from 'node:zlib';
 import { CurrentsConfig } from '../config/upload';
@@ -87,6 +87,27 @@ export type CreateRunResponse = {
   warnings: any[];
   artifactUploadUrls?: ArtifactUploadInstruction[];
 };
+
+export async function uploadStdout(
+  instanceId: string,
+  stdout: string,
+  config: RunCreationConfig
+) {
+  warn(`Uploading stdout for instance ${instanceId} with ${stdout.length} bytes`);
+  try {
+    return makeRequest<void, { stdout: string }>(ClientType.API, {
+      url: `instances/${instanceId}/stdout`,
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: { stdout },
+    });
+  } catch (e) {
+    debug('Error uploading stdout: %o', e);
+    throw e;
+  }
+}
 
 export async function createRun(params: CreateRunParams) {
   try {

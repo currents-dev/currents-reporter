@@ -7,7 +7,7 @@ import CustomReporter from './reporter';
 import type { InstanceReport } from './types';
 
 describe('CustomReporter artifacts', () => {
-  it('creates stdout and attachment artifacts from console logs', async () => {
+  it('creates artifacts from console logs via properties', async () => {
     const baseDir = await fs.mkdtemp(
       join(os.tmpdir(), 'currents-jest-artifacts-')
     );
@@ -67,7 +67,32 @@ describe('CustomReporter artifacts', () => {
 
     const consoleEntries = [
       {
-        message: `[[ATTACHMENT|${attachmentPath}]]`,
+        message: `currents.artifact.attempt.0.0.path=${attachmentPath}`,
+        origin: `${testFilePath}:10:1)`,
+        type: 'log',
+      },
+      {
+        message: `currents.artifact.attempt.0.0.type=screenshot`,
+        origin: `${testFilePath}:10:1)`,
+        type: 'log',
+      },
+      {
+        message: `currents.artifact.attempt.0.0.contentType=image/bmp`,
+        origin: `${testFilePath}:10:1)`,
+        type: 'log',
+      },
+      {
+        message: `currents.artifact.test.0.path=${attachmentPath}`,
+        origin: `${testFilePath}:10:1)`,
+        type: 'log',
+      },
+      {
+        message: `currents.artifact.test.0.type=attachment`,
+        origin: `${testFilePath}:10:1)`,
+        type: 'log',
+      },
+      {
+        message: `currents.artifact.test.0.contentType=image/bmp`,
         origin: `${testFilePath}:10:1)`,
         type: 'log',
       },
@@ -114,33 +139,37 @@ describe('CustomReporter artifacts', () => {
     const testEntry = parsed.results.tests[0];
     const attempt = testEntry.attempts[0];
 
+    // Check attempt artifacts
     expect(attempt.artifacts).toBeDefined();
-
-    const stdoutArtifact = attempt.artifacts?.find(
-      (a) => a.type === 'stdout'
-    );
-    const attachmentArtifact = attempt.artifacts?.find(
+    expect(attempt.artifacts?.length).toBe(1);
+    
+    const screenshotArtifact = attempt.artifacts?.find(
       (a) => a.type === 'screenshot'
     );
-
-    expect(stdoutArtifact).toBeDefined();
-    expect(attachmentArtifact).toBeDefined();
-
-    if (stdoutArtifact) {
-      const p = join(baseDir, stdoutArtifact.path);
+    expect(screenshotArtifact).toBeDefined();
+    expect(screenshotArtifact?.contentType).toBe('image/bmp');
+    if (screenshotArtifact) {
+      const p = join(baseDir, screenshotArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
-      const content = await fs.readFile(p, 'utf8');
-      expect(content).toContain('stdout message');
-      expect(content).toContain('[stderr] stderr message');
     }
 
+    // Check test level artifacts (surfaced to test object)
+    expect(testEntry.artifacts).toBeDefined();
+    expect(testEntry.artifacts?.length).toBe(1);
+    
+    const attachmentArtifact = testEntry.artifacts?.find(
+      (a) => a.type === 'attachment'
+    );
+    expect(attachmentArtifact).toBeDefined();
+    expect(attachmentArtifact?.contentType).toBe('image/bmp');
     if (attachmentArtifact) {
       const p = join(baseDir, attachmentArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
     }
 
     const writtenArtifacts = await fs.readdir(artifactsDir);
-    expect(writtenArtifacts.length).toBeGreaterThanOrEqual(2);
+    // 1 attempt artifact + 1 test artifact = 2
+    expect(writtenArtifacts.length).toBe(2);
   });
 });
 

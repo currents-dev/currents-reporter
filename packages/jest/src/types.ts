@@ -10,6 +10,10 @@ export type ExpectedStatus = 'passed' | 'skipped';
 // jest test case statuses available in results
 export type JestTestCaseStatus = 'pending' | 'todo' | 'failed' | 'passed';
 
+export type ArtifactType = 'screenshot' | 'video' | 'trace' | 'attachment' | 'stdout' | 'coverage';
+
+export type ArtifactLevel = 'spec' | 'test' | 'attempt';
+
 export type InstanceReportStats = {
   suites: number;
   tests: number;
@@ -39,10 +43,12 @@ export type LocationSchema = {
 
 export interface Artifact {
   path: string;
-  type: string;
+  type: ArtifactType;
   contentType: string;
   name?: string;
   metadata?: Record<string, string>;
+  level?: ArtifactLevel;
+  attempt?: number;
 }
 
 export type InstanceReportTestAttempt = {

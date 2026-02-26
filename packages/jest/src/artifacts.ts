@@ -1,18 +1,16 @@
 import { join } from 'path';
+import { createHash } from 'crypto';
+import { existsSync, readFileSync, unlinkSync } from 'fs';
 import type { Test, TestCaseResult, TestResult } from '@jest/reporters';
-import { copyFileAsync, createFolder, debug, generateShortHash, readFileAsync, writeFileAsync } from './lib';
-import type { Artifact } from './types';
+import { copyFileAsync, createFolder, debug, generateShortHash, readFileAsync } from './lib';
+import type { Artifact, ArtifactLevel } from './types';
 
-const ATTACHMENT_LOG_PREFIX = '[[ATTACHMENT|';
+// Prefix for property-like log messages: "currents.artifact.level.index.key=value"
+const PROPERTY_LOG_PREFIX = 'currents.artifact.';
 
-type AttachmentLog = {
-  filePath: string;
-  line: number;
-};
-
-type StdioLog = {
-  message: string;
-  type: string;
+type PropertyLog = {
+  key: string;
+  value: string;
   line: number;
 };
 
@@ -35,19 +33,24 @@ type ArtifactsPreparationInput = {
   testCases: TestCaseForArtifacts[];
 };
 
+type StdioLog = {
+  message: string;
+  type: string;
+  line: number;
+};
+
 type ArtifactsPreparationResult = {
   artifactsDir: string;
-  attachmentsByTestId: Record<string, AttachmentLog[]>;
+  propertyLogsByTestId: Record<string, PropertyLog[]>;
   stdioByTestId: Record<string, StdioLog[]>;
+  specArtifacts: Artifact[];
 };
 
 type AttemptArtifactsOptions = {
   artifactsDir: string;
   testCaseId: string;
   attemptIndex: number;
-  stderrMessages: string[];
-  attachmentsByTestId: Record<string, AttachmentLog[]>;
-  stdioByTestId: Record<string, StdioLog[]>;
+  propertyLogsByTestId: Record<string, PropertyLog[]>;
 };
 
 export async function prepareArtifacts({
@@ -58,8 +61,40 @@ export async function prepareArtifacts({
 }: ArtifactsPreparationInput): Promise<ArtifactsPreparationResult> {
   const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
 
-  const attachmentLogs = parseAttachmentLogs(testResult.console, testFilePath);
+  const propertyLogs = parsePropertyLogs(testResult.console, testFilePath);
   const stdioLogs = parseStdioLogs(testResult.console, testFilePath);
+
+  // Read file-based artifacts
+  const fileArtifacts = readFileArtifacts(testFilePath);
+  
+  // Extract Spec Level Artifacts (from logs and file)
+  const specLevelProps = propertyLogs.filter(
+    (l) => {
+      if (l.key.startsWith('spec.') || l.key.startsWith('instance.')) return true;
+      if (l.key === 'JSON_ARTIFACT') {
+        try {
+          const artifact = JSON.parse(l.value);
+          return artifact.level === 'spec';
+        } catch (e) {
+          return false;
+        }
+      }
+      return false;
+    }
+  );
+  
+  // Add file-based spec artifacts
+  const specFileArtifacts = fileArtifacts.filter(fa => !fa.currentTestName || fa.artifact.level === 'spec').map(fa => fa.artifact);
+  
+  const specArtifacts = await processSpecArtifacts(specLevelProps, artifactsDir);
+  // Merge file-based spec artifacts
+  for (const artifact of specFileArtifacts) {
+    const savedPath = await saveArtifact(artifact, artifactsDir, 'spec-' + artifact.path);
+    if (savedPath) {
+      artifact.path = savedPath;
+      specArtifacts.push(artifact);
+    }
+  }
 
   const sortedTestCases = [...testCases].sort(
     (a, b) => (a.location?.line ?? 0) - (b.location?.line ?? 0)
@@ -71,88 +106,222 @@ export async function prepareArtifacts({
     (a, b) => (a.location?.line ?? 0) - (b.location?.line ?? 0)
   );
 
-  const attachmentsByTestId = groupAttachmentsByTestId(
-    attachmentLogs,
+  const propertyLogsByTestId = groupPropertyLogsByTestId(
+    propertyLogs.filter((l) => {
+      if (l.key.startsWith('spec.') || l.key.startsWith('instance.')) return false;
+      if (l.key === 'JSON_ARTIFACT') {
+        try {
+          const artifact = JSON.parse(l.value);
+          return artifact.level !== 'spec';
+        } catch (e) {
+          return true;
+        }
+      }
+      return true;
+    }),
     sortedTestCases
   );
-  const stdioByTestId = groupStdioByTestId(stdioLogs, sortedTestCases);
+  
+  // Distribute file-based test artifacts to tests
+  const testFileArtifacts = fileArtifacts.filter(fa => fa.currentTestName && fa.artifact.level !== 'spec');
+  
+  for (const fa of testFileArtifacts) {
+    const testId = findTestId(fa.currentTestName!, sortedTestCases);
+    if (testId) {
+      if (!propertyLogsByTestId[testId]) {
+        propertyLogsByTestId[testId] = [];
+      }
+      propertyLogsByTestId[testId].push({
+        key: 'JSON_ARTIFACT',
+        value: JSON.stringify(fa.artifact),
+        line: 0 // Dummy line
+      });
+    }
+  }
+  
+  const stdioByTestId = groupStdioByTestId(
+    stdioLogs,
+    sortedTestCases
+  );
 
   return {
     artifactsDir,
-    attachmentsByTestId,
+    propertyLogsByTestId,
     stdioByTestId,
+    specArtifacts,
   };
+}
+
+async function processSpecArtifacts(
+  logs: PropertyLog[],
+  artifactsDir: string
+): Promise<Artifact[]> {
+  const parsedSpecArtifacts = parseSpecArtifactsFromLogs(logs);
+  const specArtifacts: Artifact[] = [];
+
+  for (const artifact of parsedSpecArtifacts) {
+    const savedPath = await saveArtifact(artifact, artifactsDir, 'spec-' + artifact.path);
+    if (savedPath) {
+      artifact.path = savedPath;
+      specArtifacts.push(artifact);
+    }
+  }
+  return specArtifacts;
+}
+
+function parseSpecArtifactsFromLogs(logs: PropertyLog[]): Artifact[] {
+  const artifactMap = new Map<number, Partial<Artifact>>();
+  const jsonArtifacts: Artifact[] = [];
+
+  for (const log of logs) {
+    if (log.key === 'JSON_ARTIFACT') {
+        try {
+            const artifact = JSON.parse(log.value);
+            if (artifact.path && artifact.type && artifact.contentType && artifact.level === 'spec') {
+                jsonArtifacts.push(artifact);
+            }
+        } catch (e) {}
+        continue;
+    }
+
+    const match = log.key.match(/^(?:spec|instance)\.(\d+)\.(.+)$/);
+    if (!match) continue;
+
+    const [, indexStr, field] = match;
+    const index = parseInt(indexStr, 10);
+
+    if (!artifactMap.has(index)) {
+      artifactMap.set(index, {});
+    }
+
+    const artifact = artifactMap.get(index)!;
+    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+      (artifact as any)[field] = log.value;
+    }
+  }
+
+  const indexedArtifacts = Array.from(artifactMap.values())
+    .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && (a.type as string) !== 'stderr') as Artifact[];
+
+  return [...indexedArtifacts, ...jsonArtifacts];
 }
 
 export async function createAttemptArtifacts({
   artifactsDir,
   testCaseId,
   attemptIndex,
-  stderrMessages,
-  attachmentsByTestId,
-  stdioByTestId,
-}: AttemptArtifactsOptions): Promise<Artifact[]> {
-  const artifacts: Artifact[] = [];
+  propertyLogsByTestId,
+}: AttemptArtifactsOptions): Promise<{
+  testArtifacts: Artifact[];
+  attemptArtifacts: Artifact[];
+}> {
+  const testLogs = propertyLogsByTestId[testCaseId] ?? [];
+  const testArtifacts: Artifact[] = [];
+  const attemptArtifacts: Artifact[] = [];
 
+  // Parse Test Level Artifacts (only once, regardless of attempt, but we process them here)
   if (attemptIndex === 0) {
-    const testCaseLogs = stdioByTestId[testCaseId] ?? [];
-    const combinedLogs = testCaseLogs.map((l) => {
-      if (l.type === 'error' || l.type === 'warn') {
-        return `[stderr] ${l.message}`;
-      }
-      return l.message;
-    });
-
-    if (stderrMessages.length > 0) {
-      combinedLogs.push(...stderrMessages.map((m) => `[stderr] ${m}`));
-    }
-
-    if (combinedLogs.length > 0) {
-      const fileName = `${generateShortHash(testCaseId + 'stdout')}.txt`;
-      await writeFileAsync(artifactsDir, fileName, combinedLogs.join('\n'));
-      artifacts.push({
-        path: join('artifacts', fileName),
-        type: 'stdout',
-        contentType: 'text/plain',
-      });
-    }
-
-    const testCaseAttachments = attachmentsByTestId[testCaseId] ?? [];
-    for (const att of testCaseAttachments) {
-      const ext = att.filePath.split('.').pop() ?? '';
-      let type = 'attachment';
-      let contentType = 'application/octet-stream';
-
-      if (['mp4', 'webm'].includes(ext)) {
-        type = 'video';
-        contentType = ext === 'mp4' ? 'video/mp4' : 'video/webm';
-      }
-      if (['png', 'jpg', 'jpeg', 'bmp'].includes(ext)) {
-        type = 'screenshot';
-        contentType =
-          ext === 'png'
-            ? 'image/png'
-            : ext === 'jpg' || ext === 'jpeg'
-            ? 'image/jpeg'
-            : 'image/bmp';
-      }
-
-      const fileName = `${generateShortHash(testCaseId + att.filePath)}.${ext}`;
-
-      try {
-        await copyFileAsync(att.filePath, join(artifactsDir, fileName));
-        artifacts.push({
-          path: join('artifacts', fileName),
-          type,
-          contentType,
-        });
-      } catch (e) {
-        debug('Failed to copy artifact %s: %o', att.filePath, e);
+    const testLevelProps = testLogs.filter(
+      (l) => l.key.startsWith('test.') || l.key === 'JSON_ARTIFACT'
+    );
+    const parsedTestArtifacts = parseArtifactsFromLogs(testLevelProps, 'test');
+    for (const artifact of parsedTestArtifacts) {
+      const savedPath = await saveArtifact(artifact, artifactsDir, testCaseId);
+      if (savedPath) {
+        artifact.path = savedPath;
+        testArtifacts.push(artifact);
       }
     }
   }
 
-  return artifacts;
+  // Parse Attempt Level Artifacts
+  const attemptLevelProps = testLogs.filter((l) =>
+    l.key.startsWith(`attempt.${attemptIndex}.`) || l.key === 'JSON_ARTIFACT'
+  );
+  const parsedAttemptArtifacts = parseArtifactsFromLogs(attemptLevelProps, 'attempt', attemptIndex);
+  for (const artifact of parsedAttemptArtifacts) {
+    const savedPath = await saveArtifact(artifact, artifactsDir, testCaseId + attemptIndex);
+    if (savedPath) {
+      artifact.path = savedPath;
+      attemptArtifacts.push(artifact);
+    }
+  }
+
+  return { testArtifacts, attemptArtifacts };
+}
+
+async function saveArtifact(artifact: Artifact, artifactsDir: string, hashKey: string): Promise<string | null> {
+  try {
+    const ext = artifact.path.split('.').pop() || 'bin';
+    const originalName = artifact.path.split(/[/\\]/).pop() || 'artifact';
+    // Use the original filename but prepend a short hash to avoid collisions while keeping it readable
+    const fileName = `${generateShortHash(hashKey + artifact.path)}-${originalName}`;
+    await copyFileAsync(artifact.path, join(artifactsDir, fileName));
+    return join('artifacts', fileName);
+  } catch (e) {
+    debug('Failed to copy artifact %s: %o', artifact.path, e);
+    return null;
+  }
+}
+
+function parseArtifactsFromLogs(logs: PropertyLog[], level: ArtifactLevel, attemptIndex?: number): Artifact[] {
+  const artifactMap = new Map<number, Partial<Artifact>>();
+  // To handle JSON artifacts which don't have indices, we store them separately
+  // or assign them a virtual index starting after the highest numeric index found.
+  const jsonArtifacts: Artifact[] = [];
+
+  for (const log of logs) {
+    if (log.key === 'JSON_ARTIFACT') {
+        try {
+            const artifact = JSON.parse(log.value);
+            const artifactLevel = artifact.level || 'attempt';
+            
+            if (artifact.path && artifact.type && artifact.contentType) {
+                if (level === 'test' && artifactLevel === 'test') {
+                    jsonArtifacts.push(artifact);
+                } else if (level === 'attempt' && artifactLevel === 'attempt') {
+                    if (artifact.attempt !== undefined && attemptIndex !== undefined && artifact.attempt !== attemptIndex) {
+                        continue;
+                    }
+                    jsonArtifacts.push(artifact);
+                }
+            }
+        } catch (e) {}
+        continue;
+    }
+
+    // key format: "test.0.path" or "attempt.0.0.path"
+    // we already filtered by prefix, so let's match the rest
+    let match;
+    if (level === 'test') {
+      match = log.key.match(/^test\.(\d+)\.(.+)$/);
+    } else {
+      // attempt.0.0.path -> we already filtered by attempt.0. so we match the rest: 0.path
+      // wait, the key in PropertyLog is the full key after "currents.artifact."
+      // e.g. "attempt.0.0.path"
+      // we need to extract the artifact index (second number)
+      match = log.key.match(/^attempt\.\d+\.(\d+)\.(.+)$/);
+    }
+
+    if (!match) continue;
+
+    const [, indexStr, field] = match;
+    const index = parseInt(indexStr, 10);
+
+    if (!artifactMap.has(index)) {
+      artifactMap.set(index, {});
+    }
+
+    const artifact = artifactMap.get(index)!;
+    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+      (artifact as any)[field] = log.value;
+    }
+  }
+
+  const indexedArtifacts = Array.from(artifactMap.values())
+    .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && (a.type as string) !== 'stderr') as Artifact[];
+
+  return [...indexedArtifacts, ...jsonArtifacts];
 }
 
 /** Prefer line from stack frame that references the test file so logs group to the right test. */
@@ -176,31 +345,57 @@ function getLineFromOrigin(
   return last ? parseInt(last[1], 10) : 0;
 }
 
-function parseAttachmentLogs(
+function parsePropertyLogs(
   consoleEntries: TestResult['console'],
   testFilePath: string
-): AttachmentLog[] {
+): PropertyLog[] {
   return (consoleEntries ?? [])
-    .filter((log) => log.message.startsWith(ATTACHMENT_LOG_PREFIX))
+    .filter((log) => log.message.startsWith(PROPERTY_LOG_PREFIX))
     .map((log) => {
-      const match = log.message.match(/\[\[ATTACHMENT\|([^\]]+)\]\]/);
-      const filePath = match ? match[1] : '';
+      // message: "currents.artifact.key=value" or "currents.artifact={json}"
+      const content = log.message.substring(PROPERTY_LOG_PREFIX.length);
+      const eqIndex = content.indexOf('=');
       const line = getLineFromOrigin(log.origin, testFilePath);
-      return { filePath, line };
-    })
-    .filter((a) => a.filePath);
-}
 
-function parseStdioLogs(
-  consoleEntries: TestResult['console'],
-  testFilePath: string
-): StdioLog[] {
-  return (consoleEntries ?? [])
-    .filter((log) => !log.message.startsWith(ATTACHMENT_LOG_PREFIX))
-    .map((log) => {
-      const line = getLineFromOrigin(log.origin, testFilePath);
-      return { message: log.message, type: log.type, line };
-    });
+      // Handle JSON format: currents.artifact={"path":"...", "type":"..."}
+      // Or just currents.artifact={...} (eqIndex would be -1 or check if content starts with {)
+      if (content.trim().startsWith('{')) {
+        try {
+          // If the user logs `currents.artifact={"foo":"bar"}`, the key is empty string? No.
+          // PROPERTY_LOG_PREFIX is "currents.artifact."
+          // So log is "currents.artifact.{\"foo\":\"bar\"}" ?? 
+          // Wait, usually prefix is "currents.artifact.". 
+          // If user logs `console.log('currents.artifact.={"a":1}')`?
+          
+          // Let's assume we want to support `console.log('currents.artifact=' + JSON.stringify(...))`
+          // But the prefix check expects `currents.artifact.`
+          
+          // If we change the requirement to just match the prefix, we can parse the rest.
+          // But let's look at how the prefix is defined.
+          // Assuming PROPERTY_LOG_PREFIX = "currents.artifact."
+          
+          // If user does: console.log("currents.artifact.=" + JSON...) -> content is "=" + JSON
+          // If user does: console.log("currents.artifact." + JSON...) -> content is JSON
+          
+          const json = JSON.parse(content);
+          // Return a special key to indicate this is a full artifact object
+          // We can't return multiple PropertyLogs from one map iteration easily unless we use flatMap
+          // But here we are mapping 1:1.
+          // Let's return the JSON as value and a special key.
+          return { key: 'JSON_ARTIFACT', value: JSON.stringify(json), line };
+        } catch (e) {
+          // Not JSON, fall through to key=value parsing
+        }
+      }
+
+      if (eqIndex === -1) return null;
+      
+      const key = content.substring(0, eqIndex).trim();
+      const value = content.substring(eqIndex + 1).trim();
+      
+      return { key, value, line };
+    })
+    .filter((a): a is PropertyLog => a !== null);
 }
 
 async function updateTestCaseLocationsFromFile(
@@ -238,6 +433,44 @@ async function updateTestCaseLocationsFromFile(
   }
 }
 
+function readFileArtifacts(testFilePath: string): Array<{currentTestName?: string, artifact: Artifact}> {
+  try {
+    const hash = createHash('md5').update(testFilePath).digest('hex');
+    const artifactsDir = join(process.cwd(), '.currents-artifacts');
+    const filePath = join(artifactsDir, `${hash}.jsonl`);
+    
+    if (!existsSync(filePath)) return [];
+    
+    const content = readFileSync(filePath, 'utf8');
+    // Clean up file after reading
+    try { unlinkSync(filePath); } catch(e) {}
+    
+    return content.split('\n')
+      .filter(line => line.trim())
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
+  } catch (e) {
+    debug('Failed to read artifact file for %s: %o', testFilePath, e);
+    return [];
+  }
+}
+
+function findTestId(testName: string, testCases: TestCaseForArtifacts[]): string | undefined {
+  // Try exact match first
+  const exact = testCases.find(tc => tc.title.join(' ') === testName);
+  if (exact) return exact.id;
+  
+  // Jest sometimes modifies test names or we might have partial matches?
+  // Usually title.join(' ') matches expect.getState().currentTestName
+  return undefined;
+}
+
 function groupByTestId<T>(
   items: T[],
   sortedTestCases: TestCaseForArtifacts[],
@@ -263,11 +496,23 @@ function groupByTestId<T>(
   return byTestId;
 }
 
-function groupAttachmentsByTestId(
-  attachmentLogs: AttachmentLog[],
+function groupPropertyLogsByTestId(
+  logs: PropertyLog[],
   sortedTestCases: TestCaseForArtifacts[]
-): Record<string, AttachmentLog[]> {
-  return groupByTestId(attachmentLogs, sortedTestCases, (att) => att.line);
+): Record<string, PropertyLog[]> {
+  return groupByTestId(logs, sortedTestCases, (l) => l.line);
+}
+
+function parseStdioLogs(
+  consoleEntries: TestResult['console'],
+  testFilePath: string
+): StdioLog[] {
+  return (consoleEntries ?? [])
+    .filter((log) => !log.message.startsWith(PROPERTY_LOG_PREFIX))
+    .map((log) => {
+      const line = getLineFromOrigin(log.origin, testFilePath);
+      return { message: log.message, type: log.type, line };
+    });
 }
 
 function groupStdioByTestId(

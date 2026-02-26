@@ -87,6 +87,13 @@ describe('handleConvert artifacts', () => {
                 stderr: ['stderr line'],
                 errors: [],
                 error: undefined,
+                artifacts: [
+                    {
+                        path: attachmentPath,
+                        type: 'screenshot',
+                        contentType: 'image/bmp'
+                    }
+                ]
               },
             ],
           },
@@ -119,28 +126,16 @@ describe('handleConvert artifacts', () => {
     const attempt = testEntry.attempts[0];
 
     expect(attempt.artifacts).toBeDefined();
-    expect(attempt.artifacts?.length).toBe(2);
+    expect(attempt.artifacts?.length).toBe(1);
 
-    const stdoutArtifact = attempt.artifacts?.find(
-      (a) => a.type === 'stdout'
-    );
     const attachmentArtifact = attempt.artifacts?.find(
       (a) => a.type === 'screenshot'
     );
 
-    expect(stdoutArtifact).toBeDefined();
     expect(attachmentArtifact).toBeDefined();
 
-    expect(stdoutArtifact?.contentType).toBe('text/plain');
     expect(attachmentArtifact?.contentType).toBe('image/bmp');
 
-    if (stdoutArtifact) {
-      const p = join(baseDir, stdoutArtifact.path);
-      expect(await fs.pathExists(p)).toBe(true);
-      const content = await fs.readFile(p, 'utf8');
-      expect(content).toContain('log line');
-      expect(content).toContain('[stderr] stderr line');
-    }
 
     if (attachmentArtifact) {
       const p = join(baseDir, attachmentArtifact.path);
@@ -148,6 +143,82 @@ describe('handleConvert artifacts', () => {
     }
 
     const writtenArtifacts = await fs.readdir(artifactsDir);
-    expect(writtenArtifacts.length).toBe(2);
+    expect(writtenArtifacts.length).toBe(1);
+  });
+
+  it('creates spec level artifacts', async () => {
+    const baseDir = await fs.mkdtemp(
+      join(os.tmpdir(), 'currents-convert-artifacts-')
+    );
+    tmpDirs.push(baseDir);
+
+    const artifactsSourceDir = join(baseDir, 'source-artifacts');
+    await fs.ensureDir(artifactsSourceDir);
+    const specArtifactPath = join(artifactsSourceDir, 'spec.txt');
+    await fs.writeFile(specArtifactPath, 'spec-artifact-content', 'utf8');
+
+    const instance: InstanceReport = {
+      groupId: 'group',
+      spec: 'spec',
+      startTime: new Date().toISOString(),
+      artifacts: [
+        {
+          path: specArtifactPath,
+          type: 'attachment',
+          contentType: 'text/plain',
+        },
+      ],
+      results: {
+        stats: {
+          suites: 1,
+          tests: 1,
+          passes: 1,
+          pending: 0,
+          skipped: 0,
+          failures: 0,
+          flaky: 0,
+          wallClockStartedAt: new Date().toISOString(),
+          wallClockEndedAt: new Date().toISOString(),
+          wallClockDuration: 1,
+        },
+        tests: [],
+      },
+    };
+
+    mockedInstanceMap = new Map([['k', instance]]);
+
+    setConvertCommandConfig({
+      inputFormat: 'junit' as any,
+      inputFiles: ['dummy.xml'],
+      outputDir: baseDir,
+      framework: 'vitest' as any,
+    });
+
+    await handleConvert();
+
+    const artifactsDir = join(baseDir, 'artifacts');
+    const instancesDir = join(baseDir, 'instances');
+
+    const instanceFiles = await fs.readdir(instancesDir);
+    expect(instanceFiles.length).toBe(1);
+
+    const instanceJsonPath = join(instancesDir, instanceFiles[0]);
+    const content = await fs.readFile(instanceJsonPath, 'utf8');
+    const parsed = JSON.parse(content) as InstanceReport;
+
+    expect(parsed.artifacts).toBeDefined();
+    expect(parsed.artifacts?.length).toBe(1);
+
+    const specArtifact = parsed.artifacts?.[0];
+    expect(specArtifact).toBeDefined();
+    expect(specArtifact?.type).toBe('attachment');
+    expect(specArtifact?.path).toContain('artifacts/');
+
+    if (specArtifact) {
+      const p = join(baseDir, specArtifact.path);
+      expect(await fs.pathExists(p)).toBe(true);
+      const content = await fs.readFile(p, 'utf8');
+      expect(content).toBe('spec-artifact-content');
+    }
   });
 });

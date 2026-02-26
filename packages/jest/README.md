@@ -49,6 +49,25 @@ The reporter saves the test results in a folder named using the pattern `.curren
 | ----------- | -------- | ---------------------- | --------------------- | -------------------------------- |
 | `reportDir` | `string` | Test results directory | `CURRENTS_REPORT_DIR` | `.currents/[timestamp]-[uuidv4]` |
 
+## Artifacts
+
+You can attach artifacts (screenshots, videos, or any file) to your tests using the provided helper functions.
+
+```typescript
+import { attachVideo, attachScreenshot, attachFile } from '@currents/jest';
+
+test('my test', () => {
+  // ... generate video ...
+  attachVideo('/path/to/video.mp4');
+  
+  // ... generate screenshot ...
+  attachScreenshot('/path/to/screenshot.png');
+  
+  // ... attach any file ...
+  attachFile('/path/to/file.txt');
+});
+```
+
 ## Troubleshooting
 
 Set `DEBUG=currents-jest` before running the tests to obtain detailed information about the reporter execution process.
