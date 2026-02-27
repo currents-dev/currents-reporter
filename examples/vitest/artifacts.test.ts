@@ -10,6 +10,11 @@ describe('Vitest JUnit artifacts', () => {
     if (!fs.existsSync(artifactsDir)) {
       fs.mkdirSync(artifactsDir, { recursive: true });
     }
+    // Reset attempt counter for retry test
+    const attemptFile = join(artifactsDir, 'attempt-count.txt');
+    if (fs.existsSync(attemptFile)) {
+      fs.unlinkSync(attemptFile);
+    }
   });
 
   it('generates stdout and stderr', () => {
