@@ -88,29 +88,6 @@ export type CreateRunResponse = {
   artifactUploadUrls?: ArtifactUploadInstruction[];
 };
 
-export async function uploadStdout(
-  instanceId: string,
-  stdout: string,
-  config: RunCreationConfig
-) {
-  debug(
-    `Uploading stdout for instance ${instanceId} with ${stdout.length} bytes`
-  );
-  try {
-    return await makeRequest<void, { stdout: string }>(ClientType.API, {
-      url: `instances/${instanceId}/stdout`,
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: { stdout },
-    });
-  } catch (e) {
-    debug('Error uploading stdout: %o', e);
-    throw e;
-  }
-}
-
 export async function createRun(params: CreateRunParams) {
   try {
     debug('Run params: %o', maskRecordKey(params));
