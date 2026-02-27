@@ -35,7 +35,7 @@ describe('handleConvert artifacts', () => {
 
   it('creates stdout and attachment artifacts from attempts logs', async () => {
     const baseDir = await fs.mkdtemp(
-      join(os.tmpdir(), 'currents-convert-artifacts-')
+      join(process.cwd(), 'currents-convert-artifacts-')
     );
     tmpDirs.push(baseDir);
 
@@ -148,7 +148,7 @@ describe('handleConvert artifacts', () => {
 
   it('creates spec level artifacts', async () => {
     const baseDir = await fs.mkdtemp(
-      join(os.tmpdir(), 'currents-convert-artifacts-')
+      join(process.cwd(), 'currents-convert-artifacts-')
     );
     tmpDirs.push(baseDir);
 
