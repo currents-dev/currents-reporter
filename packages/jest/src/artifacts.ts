@@ -255,20 +255,24 @@ async function saveArtifact(artifact: Artifact, artifactsDir: string, hashKey: s
 }
 
 function parseArtifactsFromLogs(logs: PropertyLog[], level: ArtifactLevel, attemptIndex?: number): Artifact[] {
-  const artifactMap = new Map<number, Partial<Artifact>>();
-  const jsonArtifacts: Artifact[] = [];
-
-  for (const log of logs) {
+  const { jsonArtifacts, artifactMap } = logs.reduce<{
+    jsonArtifacts: Artifact[];
+    artifactMap: Map<number, Partial<Artifact>>;
+  }>((acc, log) => {
     if (log.key === JSON_ARTIFACT) {
       const artifact = parseJsonArtifact(log, level, attemptIndex);
       if (artifact) {
-        jsonArtifacts.push(artifact);
+        acc.jsonArtifacts.push(artifact);
       }
-      continue;
+      return acc;
     }
 
-    parseKeyBasedArtifact(log, level, artifactMap);
-  }
+    parseKeyBasedArtifact(log, level, acc.artifactMap);
+    return acc;
+  }, {
+    jsonArtifacts: [],
+    artifactMap: new Map<number, Partial<Artifact>>()
+  });
 
   const indexedArtifacts = Array.from(artifactMap.values())
     .filter(isValidArtifact) as Artifact[];
