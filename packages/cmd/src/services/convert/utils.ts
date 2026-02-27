@@ -67,24 +67,18 @@ function getTestAndAttemptArtifacts(testCase: TestCase): {
     const stdouts = ensureArray<string>(testCase['system-out']);
     const stdout = stdouts.join('\n');
     const stdoutArtifacts = extractArtifactsFromLog(stdout);
-    
-    // Add to test artifacts
-    testArtifacts.push(...stdoutArtifacts);
-    
-    // Add to first attempt artifacts
-    // NOTE: The documentation states that attempt-level artifacts are attached to specific attempts.
-    // However, stdout logs are generally associated with the test execution.
-    // If the test has multiple attempts (retries), the XML might aggregate stdout or provide it per attempt.
-    // Here we conservatively attach to the first attempt (index 0) if it exists,
-    // OR ideally we should check if stdout contains attempt-specific info.
-    // For now, attaching to attempt 0 is consistent with previous logic.
-    if (!attemptArtifacts.has(0)) {
-        attemptArtifacts.set(0, []);
-    }
-    // We must clone the artifacts because the convert command modifies the artifact.path in place
-    // If we share the same object reference, the second time it's processed (e.g. as attempt artifact after test artifact),
-    // the path will point to the destination folder instead of the source.
-    attemptArtifacts.get(0)!.push(...stdoutArtifacts.map(a => ({ ...a })));
+
+    stdoutArtifacts.forEach((artifact) => {
+      if (artifact.level === 'attempt') {
+        if (!attemptArtifacts.has(0)) {
+          attemptArtifacts.set(0, []);
+        }
+        attemptArtifacts.get(0)!.push({ ...artifact });
+      } else {
+        // level is 'test' or undefined
+        testArtifacts.push({ ...artifact });
+      }
+    });
   }
 
   return { testArtifacts, attemptArtifacts };

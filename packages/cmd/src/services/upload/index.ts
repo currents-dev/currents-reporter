@@ -154,8 +154,8 @@ export async function handleCurrentsReport() {
         framework,
       });
 
-      if (response.artifactUploadUrls && response.artifactUploadUrls.length > 0) {
-        info('No artifacts handling: initial run created without instances');
+      if (!response.artifactUploadUrls || response.artifactUploadUrls.length === 0) {
+        info('No artifacts to handle: initial run created without instances');
       }
 
       // Iterates over the instance chunks and sends the instances without the fullTestSuite
