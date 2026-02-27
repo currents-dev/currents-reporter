@@ -35,7 +35,7 @@ export function attachArtifact(path: string, type?: ArtifactType, contentType?: 
         contentType = contentType || 'application/json';
     } else {
       type = type || 'attachment';
-      contentType = contentType || 'application/octet-stream';
+      contentType = contentType || 'text/plain';
     }
   }
 
