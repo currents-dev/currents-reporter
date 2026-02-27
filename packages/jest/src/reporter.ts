@@ -360,7 +360,7 @@ export default class CustomReporter implements Reporter {
                   stdout,
                   stderr,
                   artifacts: attemptArtifacts,
-                  _testArtifacts: index === 0 ? testArtifacts : [],
+                  _testArtifacts: testArtifacts,
 
                   errors,
                   error: errors[0],
@@ -376,11 +376,21 @@ export default class CustomReporter implements Reporter {
 
     // Move test-level artifacts from attempts to test object
     tests.forEach((t) => {
-      const firstAttempt = t.attempts[0];
-      if (firstAttempt && (firstAttempt as any)._testArtifacts) {
-        t.artifacts = (firstAttempt as any)._testArtifacts;
-        delete (firstAttempt as any)._testArtifacts;
+      const attemptWithArtifacts = t.attempts.find(
+        (a) => (a as any)._testArtifacts && (a as any)._testArtifacts.length > 0
+      );
+
+      if (attemptWithArtifacts) {
+        t.artifacts = (attemptWithArtifacts as any)._testArtifacts;
+        delete (attemptWithArtifacts as any)._testArtifacts;
       }
+      
+      // Cleanup _testArtifacts from all attempts to ensure clean output
+      t.attempts.forEach((a) => {
+        if ((a as any)._testArtifacts) {
+           delete (a as any)._testArtifacts;
+        }
+      });
     });
 
     const result: InstanceReport = {
