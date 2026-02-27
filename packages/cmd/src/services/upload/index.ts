@@ -320,25 +320,23 @@ async function uploadArtifacts(
 ) {
   const contentTypeMap = new Map<string, string>();
 
-  const processArtifacts = (artifacts?: any[]) => {
-    if (artifacts) {
-      artifacts.forEach((a) => {
-        contentTypeMap.set(a.path, a.contentType);
-      });
-    }
-  };
+  const allArtifacts = instances.flatMap((instance) => {
+    const instanceArtifacts = instance.artifacts || [];
+    const testArtifacts = instance.results.tests.flatMap((test) => {
+      const tArtifacts = test.artifacts || [];
+      const attemptArtifacts = test.attempts.flatMap(
+        (attempt) => attempt.artifacts || []
+      );
+      return [...tArtifacts, ...attemptArtifacts];
+    });
+    return [...instanceArtifacts, ...testArtifacts];
+  });
 
-  for (const instance of instances) {
-    processArtifacts(instance.artifacts);
-    
-    for (const test of instance.results.tests) {
-      processArtifacts(test.artifacts);
-      
-      for (const attempt of test.attempts) {
-        processArtifacts(attempt.artifacts);
-      }
+  allArtifacts.forEach((artifact) => {
+    if (artifact) {
+      contentTypeMap.set(artifact.path, artifact.contentType);
     }
-  }
+  });
 
   debug('Uploading %d artifacts', instructions.length);
 
