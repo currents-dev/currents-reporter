@@ -7,52 +7,14 @@ import {
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
-import { join, extname } from 'path';
-import { getFullTestSuiteFilePath } from '../upload/path';
+import { extname, join } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
-import { Artifact, InstanceReport } from '../../types';
+import { InstanceReport } from '../../types';
+import { getFullTestSuiteFilePath } from '../upload/path';
 import { createFullTestSuite } from './createFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
-
-function extractAttachmentsFromLog(
-  log: string
-): { sourcePath: string; ext: string; type?: string; contentType?: string }[] {
-  const out: { sourcePath: string; ext: string; type?: string; contentType?: string }[] = [];
-  
-  // Legacy format: [[CURRENTS.ATTACHMENT|path]]
-  const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
-  for (const match of matches) {
-    const sourcePath = match[1];
-    const ext = extname(sourcePath).slice(1).toLowerCase();
-    out.push({ sourcePath, ext });
-  }
-
-  // New JSON format: currents.artifact.{"path":...}
-  // The log might contain multiple artifacts or lines.
-  // We need to scan for "currents.artifact.{...}"
-  // Since logs can be messy, let's use a regex that captures the JSON part.
-  const jsonMatches = log.matchAll(/currents\.artifact\.(\{.*?\})/g);
-  for (const match of jsonMatches) {
-    try {
-        const artifact = JSON.parse(match[1]);
-        if (artifact.path) {
-            const ext = extname(artifact.path).slice(1).toLowerCase();
-            out.push({ 
-                sourcePath: artifact.path, 
-                ext,
-                type: artifact.type,
-                contentType: artifact.contentType
-            });
-        }
-    } catch (e) {
-        // Ignore invalid JSON
-    }
-  }
-
-  return out;
-}
 
 export async function handleConvert() {
   try {
@@ -106,18 +68,11 @@ export async function handleConvert() {
               const fileName = `${generateShortHash(
                 report.spec + artifact.path
               )}.${extname(artifact.path).slice(1) || 'bin'}`;
-              await copyFileAsync(
-                artifact.path,
-                join(artifactsDir, fileName)
-              );
+              await copyFileAsync(artifact.path, join(artifactsDir, fileName));
               // Update path to relative path in artifacts folder
               artifact.path = join('artifacts', fileName);
             } catch (e) {
-              debug(
-                'Failed to copy spec artifact %s: %o',
-                artifact.path,
-                e
-              );
+              debug('Failed to copy spec artifact %s: %o', artifact.path, e);
             }
           }
         }
@@ -137,11 +92,7 @@ export async function handleConvert() {
                 // Update path to relative path in artifacts folder
                 artifact.path = join('artifacts', fileName);
               } catch (e) {
-                debug(
-                  'Failed to copy test artifact %s: %o',
-                  artifact.path,
-                  e
-                );
+                debug('Failed to copy test artifact %s: %o', artifact.path, e);
               }
             }
           }

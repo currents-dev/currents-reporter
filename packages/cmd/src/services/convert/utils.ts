@@ -179,36 +179,6 @@ function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number
     if (!prop.name || !prop.value) continue;
 
     if (prop.name === 'currents.artifact.JSON_ARTIFACT') {
-       // JSON artifacts are currently only supported at test/spec level, not attempt level explicitly
-       // unless we encode attempt info in the key or value.
-       // However, the current helper implementation uses console.log which might end up in properties
-       // if the test runner captures stdout as properties (JUnit usually doesn't capture stdout as properties).
-       // JUnit properties are usually env vars or specific annotations.
-       // If the input is JUnit XML, properties are <property name="..." value="..." />.
-       // Our helpers use console.log, which goes to <system-out>.
-       
-       // Wait, if the user uses `attachArtifact` helper, it logs to console.
-       // Does `convert` command parse <system-out>?
-       // The `convert` command implementation I read in `index.ts` uses `extractAttachmentsFromLog` which parses `[[CURRENTS.ATTACHMENT|...]]`.
-       // It does NOT seem to parse `currents.artifact` from logs, only from XML properties!
-       
-       // So for `convert` to work with the new helpers, the helpers must produce output that `convert` can understand
-       // OR `convert` must be updated to parse `currents.artifact` from <system-out> as well.
-       
-       // The current `convert` implementation in `utils.ts` parses `currents.artifact` from *properties*.
-       // Jest reporter captures console logs and puts them into the report.
-       // But if we are using `convert` command, we are likely converting a JUnit XML report from another tool (like wdio, or just generic junit).
-       
-       // If the user uses `currents-jest` reporter, they don't use `convert`.
-       // `convert` is for when you have a JUnit XML file and want to upload it to Currents.
-       
-       // So the user's question "how does the artifact helpers works for convert command?" implies:
-       // "If I use these helpers in a test framework that outputs JUnit XML (not Jest reporter), will `convert` pick them up?"
-       
-       // If the test framework captures stdout and puts it in <system-out>, we need to parse <system-out> for these JSON logs.
-       // Currently `convert` implementation in `index.ts` has `extractAttachmentsFromLog` but it only looks for `[[CURRENTS.ATTACHMENT|...]]`.
-       
-       // So I need to update `convert` to ALSO parse `currents.artifact...` from logs (system-out).
        continue;
     }
 
