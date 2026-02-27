@@ -342,11 +342,10 @@ function getTestAttempts(
       if (failure !== 'true' && failure !== 'false') {
         const errors = getErrors(failure);
         
-        // For failed attempts, we assign stdout/stderr to the first attempt (index 0)
-        // or potentially all of them depending on how we interpret "aggregated to the test".
-        // Usually JUnit XML provides one system-out/err per testcase, not per failure/attempt.
-        // So we can attach it to all, or just the first.
-        // Let's attach to all attempts derived from this testcase, as they share the same XML node.
+        // In JUnit XML, `system-out` and `system-err` are typically associated with the `testcase` node,
+        // not individual failures/attempts. This means we only have one set of logs for the entire test case execution.
+        // Since we cannot distinguish which attempt produced which log, we attach the available logs to every attempt derived from this test case.
+        // This ensures that regardless of which attempt is viewed in the dashboard, the user sees the logs associated with the test case.
         
         attempts.push({
           _s: 'failed' as TestCaseStatus,
