@@ -283,15 +283,17 @@ async function handleInstanceStdout(
     // Contract: "Aggregate on the client (e.g. concatenate all attempt stdout and stderr for that instance into one string)."
     const logs = extractLogs(instance);
 
-    if (logs.length > 0) {
-      const aggregatedStdout = logs.join('\n');
-      await uploadStdoutApi(instanceId, aggregatedStdout, config);
-      debug(
-        'Uploaded aggregated stdout for instance %s (id: %s)',
-        instance.spec,
-        instanceId
-      );
+    if (logs.length === 0) {
+      return;
     }
+
+    const aggregatedStdout = logs.join('\n');
+    await uploadStdoutApi(instanceId, aggregatedStdout, config);
+    debug(
+      'Uploaded aggregated stdout for instance %s (id: %s)',
+      instance.spec,
+      instanceId
+    );
   } catch (e) {
     warn(
       'Failed to upload aggregated stdout for instance %s: %o',
