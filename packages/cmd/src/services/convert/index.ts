@@ -21,7 +21,7 @@ function extractAttachmentsFromLog(
 ): { sourcePath: string; ext: string; type?: string; contentType?: string }[] {
   const out: { sourcePath: string; ext: string; type?: string; contentType?: string }[] = [];
   
-  // Legacy format: [[ATTACHMENT|path]]
+  // Legacy format: [[CURRENTS.ATTACHMENT|path]]
   const matches = log.matchAll(/\[\[ATTACHMENT\|([^\]]+)\]\]/g);
   for (const match of matches) {
     const sourcePath = match[1];

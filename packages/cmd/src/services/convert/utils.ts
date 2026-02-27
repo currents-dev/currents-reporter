@@ -189,7 +189,7 @@ function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number
        
        // Wait, if the user uses `attachArtifact` helper, it logs to console.
        // Does `convert` command parse <system-out>?
-       // The `convert` command implementation I read in `index.ts` uses `extractAttachmentsFromLog` which parses `[[ATTACHMENT|...]]`.
+       // The `convert` command implementation I read in `index.ts` uses `extractAttachmentsFromLog` which parses `[[CURRENTS.ATTACHMENT|...]]`.
        // It does NOT seem to parse `currents.artifact` from logs, only from XML properties!
        
        // So for `convert` to work with the new helpers, the helpers must produce output that `convert` can understand
@@ -206,7 +206,7 @@ function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number
        // "If I use these helpers in a test framework that outputs JUnit XML (not Jest reporter), will `convert` pick them up?"
        
        // If the test framework captures stdout and puts it in <system-out>, we need to parse <system-out> for these JSON logs.
-       // Currently `convert` implementation in `index.ts` has `extractAttachmentsFromLog` but it only looks for `[[ATTACHMENT|...]]`.
+       // Currently `convert` implementation in `index.ts` has `extractAttachmentsFromLog` but it only looks for `[[CURRENTS.ATTACHMENT|...]]`.
        
        // So I need to update `convert` to ALSO parse `currents.artifact...` from logs (system-out).
        continue;

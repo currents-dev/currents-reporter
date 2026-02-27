@@ -82,7 +82,7 @@ describe('handleConvert artifacts', () => {
                 status: 'passed',
                 stdout: [
                   'log line',
-                  `[[ATTACHMENT|${attachmentPath}]]`,
+                  `[[CURRENTS.ATTACHMENT|${attachmentPath}]]`,
                 ],
                 stderr: ['stderr line'],
                 errors: [],

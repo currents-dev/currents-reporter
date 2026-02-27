@@ -394,7 +394,7 @@ function parseAttachmentLogs(
 ): PropertyLog[] {
   return (consoleEntries ?? [])
     .map((log) => {
-      // Look for [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]] pattern
+      // Look for [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]] pattern
       
       // We use a regex that optionally captures a second parameter (level)
       // Format: [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]]

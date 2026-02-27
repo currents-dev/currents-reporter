@@ -72,7 +72,7 @@ describe('My Feature', () => {
 
 If you prefer not to import the `attachArtifact` helper, you can use the same console log marker supported by the `convert` command. The reporter will automatically detect this pattern in `stdout`.
 
-**Marker:** `[[ATTACHMENT|path/to/file|level]]`
+**Marker:** `[[CURRENTS.ATTACHMENT|path/to/file|level]]`
 
 *   **path**: Absolute or relative path to the artifact file.
 *   **level** (Optional): `attempt` | `test` | `spec`. Defaults to `attempt`.
@@ -84,10 +84,10 @@ it('should upload screenshot via log', () => {
   const screenshotPath = '/path/to/screenshot.png';
   
   // Default (Attempt Level)
-  console.log(`[[ATTACHMENT|${screenshotPath}]]`);
+  console.log(`[[CURRENTS.ATTACHMENT|${screenshotPath}]]`);
   
   // Explicit Test Level
-  console.log(`[[ATTACHMENT|${screenshotPath}|test]]`);
+  console.log(`[[CURRENTS.ATTACHMENT|${screenshotPath}|test]]`);
 });
 ```
 
@@ -147,7 +147,7 @@ You can add `<property>` tags to your JUnit XML to explicitly define artifacts.
 
 If you cannot modify the XML properties (which is common with standard reporters), you can print a specific marker to `stdout` during the test. This method works with almost any test runner because they all capture console output into the report.
 
-**Marker:** `[[ATTACHMENT|path/to/file|level]]`
+**Marker:** `[[CURRENTS.ATTACHMENT|path/to/file|level]]`
 
 *   **path**: Path to the artifact file.
 *   **level** (Optional): `attempt` | `test` | `spec`. Defaults to `attempt`.
@@ -159,8 +159,8 @@ The CLI will infer the artifact type from the file extension (e.g., `.png` -> sc
 ```text
 Starting test...
 Error: Element not found
-[[ATTACHMENT|/app/test-results/screenshots/failure.png|attempt]]
-[[ATTACHMENT|/app/test-results/logs/metadata.json|test]]
+[[CURRENTS.ATTACHMENT|/app/test-results/screenshots/failure.png|attempt]]
+[[CURRENTS.ATTACHMENT|/app/test-results/logs/metadata.json|test]]
 Test failed.
 ```
 
@@ -264,7 +264,7 @@ The `convert` command transforms external test reports (e.g., JUnit XML) into th
 1.  **Parsing**: Reads JUnit XML files to build the test suite structure.
 2.  **Artifact Discovery**:
     *   **Properties**: Scans `<property>` tags for keys like `currents.artifact.{level}.{index}.{key}`.
-    *   **Logs**: Scans `<system-out>` for patterns like `[[ATTACHMENT|path]]` or `currents.artifact.{json}`.
+    *   **Logs**: Scans `<system-out>` for patterns like `[[CURRENTS.ATTACHMENT|path]]` or `currents.artifact.{json}`.
 3.  **Generation**: Creates the standard `InstanceReport` JSON and copies referenced files to the `artifacts/` directory.
 
 ### Flow Diagram
