@@ -1,5 +1,6 @@
 
 export type ArtifactLevel = 'spec' | 'test' | 'attempt';
+export type ArtifactType = 'screenshot' | 'video' | 'trace' | 'attachment' | 'stdout' | 'coverage';
 
 /**
  * Attach an artifact to the current test.
@@ -10,7 +11,7 @@ export type ArtifactLevel = 'spec' | 'test' | 'attempt';
  * @param contentType MIME type of the artifact
  * @param level Artifact level (e.g. 'spec', 'test', 'attempt'). Defaults to 'attempt'
  */
-export function attachArtifact(path: string, type?: string, contentType?: string, level: ArtifactLevel = 'attempt') {
+export function attachArtifact(path: string, type?: ArtifactType, contentType?: string, level: ArtifactLevel = 'attempt') {
   if (!type || !contentType) {
     const ext = path.split('.').pop()?.toLowerCase();
     // Simple inference logic

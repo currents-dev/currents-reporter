@@ -96,7 +96,7 @@ describe('Vitest JUnit artifacts', () => {
       'AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAZtZGF0AAAC6W1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAPoAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAABZdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAQAAAAAAAAPoAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAIAAAACAAAAAAAJGVkdHMAAAAcZWxzdAAAAAAAAAABAAAD6AAAAAAAAQAAAAABTmdkaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAAQAAAAEAAVcQAAAAAAC1oZGxyAAAAAAAAAAB2aWRlAAAAAAAAAAAAAAAAVmlkZW9IYW5kbGVyAAAAAVxtaW5mAAAAFHZtaGQAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAADcc3RibAAAALhzdHNkAAAAAAAAAAEAAACQbXA0dgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAIAAgASAAAAEgAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABj//wAAAFJlc2RzAAAAAANEAAEABDwgEQAAAAADDUAAAAAABS0AAAGwAQAAAgAAAA0AAAAAAAAAAAAAAgAAAA9hdmNDAWQACv/hABhnZAAKrNlCjfkhAAADAAEAAAMAAg8SJZYBAAZo6+JLIsAAAAAYc3R0cwAAAAAAAAABAAAAAQAAQAAAAAAcc3RzYwAAAAAAAAABAAAAAQAAAAEAAAABAAAAFHN0c3oAAAAAAAAC5QAAAAEAAAAUc3RjbwAAAAAAAAABAAAAMAAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguMTIuMTAw';
     const videoBuffer = Buffer.from(validMp4Base64, 'base64');
     fs.writeFileSync(videoPath, videoBuffer);
-    attachArtifact(videoPath, 'attachment', 'video/mp4', 'test');
+    attachArtifact(videoPath, 'video', 'video/mp4', 'test');
     expect(fs.existsSync(videoPath)).toBe(true);
   });
 
@@ -149,7 +149,7 @@ describe('Vitest JUnit artifacts', () => {
     }
 
     fs.writeFileSync(screenshotPath, buffer);
-    attachArtifact(screenshotPath, 'attachment', 'image/bmp', 'test');
+    attachArtifact(screenshotPath, 'screenshot', 'image/bmp', 'test');
 
     expect(fs.existsSync(screenshotPath)).toBe(true);
   });
@@ -160,7 +160,7 @@ describe('Vitest JUnit artifacts', () => {
     const minimalPngBase64 =
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
     fs.writeFileSync(pngPath, Buffer.from(minimalPngBase64, 'base64'));
-    attachArtifact(pngPath, 'attachment', 'image/png', 'test');
+    attachArtifact(pngPath, 'screenshot', 'image/png', 'test');
     expect(fs.existsSync(pngPath)).toBe(true);
   });
 
@@ -170,7 +170,7 @@ describe('Vitest JUnit artifacts', () => {
     const minimalJpegBase64 =
       '/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBEQACEQADAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAT8A0n//2Q==';
     fs.writeFileSync(jpegPath, Buffer.from(minimalJpegBase64, 'base64'));
-    attachArtifact(jpegPath, 'attachment', 'image/jpeg', 'test');
+    attachArtifact(jpegPath, 'screenshot', 'image/jpeg', 'test');
     expect(fs.existsSync(jpegPath)).toBe(true);
   });
 
