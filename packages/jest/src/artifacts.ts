@@ -1,57 +1,21 @@
 import { join } from 'path';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, unlinkSync } from 'fs';
-import type { Test, TestCaseResult, TestResult } from '@jest/reporters';
+import type { TestResult } from '@jest/reporters';
 import { copyFileAsync, createFolder, debug, generateShortHash, readFileAsync, getArtifactsDir } from './lib';
-import type { Artifact, ArtifactLevel } from './types';
+import type { 
+  Artifact, 
+  ArtifactLevel,
+  PropertyLog,
+  TestCaseForArtifacts,
+  ArtifactsPreparationInput,
+  StdioLog,
+  ArtifactsPreparationResult,
+  AttemptArtifactsOptions
+} from './types';
 
 // Prefix for property-like log messages: "currents.artifact.level.index.key=value"
 const PROPERTY_LOG_PREFIX = 'currents.artifact.';
-
-type PropertyLog = {
-  key: string;
-  value: string;
-  line: number;
-};
-
-type TestCaseForArtifacts = {
-  id: string;
-  timestamps: number[];
-  title: string[];
-  result: TestCaseResult[];
-  config: Test['context']['config'];
-  location?: {
-    column?: number;
-    line?: number;
-  } | null;
-};
-
-type ArtifactsPreparationInput = {
-  reportDir: string;
-  testResult: TestResult;
-  testFilePath: string;
-  testCases: TestCaseForArtifacts[];
-};
-
-type StdioLog = {
-  message: string;
-  type: string;
-  line: number;
-};
-
-type ArtifactsPreparationResult = {
-  artifactsDir: string;
-  propertyLogsByTestId: Record<string, PropertyLog[]>;
-  stdioByTestId: Record<string, StdioLog[]>;
-  specArtifacts: Artifact[];
-};
-
-type AttemptArtifactsOptions = {
-  artifactsDir: string;
-  testCaseId: string;
-  attemptIndex: number;
-  propertyLogsByTestId: Record<string, PropertyLog[]>;
-};
 
 export async function prepareArtifacts({
   reportDir,
