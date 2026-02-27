@@ -14,8 +14,46 @@ import type {
   AttemptArtifactsOptions
 } from './types';
 
-// Prefix for property-like log messages: "currents.artifact.level.index.key=value"
+// Constants
 const PROPERTY_LOG_PREFIX = 'currents.artifact.';
+const JSON_ARTIFACT = 'JSON_ARTIFACT';
+const ARTIFACT_FIELDS = ['path', 'type', 'contentType', 'name'];
+
+// Image extensions
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp']);
+// Video extensions
+const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'mov']);
+// Attachment extensions
+const ATTACHMENT_EXTENSIONS = new Set(['json', 'txt', 'log', 'xml']);
+
+const isSpecOrInstance = (key: string) => key.startsWith('spec.') || key.startsWith('instance.');
+const isJsonArtifact = (key: string) => key === JSON_ARTIFACT;
+
+const isSpecLevelArtifact = (l: PropertyLog) => {
+  if (isSpecOrInstance(l.key)) return true;
+  if (isJsonArtifact(l.key)) {
+    try {
+      const artifact = JSON.parse(l.value);
+      return artifact.level === 'spec';
+    } catch (e) {
+      return false;
+    }
+  }
+  return false;
+};
+
+const isNotSpecLevelArtifact = (l: PropertyLog) => {
+  if (isSpecOrInstance(l.key)) return false;
+  if (isJsonArtifact(l.key)) {
+    try {
+      const artifact = JSON.parse(l.value);
+      return artifact.level !== 'spec';
+    } catch (e) {
+      return true;
+    }
+  }
+  return true;
+};
 
 export async function prepareArtifacts({
   reportDir,
@@ -33,23 +71,12 @@ export async function prepareArtifacts({
   const fileArtifacts = readFileArtifacts(testFilePath);
   
   // Extract Spec Level Artifacts (from logs and file)
-  const specLevelProps = propertyLogs.filter(
-    (l) => {
-      if (l.key.startsWith('spec.') || l.key.startsWith('instance.')) return true;
-      if (l.key === 'JSON_ARTIFACT') {
-        try {
-          const artifact = JSON.parse(l.value);
-          return artifact.level === 'spec';
-        } catch (e) {
-          return false;
-        }
-      }
-      return false;
-    }
-  );
+  const specLevelProps = propertyLogs.filter(isSpecLevelArtifact);
   
   // Add file-based spec artifacts
-  const specFileArtifacts = fileArtifacts.filter(fa => !fa.currentTestName || fa.artifact.level === 'spec').map(fa => fa.artifact);
+  const specFileArtifacts = fileArtifacts
+    .filter(fa => !fa.currentTestName || fa.artifact.level === 'spec')
+    .map(fa => fa.artifact);
   
   const specArtifacts = await processSpecArtifacts(specLevelProps, artifactsDir);
   // Merge file-based spec artifacts
@@ -72,18 +99,7 @@ export async function prepareArtifacts({
   );
 
   const propertyLogsByTestId = groupPropertyLogsByTestId(
-    propertyLogs.filter((l) => {
-      if (l.key.startsWith('spec.') || l.key.startsWith('instance.')) return false;
-      if (l.key === 'JSON_ARTIFACT') {
-        try {
-          const artifact = JSON.parse(l.value);
-          return artifact.level !== 'spec';
-        } catch (e) {
-          return true;
-        }
-      }
-      return true;
-    }),
+    propertyLogs.filter(isNotSpecLevelArtifact),
     sortedTestCases
   );
 
@@ -106,7 +122,7 @@ export async function prepareArtifacts({
         propertyLogsByTestId[testId] = [];
       }
       propertyLogsByTestId[testId].push({
-        key: 'JSON_ARTIFACT',
+        key: JSON_ARTIFACT,
         value: JSON.stringify(fa.artifact),
         line: 0 // Dummy line
       });
@@ -148,14 +164,14 @@ function parseSpecArtifactsFromLogs(logs: PropertyLog[]): Artifact[] {
   const jsonArtifacts: Artifact[] = [];
 
   for (const log of logs) {
-    if (log.key === 'JSON_ARTIFACT') {
-        try {
-            const artifact = JSON.parse(log.value);
-            if (artifact.path && artifact.type && artifact.contentType && artifact.level === 'spec') {
-                jsonArtifacts.push(artifact);
-            }
-        } catch (e) {}
-        continue;
+    if (log.key === JSON_ARTIFACT) {
+      try {
+        const artifact = JSON.parse(log.value);
+        if (artifact.path && artifact.type && artifact.contentType && artifact.level === 'spec') {
+          jsonArtifacts.push(artifact);
+        }
+      } catch (e) {}
+      continue;
     }
 
     const match = log.key.match(/^(?:spec|instance)\.(\d+)\.(.+)$/);
@@ -169,13 +185,13 @@ function parseSpecArtifactsFromLogs(logs: PropertyLog[]): Artifact[] {
     }
 
     const artifact = artifactMap.get(index)!;
-    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+    if (ARTIFACT_FIELDS.includes(field)) {
       (artifact as any)[field] = log.value;
     }
   }
 
   const indexedArtifacts = Array.from(artifactMap.values())
-    .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && (a.type as string) !== 'stderr') as Artifact[];
+    .filter(isValidArtifact) as Artifact[];
 
   return [...indexedArtifacts, ...jsonArtifacts];
 }
@@ -196,7 +212,7 @@ export async function createAttemptArtifacts({
   // Parse Test Level Artifacts (only once, regardless of attempt, but we process them here)
   if (attemptIndex === 0) {
     const testLevelProps = testLogs.filter(
-      (l) => l.key.startsWith('test.') || l.key === 'JSON_ARTIFACT'
+      (l) => l.key.startsWith('test.') || l.key === JSON_ARTIFACT
     );
     const parsedTestArtifacts = parseArtifactsFromLogs(testLevelProps, 'test');
     for (const artifact of parsedTestArtifacts) {
@@ -210,7 +226,7 @@ export async function createAttemptArtifacts({
 
   // Parse Attempt Level Artifacts
   const attemptLevelProps = testLogs.filter((l) =>
-    l.key.startsWith(`attempt.${attemptIndex}.`) || l.key === 'JSON_ARTIFACT'
+    l.key.startsWith(`attempt.${attemptIndex}.`) || l.key === JSON_ARTIFACT
   );
   const parsedAttemptArtifacts = parseArtifactsFromLogs(attemptLevelProps, 'attempt', attemptIndex);
   for (const artifact of parsedAttemptArtifacts) {
@@ -243,7 +259,7 @@ function parseArtifactsFromLogs(logs: PropertyLog[], level: ArtifactLevel, attem
   const jsonArtifacts: Artifact[] = [];
 
   for (const log of logs) {
-    if (log.key === 'JSON_ARTIFACT') {
+    if (log.key === JSON_ARTIFACT) {
       const artifact = parseJsonArtifact(log, level, attemptIndex);
       if (artifact) {
         jsonArtifacts.push(artifact);
@@ -297,7 +313,7 @@ function parseKeyBasedArtifact(log: PropertyLog, level: ArtifactLevel, artifactM
   }
 
   const artifact = artifactMap.get(index)!;
-  if (['path', 'type', 'contentType', 'name'].includes(field)) {
+  if (ARTIFACT_FIELDS.includes(field)) {
     (artifact as any)[field] = log.value;
   }
 }
@@ -351,7 +367,7 @@ function parsePropertyLogs(
       if (content.trim().startsWith('{')) {
         try {
           const json = JSON.parse(content);
-          return { key: 'JSON_ARTIFACT', value: JSON.stringify(json), line };
+          return { key: JSON_ARTIFACT, value: JSON.stringify(json), line };
         } catch (e) {
           // Not JSON, fall through to key=value parsing
         }
@@ -403,7 +419,7 @@ function parseAttachmentLogs(
         };
         
         return {
-          key: 'JSON_ARTIFACT',
+          key: JSON_ARTIFACT,
           value: JSON.stringify(artifact),
           line
         };
@@ -416,9 +432,9 @@ function inferArtifactType(filePath: string): Artifact['type'] {
   const ext = filePath.split('.').pop()?.toLowerCase();
   if (!ext) return 'attachment';
   
-  if (['png', 'jpg', 'jpeg', 'gif', 'bmp'].includes(ext)) return 'screenshot';
-  if (['mp4', 'webm', 'mov'].includes(ext)) return 'video';
-  if (['json', 'txt', 'log', 'xml'].includes(ext)) return 'attachment';
+  if (IMAGE_EXTENSIONS.has(ext)) return 'screenshot';
+  if (VIDEO_EXTENSIONS.has(ext)) return 'video';
+  if (ATTACHMENT_EXTENSIONS.has(ext)) return 'attachment';
   
   return 'attachment';
 }
