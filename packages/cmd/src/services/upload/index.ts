@@ -14,7 +14,6 @@ import {
   Framework,
   RunCreationConfig,
   createRun as createRunApi,
-  uploadStdout as uploadStdoutApi,
 } from '../../api';
 import { getCurrentsConfig } from '../../config/upload';
 import { InstanceReport } from '../../types';
@@ -179,7 +178,7 @@ export async function handleCurrentsReport() {
             await handleInstanceStdout(
               instance,
               chunkResponse.runId,
-              runCreationConfig
+              chunkResponse.stdoutUploadUrls
             );
           })
         );
@@ -271,12 +270,28 @@ async function createRun({
 async function handleInstanceStdout(
   instance: InstanceReport,
   runId: string,
-  config: RunCreationConfig
+  stdoutUploadUrls: { instanceId: string; uploadUrl: string }[] | undefined
 ) {
+  if (!stdoutUploadUrls || stdoutUploadUrls.length === 0) {
+    return;
+  }
   try {
     const { default: XXH } = await import('xxhashjs');
     const combined = runId + instance.groupId + instance.spec;
     const instanceId = XXH.h64(combined, 0).toString(16).padStart(16, '0');
+
+    const instruction = stdoutUploadUrls.find(
+      (i) => i.instanceId === instanceId
+    );
+
+    if (!instruction) {
+      debug(
+        'No stdout upload URL for instance %s (id: %s)',
+        instance.spec,
+        instanceId
+      );
+      return;
+    }
 
     // Aggregate stdout from all attempts
     // We also include stderr as the user requested aggregation of both
@@ -288,7 +303,11 @@ async function handleInstanceStdout(
     }
 
     const aggregatedStdout = logs.join('\n');
-    await uploadStdoutApi(instanceId, aggregatedStdout, config);
+    await axios.put(instruction.uploadUrl, aggregatedStdout, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
     debug(
       'Uploaded aggregated stdout for instance %s (id: %s)',
       instance.spec,
