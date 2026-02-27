@@ -276,62 +276,77 @@ async function saveArtifact(artifact: Artifact, artifactsDir: string, hashKey: s
 
 function parseArtifactsFromLogs(logs: PropertyLog[], level: ArtifactLevel, attemptIndex?: number): Artifact[] {
   const artifactMap = new Map<number, Partial<Artifact>>();
-  // To handle JSON artifacts which don't have indices, we store them separately
-  // or assign them a virtual index starting after the highest numeric index found.
   const jsonArtifacts: Artifact[] = [];
 
   for (const log of logs) {
     if (log.key === 'JSON_ARTIFACT') {
-        try {
-            const artifact = JSON.parse(log.value);
-            const artifactLevel = artifact.level || 'attempt';
-            
-            if (artifact.path && artifact.type && artifact.contentType) {
-                if (level === 'test' && artifactLevel === 'test') {
-                    jsonArtifacts.push(artifact);
-                } else if (level === 'attempt' && artifactLevel === 'attempt') {
-                    if (artifact.attempt !== undefined && attemptIndex !== undefined && artifact.attempt !== attemptIndex) {
-                        continue;
-                    }
-                    jsonArtifacts.push(artifact);
-                }
-            }
-        } catch (e) {}
-        continue;
+      const artifact = parseJsonArtifact(log, level, attemptIndex);
+      if (artifact) {
+        jsonArtifacts.push(artifact);
+      }
+      continue;
     }
 
-    // key format: "test.0.path" or "attempt.0.0.path"
-    // we already filtered by prefix, so let's match the rest
-    let match;
-    if (level === 'test') {
-      match = log.key.match(/^test\.(\d+)\.(.+)$/);
-    } else {
-      // attempt.0.0.path -> we already filtered by attempt.0. so we match the rest: 0.path
-      // wait, the key in PropertyLog is the full key after "currents.artifact."
-      // e.g. "attempt.0.0.path"
-      // we need to extract the artifact index (second number)
-      match = log.key.match(/^attempt\.\d+\.(\d+)\.(.+)$/);
-    }
-
-    if (!match) continue;
-
-    const [, indexStr, field] = match;
-    const index = parseInt(indexStr, 10);
-
-    if (!artifactMap.has(index)) {
-      artifactMap.set(index, {});
-    }
-
-    const artifact = artifactMap.get(index)!;
-    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
-      (artifact as any)[field] = log.value;
-    }
+    parseKeyBasedArtifact(log, level, artifactMap);
   }
 
   const indexedArtifacts = Array.from(artifactMap.values())
-    .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && (a.type as string) !== 'stderr') as Artifact[];
+    .filter(isValidArtifact) as Artifact[];
 
   return [...indexedArtifacts, ...jsonArtifacts];
+}
+
+function parseJsonArtifact(log: PropertyLog, level: ArtifactLevel, attemptIndex?: number): Artifact | null {
+  try {
+    const artifact = JSON.parse(log.value);
+    const artifactLevel = artifact.level || 'attempt';
+
+    if (!artifact.path || !artifact.type || !artifact.contentType) {
+      return null;
+    }
+
+    if (level === 'test' && artifactLevel === 'test') {
+      return artifact;
+    }
+
+    if (level === 'attempt' && artifactLevel === 'attempt') {
+      if (artifact.attempt !== undefined && attemptIndex !== undefined && artifact.attempt !== attemptIndex) {
+        return null;
+      }
+      return artifact;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return null;
+}
+
+function parseKeyBasedArtifact(log: PropertyLog, level: ArtifactLevel, artifactMap: Map<number, Partial<Artifact>>) {
+  const match = getKeyMatch(log.key, level);
+  if (!match) return;
+
+  const [, indexStr, field] = match;
+  const index = parseInt(indexStr, 10);
+
+  if (!artifactMap.has(index)) {
+    artifactMap.set(index, {});
+  }
+
+  const artifact = artifactMap.get(index)!;
+  if (['path', 'type', 'contentType', 'name'].includes(field)) {
+    (artifact as any)[field] = log.value;
+  }
+}
+
+function getKeyMatch(key: string, level: ArtifactLevel): RegExpMatchArray | null {
+  if (level === 'test') {
+    return key.match(/^test\.(\d+)\.(.+)$/);
+  }
+  return key.match(/^attempt\.\d+\.(\d+)\.(.+)$/);
+}
+
+function isValidArtifact(a: Partial<Artifact>): boolean {
+  return !!(a.path && a.type && a.contentType && a.type !== 'stdout' && (a.type as string) !== 'stderr');
 }
 
 /** Prefer line from stack frame that references the test file so logs group to the right test. */
