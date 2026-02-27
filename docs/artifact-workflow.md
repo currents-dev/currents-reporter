@@ -197,40 +197,40 @@ The Jest reporter hooks into the Jest test execution lifecycle to capture logs a
 ```mermaid
 flowchart TD
     subgraph TestEnv["Test Execution Environment (Worker)"]
-        StartTest(Test Start) --> Exec[Execute Test Code]
-        Exec --> CallHelp[Call attachArtifact]
+        StartTest("Test Start") --> Exec["Execute Test Code"]
+        Exec --> CallHelp["Call attachArtifact"]
         
-        CallHelp --> GetCtx[Get Context via expect.getState]
-        GetCtx --> DetRetry[Detect Attempt #]
-        DetRetry --> WriteTemp[Write JSONL to .currents-artifacts/{hash}.jsonl]
+        CallHelp --> GetCtx["Get Context via expect.getState"]
+        GetCtx --> DetRetry["Detect Attempt #"]
+        DetRetry --> WriteTemp["Write JSONL to .currents-artifacts/{hash}.jsonl"]
         
-        Exec --> EndTest(Test End)
+        Exec --> EndTest("Test End")
     end
 
     subgraph Reporter["@currents/jest Reporter (Main Process)"]
-        OnResult(onTestFileResult) --> Prep[prepareArtifacts]
+        OnResult("onTestFileResult") --> Prep["prepareArtifacts"]
         
-        Prep --> ReadTemp[Read & Delete .currents-artifacts/*.jsonl]
-        Prep --> Parse[Parse & Categorize Artifacts]
+        Prep --> ReadTemp["Read & Delete .currents-artifacts/*.jsonl"]
+        Prep --> Parse["Parse & Categorize Artifacts"]
         
-        Parse --> CheckLevel{Level?}
-        CheckLevel -- "spec" --> ProcSpec[Process Spec Artifacts]
-        CheckLevel -- "test/attempt" --> GroupTest[Group by Test ID]
+        Parse --> CheckLevel{"Level?"}
+        CheckLevel -- "spec" --> ProcSpec["Process Spec Artifacts"]
+        CheckLevel -- "test/attempt" --> GroupTest["Group by Test ID"]
         
-        GroupTest --> CreateAtt[createAttemptArtifacts]
+        GroupTest --> CreateAtt["createAttemptArtifacts"]
         
-        CreateAtt --> MergeLogs[Merge stdout/stderr]
-        MergeLogs --> WriteLog[Write stdout.txt to artifacts/]
+        CreateAtt --> MergeLogs["Merge stdout/stderr"]
+        MergeLogs --> WriteLog["Write stdout.txt to artifacts/"]
         
-        CreateAtt --> CopyFiles[Copy Attachment Files to artifacts/]
+        CreateAtt --> CopyFiles["Copy Attachment Files to artifacts/"]
         
-        CreateAtt --> GenMeta[Generate Artifact Metadata]
-        GenMeta --> BuildJSON[Build InstanceReport]
-        BuildJSON --> WriteJSON[Write .json to instances/]
+        CreateAtt --> GenMeta["Generate Artifact Metadata"]
+        GenMeta --> BuildJSON["Build InstanceReport"]
+        BuildJSON --> WriteJSON["Write .json to instances/"]
     end
     
     WriteTemp -.-> ReadTemp
-    WriteLog --> FS[File System: .currents/...]
+    WriteLog --> FS["File System: .currents/..."]
     CopyFiles --> FS
     WriteJSON --> FS
 ```
@@ -272,31 +272,31 @@ The `convert` command transforms external test reports (e.g., JUnit XML) into th
 ```mermaid
 flowchart TD
     subgraph CLI["currents convert"]
-        Start[handleConvert] --> Config[Read Config]
-        Config --> ParseXML[Parse JUnit XML Input]
-        ParseXML --> Map[Map to Instance Reports]
+        Start["handleConvert"] --> Config["Read Config"]
+        Config --> ParseXML["Parse JUnit XML Input"]
+        ParseXML --> Map["Map to Instance Reports"]
         
-        Map --> LoopTests[Iterate Test Cases]
+        Map --> LoopTests["Iterate Test Cases"]
         
-        LoopTests --> ParseProps[Parse XML Properties]
-        ParseProps -- "currents.artifact.*" --> ExtractMeta[Extract Metadata]
+        LoopTests --> ParseProps["Parse XML Properties"]
+        ParseProps -- "currents.artifact.*" --> ExtractMeta["Extract Metadata"]
         
-        LoopTests --> ParseLogs[Parse system-out Log]
-        ParseLogs -- "[[ATTACHMENT]]" --> ExtractLogAtt[Extract Attachments]
+        LoopTests --> ParseLogs["Parse system-out Log"]
+        ParseLogs -- "[[ATTACHMENT]]" --> ExtractLogAtt["Extract Attachments"]
         ParseLogs -- "currents.artifact JSON" --> ExtractLogAtt
         
-        ExtractMeta & ExtractLogAtt --> ProcessArt[Process Artifacts]
+        ExtractMeta & ExtractLogAtt --> ProcessArt["Process Artifacts"]
         
-        ProcessArt --> CopyFiles[Copy Files to artifacts/]
-        ProcessArt --> GenMeta[Generate Artifact Objects]
+        ProcessArt --> CopyFiles["Copy Files to artifacts/"]
+        ProcessArt --> GenMeta["Generate Artifact Objects"]
         
-        GenMeta --> BuildRep[Build InstanceReport]
-        BuildRep --> WriteJSON[Write .json to instances/]
+        GenMeta --> BuildRep["Build InstanceReport"]
+        BuildRep --> WriteJSON["Write .json to instances/"]
     end
 
     subgraph FS["File System"]
-        CopyFiles --> DiskArt[./.currents/artifacts/]
-        WriteJSON --> DiskInst[./.currents/instances/]
+        CopyFiles --> DiskArt["./.currents/artifacts/"]
+        WriteJSON --> DiskInst["./.currents/instances/"]
     end
 ```
 
@@ -311,29 +311,29 @@ The `upload` command reads the generated `instances/` and `artifacts/` directori
 ```mermaid
 flowchart TD
     subgraph CLI["currents upload"]
-        Start[uploadHandler] --> Handle[handleCurrentsReport]
-        Handle --> Discover[Discover Report Files]
-        Discover --> Batch[Batch Instances (Chunks)]
+        Start["uploadHandler"] --> Handle["handleCurrentsReport"]
+        Handle --> Discover["Discover Report Files"]
+        Discover --> Batch["Batch Instances (Chunks)"]
         
-        Batch --> API_Create[POST /v1/runs (createRun)]
+        Batch --> API_Create["POST /v1/runs (createRun)"]
         API_Create -- "Payload (Instances + Metadata)" --> Director
         
         Director -- "Response (runId, uploadUrls)" --> API_Create
         
-        API_Create --> Check{Has Artifacts?}
-        Check -- Yes --> Upload[uploadArtifacts]
+        API_Create --> Check{"Has Artifacts?"}
+        Check -- Yes --> Upload["uploadArtifacts"]
         
         subgraph Uploader
-            Upload --> Map[Map Content Types]
-            Upload --> Iterate[Iterate Upload Instructions]
-            Iterate --> ReadFile[Read File from artifacts/]
-            ReadFile --> PUT[PUT to Signed URL (S3)]
+            Upload --> Map["Map Content Types"]
+            Upload --> Iterate["Iterate Upload Instructions"]
+            Iterate --> ReadFile["Read File from artifacts/"]
+            ReadFile --> PUT["PUT to Signed URL (S3)"]
         end
         
-        PUT --> Finish[Chunk Complete]
-        Finish --> NextChunk{Next Chunk?}
+        PUT --> Finish["Chunk Complete"]
+        Finish --> NextChunk{"Next Chunk?"}
         NextChunk -- Yes --> API_Create
-        NextChunk -- No --> Done[Upload Complete]
+        NextChunk -- No --> Done["Upload Complete"]
     end
 ```
 
