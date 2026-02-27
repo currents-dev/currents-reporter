@@ -322,7 +322,9 @@ async function uploadArtifacts(
 
   const processArtifacts = (artifacts?: any[]) => {
     if (artifacts) {
-      artifacts.forEach((a) => contentTypeMap.set(a.path, a.contentType));
+      artifacts.forEach((a) => {
+        contentTypeMap.set(a.path, a.contentType);
+      });
     }
   };
 
