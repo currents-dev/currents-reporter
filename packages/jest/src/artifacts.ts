@@ -437,7 +437,7 @@ function inferArtifactType(filePath: string): Artifact['type'] {
   const ext = filePath.split('.').pop()?.toLowerCase();
   if (!ext) return 'attachment';
   
-  if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) return 'screenshot';
+  if (['png', 'jpg', 'jpeg', 'gif', 'bmp'].includes(ext)) return 'screenshot';
   if (['mp4', 'webm', 'mov'].includes(ext)) return 'video';
   if (['json', 'txt', 'log', 'xml'].includes(ext)) return 'attachment';
   
