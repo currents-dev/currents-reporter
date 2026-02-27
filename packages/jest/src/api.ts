@@ -4,6 +4,17 @@ import { extname, join } from 'path';
 import { getArtifactsDir } from './lib';
 import { ArtifactLevel, ArtifactType } from './types';
 
+const ARTIFACT_CONFIG: Record<string, { type: ArtifactType; contentType: string }> = {
+  '.mp4': { type: 'video', contentType: 'video/mp4' },
+  '.webm': { type: 'video', contentType: 'video/webm' },
+  '.png': { type: 'screenshot', contentType: 'image/png' },
+  '.jpg': { type: 'screenshot', contentType: 'image/jpeg' },
+  '.jpeg': { type: 'screenshot', contentType: 'image/jpeg' },
+  '.bmp': { type: 'screenshot', contentType: 'image/bmp' },
+  '.txt': { type: 'attachment', contentType: 'text/plain' },
+  '.json': { type: 'attachment', contentType: 'application/json' },
+};
+
 /**
  * Attach an artifact to the current test.
  * This helper writes to a file in .currents/artifacts/ that the @currents/jest reporter reads.
@@ -23,28 +34,11 @@ export function attachArtifact(
 ) {
   if (!type || !contentType) {
     const ext = extname(path).toLowerCase();
-    // Simple inference logic
-    if (ext === '.mp4') {
-      type = type || 'video';
-      contentType = contentType || 'video/mp4';
-    } else if (ext === '.webm') {
-      type = type || 'video';
-      contentType = contentType || 'video/webm';
-    } else if (ext === '.png') {
-      type = type || 'screenshot';
-      contentType = contentType || 'image/png';
-    } else if (ext === '.jpg' || ext === '.jpeg') {
-      type = type || 'screenshot';
-      contentType = contentType || 'image/jpeg';
-    } else if (ext === '.bmp') {
-      type = type || 'screenshot';
-      contentType = contentType || 'image/bmp';
-    } else if (ext === '.txt') {
-      type = type || 'attachment';
-      contentType = contentType || 'text/plain';
-    } else if (ext === '.json') {
-      type = type || 'attachment';
-      contentType = contentType || 'application/json';
+    const config = ARTIFACT_CONFIG[ext];
+    
+    if (config) {
+      type = type || config.type;
+      contentType = contentType || config.contentType;
     } else {
       type = type || 'attachment';
       contentType = contentType || 'text/plain';
