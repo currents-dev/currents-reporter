@@ -281,19 +281,7 @@ async function handleInstanceStdout(
     // Aggregate stdout from all attempts
     // We also include stderr as the user requested aggregation of both
     // Contract: "Aggregate on the client (e.g. concatenate all attempt stdout and stderr for that instance into one string)."
-    const logs: string[] = [];
-
-    instance.results.tests.forEach((test) => {
-      test.attempts.forEach((attempt) => {
-        if (attempt.stdout && attempt.stdout.length > 0) {
-          logs.push(...attempt.stdout);
-        }
-        if (attempt.stderr && attempt.stderr.length > 0) {
-          // Prefix stderr to distinguish
-          logs.push(...attempt.stderr.map((l) => `[stderr] ${l}`));
-        }
-      });
-    });
+    const logs = extractLogs(instance);
 
     if (logs.length > 0) {
       const aggregatedStdout = logs.join('\n');
@@ -311,6 +299,16 @@ async function handleInstanceStdout(
       e
     );
   }
+}
+
+export function extractLogs(instance: InstanceReport): string[] {
+  return instance.results.tests.flatMap((test) =>
+    test.attempts.flatMap((attempt) => {
+      const stdout = attempt.stdout || [];
+      const stderr = (attempt.stderr || []).map((l) => `[stderr] ${l}`);
+      return [...stdout, ...stderr];
+    })
+  );
 }
 
 function getMarkerFilePath(reportDir: string) {
