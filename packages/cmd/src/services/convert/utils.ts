@@ -10,6 +10,15 @@ import {
 } from '../../types';
 import { Failure, Property, TestCase, TestSuite } from './types';
 
+// Constants
+const JSON_ARTIFACT_KEY = 'currents.artifact.JSON_ARTIFACT';
+const ARTIFACT_FIELDS = ['path', 'type', 'contentType', 'name'];
+
+// Extension sets
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp']);
+const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'mov']);
+const ATTACHMENT_EXTENSIONS = new Set(['json', 'txt', 'log', 'xml']);
+
 export function getTestCase(
   testCase: TestCase,
   suite: TestSuite,
@@ -88,10 +97,6 @@ export function extractArtifactsFromLog(log: string): Artifact[] {
   const artifacts: Artifact[] = [];
   
   // Format: [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]]
-  // Regex: \[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]
-  // Capture group 1: path (until next | or ])
-  // Capture group 2: optional level (until ])
-  
   const matches = log.matchAll(/\[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g);
   for (const match of matches) {
     const sourcePath = match[1].trim();
@@ -105,18 +110,17 @@ export function extractArtifactsFromLog(log: string): Artifact[] {
 
     artifacts.push({
         path: sourcePath,
-        type: 'attachment', // Default type, caller might refine based on extension
+        type: inferArtifactType(sourcePath), // Use helper function
         contentType: 'application/octet-stream', // Default content type
         level: level
     });
   }
 
-  // New JSON format: currents.artifact.{"path":...}
   const jsonMatches = log.matchAll(/currents\.artifact\.(\{.*?\})/g);
   for (const match of jsonMatches) {
     try {
         const artifact = JSON.parse(match[1]);
-        if (artifact.path && artifact.type && artifact.contentType) {
+        if (isValidArtifact(artifact)) {
             artifacts.push(artifact);
         }
     } catch (e) {}
@@ -125,54 +129,72 @@ export function extractArtifactsFromLog(log: string): Artifact[] {
   return artifacts;
 }
 
+function inferArtifactType(filePath: string): Artifact['type'] {
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  if (!ext) return 'attachment';
+  
+  if (IMAGE_EXTENSIONS.has(ext)) return 'screenshot';
+  if (VIDEO_EXTENSIONS.has(ext)) return 'video';
+  if (ATTACHMENT_EXTENSIONS.has(ext)) return 'attachment';
+  
+  return 'attachment';
+}
+
+function isValidArtifact(a: Partial<Artifact>): boolean {
+  return !!(a.path && a.type && a.contentType);
+}
+
 function parseArtifactsFromProperties(properties: Property[], level: 'spec' | 'test'): Artifact[] {
-  const artifactMap = new Map<number, Partial<Artifact>>();
-  const jsonArtifacts: Artifact[] = [];
+  const { jsonArtifacts, artifactMap } = properties.reduce<{
+    jsonArtifacts: Artifact[];
+    artifactMap: Map<number, Partial<Artifact>>;
+  }>((acc, prop) => {
+    if (!prop.name || !prop.value) return acc;
 
-  for (const prop of properties) {
-    if (!prop.name || !prop.value) continue;
-
-    if (prop.name === 'currents.artifact.JSON_ARTIFACT') {
+    if (prop.name === JSON_ARTIFACT_KEY) {
       try {
         const artifact = JSON.parse(prop.value);
-        if (artifact.path && artifact.type && artifact.contentType) {
-          jsonArtifacts.push(artifact);
+        if (isValidArtifact(artifact)) {
+          acc.jsonArtifacts.push(artifact);
         }
       } catch (e) {}
-      continue;
+      return acc;
     }
 
     const regex = new RegExp(`^currents\\.artifact\\.${level}\\.(\\d+)\\.(.+)$`);
     const match = prop.name.match(regex);
-    if (!match) continue;
+    if (!match) return acc;
 
     const [, indexStr, field] = match;
     const index = parseInt(indexStr, 10);
 
-    if (!artifactMap.has(index)) {
-      artifactMap.set(index, {});
+    if (!acc.artifactMap.has(index)) {
+      acc.artifactMap.set(index, {});
     }
 
-    const artifact = artifactMap.get(index)!;
-    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+    const artifact = acc.artifactMap.get(index)!;
+    if (ARTIFACT_FIELDS.includes(field)) {
       (artifact as any)[field] = prop.value;
     }
-  }
+    return acc;
+  }, {
+    jsonArtifacts: [],
+    artifactMap: new Map<number, Partial<Artifact>>()
+  });
 
   const indexedArtifacts = Array.from(artifactMap.values())
-    .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
+    .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
 
   return [...indexedArtifacts, ...jsonArtifacts];
 }
 
 function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number, Artifact[]> {
   const attemptArtifactsMap = new Map<number, Map<number, Partial<Artifact>>>();
-  const jsonArtifactsMap = new Map<number, Artifact[]>();
 
   for (const prop of properties) {
     if (!prop.name || !prop.value) continue;
 
-    if (prop.name === 'currents.artifact.JSON_ARTIFACT') {
+    if (prop.name === JSON_ARTIFACT_KEY) {
        continue;
     }
 
@@ -193,7 +215,7 @@ function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number
     }
 
     const artifact = artifactsMap.get(artifactIndex)!;
-    if (field === 'path' || field === 'type' || field === 'contentType' || field === 'name') {
+    if (ARTIFACT_FIELDS.includes(field)) {
       (artifact as any)[field] = prop.value;
     }
   }
@@ -201,7 +223,7 @@ function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number
   const result = new Map<number, Artifact[]>();
   for (const [attemptIndex, artifactsMap] of attemptArtifactsMap.entries()) {
     const artifacts = Array.from(artifactsMap.values())
-      .filter((a) => a.path && a.type && a.contentType && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
+      .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
     if (artifacts.length > 0) {
       result.set(attemptIndex, artifacts);
     }
