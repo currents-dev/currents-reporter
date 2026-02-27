@@ -3,7 +3,7 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
-import { maskRecordKey, nanoid, readJsonFile, writeFileAsync, generateShortHash } from '@lib';
+import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
 import { info, warn } from '@logger';
 import axios from 'axios';
 import fs from 'fs-extra';
@@ -154,7 +154,10 @@ export async function handleCurrentsReport() {
         framework,
       });
 
-      if (!response.artifactUploadUrls || response.artifactUploadUrls.length === 0) {
+      if (
+        !response.artifactUploadUrls ||
+        response.artifactUploadUrls.length === 0
+      ) {
         info('No artifacts to handle: initial run created without instances');
       }
 
@@ -173,7 +176,11 @@ export async function handleCurrentsReport() {
         // Upload stdout for each instance in the chunk
         await Promise.all(
           chunks[i].map(async (instance) => {
-            await handleInstanceStdout(instance, chunkResponse.runId, runCreationConfig);
+            await handleInstanceStdout(
+              instance,
+              chunkResponse.runId,
+              runCreationConfig
+            );
           })
         );
 
@@ -275,7 +282,7 @@ async function handleInstanceStdout(
     // We also include stderr as the user requested aggregation of both
     // Contract: "Aggregate on the client (e.g. concatenate all attempt stdout and stderr for that instance into one string)."
     const logs: string[] = [];
-    
+
     instance.results.tests.forEach((test) => {
       test.attempts.forEach((attempt) => {
         if (attempt.stdout && attempt.stdout.length > 0) {
@@ -283,7 +290,7 @@ async function handleInstanceStdout(
         }
         if (attempt.stderr && attempt.stderr.length > 0) {
           // Prefix stderr to distinguish
-          logs.push(...attempt.stderr.map(l => `[stderr] ${l}`));
+          logs.push(...attempt.stderr.map((l) => `[stderr] ${l}`));
         }
       });
     });
@@ -291,10 +298,18 @@ async function handleInstanceStdout(
     if (logs.length > 0) {
       const aggregatedStdout = logs.join('\n');
       await uploadStdoutApi(instanceId, aggregatedStdout, config);
-      debug('Uploaded aggregated stdout for instance %s (id: %s)', instance.spec, instanceId);
+      debug(
+        'Uploaded aggregated stdout for instance %s (id: %s)',
+        instance.spec,
+        instanceId
+      );
     }
   } catch (e) {
-    warn('Failed to upload aggregated stdout for instance %s: %o', instance.spec, e);
+    warn(
+      'Failed to upload aggregated stdout for instance %s: %o',
+      instance.spec,
+      e
+    );
   }
 }
 
@@ -341,26 +356,34 @@ async function uploadArtifacts(
   debug('Uploading %d artifacts', instructions.length);
 
   await Promise.all(
-    instructions.map(async (instruction) => {
-      try {
-        const filePath = path.join(reportDir, instruction.path);
-        if (!(await fs.pathExists(filePath))) {
-          warn('Artifact file not found: %s', filePath);
-          return;
-        }
-
-        const fileBuffer = await fs.readFile(filePath);
-        const contentType =
-          contentTypeMap.get(instruction.path) || 'application/octet-stream';
-
-        await axios.put(instruction.uploadUrl, fileBuffer, {
-          headers: {
-            'Content-Type': contentType,
-          },
-        });
-      } catch (err) {
-        debug('Failed to upload artifact %s: %o', instruction.path, err);
-      }
-    })
+    instructions.map((instruction) =>
+      handleInstruction(instruction, reportDir, contentTypeMap)
+    )
   );
 }
+
+const handleInstruction = async (
+  instruction: ArtifactUploadInstruction,
+  reportDir: string,
+  contentTypeMap: Map<string, string>
+) => {
+  try {
+    const filePath = path.join(reportDir, instruction.path);
+    if (!(await fs.pathExists(filePath))) {
+      warn('Artifact file not found: %s', filePath);
+      return;
+    }
+
+    const fileBuffer = await fs.readFile(filePath);
+    const contentType =
+      contentTypeMap.get(instruction.path) || 'application/octet-stream';
+
+    await axios.put(instruction.uploadUrl, fileBuffer, {
+      headers: {
+        'Content-Type': contentType,
+      },
+    });
+  } catch (err) {
+    debug('Failed to upload artifact %s: %o', instruction.path, err);
+  }
+};
