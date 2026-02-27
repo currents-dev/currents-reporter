@@ -282,7 +282,7 @@ flowchart TD
         ParseProps -- "currents.artifact.*" --> ExtractMeta["Extract Metadata"]
         
         LoopTests --> ParseLogs["Parse system-out Log"]
-        ParseLogs -- "[[ATTACHMENT]]" --> ExtractLogAtt["Extract Attachments"]
+        ParseLogs -- "[[CURRENTS.ATTACHMENT]]" --> ExtractLogAtt["Extract Attachments"]
         ParseLogs -- "currents.artifact JSON" --> ExtractLogAtt
         
         ExtractMeta & ExtractLogAtt --> ProcessArt["Process Artifacts"]

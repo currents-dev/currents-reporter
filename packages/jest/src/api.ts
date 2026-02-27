@@ -111,13 +111,13 @@ const attemptState = new Map<string, number>();
 
 /**
  * Get the current attempt number (0-indexed) for the running test.
- * This is a heuristic based on expect.getState() persistence.
- * We store the attempt number in the test state using expect.setState().
- * Since Jest resets the state between test runs (including retries),
- * absence of our key indicates a new attempt.
+ * This implementation treats the expect.getState()/expect.setState() heuristic as the primary code path.
+ * The internal Symbol lookup is used as an optional optimization, tested against Jest 29.5.0+
+ * and may break on future Jest versions.
  */
 export function getAttempt(): number {
   try {
+    // Optional optimization: used for performance/reliability when available but relies on internal APIs
     const symbols = Object.getOwnPropertySymbols(global);
     const stateSymbol = symbols.find(s => s.toString() === 'Symbol(JEST_STATE_SYMBOL)');
     
