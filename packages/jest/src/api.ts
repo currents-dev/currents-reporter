@@ -1,62 +1,68 @@
-
-import { appendFileSync, mkdirSync } from 'fs';
 import { createHash } from 'crypto';
+import { appendFileSync, mkdirSync } from 'fs';
 import { extname, join } from 'path';
-import { ArtifactType, ArtifactLevel } from './types';
-
-
+import { ArtifactLevel, ArtifactType } from './types';
 
 /**
  * Attach an artifact to the current test.
  * This helper writes to a file in .currents/artifacts/ that the @currents/jest reporter reads.
- * 
+ *
  * @param path Absolute path to the artifact file
  * @param type Artifact type (e.g. 'video', 'screenshot', 'trace', 'attachment')
  * @param contentType MIME type of the artifact
  * @param name Optional name for the artifact
  * @param level Artifact level (e.g. 'spec', 'test', 'attempt'). Defaults to 'attempt'
  */
-export function attachArtifact(path: string, type?: ArtifactType, contentType?: string, name?: string, level: ArtifactLevel = 'attempt') {
+export function attachArtifact(
+  path: string,
+  type?: ArtifactType,
+  contentType?: string,
+  name?: string,
+  level: ArtifactLevel = 'attempt'
+) {
   if (!type || !contentType) {
     const ext = extname(path).toLowerCase();
     // Simple inference logic
     if (ext === '.mp4') {
-        type = type || 'video';
-        contentType = contentType || 'video/mp4';
+      type = type || 'video';
+      contentType = contentType || 'video/mp4';
+    } else if (ext === '.webm') {
+      type = type || 'video';
+      contentType = contentType || 'video/webm';
     } else if (ext === '.png') {
-        type = type || 'screenshot';
-        contentType = contentType || 'image/png';
+      type = type || 'screenshot';
+      contentType = contentType || 'image/png';
     } else if (ext === '.jpg' || ext === '.jpeg') {
-        type = type || 'screenshot';
-        contentType = contentType || 'image/jpeg';
+      type = type || 'screenshot';
+      contentType = contentType || 'image/jpeg';
     } else if (ext === '.bmp') {
-        type = type || 'screenshot';
-        contentType = contentType || 'image/bmp';
+      type = type || 'screenshot';
+      contentType = contentType || 'image/bmp';
     } else if (ext === '.txt') {
-        type = type || 'attachment';
-        contentType = contentType || 'text/plain';
+      type = type || 'attachment';
+      contentType = contentType || 'text/plain';
     } else if (ext === '.json') {
-        type = type || 'attachment';
-        contentType = contentType || 'application/json';
-    }else {
+      type = type || 'attachment';
+      contentType = contentType || 'application/json';
+    } else {
       type = type || 'attachment';
       contentType = contentType || 'text/plain';
     }
   }
-  
+
   // Fallback if not inferred
   if (!type) type = 'attachment';
   // contentType is optional but good to have
-  
+
   const artifact = {
     path,
     type,
     contentType,
     name,
     level,
-    attempt: level === 'attempt' ? getAttempt() : undefined
+    attempt: level === 'attempt' ? getAttempt() : undefined,
   };
-  
+
   try {
     // @ts-ignore - expect is available in Jest environment
     const state = expect.getState();
@@ -74,7 +80,7 @@ export function attachArtifact(path: string, type?: ArtifactType, contentType?: 
       const payload = {
         testPath,
         currentTestName,
-        artifact
+        artifact,
       };
 
       appendFileSync(filePath, JSON.stringify(payload) + '\n');
@@ -91,21 +97,27 @@ export function attachArtifact(path: string, type?: ArtifactType, contentType?: 
  * @param path Absolute path to the video file
  * @param name Optional name for the artifact
  */
-export const attachVideo = (path: string, name?: string) => attachArtifact(path, 'video', 'video/mp4', name);
+export const attachVideo = (path: string, name?: string) =>
+  attachArtifact(path, 'video', 'video/mp4', name);
 
 /**
  * Attach a screenshot artifact to the current test.
  * @param path Absolute path to the screenshot file
  * @param name Optional name for the artifact
  */
-export const attachScreenshot = (path: string, name?: string) => attachArtifact(path, 'screenshot', undefined, name); // Let attachArtifact infer content type from extension
+export const attachScreenshot = (path: string, name?: string) =>
+  attachArtifact(path, 'screenshot', undefined, name); // Let attachArtifact infer content type from extension
 
 /**
  * Attach a generic file artifact to the current test.
  * @param path Absolute path to the file
  * @param name Optional name for the artifact
  */
-export const attachFile = (path: string, name?: string, level?: ArtifactLevel) => attachArtifact(path, 'attachment', undefined, name, level); 
+export const attachFile = (
+  path: string,
+  name?: string,
+  level?: ArtifactLevel
+) => attachArtifact(path, 'attachment', undefined, name, level);
 
 const attemptState = new Map<string, number>();
 
@@ -119,12 +131,18 @@ export function getAttempt(): number {
   try {
     // Optional optimization: used for performance/reliability when available but relies on internal APIs
     const symbols = Object.getOwnPropertySymbols(global);
-    const stateSymbol = symbols.find(s => s.toString() === 'Symbol(JEST_STATE_SYMBOL)');
-    
+    const stateSymbol = symbols.find(
+      (s) => s.toString() === 'Symbol(JEST_STATE_SYMBOL)'
+    );
+
     if (stateSymbol) {
       // @ts-ignore
       const jestState = global[stateSymbol];
-      if (jestState && jestState.currentlyRunningTest && typeof jestState.currentlyRunningTest.invocations === 'number') {
+      if (
+        jestState &&
+        jestState.currentlyRunningTest &&
+        typeof jestState.currentlyRunningTest.invocations === 'number'
+      ) {
         return jestState.currentlyRunningTest.invocations - 1;
       }
     }
@@ -133,7 +151,7 @@ export function getAttempt(): number {
     // @ts-ignore
     const state = expect.getState();
     const key = `${state.testPath}#${state.currentTestName}`;
-    
+
     // Check if we already determined the attempt for this execution context
     // @ts-ignore
     if (typeof state.currentsAttempt === 'number') {
@@ -143,7 +161,7 @@ export function getAttempt(): number {
 
     // If not in local state, it means a new attempt execution started
     let count = attemptState.get(key);
-    
+
     if (count === undefined) {
       // First time seeing this test
       count = 0;
@@ -151,17 +169,16 @@ export function getAttempt(): number {
       // We saw this test before, so this must be a retry
       count++;
     }
-    
+
     // Update global map
     attemptState.set(key, count);
-    
+
     // Update local state for subsequent calls in this attempt
     // @ts-ignore
     expect.setState({ currentsAttempt: count });
-    
+
     return count;
   } catch (e) {
     return 0;
   }
 }
-
