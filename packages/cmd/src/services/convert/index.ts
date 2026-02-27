@@ -7,7 +7,7 @@ import {
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
-import { extname, join } from 'path';
+import { extname, join, resolve, relative, isAbsolute } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { InstanceReport } from '../../types';
 import { getFullTestSuiteFilePath } from '../upload/path';
@@ -58,6 +58,7 @@ export async function handleConvert() {
     });
 
     const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
+    const workspaceRoot = process.cwd();
 
     await Promise.all(
       Array.from(instances.values()).map(async (report) => {
@@ -65,10 +66,18 @@ export async function handleConvert() {
         if (report.artifacts) {
           for (const artifact of report.artifacts) {
             try {
+              const resolvedPath = resolve(workspaceRoot, artifact.path);
+              const relativePath = relative(workspaceRoot, resolvedPath);
+              
+              if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+                 debug('Skipping artifact outside workspace: %s (resolved: %s)', artifact.path, resolvedPath);
+                 continue;
+              }
+
               const fileName = `${generateShortHash(
                 report.spec + artifact.path
               )}.${extname(artifact.path).slice(1) || 'bin'}`;
-              await copyFileAsync(artifact.path, join(artifactsDir, fileName));
+              await copyFileAsync(resolvedPath, join(artifactsDir, fileName));
               // Update path to relative path in artifacts folder
               artifact.path = join('artifacts', fileName);
             } catch (e) {
@@ -82,11 +91,19 @@ export async function handleConvert() {
           if (test.artifacts) {
             for (const artifact of test.artifacts) {
               try {
+                const resolvedPath = resolve(workspaceRoot, artifact.path);
+                const relativePath = relative(workspaceRoot, resolvedPath);
+                
+                if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+                   debug('Skipping artifact outside workspace: %s (resolved: %s)', artifact.path, resolvedPath);
+                   continue;
+                }
+
                 const fileName = `${generateShortHash(
                   test.testId + artifact.path
                 )}.${extname(artifact.path).slice(1) || 'bin'}`;
                 await copyFileAsync(
-                  artifact.path,
+                  resolvedPath,
                   join(artifactsDir, fileName)
                 );
                 // Update path to relative path in artifacts folder
@@ -102,11 +119,19 @@ export async function handleConvert() {
             if (attempt.artifacts) {
               for (const artifact of attempt.artifacts) {
                 try {
+                  const resolvedPath = resolve(workspaceRoot, artifact.path);
+                  const relativePath = relative(workspaceRoot, resolvedPath);
+                  
+                  if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+                     debug('Skipping artifact outside workspace: %s (resolved: %s)', artifact.path, resolvedPath);
+                     continue;
+                  }
+
                   const fileName = `${generateShortHash(
                     test.testId + attempt.attempt + artifact.path
                   )}.${extname(artifact.path).slice(1) || 'bin'}`;
                   await copyFileAsync(
-                    artifact.path,
+                    resolvedPath,
                     join(artifactsDir, fileName)
                   );
                   // Update path to relative path in artifacts folder
