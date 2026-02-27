@@ -52,7 +52,7 @@ For a custom path for the report directory, set an absolute path to the `reportD
 
 Set the `projectId`, `recordKey` and optionally the `ciBuildId`. Run `npx currents upload --help` for details.
 
-Run `CURRENTS_RECORD_KEY=<key> npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents upload`
+Run the "report" script after configuring it, or use the command: `CURRENTS_RECORD_KEY=<key> npm run report` or run `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents upload`
 
 To enable the debug mode, prefix the command with `DEBUG=currents,currents:*` or use the `--debug` option.
 
