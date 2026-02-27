@@ -1,6 +1,7 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { attachArtifact, attachFile } from '@currents/cmd/helpers';
 import fs from 'node:fs';
 import { join } from 'node:path';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('Vitest JUnit artifacts', () => {
   const artifactsDir = join(process.cwd(), 'artifacts');
@@ -41,60 +42,36 @@ describe('Vitest JUnit artifacts', () => {
     );
 
     // 1. Spec Level Artifact via JSON
-    console.log(
-      'currents.artifact.' +
-        JSON.stringify({
-          path: specArtifact,
-          type: 'attachment',
-          contentType: 'text/plain',
-          level: 'spec',
-        })
-    );
+    attachArtifact(specArtifact, 'attachment', 'text/plain', 'spec');
 
     // 2. Test Level Artifact via JSON
-    console.log(
-      'currents.artifact.' +
-        JSON.stringify({
-          path: testArtifact,
-          type: 'attachment',
-          contentType: 'text/plain',
-          level: 'test',
-        })
-    );
+    attachArtifact(testArtifact, 'attachment', 'text/plain', 'test');
 
     // 3. Attempt Level Artifact via JSON
-    console.log(
-      'currents.artifact.' +
-        JSON.stringify({
-          path: attemptArtifact,
-          type: 'screenshot',
-          contentType: 'text/plain',
-          level: 'attempt',
-        })
-    );
+    attachArtifact(attemptArtifact, 'attachment', 'text/plain', 'attempt');
 
     expect(true).toBe(true);
   });
 
-  it('generates artifacts via [[ATTACHMENT]] tag with explicit levels', () => {
+  it('generates artifacts via [[CURRENTS.ATTACHMENT]] tag with explicit levels', () => {
     const specPath = join(artifactsDir, 'spec-attachment.txt');
     fs.writeFileSync(specPath, 'Spec attachment', 'utf8');
-
+    
     const testPath = join(artifactsDir, 'test-attachment.txt');
     fs.writeFileSync(testPath, 'Test attachment', 'utf8');
-
+    
     const attemptPath = join(artifactsDir, 'attempt-attachment.txt');
     fs.writeFileSync(attemptPath, 'Attempt attachment', 'utf8');
 
-    // [[ATTACHMENT|path|level]]
-    console.log(`[[ATTACHMENT|${specPath}|spec]]`);
-    console.log(`[[ATTACHMENT|${testPath}|test]]`);
-    console.log(`[[ATTACHMENT|${attemptPath}|attempt]]`);
-
+    // [[CURRENTS.ATTACHMENT|path|level]]
+    console.log(`[[CURRENTS.ATTACHMENT|${specPath}|spec]]`);
+    console.log(`[[CURRENTS.ATTACHMENT|${testPath}|test]]`);
+    console.log(`[[CURRENTS.ATTACHMENT|${attemptPath}|attempt]]`);
+    
     // Default is attempt
     const defaultPath = join(artifactsDir, 'default-attachment.txt');
     fs.writeFileSync(defaultPath, 'Default attachment', 'utf8');
-    console.log(`[[ATTACHMENT|${defaultPath}]]`);
+    console.log(`[[CURRENTS.ATTACHMENT|${defaultPath}]]`);
 
     expect(true).toBe(true);
   });
@@ -108,15 +85,7 @@ describe('Vitest JUnit artifacts', () => {
     );
 
     // Attach as a generic file/log
-    console.log(
-      'currents.artifact.' +
-        JSON.stringify({
-          path: logPath,
-          type: 'attachment',
-          contentType: 'text/plain',
-          level: 'test',
-        })
-    );
+    attachArtifact(logPath, 'attachment', 'text/plain', 'test');
 
     expect(true).toBe(true);
   });
@@ -233,7 +202,7 @@ describe('Vitest JUnit artifacts', () => {
     const artifactPath = join(artifactsDir, `attempt-${attempt}.txt`);
     fs.writeFileSync(artifactPath, `Artifact for attempt ${attempt}`, 'utf8');
 
-    console.log(`[[ATTACHMENT|${artifactPath}]]`);
+    attachFile(artifactPath);
 
     if (attempt < 2) {
       throw new Error('Simulated failure for attempt ' + attempt);

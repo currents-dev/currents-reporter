@@ -397,11 +397,11 @@ function parseAttachmentLogs(
       // Look for [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]] pattern
       
       // We use a regex that optionally captures a second parameter (level)
-      // Format: [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]]
+      // Format: [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]]
       // The path cannot contain ']', so we use [^\]|]+ for path segment if followed by another |?
-      // Simpler: [[ATTACHMENT| part1 (| part2)? ]]
+      // Simpler: [[CURRENTS.ATTACHMENT| part1 (| part2)? ]]
       
-      const matches = [...log.message.matchAll(/\[\[ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g)];
+      const matches = [...log.message.matchAll(/\[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g)];
       if (matches.length === 0) return [];
       
       const line = getLineFromOrigin(log.origin, testFilePath);

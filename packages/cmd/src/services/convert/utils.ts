@@ -93,12 +93,12 @@ function getTestAndAttemptArtifacts(testCase: TestCase): {
 export function extractArtifactsFromLog(log: string): Artifact[] {
   const artifacts: Artifact[] = [];
   
-  // Format: [[ATTACHMENT|path]] or [[ATTACHMENT|path|level]]
-  // Regex: \[\[ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]
+  // Format: [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]]
+  // Regex: \[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]
   // Capture group 1: path (until next | or ])
   // Capture group 2: optional level (until ])
   
-  const matches = log.matchAll(/\[\[ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g);
+  const matches = log.matchAll(/\[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g);
   for (const match of matches) {
     const sourcePath = match[1].trim();
     const levelRaw = match[2]?.trim();
