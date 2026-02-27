@@ -274,6 +274,25 @@ function getTestRetries(failures: (Failure | string)[]) {
   return retries;
 }
 
+/**
+ * Transforms a TestCase object into an array of InstanceReportTestAttempt objects.
+ * 
+ * This function processes a TestCase (which may represent a single test execution or a set of retries/failures)
+ * and generates a list of attempts suitable for the Currents dashboard.
+ * 
+ * It handles:
+ * - Skipped tests: Returns a single "skipped" attempt.
+ * - Passed tests: Returns a single "passed" attempt if there are no failures.
+ * - Failed tests: Iterates over the failures to create multiple "failed" attempts, mapping errors and artifacts.
+ * 
+ * @param testCase - The source TestCase object from the test report.
+ * @param failures - A list of failure objects or strings associated with the test case.
+ * @param suiteTimestamp - The timestamp of the test suite start.
+ * @param time - The duration or specific time associated with the test case.
+ * @param attemptArtifacts - A map of artifacts keyed by attempt index.
+ * @param skipped - Whether the test case was skipped.
+ * @returns An array of InstanceReportTestAttempt objects representing the test execution(s).
+ */
 function getTestAttempts(
   testCase: TestCase,
   failures: (Failure | string)[],
