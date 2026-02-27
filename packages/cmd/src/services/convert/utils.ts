@@ -145,42 +145,13 @@ function isValidArtifact(a: Partial<Artifact>): boolean {
 }
 
 function parseArtifactsFromProperties(properties: Property[], level: 'spec' | 'test'): Artifact[] {
-  const { jsonArtifacts, artifactMap } = properties.reduce<{
-    jsonArtifacts: Artifact[];
-    artifactMap: Map<number, Partial<Artifact>>;
-  }>((acc, prop) => {
-    if (!prop.name || !prop.value) return acc;
+  const artifactMap = new Map<number, Partial<Artifact>>();
+  const jsonArtifacts: Artifact[] = [];
+  const regex = new RegExp(`^currents\\.artifact\\.${level}\\.(\\d+)\\.(.+)$`);
 
-    if (prop.name === JSON_ARTIFACT_KEY) {
-      try {
-        const artifact = JSON.parse(prop.value);
-        if (isValidArtifact(artifact)) {
-          acc.jsonArtifacts.push(artifact);
-        }
-      } catch (e) {}
-      return acc;
-    }
-
-    const regex = new RegExp(`^currents\\.artifact\\.${level}\\.(\\d+)\\.(.+)$`);
-    const match = prop.name.match(regex);
-    if (!match) return acc;
-
-    const [, indexStr, field] = match;
-    const index = parseInt(indexStr, 10);
-
-    if (!acc.artifactMap.has(index)) {
-      acc.artifactMap.set(index, {});
-    }
-
-    const artifact = acc.artifactMap.get(index)!;
-    if (ARTIFACT_FIELDS.includes(field)) {
-      (artifact as any)[field] = prop.value;
-    }
-    return acc;
-  }, {
-    jsonArtifacts: [],
-    artifactMap: new Map<number, Partial<Artifact>>()
-  });
+  for (const prop of properties) {
+    parseSingleProperty(prop, regex, artifactMap, jsonArtifacts);
+  }
 
   const indexedArtifacts = Array.from(artifactMap.values())
     .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
@@ -188,15 +159,49 @@ function parseArtifactsFromProperties(properties: Property[], level: 'spec' | 't
   return [...indexedArtifacts, ...jsonArtifacts];
 }
 
+function parseSingleProperty(
+  prop: Property, 
+  regex: RegExp, 
+  artifactMap: Map<number, Partial<Artifact>>,
+  jsonArtifacts?: Artifact[]
+) {
+  if (!prop.name || !prop.value) return;
+
+  if (prop.name === JSON_ARTIFACT_KEY) {
+    if (jsonArtifacts) {
+      try {
+        const artifact = JSON.parse(prop.value);
+        if (isValidArtifact(artifact)) {
+          jsonArtifacts.push(artifact);
+        }
+      } catch (e) {}
+    }
+    return;
+  }
+
+  const match = prop.name.match(regex);
+  if (!match) return;
+
+  const [, indexStr, field] = match;
+  const index = parseInt(indexStr, 10);
+
+  if (!artifactMap.has(index)) {
+    artifactMap.set(index, {});
+  }
+
+  const artifact = artifactMap.get(index)!;
+  if (ARTIFACT_FIELDS.includes(field)) {
+    (artifact as any)[field] = prop.value;
+  }
+}
+
 function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number, Artifact[]> {
   const attemptArtifactsMap = new Map<number, Map<number, Partial<Artifact>>>();
 
   for (const prop of properties) {
+    // We can reuse logic but we need to handle the double index for attempts
     if (!prop.name || !prop.value) continue;
-
-    if (prop.name === JSON_ARTIFACT_KEY) {
-       continue;
-    }
+    if (prop.name === JSON_ARTIFACT_KEY) continue;
 
     const match = prop.name.match(/^currents\.artifact\.attempt\.(\d+)\.(\d+)\.(.+)$/);
     if (!match) continue;
@@ -208,7 +213,11 @@ function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number
     if (!attemptArtifactsMap.has(attemptIndex)) {
       attemptArtifactsMap.set(attemptIndex, new Map());
     }
-
+    
+    // Reuse parseSingleProperty logic by delegating to the inner map?
+    // Not strictly straightforward because parseSingleProperty expects a regex match that returns [full, index, field]
+    // Here we have [full, attemptIndex, artifactIndex, field]
+    
     const artifactsMap = attemptArtifactsMap.get(attemptIndex)!;
     if (!artifactsMap.has(artifactIndex)) {
       artifactsMap.set(artifactIndex, {});
