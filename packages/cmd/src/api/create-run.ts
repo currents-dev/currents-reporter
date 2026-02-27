@@ -1,6 +1,6 @@
 import { Commit } from '@env/gitInfo';
 import { CiProvider, CiProviderData } from '@env/types';
-import { error, warn } from '@logger';
+import { error } from '@logger';
 import { promisify } from 'node:util';
 import { gzip } from 'node:zlib';
 import { CurrentsConfig } from '../config/upload';
@@ -93,9 +93,11 @@ export async function uploadStdout(
   stdout: string,
   config: RunCreationConfig
 ) {
-  warn(`Uploading stdout for instance ${instanceId} with ${stdout.length} bytes`);
+  debug(
+    `Uploading stdout for instance ${instanceId} with ${stdout.length} bytes`
+  );
   try {
-    return makeRequest<void, { stdout: string }>(ClientType.API, {
+    return await makeRequest<void, { stdout: string }>(ClientType.API, {
       url: `instances/${instanceId}/stdout`,
       method: 'PUT',
       headers: {
