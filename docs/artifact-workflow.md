@@ -167,7 +167,7 @@ Test failed.
 ### Running the Command
 
 ```bash
-npx currents convert --input junit-report.xml --output .currents
+npx currents convert --input-file junit-report.xml --output .currents
 ```
 
 This will:
