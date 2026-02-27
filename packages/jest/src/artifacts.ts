@@ -2,7 +2,7 @@ import { join } from 'path';
 import { createHash } from 'crypto';
 import { existsSync, readFileSync, unlinkSync } from 'fs';
 import type { Test, TestCaseResult, TestResult } from '@jest/reporters';
-import { copyFileAsync, createFolder, debug, generateShortHash, readFileAsync } from './lib';
+import { copyFileAsync, createFolder, debug, generateShortHash, readFileAsync, getArtifactsDir } from './lib';
 import type { Artifact, ArtifactLevel } from './types';
 
 // Prefix for property-like log messages: "currents.artifact.level.index.key=value"
@@ -482,7 +482,7 @@ async function updateTestCaseLocationsFromFile(
 function readFileArtifacts(testFilePath: string): Array<{currentTestName?: string, artifact: Artifact}> {
   try {
     const hash = createHash('md5').update(testFilePath).digest('hex');
-    const artifactsDir = join(process.cwd(), '.currents-artifacts');
+    const artifactsDir = getArtifactsDir();
     const filePath = join(artifactsDir, `${hash}.jsonl`);
     
     if (!existsSync(filePath)) return [];

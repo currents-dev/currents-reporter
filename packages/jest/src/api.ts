@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
 import { appendFileSync, mkdirSync } from 'fs';
 import { extname, join } from 'path';
+import { getArtifactsDir } from './lib';
 import { ArtifactLevel, ArtifactType } from './types';
 
 /**
@@ -70,7 +71,7 @@ export function attachArtifact(
     const currentTestName = state.currentTestName;
 
     if (testPath) {
-      const artifactsDir = join(process.cwd(), '.currents-artifacts');
+      const artifactsDir = getArtifactsDir();
       mkdirSync(artifactsDir, { recursive: true });
 
       const hash = createHash('md5').update(testPath).digest('hex');

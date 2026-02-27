@@ -75,3 +75,7 @@ export async function readFileAsync(filePath: string, encoding: BufferEncoding =
     throw err;
   }
 }
+
+export function getArtifactsDir() {
+  return join(process.cwd(), '.currents-artifacts');
+}

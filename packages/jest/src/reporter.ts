@@ -31,6 +31,7 @@ import {
   testToSpecName,
   writeFileAsync,
   removeFolder,
+  getArtifactsDir,
 } from './lib';
 import { createAttemptArtifacts, prepareArtifacts } from './artifacts';
 import { getReportConfig } from './lib/getReportConfig';
@@ -89,7 +90,7 @@ export default class CustomReporter implements Reporter {
     debug('Run started');
 
     // Clean up previous run's artifacts
-    await removeFolder(join(process.cwd(), '.currents-artifacts'));
+    await removeFolder(getArtifactsDir());
 
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
