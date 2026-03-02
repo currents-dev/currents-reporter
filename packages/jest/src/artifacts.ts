@@ -42,19 +42,6 @@ const isSpecLevelArtifact = (l: PropertyLog) => {
   return false;
 };
 
-const isNotSpecLevelArtifact = (l: PropertyLog) => {
-  if (isSpecOrInstance(l.key)) return false;
-  if (isJsonArtifact(l.key)) {
-    try {
-      const artifact = JSON.parse(l.value);
-      return artifact.level !== 'spec';
-    } catch (e) {
-      return true;
-    }
-  }
-  return true;
-};
-
 export async function prepareArtifacts({
   reportDir,
   testResult,
@@ -99,7 +86,7 @@ export async function prepareArtifacts({
   );
 
   const propertyLogsByTestId = groupPropertyLogsByTestId(
-    propertyLogs.filter(isNotSpecLevelArtifact),
+    propertyLogs.filter(l => !isSpecLevelArtifact(l)),
     sortedTestCases
   );
 
