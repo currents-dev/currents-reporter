@@ -91,23 +91,17 @@ export async function prepareArtifacts({
   );
 
   const propertyLogsByTestId = groupPropertyLogsByTestId(
-    propertyLogs.filter(l => !isSpecLevelArtifact(l)),
+    [
+      ...propertyLogs.filter((l) => !isSpecLevelArtifact(l)),
+      ...attachmentLogs,
+    ],
     sortedTestCases
   );
-
-  // Group attachment logs and merge them into propertyLogsByTestId
-  const attachmentLogsByTestId = groupPropertyLogsByTestId(attachmentLogs, sortedTestCases);
-  for (const [testId, logs] of Object.entries(attachmentLogsByTestId)) {
-    if (!propertyLogsByTestId[testId]) {
-      propertyLogsByTestId[testId] = [];
-    }
-    propertyLogsByTestId[testId].push(...logs);
-  }
   
   // Distribute file-based test artifacts to tests
   const testFileArtifacts = fileArtifacts.filter(fa => fa.currentTestName && fa.artifact.level !== 'spec');
   
-  for (const fa of testFileArtifacts) {
+  testFileArtifacts.forEach((fa) => {
     const testId = findTestId(fa.currentTestName!, sortedTestCases);
     if (testId) {
       if (!propertyLogsByTestId[testId]) {
@@ -116,10 +110,10 @@ export async function prepareArtifacts({
       propertyLogsByTestId[testId].push({
         key: JSON_ARTIFACT,
         value: JSON.stringify(fa.artifact),
-        line: 0 // Dummy line
+        line: 0, // Dummy line
       });
     }
-  }
+  });
   
   const stdioByTestId = groupStdioByTestId(
     stdioLogs,
@@ -157,12 +151,10 @@ function parseSpecArtifactsFromLogs(logs: PropertyLog[]): Artifact[] {
 
   for (const log of logs) {
     if (log.key === JSON_ARTIFACT) {
-      try {
-        const artifact = JSON.parse(log.value);
-        if (artifact.path && artifact.type && artifact.contentType && artifact.level === 'spec') {
-          jsonArtifacts.push(artifact);
-        }
-      } catch (e) {}
+      const artifact = tryParseSpecJsonArtifact(log);
+      if (artifact) {
+        jsonArtifacts.push(artifact);
+      }
       continue;
     }
 
@@ -188,6 +180,21 @@ function parseSpecArtifactsFromLogs(logs: PropertyLog[]): Artifact[] {
   return [...indexedArtifacts, ...jsonArtifacts];
 }
 
+function tryParseSpecJsonArtifact(log: PropertyLog): Artifact | null {
+  try {
+    const artifact = JSON.parse(log.value);
+    if (
+      artifact.path &&
+      artifact.type &&
+      artifact.contentType &&
+      artifact.level === 'spec'
+    ) {
+      return artifact;
+    }
+  } catch (e) {}
+  return null;
+}
+
 export async function createAttemptArtifacts({
   artifactsDir,
   testCaseId,
@@ -198,38 +205,78 @@ export async function createAttemptArtifacts({
   attemptArtifacts: Artifact[];
 }> {
   const testLogs = propertyLogsByTestId[testCaseId] ?? [];
-  const testArtifacts: Artifact[] = [];
-  const attemptArtifacts: Artifact[] = [];
+  const testArtifacts: Artifact[] = await processTestLevelArtifacts(
+    testLogs,
+    attemptIndex,
+    artifactsDir,
+    testCaseId
+  );
+  const attemptArtifacts: Artifact[] = await processAttemptLevelArtifacts(
+    testLogs,
+    attemptIndex,
+    artifactsDir,
+    testCaseId
+  );
 
-  // Parse Test Level Artifacts (only once, regardless of attempt, but we process them here)
-  if (attemptIndex === 0) {
-    const testLevelProps = testLogs.filter(
-      (l) => l.key.startsWith('test.') || l.key === JSON_ARTIFACT
-    );
-    const parsedTestArtifacts = parseArtifactsFromLogs(testLevelProps, 'test');
-    for (const artifact of parsedTestArtifacts) {
+  return { testArtifacts, attemptArtifacts };
+}
+
+async function processTestLevelArtifacts(
+  testLogs: PropertyLog[],
+  attemptIndex: number,
+  artifactsDir: string,
+  testCaseId: string
+): Promise<Artifact[]> {
+  if (attemptIndex !== 0) return [];
+
+  const testLevelProps = testLogs.filter(
+    (l) => l.key.startsWith('test.') || l.key === JSON_ARTIFACT
+  );
+  const parsedTestArtifacts = parseArtifactsFromLogs(testLevelProps, 'test');
+  
+  const results = await Promise.all(
+    parsedTestArtifacts.map(async (artifact) => {
       const savedPath = await saveArtifact(artifact, artifactsDir, testCaseId);
       if (savedPath) {
-        artifact.path = savedPath;
-        testArtifacts.push(artifact);
+        return { ...artifact, path: savedPath };
       }
-    }
-  }
+      return null;
+    })
+  );
 
-  // Parse Attempt Level Artifacts
+  return results.filter((a): a is Artifact => a !== null);
+}
+
+async function processAttemptLevelArtifacts(
+  testLogs: PropertyLog[],
+  attemptIndex: number,
+  artifactsDir: string,
+  testCaseId: string
+): Promise<Artifact[]> {
   const attemptLevelProps = testLogs.filter((l) =>
     l.key.startsWith(`attempt.${attemptIndex}.`) || l.key === JSON_ARTIFACT
   );
-  const parsedAttemptArtifacts = parseArtifactsFromLogs(attemptLevelProps, 'attempt', attemptIndex);
-  for (const artifact of parsedAttemptArtifacts) {
-    const savedPath = await saveArtifact(artifact, artifactsDir, testCaseId + attemptIndex);
-    if (savedPath) {
-      artifact.path = savedPath;
-      attemptArtifacts.push(artifact);
-    }
-  }
+  const parsedAttemptArtifacts = parseArtifactsFromLogs(
+    attemptLevelProps,
+    'attempt',
+    attemptIndex
+  );
 
-  return { testArtifacts, attemptArtifacts };
+  const results = await Promise.all(
+    parsedAttemptArtifacts.map(async (artifact) => {
+      const savedPath = await saveArtifact(
+        artifact,
+        artifactsDir,
+        testCaseId + attemptIndex
+      );
+      if (savedPath) {
+        return { ...artifact, path: savedPath };
+      }
+      return null;
+    })
+  );
+
+  return results.filter((a): a is Artifact => a !== null);
 }
 
 async function saveArtifact(artifact: Artifact, artifactsDir: string, hashKey: string): Promise<string | null> {
