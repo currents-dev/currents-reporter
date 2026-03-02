@@ -19,6 +19,11 @@ const PROPERTY_LOG_PREFIX = 'currents.artifact.';
 const JSON_ARTIFACT = 'JSON_ARTIFACT';
 const ARTIFACT_FIELDS = ['path', 'type', 'contentType', 'name'];
 
+// Regex patterns
+const SPEC_KEY_REGEX = /^(?:spec|instance)\.(\d+)\.(.+)$/;
+const TEST_KEY_REGEX = /^test\.(\d+)\.(.+)$/;
+const ATTEMPT_KEY_REGEX = /^attempt\.\d+\.(\d+)\.(.+)$/;
+
 // Image extensions
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp']);
 // Video extensions
@@ -161,7 +166,7 @@ function parseSpecArtifactsFromLogs(logs: PropertyLog[]): Artifact[] {
       continue;
     }
 
-    const match = log.key.match(/^(?:spec|instance)\.(\d+)\.(.+)$/);
+    const match = log.key.match(SPEC_KEY_REGEX);
     if (!match) continue;
 
     const [, indexStr, field] = match;
@@ -229,7 +234,6 @@ export async function createAttemptArtifacts({
 
 async function saveArtifact(artifact: Artifact, artifactsDir: string, hashKey: string): Promise<string | null> {
   try {
-    const ext = artifact.path.split('.').pop() || 'bin';
     const originalName = artifact.path.split(/[/\\]/).pop() || 'artifact';
     // Use the original filename but prepend a short hash to avoid collisions while keeping it readable
     const fileName = `${generateShortHash(hashKey + artifact.path)}-${originalName}`;
@@ -311,9 +315,9 @@ function parseKeyBasedArtifact(log: PropertyLog, level: ArtifactLevel, artifactM
 
 function getKeyMatch(key: string, level: ArtifactLevel): RegExpMatchArray | null {
   if (level === 'test') {
-    return key.match(/^test\.(\d+)\.(.+)$/);
+    return key.match(TEST_KEY_REGEX);
   }
-  return key.match(/^attempt\.\d+\.(\d+)\.(.+)$/);
+  return key.match(ATTEMPT_KEY_REGEX);
 }
 
 function isValidArtifact(a: Partial<Artifact>): boolean {
