@@ -13,11 +13,6 @@
         <property name="currents.artifact.attempt.0.0.path" value="./artifacts/manual/attempt-0.txt"/>
         <property name="currents.artifact.attempt.0.0.type" value="attachment"/>
         <property name="currents.artifact.attempt.0.0.contentType" value="text/plain"/>
-        
-        <!-- Attempt Level Artifact (Attempt 1 - simulating retry) -->
-        <property name="currents.artifact.attempt.1.0.path" value="./artifacts/manual/attempt-1.txt"/>
-        <property name="currents.artifact.attempt.1.0.type" value="attachment"/>
-        <property name="currents.artifact.attempt.1.0.contentType" value="text/plain"/>
       </properties>
     </testcase>
   </testsuite>

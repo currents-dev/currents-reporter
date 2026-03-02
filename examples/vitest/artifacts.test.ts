@@ -1,4 +1,4 @@
-import { attachArtifact, attachFile } from '@currents/cmd/helpers';
+import { attachArtifact } from '@currents/cmd/helpers';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -61,10 +61,10 @@ describe('Vitest JUnit artifacts', () => {
   it('generates artifacts via [[CURRENTS.ATTACHMENT]] tag with explicit levels', () => {
     const specPath = join(artifactsDir, 'spec-attachment.txt');
     fs.writeFileSync(specPath, 'Spec attachment', 'utf8');
-    
+
     const testPath = join(artifactsDir, 'test-attachment.txt');
     fs.writeFileSync(testPath, 'Test attachment', 'utf8');
-    
+
     const attemptPath = join(artifactsDir, 'attempt-attachment.txt');
     fs.writeFileSync(attemptPath, 'Attempt attachment', 'utf8');
 
@@ -72,7 +72,7 @@ describe('Vitest JUnit artifacts', () => {
     console.log(`[[CURRENTS.ATTACHMENT|${specPath}|spec]]`);
     console.log(`[[CURRENTS.ATTACHMENT|${testPath}|test]]`);
     console.log(`[[CURRENTS.ATTACHMENT|${attemptPath}|attempt]]`);
-    
+
     // Default is attempt
     const defaultPath = join(artifactsDir, 'default-attachment.txt');
     fs.writeFileSync(defaultPath, 'Default attachment', 'utf8');
@@ -177,42 +177,5 @@ describe('Vitest JUnit artifacts', () => {
     fs.writeFileSync(jpegPath, Buffer.from(minimalJpegBase64, 'base64'));
     attachArtifact(jpegPath, 'screenshot', 'image/jpeg', 'test');
     expect(fs.existsSync(jpegPath)).toBe(true);
-  });
-
-  it('generates artifacts for multiple attempts', { retry: 2 }, () => {
-    // This test simulates a flaky test by using a counter stored in a file or global variable
-    // However, Vitest runs in parallel and isolated environments usually.
-    // To simulate attempts in a single run, we can't easily force Vitest to retry unless we configure it.
-    // But we can simulate the *logging* of artifacts that would happen in multiple attempts.
-
-    // In a real scenario, the test runner would run this test block multiple times.
-    // For this example, we will just manually log artifacts as if they were from different attempts,
-    // although in a single execution they will all be attached to the current (single) attempt.
-
-    // WAIT: The user wants "an example with 2 attempts".
-    // Vitest supports retries. Let's use `retry: 2` in the config or test options.
-
-    // We need a way to know which attempt we are in.
-    // Vitest doesn't expose "current attempt" easily in the test body.
-    // But we can use a stateful variable outside the test if isolation is disabled, or use a file.
-
-    const attemptFile = join(artifactsDir, 'attempt-count.txt');
-    let attempt = 0;
-    if (fs.existsSync(attemptFile)) {
-      attempt = parseInt(fs.readFileSync(attemptFile, 'utf8'), 10);
-    }
-    attempt++;
-    fs.writeFileSync(attemptFile, attempt.toString(), 'utf8');
-
-    const artifactPath = join(artifactsDir, `attempt-${attempt}.txt`);
-    fs.writeFileSync(artifactPath, `Artifact for attempt ${attempt}`, 'utf8');
-
-    attachFile(artifactPath);
-
-    if (attempt < 2) {
-      throw new Error('Simulated failure for attempt ' + attempt);
-    }
-
-    expect(true).toBe(true);
   });
 });
