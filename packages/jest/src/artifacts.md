@@ -1,144 +1,91 @@
-# @currents/jest Reporter Guide
+# Artifact Handling in Jest Reporter
 
-This document provides a comprehensive guide on how to generate and manage artifacts using `@currents/jest`, covering both usage instructions and the internal workflow.
+This document details the internal mechanisms used by the `@currents/jest` reporter to capture, transport, and associate artifacts with test results.
 
-## Usage Guide
+## Overview
 
-The `@currents/jest` reporter enables the attachment of screenshots, videos, and other files directly from Jest tests. These artifacts are uploaded to the Currents dashboard and associated with specific test executions.
+Jest runs tests in parallel worker processes, while the reporter runs in the main process. This architecture requires a robust mechanism to transport artifact metadata from workers to the reporter.
 
-### 1. Installation
+The reporter uses a **file-based communication channel** for explicit attachments and **stdout parsing** as a fallback.
 
-Install the package as a development dependency:
+## Artifact Capture Mechanisms
 
-```bash
-npm install @currents/jest --save-dev
-```
+### 1. Explicit Attachment (`attachArtifact`)
 
-### 2. Configuration
+The `attachArtifact` helper (and its derivatives `attachScreenshot`, `attachVideo`) writes artifact metadata to a temporary file.
 
-Add `@currents/jest` to the `jest.config.js` configuration file:
+*   **Storage**: `.currents-artifacts/` (hidden directory in project root).
+*   **Filename**: `MD5(testFilePath).jsonl` - A unique file per test suite.
+*   **Format**: JSON Lines. Each line contains a JSON object with:
+    *   `testPath`: Absolute path to the test file.
+    *   `currentTestName`: Name of the current test case.
+    *   `artifact`: Object containing `path`, `type`, `level`, etc.
 
-```javascript
-// jest.config.js
-module.exports = {
-  reporters: [
-    'default', // Keep the default reporter for console output
-    '@currents/jest'
-  ],
-  // ... other config
-};
-```
+This method allows for rich metadata and reliable association with the specific test case and attempt.
 
-### 3. Attaching Artifacts in Tests
+### 2. Console Output Parsing (Fallback)
 
-The `attachArtifact` helper (and others) can be used to attach files. Artifacts can be attached at three levels:
-*   **Attempt (Default)**: Attached to the specific retry of a test.
-*   **Test**: Attached to the test case (visible across all retries).
-*   **Spec**: Attached to the test file (suite) itself.
+The reporter also parses `console.log` output captured by Jest. It looks for the marker:
 
-#### Example
+`[[CURRENTS.ATTACHMENT|path|level]]`
 
-```typescript
-import { attachArtifact } from '@currents/jest';
-import * as path from 'path';
+This is useful for integrations where importing the helper is not feasible. The reporter extracts these markers from the `testResult.console` property exposed by Jest.
 
-describe('My Feature', () => {
-  it('should upload artifacts on failure', async () => {
-    try {
-      // Test logic...
-      await someAction();
-    } catch (error) {
-      // Take a screenshot
-      const screenshotPath = path.resolve(__dirname, 'screenshots/failure.png');
-      await takeScreenshot(screenshotPath); // Custom helper
-      
-      // Attach the screenshot (Attempt Level by default)
-      attachArtifact(screenshotPath, 'failure-screenshot.png');
-      
-      throw error;
-    }
-  });
-
-  it('should upload test-level metadata', () => {
-    // Attach a log file relevant to the whole test case, regardless of retries
-    attachArtifact('logs/test-metadata.json', 'metadata', 'test');
-  });
-});
-```
-
-#### Alternative: Console Log Attachments
-
-If importing the `attachArtifact` helper is not preferred, the same console log marker supported by the `convert` command can be used. The reporter automatically detects this pattern in `stdout`.
-
-**Marker:** `[[CURRENTS.ATTACHMENT|path/to/file|level]]`
-
-*   **path**: Absolute or relative path to the artifact file.
-*   **level** (Optional): `attempt` | `test` | `spec`. Defaults to `attempt`.
-*   **Type:** Inferred from file extension (e.g., `.png` -> screenshot).
-
-```typescript
-it('should upload screenshot via log', () => {
-  // ... test logic
-  const screenshotPath = '/path/to/screenshot.png';
-  
-  // Default (Attempt Level)
-  console.log(`[[CURRENTS.ATTACHMENT|${screenshotPath}]]`);
-  
-  // Explicit Test Level
-  console.log(`[[CURRENTS.ATTACHMENT|${screenshotPath}|test]]`);
-});
-```
-
-### 4. Running Tests
-
-Tests are executed as usual. Artifacts are collected automatically.
-
-```bash
-npm test
-```
-
-When `currents upload` runs (or if `currents run` is used), these artifacts are discovered in the `.currents/` directory and uploaded.
-
----
-
-## Internal Workflow
-
-The Jest reporter hooks into the Jest test execution lifecycle to capture logs and attachments. It utilizes a **file-based communication channel** to reliably transfer artifact metadata from the test execution environment (worker processes) to the main reporter process.
-
-### Flow Diagram
+## Processing Workflow
 
 ```mermaid
 flowchart TD
-    subgraph Worker["Test Worker"]
-        Exec["Execute Test"] --> Attach["Call attachArtifact"]
-        Attach --> Write["Write to .currents-artifacts/*.jsonl"]
+    subgraph Worker["Test Worker Process"]
+        Exec["Test Execution"]
+        Exec -->|Call Helper| Write["Append to .currents-artifacts/*.jsonl"]
+        Exec -->|Console Log| Stdout["Standard Output"]
     end
 
-    subgraph Main["Main Process"]
-        End["Test File Complete"] --> Read["Read .currents-artifacts/*.jsonl"]
-        Read --> Process["Process Artifacts"]
-        Process --> Copy["Copy Files to .currents/"]
-        Process --> Report["Generate Report JSON"]
+    subgraph Main["Reporter Process"]
+        OnResult["onTestResult Hook"]
+        
+        OnResult --> ReadFile["Read JSONL File"]
+        OnResult --> ParseLogs["Parse console.log"]
+        
+        ReadFile --> Aggregate["Aggregate Artifacts"]
+        ParseLogs --> Aggregate
+        
+        Aggregate --> Link["Link to Test/Attempt"]
+        Link --> Copy["Copy to .currents/artifacts/"]
+        Copy --> Report["Update Report JSON"]
     end
 
-    Write -.-> Read
+    Write -.-> ReadFile
+    Stdout -.-> ParseLogs
 ```
 
-### Workflow Steps
+### 1. Aggregation
 
-1.  **Artifact Capture (Worker)**: During test execution, `attachArtifact` is called. The helper detects the current test context and writes artifact metadata to a temporary JSONL file in `.currents-artifacts/`.
-2.  **Processing (Main)**: When a test file completes, the main reporter process reads the corresponding temporary file.
-3.  **File Management**: The reporter processes the artifacts, copies the actual files to the report directory (`.currents/artifacts/`), and links them to the correct test/attempt in the final JSON report (`.currents/instances/`).
+When a test suite completes (`onTestResult`), the reporter:
+1.  **Reads**: The corresponding `.jsonl` file from `.currents-artifacts/`.
+2.  **Parses**: The `testResult.console` array for attachment markers.
+3.  **Merges**: Combines artifacts from both sources.
 
-### Key Mechanisms
+### 2. Association & Leveling
 
-#### Retry Detection
-Jest does not expose the current attempt number to the test environment. To support accurate artifact attribution during retries, a heuristic based on `expect.getState().assertionCalls` is used:
-*   The number of assertions made in the current test execution is tracked.
-*   If `assertionCalls` drops to 0 (or a lower value than previously recorded for the same test), it is inferred that a retry has started.
-*   The `getAttempt()` function increments an internal counter to track these resets.
+Artifacts are associated with the correct level based on the `level` property:
 
-#### Temporary File Storage
-Artifacts are written to `.currents-artifacts/` (a hidden directory in the project root) to avoid conflicts with the final report directory `.currents/`.
-*   **Format:** JSON Lines (JSONL)
-*   **Filename:** Based on a hash of the test file path.
+*   **Spec Level**: Associated with the file itself.
+*   **Test Level**: Associated with a test case (across all retries).
+*   **Attempt Level**: Associated with a specific retry of a test case.
+
+### 3. File Management
+
+Valid artifacts are copied to the final report directory:
+*   **Source**: Original path provided in the attachment.
+*   **Destination**: `.currents/artifacts/<hash>-<filename>`.
+*   **Reference**: The `InstanceReport` JSON is updated with the relative path to the copied file.
+
+## Retry Detection
+
+Jest does not natively expose the current attempt number to the test environment (worker). To correctly attribute artifacts to specific retries (attempts), the reporter uses a heuristic in `getAttempt()`:
+
+1.  **Symbol Lookup**: Tries to access internal Jest state via `Symbol(JEST_STATE_SYMBOL)` (if available).
+2.  **Assertion Counting**: Falls back to tracking `expect.getState()`. It maintains a map of `testName -> attemptCount`.
+    *   If a test is seen again within the same worker context, the attempt count is incremented.
+    *   This state is maintained in the worker process memory.

@@ -1,41 +1,59 @@
-# Upload Command Guide
+# Artifact Handling in Upload Command
 
-This document describes the usage and internal workflow of the `upload` command in `@currents/cmd`, which uploads generated reports and artifacts to the Currents dashboard.
+This document describes how the `upload` command processes and uploads artifacts to the Currents dashboard.
 
-## Usage Guide
+## Overview
 
-The `upload` command is used to send the `.currents/` directory (containing test results and artifacts) to the Currents cloud service. This is typically run after tests have completed and reports have been generated.
+The `upload` command is responsible for sending test results and associated artifacts to the Currents cloud service. It handles artifacts by:
 
-### Running the Command
+1.  **Extracting Metadata**: Reading artifact details from the generated `InstanceReport` files.
+2.  **Requesting Upload URLs**: Sending metadata to the Director service to obtain pre-signed upload URLs.
+3.  **Uploading Files**: Reading files from the local `.currents` directory and uploading them to the provided URLs.
 
-```bash
-npx currents upload
-```
-
-This command discovers the `.currents/` directory and uploads its contents.
-
----
-
-## Internal Workflow
-
-The `upload` command reads the generated `instances/` and `artifacts/` directories and uploads them. It optimizes uploads by checking for pre-existing artifacts and batching requests.
-
-### Flow Diagram
+## Artifact Processing Workflow
 
 ```mermaid
 flowchart TD
-    subgraph CLI["currents upload"]
-        Discover["Discover Report Files"] --> Batch["Batch Instances"]
-        Batch --> CreateRun["POST /v1/runs"]
-        CreateRun --> Instructions["Receive Upload Instructions"]
-        Instructions --> Upload["Upload Artifacts (PUT S3)"]
-    end
+    Start([Start Upload]) --> ReadReports[Read Instance Reports]
+    ReadReports --> Batch[Batch Instances]
+    
+    Batch --> CreateRun[POST /v1/runs]
+    note right of CreateRun: Sends artifact metadata\n(path, size, contentType)
+    
+    CreateRun --> Response{Receive Response}
+    Response -->|Instructions| UploadLoop[Process Upload Instructions]
+    
+    UploadLoop --> ReadFile[Read Local File]
+    ReadFile --> GetType[Resolve Content-Type]
+    GetType --> PutS3[PUT to Pre-signed URL]
+    
+    PutS3 --> Next{More?}
+    Next -->|Yes| UploadLoop
+    Next -->|No| Finish([Finish Batch])
 ```
 
-### Workflow Steps
+### 1. Metadata Extraction
 
-1.  **Discovery**: The command scans the `.currents/` directory for report files.
-2.  **Batching**: Instance reports are grouped into chunks to avoid payload limits.
-3.  **Run Creation**: A batch of `InstanceReport`s is sent to the Director service (`POST /v1/runs`). The payload includes test results and artifact metadata (paths, types, sizes).
-4.  **Upload Instructions**: The Director service processes the run data and returns `ArtifactUploadInstruction[]` (including presigned S3 URLs) for artifacts that need to be uploaded.
-5.  **Artifact Upload**: The command iterates through the instructions, reads the corresponding files from `artifacts/`, and uploads them to the provided URLs.
+The command reads `InstanceReport` JSON files from `.currents/instances/`. It aggregates all artifacts associated with:
+*   **Specs**: Top-level spec artifacts.
+*   **Tests**: Artifacts attached to specific tests.
+*   **Attempts**: Artifacts attached to specific attempts (retries).
+
+It builds a map of `file_path -> content_type` to ensure the correct MIME type is set during upload.
+
+### 2. Requesting Upload URLs
+
+The command sends batches of `InstanceReport`s to the Director service via `POST /v1/runs`. The payload includes the artifact metadata.
+
+The service responds with a list of `ArtifactUploadInstruction` objects, which contain:
+*   `path`: The relative path of the artifact (e.g., `artifacts/hash-screenshot.png`).
+*   `uploadUrl`: A pre-signed S3 URL for uploading the file.
+
+### 3. Uploading Files
+
+The command iterates through the received instructions:
+
+1.  **Locate File**: Resolves the full path using the report directory (e.g., `.currents/artifacts/hash-screenshot.png`).
+2.  **Verify Existence**: Checks if the file exists locally; logs a warning if missing.
+3.  **Set Content-Type**: Retrieves the `contentType` from the metadata map created in step 1 (defaulting to `application/octet-stream`).
+4.  **Upload**: Performs a `PUT` request to the `uploadUrl` with the file content and the specified `Content-Type` header.
