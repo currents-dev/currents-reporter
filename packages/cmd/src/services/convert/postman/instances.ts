@@ -8,6 +8,7 @@ import {
   getTestCase,
   getTimestampValue,
   timeToMilliseconds,
+  getSpecArtifacts,
 } from '../utils';
 
 export async function getInstanceMap(
@@ -57,6 +58,7 @@ export function createSuiteJson(
     groupId,
     spec: suiteName,
     startTime,
+    artifacts: getSpecArtifacts(suite),
     results: {
       stats: {
         suites: 1,

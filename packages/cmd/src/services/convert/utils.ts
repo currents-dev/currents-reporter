@@ -1,13 +1,23 @@
 import { isNumber } from 'lodash';
 import crypto from 'node:crypto';
 import {
+  Artifact,
   ErrorSchema,
   InstanceReportTest,
   InstanceReportTestAttempt,
   TestCaseStatus,
   TestRunnerStatus,
 } from '../../types';
-import { Failure, TestCase, TestSuite } from './types';
+import { Failure, Property, TestCase, TestSuite } from './types';
+
+// Constants
+const JSON_ARTIFACT_KEY = 'currents.artifact.JSON_ARTIFACT';
+const ARTIFACT_FIELDS = ['path', 'type', 'contentType', 'name'];
+
+// Extension sets
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp']);
+const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'mov']);
+const ATTACHMENT_EXTENSIONS = new Set(['json', 'txt', 'log', 'xml']);
 
 export function getTestCase(
   testCase: TestCase,
@@ -22,6 +32,8 @@ export function getTestCase(
 
   const state = skipped ? 'pending' : hasFailure ? 'failed' : 'passed';
 
+  const { testArtifacts, attemptArtifacts } = getTestAndAttemptArtifacts(testCase);
+
   return {
     _t: getTimestampValue(suiteTimestamp),
     testId: generateTestId(
@@ -35,14 +47,197 @@ export function getTestCase(
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
+    artifacts: testArtifacts,
     attempts: getTestAttempts(
       testCase,
       failures,
       getISODateValue(suiteTimestamp),
       time,
+      attemptArtifacts,
       skipped
     ),
   };
+}
+
+export function getSpecArtifacts(suite: TestSuite): Artifact[] {
+  const properties = ensureArray<Property>(suite.properties?.property);
+  return parseArtifactsFromProperties(properties, 'spec');
+}
+
+function getTestAndAttemptArtifacts(testCase: TestCase): {
+  testArtifacts: Artifact[];
+  attemptArtifacts: Map<number, Artifact[]>;
+} {
+  const properties = ensureArray<Property>(testCase.properties?.property);
+  let testArtifacts = parseArtifactsFromProperties(properties, 'test');
+  let attemptArtifacts = parseAttemptArtifactsFromProperties(properties);
+
+  if (testCase['system-out']) {
+    const stdouts = ensureArray<string>(testCase['system-out']);
+    const stdout = stdouts.join('\n');
+    const stdoutArtifacts = extractArtifactsFromLog(stdout);
+
+    stdoutArtifacts.forEach((artifact) => {
+      if (artifact.level === 'attempt') {
+        if (!attemptArtifacts.has(0)) {
+          attemptArtifacts.set(0, []);
+        }
+        attemptArtifacts.get(0)!.push({ ...artifact });
+      } else {
+        // level is 'test' or undefined
+        testArtifacts.push({ ...artifact });
+      }
+    });
+  }
+
+  return { testArtifacts, attemptArtifacts };
+}
+
+export function extractArtifactsFromLog(log: string): Artifact[] {
+  const artifacts: Artifact[] = [];
+  
+  // Format: [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]]
+  const matches = log.matchAll(/\[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g);
+  for (const match of matches) {
+    const sourcePath = match[1].trim();
+    const levelRaw = match[2]?.trim();
+    
+    // Default level is 'attempt' unless specified otherwise
+    let level: 'spec' | 'test' | 'attempt' = 'attempt';
+    if (levelRaw && ['spec', 'test', 'attempt'].includes(levelRaw)) {
+      level = levelRaw as 'spec' | 'test' | 'attempt';
+    }
+
+    artifacts.push({
+        path: sourcePath,
+        type: inferArtifactType(sourcePath), // Use helper function
+        contentType: 'application/octet-stream', // Default content type
+        level: level
+    });
+  }
+
+  const jsonMatches = log.matchAll(/currents\.artifact\.(\{.*?\})/g);
+  for (const match of jsonMatches) {
+    try {
+        const artifact = JSON.parse(match[1]);
+        if (isValidArtifact(artifact)) {
+            artifacts.push(artifact);
+        }
+    } catch (e) {}
+  }
+
+  return artifacts;
+}
+
+function inferArtifactType(filePath: string): Artifact['type'] {
+  const ext = filePath.split('.').pop()?.toLowerCase();
+  if (!ext) return 'attachment';
+  
+  if (IMAGE_EXTENSIONS.has(ext)) return 'screenshot';
+  if (VIDEO_EXTENSIONS.has(ext)) return 'video';
+  if (ATTACHMENT_EXTENSIONS.has(ext)) return 'attachment';
+  
+  return 'attachment';
+}
+
+function isValidArtifact(a: Partial<Artifact>): boolean {
+  return !!(a.path && a.type && a.contentType);
+}
+
+function parseArtifactsFromProperties(properties: Property[], level: 'spec' | 'test'): Artifact[] {
+  const artifactMap = new Map<number, Partial<Artifact>>();
+  const jsonArtifacts: Artifact[] = [];
+  const regex = new RegExp(`^currents\\.artifact\\.${level}\\.(\\d+)\\.(.+)$`);
+
+  for (const prop of properties) {
+    parseSingleProperty(prop, regex, artifactMap, jsonArtifacts);
+  }
+
+  const indexedArtifacts = Array.from(artifactMap.values())
+    .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
+
+  return [...indexedArtifacts, ...jsonArtifacts];
+}
+
+function parseSingleProperty(
+  prop: Property, 
+  regex: RegExp, 
+  artifactMap: Map<number, Partial<Artifact>>,
+  jsonArtifacts?: Artifact[]
+) {
+  if (!prop.name || !prop.value) return;
+
+  if (prop.name === JSON_ARTIFACT_KEY) {
+    if (jsonArtifacts) {
+      try {
+        const artifact = JSON.parse(prop.value);
+        if (isValidArtifact(artifact)) {
+          jsonArtifacts.push(artifact);
+        }
+      } catch (e) {}
+    }
+    return;
+  }
+
+  const match = prop.name.match(regex);
+  if (!match) return;
+
+  const [, indexStr, field] = match;
+  const index = parseInt(indexStr, 10);
+
+  if (!artifactMap.has(index)) {
+    artifactMap.set(index, {});
+  }
+
+  const artifact = artifactMap.get(index)!;
+  if (ARTIFACT_FIELDS.includes(field)) {
+    (artifact as any)[field] = prop.value;
+  }
+}
+
+function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number, Artifact[]> {
+  const attemptArtifactsMap = new Map<number, Map<number, Partial<Artifact>>>();
+
+  for (const prop of properties) {
+    // We can reuse logic but we need to handle the double index for attempts
+    if (!prop.name || !prop.value) continue;
+    if (prop.name === JSON_ARTIFACT_KEY) continue;
+
+    const match = prop.name.match(/^currents\.artifact\.attempt\.(\d+)\.(\d+)\.(.+)$/);
+    if (!match) continue;
+
+    const [, attemptIndexStr, artifactIndexStr, field] = match;
+    const attemptIndex = parseInt(attemptIndexStr, 10);
+    const artifactIndex = parseInt(artifactIndexStr, 10);
+
+    if (!attemptArtifactsMap.has(attemptIndex)) {
+      attemptArtifactsMap.set(attemptIndex, new Map());
+    }
+    
+    // Reuse parseSingleProperty logic by delegating to the inner map?
+    // Not strictly straightforward because parseSingleProperty expects a regex match that returns [full, index, field]
+    // Here we have [full, attemptIndex, artifactIndex, field]
+    
+    const artifactsMap = attemptArtifactsMap.get(attemptIndex)!;
+    if (!artifactsMap.has(artifactIndex)) {
+      artifactsMap.set(artifactIndex, {});
+    }
+
+    const artifact = artifactsMap.get(artifactIndex)!;
+    if (ARTIFACT_FIELDS.includes(field)) {
+      (artifact as any)[field] = prop.value;
+    }
+  }
+
+  const result = new Map<number, Artifact[]>();
+  for (const [attemptIndex, artifactsMap] of attemptArtifactsMap.entries()) {
+    const artifacts = Array.from(artifactsMap.values())
+      .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
+    if (artifacts.length > 0) {
+      result.set(attemptIndex, artifacts);
+    }
+  }
+  return result;
 }
 
 export function generateTestId(testName: string, suiteName: string): string {
@@ -110,11 +305,31 @@ function getTestRetries(failures: (Failure | string)[]) {
   return retries;
 }
 
+/**
+ * Transforms a TestCase object into an array of InstanceReportTestAttempt objects.
+ * 
+ * This function processes a TestCase (which may represent a single test execution or a set of retries/failures)
+ * and generates a list of attempts suitable for the Currents dashboard.
+ * 
+ * It handles:
+ * - Skipped tests: Returns a single "skipped" attempt.
+ * - Passed tests: Returns a single "passed" attempt if there are no failures.
+ * - Failed tests: Iterates over the failures to create multiple "failed" attempts, mapping errors and artifacts.
+ * 
+ * @param testCase - The source TestCase object from the test report.
+ * @param failures - A list of failure objects or strings associated with the test case.
+ * @param suiteTimestamp - The timestamp of the test suite start.
+ * @param time - The duration or specific time associated with the test case.
+ * @param attemptArtifacts - A map of artifacts keyed by attempt index.
+ * @param skipped - Whether the test case was skipped.
+ * @returns An array of InstanceReportTestAttempt objects representing the test execution(s).
+ */
 function getTestAttempts(
   testCase: TestCase,
   failures: (Failure | string)[],
   suiteTimestamp: string,
   time: number,
+  attemptArtifacts: Map<number, Artifact[]>,
   skipped?: boolean
 ): InstanceReportTestAttempt[] {
   const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
@@ -128,7 +343,8 @@ function getTestAttempts(
         duration: testCaseTime,
         status: 'skipped',
         stdout: getStdOut(testCase?.['system-out']),
-        stderr: [],
+        stderr: getStdErr(testCase?.['system-err']),
+        artifacts: attemptArtifacts.get(0),
         errors: [],
         error: undefined,
       },
@@ -144,7 +360,8 @@ function getTestAttempts(
         duration: testCaseTime,
         status: 'passed',
         stdout: getStdOut(testCase?.['system-out']),
-        stderr: [],
+        stderr: getStdErr(testCase?.['system-err']),
+        artifacts: attemptArtifacts.get(0),
         errors: [],
         error: undefined,
       },
@@ -155,6 +372,12 @@ function getTestAttempts(
     (attempts, failure, index) => {
       if (failure !== 'true' && failure !== 'false') {
         const errors = getErrors(failure);
+        
+        // In JUnit XML, `system-out` and `system-err` are typically associated with the `testcase` node,
+        // not individual failures/attempts. This means we only have one set of logs for the entire test case execution.
+        // Since we cannot distinguish which attempt produced which log, we attach the available logs to every attempt derived from this test case.
+        // This ensures that regardless of which attempt is viewed in the dashboard, the user sees the logs associated with the test case.
+        
         attempts.push({
           _s: 'failed' as TestCaseStatus,
           attempt: index,
@@ -164,6 +387,7 @@ function getTestAttempts(
           status: 'failed' as TestRunnerStatus,
           stdout: getStdOut(testCase?.['system-out']),
           stderr: getStdErr(testCase?.['system-err']),
+          artifacts: attemptArtifacts.get(index),
           errors: errors,
           error: errors[0],
         });

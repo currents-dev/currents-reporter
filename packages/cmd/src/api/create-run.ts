@@ -68,6 +68,13 @@ export type CreateRunParams = {
   config: RunCreationConfig;
 };
 
+export type ArtifactUploadInstruction = {
+  artifactId: string;
+  path: string;
+  uploadUrl: string;
+  readUrl: string;
+};
+
 export type CreateRunResponse = {
   runId: string;
   groupId: string;
@@ -78,6 +85,13 @@ export type CreateRunResponse = {
   isNewRun: boolean;
   cancellation: unknown;
   warnings: any[];
+  artifactUploadUrls?: ArtifactUploadInstruction[];
+  stdoutUploadUrls?: StdoutUploadInstruction[];
+};
+
+export type StdoutUploadInstruction = {
+  instanceId: string;
+  uploadUrl: string;
 };
 
 export async function createRun(params: CreateRunParams) {

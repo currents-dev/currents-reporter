@@ -29,13 +29,10 @@ export async function writeFileAsyncIfNotExists(
   content: string
 ) {
   try {
-    // Check if file exists
     try {
       await fs.access(filePath);
-      // If we reach here, file exists
       return filePath;
     } catch {
-      // File doesn't exist, create it
       await fs.writeFile(filePath, content, 'utf8');
       return filePath;
     }
@@ -81,6 +78,21 @@ export async function createFolder(folderPath: string) {
     return folderPath;
   } catch (err) {
     error(`Failed to create folder at ${folderPath}:`, err);
+    throw err;
+  }
+}
+
+export async function copyFileAsync(
+  srcPath: string,
+  destPath: string
+): Promise<string> {
+  try {
+    await fs.ensureDir(dirname(destPath));
+    await fs.copy(srcPath, destPath);
+    debug('File copied from %s to %s', srcPath, destPath);
+    return destPath;
+  } catch (err) {
+    error(`Failed to copy file from ${srcPath} to ${destPath}:`, err);
     throw err;
   }
 }

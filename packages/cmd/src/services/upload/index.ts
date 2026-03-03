@@ -5,9 +5,12 @@ import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
 import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
 import { info, warn } from '@logger';
+import axios from 'axios';
+import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 import {
+  ArtifactUploadInstruction,
   Framework,
   RunCreationConfig,
   createRun as createRunApi,
@@ -150,9 +153,16 @@ export async function handleCurrentsReport() {
         framework,
       });
 
+      if (
+        !response.artifactUploadUrls ||
+        response.artifactUploadUrls.length === 0
+      ) {
+        info('No artifacts to handle: initial run created without instances');
+      }
+
       // Iterates over the instance chunks and sends the instances without the fullTestSuite
       for (let i = 0; i < chunks.length; i++) {
-        await createRun({
+        const chunkResponse = await createRun({
           ci,
           group,
           instances: chunks[i],
@@ -161,6 +171,28 @@ export async function handleCurrentsReport() {
           machineId,
           framework,
         });
+
+        // Upload stdout for each instance in the chunk
+        await Promise.all(
+          chunks[i].map(async (instance) => {
+            await handleInstanceStdout(
+              instance,
+              chunkResponse.runId,
+              chunkResponse.stdoutUploadUrls
+            );
+          })
+        );
+
+        if (
+          chunkResponse.artifactUploadUrls &&
+          chunkResponse.artifactUploadUrls.length > 0
+        ) {
+          await uploadArtifacts(
+            chunkResponse.artifactUploadUrls,
+            reportOptions.reportDir,
+            chunks[i]
+          );
+        }
       }
 
       debug('Api response: %o', response);
@@ -235,6 +267,71 @@ async function createRun({
   return createRunApi(payload);
 }
 
+async function handleInstanceStdout(
+  instance: InstanceReport,
+  runId: string,
+  stdoutUploadUrls: { instanceId: string; uploadUrl: string }[] | undefined
+) {
+  if (!stdoutUploadUrls || stdoutUploadUrls.length === 0) {
+    return;
+  }
+  try {
+    const { default: XXH } = await import('xxhashjs');
+    const combined = runId + instance.groupId + instance.spec;
+    const instanceId = XXH.h64(combined, 0).toString(16).padStart(16, '0');
+
+    const instruction = stdoutUploadUrls.find(
+      (i) => i.instanceId === instanceId
+    );
+
+    if (!instruction) {
+      debug(
+        'No stdout upload URL for instance %s (id: %s)',
+        instance.spec,
+        instanceId
+      );
+      return;
+    }
+
+    // Aggregate stdout from all attempts
+    // We also include stderr as the user requested aggregation of both
+    // Contract: "Aggregate on the client (e.g. concatenate all attempt stdout and stderr for that instance into one string)."
+    const logs = extractLogs(instance);
+
+    if (logs.length === 0) {
+      return;
+    }
+
+    const aggregatedStdout = logs.join('\n');
+    await axios.put(instruction.uploadUrl, aggregatedStdout, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+    debug(
+      'Uploaded aggregated stdout for instance %s (id: %s)',
+      instance.spec,
+      instanceId
+    );
+  } catch (e) {
+    warn(
+      'Failed to upload aggregated stdout for instance %s: %o',
+      instance.spec,
+      e
+    );
+  }
+}
+
+export function extractLogs(instance: InstanceReport): string[] {
+  return instance.results.tests.flatMap((test) =>
+    test.attempts.flatMap((attempt) => {
+      const stdout = attempt.stdout || [];
+      const stderr = (attempt.stderr || []).map((l) => `[stderr] ${l}`);
+      return [...stdout, ...stderr];
+    })
+  );
+}
+
 function getMarkerFilePath(reportDir: string) {
   return path.join(reportDir, 'upload.marker.json');
 }
@@ -249,3 +346,63 @@ function isEmptyTestSuite(testSuite: FullTestSuite) {
     testSuite.some((project) => project.tests.length === 0)
   );
 }
+
+async function uploadArtifacts(
+  instructions: ArtifactUploadInstruction[],
+  reportDir: string,
+  instances: InstanceReport[]
+) {
+  const contentTypeMap = new Map<string, string>();
+
+  const allArtifacts = instances.flatMap((instance) => {
+    const instanceArtifacts = instance.artifacts || [];
+    const testArtifacts = instance.results.tests.flatMap((test) => {
+      const tArtifacts = test.artifacts || [];
+      const attemptArtifacts = test.attempts.flatMap(
+        (attempt) => attempt.artifacts || []
+      );
+      return [...tArtifacts, ...attemptArtifacts];
+    });
+    return [...instanceArtifacts, ...testArtifacts];
+  });
+
+  allArtifacts.forEach((artifact) => {
+    if (artifact) {
+      contentTypeMap.set(artifact.path, artifact.contentType);
+    }
+  });
+
+  debug('Uploading %d artifacts', instructions.length);
+
+  await Promise.all(
+    instructions.map((instruction) =>
+      handleInstruction(instruction, reportDir, contentTypeMap)
+    )
+  );
+}
+
+const handleInstruction = async (
+  instruction: ArtifactUploadInstruction,
+  reportDir: string,
+  contentTypeMap: Map<string, string>
+) => {
+  try {
+    const filePath = path.join(reportDir, instruction.path);
+    if (!(await fs.pathExists(filePath))) {
+      warn('Artifact file not found: %s', filePath);
+      return;
+    }
+
+    const fileBuffer = await fs.readFile(filePath);
+    const contentType =
+      contentTypeMap.get(instruction.path) || 'application/octet-stream';
+
+    await axios.put(instruction.uploadUrl, fileBuffer, {
+      headers: {
+        'Content-Type': contentType,
+      },
+    });
+  } catch (err) {
+    debug('Failed to upload artifact %s: %o', instruction.path, err);
+  }
+};
