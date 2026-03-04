@@ -13,12 +13,12 @@ The `upload` command is responsible for sending test results and associated arti
 ## Artifact Processing Workflow
 
 ```mermaid
+
 flowchart TD
     Start([Start Upload]) --> ReadReports[Read Instance Reports]
     ReadReports --> Batch[Batch Instances]
     
     Batch --> CreateRun[POST /v1/runs]
-    note right of CreateRun: Sends artifact metadata\n(path, size, contentType)
     
     CreateRun --> Response{Receive Response}
     Response -->|Instructions| UploadLoop[Process Upload Instructions]
