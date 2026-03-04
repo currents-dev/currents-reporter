@@ -41,6 +41,7 @@ export const instanceReportTestWithFailure: InstanceReportTest = {
       status: 'failed',
       stdout: [],
       stderr: [],
+      artifacts: undefined,
       errors: [
         {
           message: 'Error message',
@@ -93,6 +94,7 @@ export const instanceReportTestWithoutFailure: InstanceReportTest = {
       status: 'passed',
       stdout: [],
       stderr: [],
+      artifacts: [],
       errors: [],
       error: undefined,
     },
@@ -134,6 +136,7 @@ export const instanceReportTestNoTimestamp: InstanceReportTest = {
       status: 'passed',
       stdout: [],
       stderr: [],
+      artifacts: [],
       errors: [],
       error: undefined,
     },
@@ -175,6 +178,7 @@ export const instanceReportTestNoTime: InstanceReportTest = {
       status: 'passed',
       stdout: [],
       stderr: [],
+      artifacts: [],
       errors: [],
       error: undefined,
     },
