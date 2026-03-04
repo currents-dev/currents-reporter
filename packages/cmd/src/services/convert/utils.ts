@@ -93,7 +93,8 @@ function parseIndexedAttemptArtifacts(properties: Property[]): Map<number, Artif
   const attemptProperties = new Map<number, Property[]>();
   
   for (const prop of properties) {
-    if (!prop.name || !prop.value) continue;
+    const value = prop.value ?? prop._;
+    if (!prop.name || !value) continue;
     const match = prop.name.match(regex);
     if (!match) continue;
     
@@ -106,7 +107,7 @@ function parseIndexedAttemptArtifacts(properties: Property[]): Map<number, Artif
     
     attemptProperties.get(index)!.push({
       name: `currents.artifact.attempt.${key}`,
-      value: prop.value
+      value: value
     });
   }
   
@@ -125,7 +126,8 @@ function parseArtifacts(properties: Property[], prefix: string, level: Artifact[
   let currentArtifact: Partial<Artifact> = {};
 
   for (const prop of properties) {
-    if (!prop.name || !prop.value) continue;
+    const value = prop.value ?? prop._;
+    if (!prop.name || !value) continue;
     if (!prop.name.startsWith(prefix)) continue;
 
     const key = prop.name.slice(prefix.length);
@@ -144,7 +146,7 @@ function parseArtifacts(properties: Property[], prefix: string, level: Artifact[
       currentArtifact = {};
     }
 
-    (currentArtifact as any)[key] = prop.value;
+    (currentArtifact as any)[key] = value;
   }
 
   // Push the last artifact
