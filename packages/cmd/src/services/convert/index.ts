@@ -1,13 +1,12 @@
 import { debug } from '@debug';
 import {
-  copyFileAsync,
   createFolder,
   createUniqueFolder,
   generateShortHash,
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
-import { extname, join, resolve, relative, isAbsolute } from 'path';
+import { join } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { Artifact, InstanceReport } from '../../types';
 import { getFullTestSuiteFilePath } from '../upload/path';
@@ -15,6 +14,7 @@ import { createFullTestSuite } from './createFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
+import { processArtifacts } from './artifacts';
 
 export async function handleConvert() {
   try {
@@ -60,42 +60,15 @@ export async function handleConvert() {
     const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
     const workspaceRoot = process.cwd();
 
-    const processArtifacts = async (
-      artifacts: Artifact[] | undefined,
-      hashKey: string
-    ) => {
-      if (!artifacts) return;
-
-      for (const artifact of artifacts) {
-        try {
-          const resolvedPath = resolve(workspaceRoot, artifact.path);
-          const relativePath = relative(workspaceRoot, resolvedPath);
-
-          if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
-            debug(
-              'Skipping artifact outside workspace: %s (resolved: %s)',
-              artifact.path,
-              resolvedPath
-            );
-            continue;
-          }
-
-          const fileName = `${generateShortHash(
-            hashKey + artifact.path
-          )}.${extname(artifact.path).slice(1) || 'bin'}`;
-          await copyFileAsync(resolvedPath, join(artifactsDir, fileName));
-          // Update path to relative path in artifacts folder
-          artifact.path = join('artifacts', fileName);
-        } catch (e) {
-          debug('Failed to copy artifact %s: %o', artifact.path, e);
-        }
-      }
-    };
-
     await Promise.all(
       Array.from(instances.values()).map(async (report) => {
         // Spec-level artifacts
-        await processArtifacts(report.artifacts, report.spec);
+        await processArtifacts(
+          report.artifacts,
+          report.spec,
+          artifactsDir,
+          workspaceRoot
+        );
 
         if (report._stdout) {
           const fileName = `${generateShortHash(report.spec)}.stdout.txt`;
@@ -119,13 +92,20 @@ export async function handleConvert() {
 
         for (const test of report.results.tests) {
           // Test-level artifacts
-          await processArtifacts(test.artifacts, test.testId);
+          await processArtifacts(
+            test.artifacts,
+            test.testId,
+            artifactsDir,
+            workspaceRoot
+          );
 
           for (const attempt of test.attempts) {
             // Attempt-level artifacts
             await processArtifacts(
               attempt.artifacts,
-              test.testId + attempt.attempt
+              test.testId + attempt.attempt,
+              artifactsDir,
+              workspaceRoot
             );
           }
         }
