@@ -4,15 +4,17 @@
     tests="1" failures="0" errors="0" time="1.000" skipped="0">
 
     <!-- Instance Level Artifact -->
-    <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
-    <property name="currents.artifact.instance.type" value="coverage" />
-    <property name="currents.artifact.instance.contentType" value="application/json" />
-    <property name="currents.artifact.instance.name" value="Test Coverage" />
+    <properties>
+      <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
+      <property name="currents.artifact.instance.type" value="coverage" />
+      <property name="currents.artifact.instance.contentType" value="application/json" />
+      <property name="currents.artifact.instance.name" value="Test Coverage" />
 
-    <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
-    <property name="currents.artifact.instance.type" value="coverage" />
-    <property name="currents.artifact.instance.contentType" value="application/json" />
-    <property name="currents.artifact.instance.name" value="Test Coverage 1" />
+      <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
+      <property name="currents.artifact.instance.type" value="coverage" />
+      <property name="currents.artifact.instance.contentType" value="application/json" />
+      <property name="currents.artifact.instance.name" value="Test Coverage 1" />
+    </properties>
 
     <testcase classname="manual-properties-test" name="test with property artifacts" time="1.000">
       <properties>
