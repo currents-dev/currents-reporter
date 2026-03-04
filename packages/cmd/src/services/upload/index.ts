@@ -123,6 +123,37 @@ export async function handleCurrentsReport() {
     instancesByGroup[report.groupId].push(report);
   }
 
+  const allArtifactsMap = new Map<string, string>();
+
+  // Pre-calculate artifact content types for all instances
+  Object.values(instancesByGroup).forEach((instances) => {
+    instances.forEach((instance) => {
+      // Process instance-level artifacts
+      instance.artifacts?.forEach((artifact) => {
+        if (artifact) {
+          allArtifactsMap.set(artifact.path, artifact.contentType);
+        }
+      });
+
+      // Process test-level and attempt-level artifacts
+      instance.results.tests.forEach((test) => {
+        test.artifacts?.forEach((artifact) => {
+          if (artifact) {
+            allArtifactsMap.set(artifact.path, artifact.contentType);
+          }
+        });
+
+        test.attempts.forEach((attempt) => {
+          attempt.artifacts?.forEach((artifact) => {
+            if (artifact) {
+              allArtifactsMap.set(artifact.path, artifact.contentType);
+            }
+          });
+        });
+      });
+    });
+  });
+
   for await (const key of Object.keys(instancesByGroup)) {
     let instances = instancesByGroup[key];
     let group = key;
@@ -177,7 +208,7 @@ export async function handleCurrentsReport() {
           await uploadArtifacts(
             chunkResponse.artifactUploadUrls,
             reportOptions.reportDir,
-            chunks[i]
+            allArtifactsMap
           );
         }
       }
@@ -272,28 +303,8 @@ function isEmptyTestSuite(testSuite: FullTestSuite) {
 async function uploadArtifacts(
   instructions: ArtifactUploadInstruction[],
   reportDir: string,
-  instances: InstanceReport[]
+  contentTypeMap: Map<string, string>
 ) {
-  const contentTypeMap = new Map<string, string>();
-
-  const allArtifacts = instances.flatMap((instance) => {
-    const instanceArtifacts = instance.artifacts || [];
-    const testArtifacts = instance.results.tests.flatMap((test) => {
-      const tArtifacts = test.artifacts || [];
-      const attemptArtifacts = test.attempts.flatMap(
-        (attempt) => attempt.artifacts || []
-      );
-      return [...tArtifacts, ...attemptArtifacts];
-    });
-    return [...instanceArtifacts, ...testArtifacts];
-  });
-
-  allArtifacts.forEach((artifact) => {
-    if (artifact) {
-      contentTypeMap.set(artifact.path, artifact.contentType);
-    }
-  });
-
   debug('Uploading %d artifacts', instructions.length);
 
   await Promise.all(
