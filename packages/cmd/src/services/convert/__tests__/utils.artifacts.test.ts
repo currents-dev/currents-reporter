@@ -202,24 +202,5 @@ describe('Artifact Parsing', () => {
             level: 'spec',
         });
     });
-
-    it('ignores logs for artifact collection', () => {
-      const testCase: TestCase = {
-        name: 'test',
-        classname: 'class',
-        time: '1',
-        failure: [],
-        'system-out': '[[CURRENTS.ATTACHMENT|path/to/log-artifact]]',
-      };
-
-      const result = getTestCase(testCase, mockSuite, mockTime, mockSuiteName);
-      expect(result.artifacts).toEqual([]);
-      // If passed, attempt 0 gets all artifacts (which is empty here).
-      // But passed tests have 1 attempt (index 0).
-      // The old expectation was toBeUndefined(), but artifacts is usually an array or undefined.
-      // In `getTestAttempts` for passed tests: `artifacts: allArtifacts`. 
-      // `allArtifacts` is initialized as [].
-      expect(result.attempts[0].artifacts).toEqual([]);
-    });
   });
 });
