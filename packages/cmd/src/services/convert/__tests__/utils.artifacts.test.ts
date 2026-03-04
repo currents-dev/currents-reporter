@@ -111,20 +111,6 @@ describe('Artifact Parsing', () => {
       });
     });
 
-    it('parses attempt level artifacts from attempts structure', () => {
-      // Logic has changed: we no longer support `testCase.attempts` structure for artifacts.
-      // We only support `currents.artifact.attempt.{index}.{key}` properties.
-      // This test is now invalid based on the new implementation.
-    });
-
-    it('parses attempt level artifacts from attempts structure with multiple attempts', () => {
-      // Logic has changed: we no longer support `testCase.attempts` structure for artifacts.
-      // We only support `currents.artifact.attempt.{index}.{key}` properties.
-      // This test is now invalid based on the new implementation which relies on `getTestAndAttemptArtifacts`
-      // and `failures` array to determine attempts.
-    });
-
-
     it('parses indexed attempt level artifacts without attempts structure (all assigned to attempt 0)', () => {
         // Logic change: Indexed artifacts are only assigned to their specific attempt index.
         // They are NOT rolled up to attempt 0 if they don't match the attempt index.
