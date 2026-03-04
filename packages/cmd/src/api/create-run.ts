@@ -86,12 +86,6 @@ export type CreateRunResponse = {
   cancellation: unknown;
   warnings: any[];
   artifactUploadUrls?: ArtifactUploadInstruction[];
-  stdoutUploadUrls?: StdoutUploadInstruction[];
-};
-
-export type StdoutUploadInstruction = {
-  instanceId: string;
-  uploadUrl: string;
 };
 
 export async function createRun(params: CreateRunParams) {

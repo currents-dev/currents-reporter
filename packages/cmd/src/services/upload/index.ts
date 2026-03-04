@@ -174,17 +174,6 @@ export async function handleCurrentsReport() {
           framework,
         });
 
-        // Upload stdout for each instance in the chunk
-        await Promise.all(
-          chunks[i].map(async (instance) => {
-            await handleInstanceStdout(
-              instance,
-              chunkResponse.runId,
-              chunkResponse.stdoutUploadUrls
-            );
-          })
-        );
-
         if (
           chunkResponse.artifactUploadUrls &&
           chunkResponse.artifactUploadUrls.length > 0
@@ -267,72 +256,6 @@ async function createRun({
   debug('Creating run: %o', maskRecordKey(payload));
 
   return createRunApi(payload);
-}
-
-async function handleInstanceStdout(
-  instance: InstanceReport,
-  runId: string,
-  stdoutUploadUrls: { instanceId: string; uploadUrl: string }[] | undefined
-) {
-  if (!stdoutUploadUrls || stdoutUploadUrls.length === 0) {
-    return;
-  }
-  try {
-    const { default: XXH } = await import('xxhashjs');
-    const combined = runId + instance.groupId + instance.spec;
-    const instanceId = XXH.h64(combined, 0).toString(16).padStart(16, '0');
-
-    const instruction = stdoutUploadUrls.find(
-      (i) => i.instanceId === instanceId
-    );
-
-    if (!instruction) {
-      debug(
-        'No stdout upload URL for instance %s (id: %s)',
-        instance.spec,
-        instanceId
-      );
-      return;
-    }
-
-    // Aggregate stdout from all attempts
-    // We also include stderr as the user requested aggregation of both
-    // Contract: "Aggregate on the client (e.g. concatenate all attempt stdout and stderr for that instance into one string)."
-    const logs = extractLogs(instance);
-
-    if (logs.length === 0) {
-      return;
-    }
-
-    const aggregatedStdout = logs.join('\n');
-    await axios.put(instruction.uploadUrl, aggregatedStdout, {
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-      timeout: UPLOAD_TIMEOUT_MS,
-    });
-    debug(
-      'Uploaded aggregated stdout for instance %s (id: %s)',
-      instance.spec,
-      instanceId
-    );
-  } catch (e) {
-    warn(
-      'Failed to upload aggregated stdout for instance %s: %o',
-      instance.spec,
-      e
-    );
-  }
-}
-
-export function extractLogs(instance: InstanceReport): string[] {
-  return instance.results.tests.flatMap((test) =>
-    test.attempts.flatMap((attempt) => {
-      const stdout = attempt.stdout || [];
-      const stderr = (attempt.stderr || []).map((l) => `[stderr] ${l}`);
-      return [...stdout, ...stderr];
-    })
-  );
 }
 
 function getMarkerFilePath(reportDir: string) {
