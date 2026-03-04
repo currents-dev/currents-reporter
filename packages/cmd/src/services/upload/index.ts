@@ -27,6 +27,8 @@ import { getFullTestSuiteFilePath } from './path';
 import { ReportConfig, UploadMarkerInfo } from './types';
 import { splitArrayIntoChunks } from './utils';
 
+const UPLOAD_TIMEOUT_MS = 30000;
+
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
   if (!currentsConfig) {
@@ -307,6 +309,7 @@ async function handleInstanceStdout(
       headers: {
         'Content-Type': 'text/plain',
       },
+      timeout: UPLOAD_TIMEOUT_MS,
     });
     debug(
       'Uploaded aggregated stdout for instance %s (id: %s)',
@@ -401,6 +404,7 @@ const handleInstruction = async (
       headers: {
         'Content-Type': contentType,
       },
+      timeout: UPLOAD_TIMEOUT_MS,
     });
   } catch (err) {
     debug('Failed to upload artifact %s: %o', instruction.path, err);
