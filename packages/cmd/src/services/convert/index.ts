@@ -97,6 +97,26 @@ export async function handleConvert() {
         // Spec-level artifacts
         await processArtifacts(report.artifacts, report.spec);
 
+        if (report._stdout) {
+          const fileName = `${generateShortHash(report.spec)}.stdout.txt`;
+          await writeFileAsyncIfNotExists(
+            join(artifactsDir, fileName),
+            report._stdout
+          );
+
+          if (!report.artifacts) {
+            report.artifacts = [];
+          }
+
+          report.artifacts.push({
+            path: join('artifacts', fileName),
+            type: 'stdout',
+            contentType: 'text/plain',
+            level: 'spec',
+          });
+          delete report._stdout;
+        }
+
         for (const test of report.results.tests) {
           // Test-level artifacts
           await processArtifacts(test.artifacts, test.testId);

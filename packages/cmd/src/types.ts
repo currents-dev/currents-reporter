@@ -91,4 +91,5 @@ export type InstanceReport = {
     stats: InstanceReportStats;
     tests: InstanceReportTest[];
   };
+  _stdout?: string;
 };

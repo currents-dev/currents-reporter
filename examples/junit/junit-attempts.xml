@@ -15,6 +15,10 @@
     <property name="currents.artifact.instance.name" value="Test Coverage 1" />
 
     <testcase classname="manual-properties-test" name="test with property artifacts" time="1.000">
+      <failure message="Attempt 1 failed" type="Error">Stacktrace 1</failure>
+      <failure message="Attempt 2 failed" type="Error">Stacktrace 2</failure>
+      <system-out>This is a standard output message for the test case.</system-out>
+      <system-err>This is a standard error message for the test case.</system-err>
       <properties>
         <!-- Test Level Artifact -->
         <property name="currents.artifact.test.path" value="./artifacts/manual/test-config.json" />
