@@ -58,3 +58,4 @@ artifacts
 # Allow artifacts and xml in examples/junit
 !examples/junit/artifacts/
 !examples/junit/*.xml
+test-output/*
