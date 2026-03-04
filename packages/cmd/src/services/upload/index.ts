@@ -308,35 +308,35 @@ async function uploadArtifacts(
   debug('Uploading %d artifacts', instructions.length);
 
   await Promise.all(
-    instructions.map((instruction) =>
-      handleInstruction(instruction, reportDir, contentTypeMap)
-    )
+    instructions.map((instruction) => {
+      const filePath = path.join(reportDir, instruction.path);
+      const contentType =
+        contentTypeMap.get(instruction.path) || 'application/octet-stream';
+      return uploadArtifact(filePath, contentType, instruction.uploadUrl);
+    })
   );
 }
 
-const handleInstruction = async (
-  instruction: ArtifactUploadInstruction,
-  reportDir: string,
-  contentTypeMap: Map<string, string>
+const uploadArtifact = async (
+  filePath: string,
+  contentType: string,
+  uploadUrl: string
 ) => {
   try {
-    const filePath = path.join(reportDir, instruction.path);
     if (!(await fs.pathExists(filePath))) {
       warn('Artifact file not found: %s', filePath);
       return;
     }
 
     const fileBuffer = await fs.readFile(filePath);
-    const contentType =
-      contentTypeMap.get(instruction.path) || 'application/octet-stream';
 
-    await axios.put(instruction.uploadUrl, fileBuffer, {
+    await axios.put(uploadUrl, fileBuffer, {
       headers: {
         'Content-Type': contentType,
       },
       timeout: UPLOAD_TIMEOUT_MS,
     });
   } catch (err) {
-    debug('Failed to upload artifact %s: %o', instruction.path, err);
+    debug('Failed to upload artifact %s: %o', filePath, err);
   }
 };
