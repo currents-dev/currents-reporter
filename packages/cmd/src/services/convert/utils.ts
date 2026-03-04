@@ -10,15 +10,6 @@ import {
 } from '../../types';
 import { Failure, Property, TestCase, TestSuite } from './types';
 
-// Constants
-const JSON_ARTIFACT_KEY = 'currents.artifact.JSON_ARTIFACT';
-const ARTIFACT_FIELDS = ['path', 'type', 'contentType', 'name'];
-
-// Extension sets
-const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'bmp']);
-const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'mov']);
-const ATTACHMENT_EXTENSIONS = new Set(['json', 'txt', 'log', 'xml']);
-
 export function getTestCase(
   testCase: TestCase,
   suite: TestSuite,
@@ -112,11 +103,6 @@ function parseIndexedAttemptArtifacts(properties: Property[]): Map<number, Artif
     if (!attemptProperties.has(index)) {
       attemptProperties.set(index, []);
     }
-    
-    // Create a new property object with the prefix stripped/modified so parseArtifacts can handle it
-    // We reconstruct the name to be 'currents.artifact.attempt.' + key so we can reuse parseArtifacts logic
-    // actually, parseArtifacts expects a prefix.
-    // Let's just construct properties like `currents.artifact.attempt.path` and use the standard parser
     
     attemptProperties.get(index)!.push({
       name: `currents.artifact.attempt.${key}`,
