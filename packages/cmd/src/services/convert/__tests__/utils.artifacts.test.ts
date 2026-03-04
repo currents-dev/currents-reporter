@@ -1,6 +1,7 @@
 
 import { describe, expect, it } from 'vitest';
-import { getSpecArtifacts, getTestCase } from '../utils';
+import { getSpecArtifacts } from '../artifacts';
+import { getTestCase } from '../utils';
 import { TestCase, TestSuite } from '../types';
 
 describe('Artifact Parsing', () => {

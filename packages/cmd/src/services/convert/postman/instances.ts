@@ -1,5 +1,6 @@
 import { generateShortHash } from '@lib/hash';
 import { InstanceReport } from '../../../types';
+import { getSpecArtifacts } from '../artifacts';
 import { TestCase, TestSuite, TestSuites } from '../types';
 import {
   ensureArray,
@@ -8,7 +9,6 @@ import {
   getTestCase,
   getTimestampValue,
   timeToMilliseconds,
-  getSpecArtifacts,
 } from '../utils';
 
 export async function getInstanceMap(
