@@ -50,17 +50,6 @@
         <property name="currents.artifact.attempt.1.contentType" value="text/plain" />
         <property name="currents.artifact.attempt.1.name" value="Attempt attachment 1" />
       </properties>
-
-      <attempts>
-        <attempt time="0.5">
-          <failure message="Attempt 0 failed" type="AssertionError">Stack trace for attempt 0</failure>
-          <system-out>Console output for attempt 0</system-out>
-          <system-err>Error output for attempt 0</system-err>
-        </attempt>
-        <attempt time="0.5">
-          <system-out>Console output for attempt 1</system-out>
-        </attempt>
-      </attempts>
     </testcase>
   </testsuite>
 </testsuites>

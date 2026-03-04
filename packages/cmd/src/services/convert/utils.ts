@@ -75,54 +75,20 @@ function getTestAndAttemptArtifacts(testCase: TestCase): {
 
   // Parse explicitly indexed artifacts from testCase properties
   const indexedArtifactsMap = parseIndexedAttemptArtifacts(properties);
+  indexedArtifactsMap.forEach((artifacts, index) => {
+    if (!attemptArtifacts.has(index)) {
+      attemptArtifacts.set(index, []);
+    }
+    attemptArtifacts.get(index)!.push(...artifacts);
+  });
 
-  // Check if testCase has attempts structure
-  if (testCase.attempts) {
-    // If attempts structure exists, we respect the index from properties
-    indexedArtifactsMap.forEach((artifacts, index) => {
-      if (!attemptArtifacts.has(index)) {
-        attemptArtifacts.set(index, []);
-      }
-      attemptArtifacts.get(index)!.push(...artifacts);
-    });
-
-    const attempts = ensureArray<any>(testCase.attempts.attempt);
-    attempts.forEach((attempt, index) => {
-      const attemptProperties = ensureArray<Property>(attempt.properties?.property);
-      const artifacts = parseArtifacts(attemptProperties, 'currents.artifact.attempt.', 'attempt');
-      if (artifacts.length > 0) {
-        if (!attemptArtifacts.has(index)) {
-          attemptArtifacts.set(index, []);
-        }
-        attemptArtifacts.get(index)!.push(...artifacts);
-      }
-    });
-  } else {
-    // No attempts structure, parse attempt artifacts from testCase properties
-    // Support two formats:
-    // 1. currents.artifact.attempt.{property} (assigned to attempt 0)
-    // 2. currents.artifact.attempt.{index}.{property} (assigned to attempt 0, as per requirement)
-
+  // Parse unindexed artifacts from testCase properties (assigned to attempt 0)
+  const defaultArtifacts = parseArtifacts(properties, 'currents.artifact.attempt.', 'attempt');
+  if (defaultArtifacts.length > 0) {
     if (!attemptArtifacts.has(0)) {
       attemptArtifacts.set(0, []);
     }
-    const attempt0Artifacts = attemptArtifacts.get(0)!;
-
-    // Flatten indexed artifacts to attempt 0
-    indexedArtifactsMap.forEach((artifacts, index) => {
-      attempt0Artifacts.push(...artifacts);
-    });
-
-    // Then, parse unindexed artifacts (assigned to attempt 0)
-    const defaultArtifacts = parseArtifacts(properties, 'currents.artifact.attempt.', 'attempt');
-    if (defaultArtifacts.length > 0) {
-      attempt0Artifacts.push(...defaultArtifacts);
-    }
-    
-    // Cleanup if empty
-    if (attempt0Artifacts.length === 0) {
-        attemptArtifacts.delete(0);
-    }
+    attemptArtifacts.get(0)!.push(...defaultArtifacts);
   }
 
   return { testArtifacts, attemptArtifacts };
@@ -318,38 +284,14 @@ function getTestAttempts(
       },
     ];
   }
-
-  // If attempts structure is present, use it to generate attempts
-  if (testCase.attempts) {
-    const attempts = ensureArray<any>(testCase.attempts.attempt);
-    let accumulatedTime = 0;
-
-    return attempts.map((attempt, index) => {
-      const attemptTime = attempt.time ? timeToMilliseconds(attempt.time) : 0;
-      const startTime = getTestStartTime(accumulatedTime, suiteTimestamp);
-      accumulatedTime += attemptTime;
-
-      const attemptFailures = ensureArray<Failure | string>(attempt.failure);
-      const isFailed = attemptFailures.length > 0;
-      const errors = attemptFailures.flatMap(getErrors);
-
-      return {
-        _s: isFailed ? 'failed' : 'passed',
-        attempt: index,
-        startTime,
-        steps: [],
-        duration: attemptTime,
-        status: isFailed ? 'failed' : 'passed',
-        stdout: getStdOut(attempt['system-out'] || testCase?.['system-out']),
-        stderr: getStdErr(attempt['system-err'] || testCase?.['system-err']),
-        artifacts: attemptArtifacts.get(index),
-        errors,
-        error: errors[0],
-      };
-    });
-  }
-
   if (failures.length === 0) {
+    // If no failures (passed), assign all discovered artifacts to attempt 0
+    // regardless of their index, because there is only 1 attempt.
+    const allArtifacts: Artifact[] = [];
+    attemptArtifacts.forEach((artifacts) => {
+      allArtifacts.push(...artifacts);
+    });
+
     return [
       {
         _s: 'passed',
@@ -360,7 +302,7 @@ function getTestAttempts(
         status: 'passed',
         stdout: getStdOut(testCase?.['system-out']),
         stderr: getStdErr(testCase?.['system-err']),
-        artifacts: attemptArtifacts.get(0),
+        artifacts: allArtifacts,
         errors: [],
         error: undefined,
       },
