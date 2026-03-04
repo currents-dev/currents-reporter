@@ -8,7 +8,7 @@ The `upload` command is responsible for sending test results and associated arti
 
 1.  **Extracting Metadata**: Reading artifact details from the generated `InstanceReport` files.
 2.  **Requesting Upload URLs**: Sending metadata to the Director service to obtain pre-signed upload URLs.
-3.  **Uploading Files**: Reading files from the local `.currents` directory and uploading them to the provided URLs.
+3.  **Uploading Files**: Reading files from the configured output directory and uploading them to the provided URLs.
 
 ## Artifact Processing Workflow
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ### 1. Metadata Extraction
 
-The command reads `InstanceReport` JSON files from `.currents/instances/`. It aggregates all artifacts associated with:
+The command reads `InstanceReport` JSON files from the configured output directory (e.g., `.currents/instances/`). It aggregates all artifacts associated with:
 *   **Specs**: Top-level spec artifacts.
 *   **Tests**: Artifacts attached to specific tests.
 *   **Attempts**: Artifacts attached to specific attempts (retries).
@@ -59,7 +59,7 @@ The service responds with a list of `ArtifactUploadInstruction` objects, which c
 
 The command iterates through the received instructions:
 
-1.  **Locate File**: Resolves the full path using the report directory (e.g., `.currents/artifacts/hash-screenshot.png`).
+1.  **Locate File**: Resolves the full path using the configured output directory (e.g., `.currents/artifacts/hash-screenshot.png`).
 2.  **Verify Existence**: Checks if the file exists locally; logs a warning if missing.
 3.  **Set Content-Type**: Retrieves the `contentType` from the metadata map created in step 1 (defaulting to `application/octet-stream`).
 4.  **Upload**: Performs a `PUT` request to the `uploadUrl` with the file content and the specified `Content-Type` header.
