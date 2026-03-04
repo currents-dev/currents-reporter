@@ -27,7 +27,13 @@ flowchart TD
     ReadFile --> GetType[Resolve Content-Type]
     GetType --> PutS3[PUT to Pre-signed URL]
     
-    PutS3 --> Next{More?}
+    PutS3 --> CheckTimeout{Timeout?}
+    CheckTimeout -->|Yes| FailUpload[Log Warning & Continue]
+    CheckTimeout -->|No| Success[Upload Complete]
+    
+    Success --> Next{More Instructions?}
+    FailUpload --> Next
+    
     Next -->|Yes| UploadLoop
     Next -->|No| Finish([Finish Batch])
 ```
@@ -57,3 +63,4 @@ The command iterates through the received instructions:
 2.  **Verify Existence**: Checks if the file exists locally; logs a warning if missing.
 3.  **Set Content-Type**: Retrieves the `contentType` from the metadata map created in step 1 (defaulting to `application/octet-stream`).
 4.  **Upload**: Performs a `PUT` request to the `uploadUrl` with the file content and the specified `Content-Type` header.
+    *   **Timeout**: The upload request has a configured timeout (default: 30 seconds) to prevent hanging processes.

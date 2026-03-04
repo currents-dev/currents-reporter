@@ -6,6 +6,8 @@ This document describes how the `convert` command processes and extracts artifac
 
 The command discovers artifacts associated with tests using **XML Properties** within test cases.
 
+> **Important**: All artifact properties **MUST** be enclosed within a `<properties>` tag in your JUnit XML. Properties outside of this tag may not be detected correctly.
+
 ### XML Properties (Structured)
 
 The command looks for properties within `<testcase>` or `<testsuite>` elements with keys following specific patterns.
@@ -13,22 +15,29 @@ The command looks for properties within `<testcase>` or `<testsuite>` elements w
 #### 1. Test Level Artifacts
 `currents.artifact.test.{property} = {value}`
 
-*   **Location**: Inside `<testcase>` element.
+*   **Location**: Inside `<testcase> -> <properties>` element.
 *   **Properties**: `path`, `type`, `contentType`, `name`.
 
 #### 2. Attempt Level Artifacts
+
+**Indexed Syntax (Recommended for Retries):**
+`currents.artifact.attempt.{index}.{property} = {value}`
+
+*   **Location**: Inside `<testcase> -> <properties>` element.
+*   **Behavior**: Assigns the artifact to the specific attempt index (e.g., `attempt.0.path`, `attempt.1.path`).
+*   **Properties**: `path`, `type`, `contentType`, `name`.
+
+**Unindexed Syntax (Legacy/Single Attempt):**
 `currents.artifact.attempt.{property} = {value}`
 
-*   **Location**: Inside `<testcase>` element.
-*   **Behavior**:
-    *   If `<attempts>` structure exists: Look for properties inside each `<attempt>` element.
-    *   If no `<attempts>` structure: Assign artifacts to attempt 0.
+*   **Location**: Inside `<testcase> -> <properties>` element.
+*   **Behavior**: Assigns the artifact to **Attempt 0**.
 *   **Properties**: `path`, `type`, `contentType`, `name`.
 
 #### 3. Instance Level Artifacts
 `currents.artifact.instance.{property} = {value}`
 
-*   **Location**: Inside `<testsuite>` element.
+*   **Location**: Inside `<testsuite> -> <properties>` element.
 *   **Properties**: `path`, `type`, `contentType`, `name`.
 
 **Supported Properties:**
@@ -55,10 +64,15 @@ The command looks for properties within `<testcase>` or `<testsuite>` elements w
       <property name="currents.artifact.test.type" value="screenshot" />
       <property name="currents.artifact.test.contentType" value="image/png" />
       
-      <!-- Attempt level artifact (assigned to attempt 0 if no attempts structure) -->
-      <property name="currents.artifact.attempt.path" value="videos/login.mp4" />
-      <property name="currents.artifact.attempt.type" value="video" />
-      <property name="currents.artifact.attempt.contentType" value="video/mp4" />
+      <!-- Attempt level artifact (Indexed - Attempt 0) -->
+      <property name="currents.artifact.attempt.0.path" value="videos/login-attempt-0.mp4" />
+      <property name="currents.artifact.attempt.0.type" value="video" />
+      <property name="currents.artifact.attempt.0.contentType" value="video/mp4" />
+      
+      <!-- Attempt level artifact (Indexed - Attempt 1) -->
+      <property name="currents.artifact.attempt.1.path" value="videos/login-attempt-1.mp4" />
+      <property name="currents.artifact.attempt.1.type" value="video" />
+      <property name="currents.artifact.attempt.1.contentType" value="video/mp4" />
     </properties>
     <failure message="Login failed" />
   </testcase>
@@ -74,8 +88,11 @@ flowchart TD
     Start([Start: Process Test Result]) --> ParseProps[Parse XML Properties]
     
     ParseProps --> Extract[Extract Metadata]
-
-    Extract --> Validate{File Exists?}
+    Extract --> CheckProps{Inside &lt;properties&gt;?}
+    CheckProps -->|No| SkipProps[Ignore Property]
+    CheckProps -->|Yes| ParseKeys[Parse Keys]
+    
+    ParseKeys --> Validate{File Exists?}
     
     Validate -->|No| Skip[Skip & Log Debug]
     Validate -->|Yes| Hash[Generate Unique Hash]
@@ -85,9 +102,9 @@ flowchart TD
     Update --> End([End])
 ```
 
-1.  **Discovery**: Parses XML properties to identify potential artifacts.
-2.  **Validation**: Verifies that the referenced file exists at the specified path.
-3.  **Copying**: Copies the valid artifact files to the `.currents/artifacts/` directory with a hashed filename to prevent collisions.
+1.  **Discovery**: Parses XML properties within `<properties>` tags to identify potential artifacts.
+2.  **Validation**: Verifies that the referenced file exists at the specified path and is within the workspace.
+3.  **Copying**: Copies the valid artifact files to the `.currents/artifacts/` directory with a hashed filename (e.g., `abc1234.png`) to prevent collisions.
 4.  **Reference**: Updates the generated report JSON to include the artifact metadata (path, type, contentType) linked to the corresponding test result or attempt.
 
 **Note:** Artifacts with paths outside the workspace or that do not exist are skipped with a debug log.
