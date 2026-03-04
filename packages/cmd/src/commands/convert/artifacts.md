@@ -4,21 +4,34 @@ This document describes how the `convert` command processes and extracts artifac
 
 ## Artifact Discovery Mechanisms
 
-The command supports two mechanisms for discovering artifacts associated with tests:
-1.  **XML Properties**: Structured `<property>` elements within test cases.
-2.  **Console Output**: Special marker strings in `<system-out>` logs.
+The command discovers artifacts associated with tests using **XML Properties** within test cases.
 
-### 1. XML Properties (Structured)
+### XML Properties (Structured)
 
-The command looks for properties within `<testcase>` elements with keys following the pattern:
+The command looks for properties within `<testcase>` or `<testsuite>` elements with keys following specific patterns.
 
-`currents.artifact.{level}.{index}.{key} = {value}`
+#### 1. Test Level Artifacts
+`currents.artifact.test.{property} = {value}`
 
-*   **level**: `attempt` | `test` | `spec`
-*   **index**: Integer index (0, 1, 2...) - used to group properties for a single artifact.
-*   **key**: `path` | `type` | `contentType` | `name`
+*   **Location**: Inside `<testcase>` element.
+*   **Properties**: `path`, `type`, `contentType`, `name`.
 
-**Supported Keys:**
+#### 2. Attempt Level Artifacts
+`currents.artifact.attempt.{property} = {value}`
+
+*   **Location**: Inside `<testcase>` element.
+*   **Behavior**:
+    *   If `<attempts>` structure exists: Look for properties inside each `<attempt>` element.
+    *   If no `<attempts>` structure: Assign artifacts to attempt 0.
+*   **Properties**: `path`, `type`, `contentType`, `name`.
+
+#### 3. Instance Level Artifacts
+`currents.artifact.instance.{property} = {value}`
+
+*   **Location**: Inside `<testsuite>` element.
+*   **Properties**: `path`, `type`, `contentType`, `name`.
+
+**Supported Properties:**
 -   `path`: Relative or absolute path to the artifact file.
 -   `type`: The type of artifact (e.g., `screenshot`, `video`, `trace`, `coverage`, `attachment`, `stdout`).
 -   `contentType`: The MIME type of the file (e.g., `image/png`, `video/mp4`).
@@ -27,41 +40,29 @@ The command looks for properties within `<testcase>` elements with keys followin
 **Example XML:**
 
 ```xml
-<testcase classname="auth" name="login">
+<testsuite name="auth">
   <properties>
-    <!-- Screenshot for the first attempt -->
-    <property name="currents.artifact.attempt.0.path" value="screenshots/login-fail.png" />
-    <property name="currents.artifact.attempt.0.type" value="screenshot" />
-    <property name="currents.artifact.attempt.0.contentType" value="image/png" />
-    
-    <!-- Video for the first attempt -->
-    <property name="currents.artifact.attempt.0.path" value="videos/login.mp4" />
-    <property name="currents.artifact.attempt.0.type" value="video" />
-    <property name="currents.artifact.attempt.0.contentType" value="video/mp4" />
+    <!-- Instance level artifact -->
+    <property name="currents.artifact.instance.path" value="spec-trace.zip" />
+    <property name="currents.artifact.instance.type" value="trace" />
+    <property name="currents.artifact.instance.contentType" value="application/zip" />
   </properties>
-  <failure message="Login failed" />
-</testcase>
-```
 
-### 2. Console Output Markers (Universal Fallback)
-
-The command scans standard output (`<system-out>`) for markers in the format:
-
-`[[CURRENTS.ATTACHMENT|path|level]]`
-
-*   **path**: Absolute or relative path to the artifact file.
-*   **level** (Optional): `attempt` | `test` | `spec`. Defaults to `attempt`.
-
-The CLI infers the artifact type and content type from the file extension.
-
-**Example Output:**
-
-```text
-Starting test...
-Error: Element not found
-[[CURRENTS.ATTACHMENT|/app/test-results/screenshots/failure.png|attempt]]
-[[CURRENTS.ATTACHMENT|/app/test-results/logs/metadata.json|test]]
-Test failed.
+  <testcase classname="auth" name="login">
+    <properties>
+      <!-- Test level artifact -->
+      <property name="currents.artifact.test.path" value="screenshots/login-fail.png" />
+      <property name="currents.artifact.test.type" value="screenshot" />
+      <property name="currents.artifact.test.contentType" value="image/png" />
+      
+      <!-- Attempt level artifact (assigned to attempt 0 if no attempts structure) -->
+      <property name="currents.artifact.attempt.path" value="videos/login.mp4" />
+      <property name="currents.artifact.attempt.type" value="video" />
+      <property name="currents.artifact.attempt.contentType" value="video/mp4" />
+    </properties>
+    <failure message="Login failed" />
+  </testcase>
+</testsuite>
 ```
 
 ## Artifact Processing Workflow
@@ -70,13 +71,9 @@ When artifacts are discovered, the `convert` command performs the following step
 
 ```mermaid
 flowchart TD
-    Start([Start: Process Test Result]) --> Sources{Check Sources}
-    
-    Sources -->|XML Properties| ParseProps[Parse 'currents.artifact.*']
-    Sources -->|Console Logs| ParseLogs[Parse '[[CURRENTS.ATTACHMENT]]']
+    Start([Start: Process Test Result]) --> ParseProps[Parse XML Properties]
     
     ParseProps --> Extract[Extract Metadata]
-    ParseLogs --> Infer[Infer Type from Extension] --> Extract
 
     Extract --> Validate{File Exists?}
     
@@ -88,7 +85,7 @@ flowchart TD
     Update --> End([End])
 ```
 
-1.  **Discovery**: Parses XML properties and console logs to identify potential artifacts.
+1.  **Discovery**: Parses XML properties to identify potential artifacts.
 2.  **Validation**: Verifies that the referenced file exists at the specified path.
 3.  **Copying**: Copies the valid artifact files to the `.currents/artifacts/` directory with a hashed filename to prevent collisions.
 4.  **Reference**: Updates the generated report JSON to include the artifact metadata (path, type, contentType) linked to the corresponding test result or attempt.

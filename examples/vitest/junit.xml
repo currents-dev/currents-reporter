@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="8" failures="0" errors="0" time="0.413">
+    <testsuite name="artifacts.test.ts" timestamp="2026-03-03T18:11:39.243Z" hostname="Miguels-Laptop.local" tests="8" failures="0" errors="0" skipped="0" time="0.012630959">
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates stdout and stderr" time="0.001143208">
+            <system-out>
+This is a stdout message from the test
+
+            </system-out>
+            <system-err>
+This is a stderr message from the test
+
+            </system-err>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates spec, test, and attempt level artifacts via JSON logs" time="0.001257875">
+            <system-out>
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/spec-artifact.json.txt&quot;,&quot;type&quot;:&quot;attachment&quot;,&quot;contentType&quot;:&quot;text/plain&quot;,&quot;level&quot;:&quot;spec&quot;}
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/test-artifact.json.txt&quot;,&quot;type&quot;:&quot;attachment&quot;,&quot;contentType&quot;:&quot;text/plain&quot;,&quot;level&quot;:&quot;test&quot;}
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/attempt-artifact.json.txt&quot;,&quot;type&quot;:&quot;attachment&quot;,&quot;contentType&quot;:&quot;text/plain&quot;,&quot;level&quot;:&quot;attempt&quot;}
+
+            </system-out>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates artifacts via [[CURRENTS.ATTACHMENT]] tag with explicit levels" time="0.001433417">
+            <system-out>
+[[CURRENTS.ATTACHMENT|/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/spec-attachment.txt|spec]]
+[[CURRENTS.ATTACHMENT|/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/test-attachment.txt|test]]
+[[CURRENTS.ATTACHMENT|/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/attempt-attachment.txt|attempt]]
+[[CURRENTS.ATTACHMENT|/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/default-attachment.txt]]
+
+            </system-out>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; attaches log files as artifacts" time="0.000337958">
+            <system-out>
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/app.log&quot;,&quot;type&quot;:&quot;attachment&quot;,&quot;contentType&quot;:&quot;text/plain&quot;,&quot;level&quot;:&quot;test&quot;}
+
+            </system-out>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates a video artifact and logs attachment marker" time="0.001316167">
+            <system-out>
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/vitest-video.mp4&quot;,&quot;type&quot;:&quot;video&quot;,&quot;contentType&quot;:&quot;video/mp4&quot;,&quot;level&quot;:&quot;test&quot;}
+
+            </system-out>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates a screenshot artifact and logs attachment marker" time="0.00323325">
+            <system-out>
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/vitest-screenshot.bmp&quot;,&quot;type&quot;:&quot;screenshot&quot;,&quot;contentType&quot;:&quot;image/bmp&quot;,&quot;level&quot;:&quot;test&quot;}
+
+            </system-out>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates a PNG screenshot artifact and logs attachment marker" time="0.000400917">
+            <system-out>
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/vitest-screenshot.png&quot;,&quot;type&quot;:&quot;screenshot&quot;,&quot;contentType&quot;:&quot;image/png&quot;,&quot;level&quot;:&quot;test&quot;}
+
+            </system-out>
+        </testcase>
+        <testcase classname="artifacts.test.ts" name="Vitest JUnit artifacts &gt; generates a JPEG screenshot artifact and logs attachment marker" time="0.000306833">
+            <system-out>
+currents.artifact.{&quot;path&quot;:&quot;/Users/miguelangarano/Documents/GitHub/currents-reporter/examples/vitest/artifacts/vitest-screenshot.jpg&quot;,&quot;type&quot;:&quot;screenshot&quot;,&quot;contentType&quot;:&quot;image/jpeg&quot;,&quot;level&quot;:&quot;test&quot;}
+
+            </system-out>
+        </testcase>
+    </testsuite>
+</testsuites>

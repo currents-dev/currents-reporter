@@ -60,8 +60,9 @@ export function getTestCase(
 }
 
 export function getSpecArtifacts(suite: TestSuite): Artifact[] {
-  const properties = ensureArray<Property>(suite.properties?.property);
-  return parseArtifactsFromProperties(properties, 'spec');
+  // Properties can be nested in <properties> or direct children of <testsuite>
+  const properties = ensureArray<Property>(suite.properties?.property ?? (suite as any).property);
+  return parseArtifacts(properties, 'currents.artifact.instance.', 'spec');
 }
 
 function getTestAndAttemptArtifacts(testCase: TestCase): {
@@ -69,176 +70,143 @@ function getTestAndAttemptArtifacts(testCase: TestCase): {
   attemptArtifacts: Map<number, Artifact[]>;
 } {
   const properties = ensureArray<Property>(testCase.properties?.property);
-  let testArtifacts = parseArtifactsFromProperties(properties, 'test');
-  let attemptArtifacts = parseAttemptArtifactsFromProperties(properties);
+  const testArtifacts = parseArtifacts(properties, 'currents.artifact.test.', 'test');
+  const attemptArtifacts = new Map<number, Artifact[]>();
 
-  if (testCase['system-out']) {
-    const stdouts = ensureArray<string>(testCase['system-out']);
-    const stdout = stdouts.join('\n');
-    const stdoutArtifacts = extractArtifactsFromLog(stdout);
+  // Parse explicitly indexed artifacts from testCase properties
+  const indexedArtifactsMap = parseIndexedAttemptArtifacts(properties);
 
-    stdoutArtifacts.forEach((artifact) => {
-      if (artifact.level === 'attempt') {
-        if (!attemptArtifacts.has(0)) {
-          attemptArtifacts.set(0, []);
+  // Check if testCase has attempts structure
+  if (testCase.attempts) {
+    // If attempts structure exists, we respect the index from properties
+    indexedArtifactsMap.forEach((artifacts, index) => {
+      if (!attemptArtifacts.has(index)) {
+        attemptArtifacts.set(index, []);
+      }
+      attemptArtifacts.get(index)!.push(...artifacts);
+    });
+
+    const attempts = ensureArray<any>(testCase.attempts.attempt);
+    attempts.forEach((attempt, index) => {
+      const attemptProperties = ensureArray<Property>(attempt.properties?.property);
+      const artifacts = parseArtifacts(attemptProperties, 'currents.artifact.attempt.', 'attempt');
+      if (artifacts.length > 0) {
+        if (!attemptArtifacts.has(index)) {
+          attemptArtifacts.set(index, []);
         }
-        attemptArtifacts.get(0)!.push({ ...artifact });
-      } else {
-        // level is 'test' or undefined
-        testArtifacts.push({ ...artifact });
+        attemptArtifacts.get(index)!.push(...artifacts);
       }
     });
+  } else {
+    // No attempts structure, parse attempt artifacts from testCase properties
+    // Support two formats:
+    // 1. currents.artifact.attempt.{property} (assigned to attempt 0)
+    // 2. currents.artifact.attempt.{index}.{property} (assigned to attempt 0, as per requirement)
+
+    if (!attemptArtifacts.has(0)) {
+      attemptArtifacts.set(0, []);
+    }
+    const attempt0Artifacts = attemptArtifacts.get(0)!;
+
+    // Flatten indexed artifacts to attempt 0
+    indexedArtifactsMap.forEach((artifacts, index) => {
+      attempt0Artifacts.push(...artifacts);
+    });
+
+    // Then, parse unindexed artifacts (assigned to attempt 0)
+    const defaultArtifacts = parseArtifacts(properties, 'currents.artifact.attempt.', 'attempt');
+    if (defaultArtifacts.length > 0) {
+      attempt0Artifacts.push(...defaultArtifacts);
+    }
+    
+    // Cleanup if empty
+    if (attempt0Artifacts.length === 0) {
+        attemptArtifacts.delete(0);
+    }
   }
 
   return { testArtifacts, attemptArtifacts };
 }
 
-export function extractArtifactsFromLog(log: string): Artifact[] {
-  const artifacts: Artifact[] = [];
+function parseIndexedAttemptArtifacts(properties: Property[]): Map<number, Artifact[]> {
+  const result = new Map<number, Artifact[]>();
+  const regex = /^currents\.artifact\.attempt\.(\d+)\.(.+)$/;
   
-  // Format: [[CURRENTS.ATTACHMENT|path]] or [[CURRENTS.ATTACHMENT|path|level]]
-  const matches = log.matchAll(/\[\[CURRENTS\.ATTACHMENT\|([^|\]]+)(?:\|([^\]]+))?\]\]/g);
-  for (const match of matches) {
-    const sourcePath = match[1].trim();
-    const levelRaw = match[2]?.trim();
+  // Group properties by attempt index
+  const attemptProperties = new Map<number, Property[]>();
+  
+  for (const prop of properties) {
+    if (!prop.name || !prop.value) continue;
+    const match = prop.name.match(regex);
+    if (!match) continue;
     
-    // Default level is 'attempt' unless specified otherwise
-    let level: 'spec' | 'test' | 'attempt' = 'attempt';
-    if (levelRaw && ['spec', 'test', 'attempt'].includes(levelRaw)) {
-      level = levelRaw as 'spec' | 'test' | 'attempt';
+    const [, indexStr, key] = match;
+    const index = parseInt(indexStr, 10);
+    
+    if (!attemptProperties.has(index)) {
+      attemptProperties.set(index, []);
     }
-
-    artifacts.push({
-        path: sourcePath,
-        type: inferArtifactType(sourcePath), // Use helper function
-        contentType: 'application/octet-stream', // Default content type
-        level: level
+    
+    // Create a new property object with the prefix stripped/modified so parseArtifacts can handle it
+    // We reconstruct the name to be 'currents.artifact.attempt.' + key so we can reuse parseArtifacts logic
+    // actually, parseArtifacts expects a prefix.
+    // Let's just construct properties like `currents.artifact.attempt.path` and use the standard parser
+    
+    attemptProperties.get(index)!.push({
+      name: `currents.artifact.attempt.${key}`,
+      value: prop.value
     });
   }
+  
+  for (const [index, props] of attemptProperties.entries()) {
+    const artifacts = parseArtifacts(props, 'currents.artifact.attempt.', 'attempt');
+    if (artifacts.length > 0) {
+      result.set(index, artifacts);
+    }
+  }
+  
+  return result;
+}
 
-  const jsonMatches = log.matchAll(/currents\.artifact\.(\{.*?\})/g);
-  for (const match of jsonMatches) {
-    try {
-        const artifact = JSON.parse(match[1]);
-        if (isValidArtifact(artifact)) {
-            artifacts.push(artifact);
-        }
-    } catch (e) {}
+function parseArtifacts(properties: Property[], prefix: string, level: Artifact['level']): Artifact[] {
+  const artifacts: Artifact[] = [];
+  let currentArtifact: Partial<Artifact> = {};
+
+  for (const prop of properties) {
+    if (!prop.name || !prop.value) continue;
+    if (!prop.name.startsWith(prefix)) continue;
+
+    const key = prop.name.slice(prefix.length);
+    // Valid keys: path, type, contentType, name
+    // Also ignore keys that start with a number (indexed artifacts handled separately)
+    if (/^\d+\./.test(key)) continue; 
+    
+    if (!['path', 'type', 'contentType', 'name'].includes(key)) continue;
+
+    // If key already exists in current artifact, it means we are starting a new artifact
+    // (assuming properties are grouped by artifact)
+    if (currentArtifact[key as keyof Artifact]) {
+      if (isValidArtifact(currentArtifact)) {
+        artifacts.push({ ...currentArtifact, level } as Artifact);
+      }
+      currentArtifact = {};
+    }
+
+    (currentArtifact as any)[key] = prop.value;
+  }
+
+  // Push the last artifact
+  if (isValidArtifact(currentArtifact)) {
+    artifacts.push({ ...currentArtifact, level } as Artifact);
   }
 
   return artifacts;
-}
-
-function inferArtifactType(filePath: string): Artifact['type'] {
-  const ext = filePath.split('.').pop()?.toLowerCase();
-  if (!ext) return 'attachment';
-  
-  if (IMAGE_EXTENSIONS.has(ext)) return 'screenshot';
-  if (VIDEO_EXTENSIONS.has(ext)) return 'video';
-  if (ATTACHMENT_EXTENSIONS.has(ext)) return 'attachment';
-  
-  return 'attachment';
 }
 
 function isValidArtifact(a: Partial<Artifact>): boolean {
   return !!(a.path && a.type && a.contentType);
 }
 
-function parseArtifactsFromProperties(properties: Property[], level: 'spec' | 'test'): Artifact[] {
-  const artifactMap = new Map<number, Partial<Artifact>>();
-  const jsonArtifacts: Artifact[] = [];
-  const regex = new RegExp(`^currents\\.artifact\\.${level}\\.(\\d+)\\.(.+)$`);
-
-  for (const prop of properties) {
-    parseSingleProperty(prop, regex, artifactMap, jsonArtifacts);
-  }
-
-  const indexedArtifacts = Array.from(artifactMap.values())
-    .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
-
-  return [...indexedArtifacts, ...jsonArtifacts];
-}
-
-function parseSingleProperty(
-  prop: Property, 
-  regex: RegExp, 
-  artifactMap: Map<number, Partial<Artifact>>,
-  jsonArtifacts?: Artifact[]
-) {
-  if (!prop.name || !prop.value) return;
-
-  if (prop.name === JSON_ARTIFACT_KEY) {
-    if (jsonArtifacts) {
-      try {
-        const artifact = JSON.parse(prop.value);
-        if (isValidArtifact(artifact)) {
-          jsonArtifacts.push(artifact);
-        }
-      } catch (e) {}
-    }
-    return;
-  }
-
-  const match = prop.name.match(regex);
-  if (!match) return;
-
-  const [, indexStr, field] = match;
-  const index = parseInt(indexStr, 10);
-
-  if (!artifactMap.has(index)) {
-    artifactMap.set(index, {});
-  }
-
-  const artifact = artifactMap.get(index)!;
-  if (ARTIFACT_FIELDS.includes(field)) {
-    (artifact as any)[field] = prop.value;
-  }
-}
-
-function parseAttemptArtifactsFromProperties(properties: Property[]): Map<number, Artifact[]> {
-  const attemptArtifactsMap = new Map<number, Map<number, Partial<Artifact>>>();
-
-  for (const prop of properties) {
-    // We can reuse logic but we need to handle the double index for attempts
-    if (!prop.name || !prop.value) continue;
-    if (prop.name === JSON_ARTIFACT_KEY) continue;
-
-    const match = prop.name.match(/^currents\.artifact\.attempt\.(\d+)\.(\d+)\.(.+)$/);
-    if (!match) continue;
-
-    const [, attemptIndexStr, artifactIndexStr, field] = match;
-    const attemptIndex = parseInt(attemptIndexStr, 10);
-    const artifactIndex = parseInt(artifactIndexStr, 10);
-
-    if (!attemptArtifactsMap.has(attemptIndex)) {
-      attemptArtifactsMap.set(attemptIndex, new Map());
-    }
-    
-    // Reuse parseSingleProperty logic by delegating to the inner map?
-    // Not strictly straightforward because parseSingleProperty expects a regex match that returns [full, index, field]
-    // Here we have [full, attemptIndex, artifactIndex, field]
-    
-    const artifactsMap = attemptArtifactsMap.get(attemptIndex)!;
-    if (!artifactsMap.has(artifactIndex)) {
-      artifactsMap.set(artifactIndex, {});
-    }
-
-    const artifact = artifactsMap.get(artifactIndex)!;
-    if (ARTIFACT_FIELDS.includes(field)) {
-      (artifact as any)[field] = prop.value;
-    }
-  }
-
-  const result = new Map<number, Artifact[]>();
-  for (const [attemptIndex, artifactsMap] of attemptArtifactsMap.entries()) {
-    const artifacts = Array.from(artifactsMap.values())
-      .filter((a) => isValidArtifact(a) && a.type !== 'stdout' && a.type !== 'stderr') as Artifact[];
-    if (artifacts.length > 0) {
-      result.set(attemptIndex, artifacts);
-    }
-  }
-  return result;
-}
 
 export function generateTestId(testName: string, suiteName: string): string {
   const combinedString = `${testName}${suiteName}`;
@@ -350,6 +318,37 @@ function getTestAttempts(
       },
     ];
   }
+
+  // If attempts structure is present, use it to generate attempts
+  if (testCase.attempts) {
+    const attempts = ensureArray<any>(testCase.attempts.attempt);
+    let accumulatedTime = 0;
+
+    return attempts.map((attempt, index) => {
+      const attemptTime = attempt.time ? timeToMilliseconds(attempt.time) : 0;
+      const startTime = getTestStartTime(accumulatedTime, suiteTimestamp);
+      accumulatedTime += attemptTime;
+
+      const attemptFailures = ensureArray<Failure | string>(attempt.failure);
+      const isFailed = attemptFailures.length > 0;
+      const errors = attemptFailures.flatMap(getErrors);
+
+      return {
+        _s: isFailed ? 'failed' : 'passed',
+        attempt: index,
+        startTime,
+        steps: [],
+        duration: attemptTime,
+        status: isFailed ? 'failed' : 'passed',
+        stdout: getStdOut(attempt['system-out'] || testCase?.['system-out']),
+        stderr: getStdErr(attempt['system-err'] || testCase?.['system-err']),
+        artifacts: attemptArtifacts.get(index),
+        errors,
+        error: errors[0],
+      };
+    });
+  }
+
   if (failures.length === 0) {
     return [
       {

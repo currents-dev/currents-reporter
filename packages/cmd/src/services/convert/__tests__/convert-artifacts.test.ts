@@ -33,7 +33,7 @@ describe('handleConvert artifacts', () => {
     }
   });
 
-  it('creates stdout and attachment artifacts from attempts logs', async () => {
+  it('processes attachment artifacts', async () => {
     const baseDir = await fs.mkdtemp(
       join(process.cwd(), 'currents-convert-artifacts-')
     );
@@ -80,10 +80,7 @@ describe('handleConvert artifacts', () => {
                 steps: [],
                 duration: 1,
                 status: 'passed',
-                stdout: [
-                  'log line',
-                  `[[CURRENTS.ATTACHMENT|${attachmentPath}]]`,
-                ],
+                stdout: ['log line'],
                 stderr: ['stderr line'],
                 errors: [],
                 error: undefined,
