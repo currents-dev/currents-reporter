@@ -7,13 +7,14 @@ import {
 } from '@lib';
 import { info } from '@logger';
 import { join } from 'path';
-import { getFullTestSuiteFilePath } from '../upload/path';
 import { getConvertCommandConfig } from '../../config/convert';
-import { InstanceReport } from '../../types';
+import { Artifact, InstanceReport } from '../../types';
+import { getFullTestSuiteFilePath } from '../upload/path';
 import { createFullTestSuite } from './createFullTestSuite';
 import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
+import { processArtifacts } from './artifacts';
 
 export async function handleConvert() {
   try {
@@ -55,6 +56,61 @@ export async function handleConvert() {
       framework: config.framework,
       parsedXMLArray,
     });
+
+    const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
+    const workspaceRoot = process.cwd();
+
+    await Promise.all(
+      Array.from(instances.values()).map(async (report) => {
+        // Spec-level artifacts
+        await processArtifacts(
+          report.artifacts,
+          report.spec,
+          artifactsDir,
+          workspaceRoot
+        );
+
+        if (report._stdout) {
+          const fileName = `${generateShortHash(report.spec)}.stdout.txt`;
+          await writeFileAsyncIfNotExists(
+            join(artifactsDir, fileName),
+            report._stdout
+          );
+
+          if (!report.artifacts) {
+            report.artifacts = [];
+          }
+
+          report.artifacts.push({
+            path: join('artifacts', fileName),
+            type: 'stdout',
+            contentType: 'text/plain',
+            level: 'spec',
+          });
+          delete report._stdout;
+        }
+
+        for (const test of report.results.tests) {
+          // Test-level artifacts
+          await processArtifacts(
+            test.artifacts,
+            test.testId,
+            artifactsDir,
+            workspaceRoot
+          );
+
+          for (const attempt of test.attempts) {
+            // Attempt-level artifacts
+            await processArtifacts(
+              attempt.artifacts,
+              test.testId + attempt.attempt,
+              artifactsDir,
+              workspaceRoot
+            );
+          }
+        }
+      })
+    );
 
     await Promise.all(
       Array.from(instances.entries()).map(([name, report]) =>

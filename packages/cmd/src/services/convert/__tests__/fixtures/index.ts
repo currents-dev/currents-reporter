@@ -30,6 +30,7 @@ export const instanceReportTestWithFailure: InstanceReportTest = {
   timeout: 0,
   location: { ...location, file: 'testfile.ts' },
   retries: 1,
+  artifacts: [],
   attempts: [
     {
       _s: 'failed',
@@ -40,6 +41,7 @@ export const instanceReportTestWithFailure: InstanceReportTest = {
       status: 'failed',
       stdout: [],
       stderr: [],
+      artifacts: undefined,
       errors: [
         {
           message: 'Error message',
@@ -81,6 +83,7 @@ export const instanceReportTestWithoutFailure: InstanceReportTest = {
   timeout: 0,
   location: { ...location, file: 'anothertestfile.ts' },
   retries: 0,
+  artifacts: [],
   attempts: [
     {
       _s: 'passed',
@@ -91,6 +94,7 @@ export const instanceReportTestWithoutFailure: InstanceReportTest = {
       status: 'passed',
       stdout: [],
       stderr: [],
+      artifacts: [],
       errors: [],
       error: undefined,
     },
@@ -121,6 +125,7 @@ export const instanceReportTestNoTimestamp: InstanceReportTest = {
   timeout: 0,
   location: { ...location, file: 'notimestampfile.ts' },
   retries: 0,
+  artifacts: [],
   attempts: [
     {
       _s: 'passed',
@@ -131,6 +136,7 @@ export const instanceReportTestNoTimestamp: InstanceReportTest = {
       status: 'passed',
       stdout: [],
       stderr: [],
+      artifacts: [],
       errors: [],
       error: undefined,
     },
@@ -161,6 +167,7 @@ export const instanceReportTestNoTime: InstanceReportTest = {
   timeout: 0,
   location: { line: 1, column: 1, file: 'notimefile.ts' },
   retries: 0,
+  artifacts: [],
   attempts: [
     {
       _s: 'passed',
@@ -171,6 +178,7 @@ export const instanceReportTestNoTime: InstanceReportTest = {
       status: 'passed',
       stdout: [],
       stderr: [],
+      artifacts: [],
       errors: [],
       error: undefined,
     },

@@ -2,6 +2,8 @@
 
 exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
 {
+  "_stdout": "",
+  "artifacts": [],
   "groupId": "Test Collection",
   "results": {
     "stats": {
@@ -19,9 +21,11 @@ exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
     "tests": [
       {
         "_t": 1734732767937,
+        "artifacts": [],
         "attempts": [
           {
             "_s": "passed",
+            "artifacts": [],
             "attempt": 0,
             "duration": 3000,
             "error": undefined,
@@ -51,9 +55,11 @@ exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
       },
       {
         "_t": 1734732767937,
+        "artifacts": [],
         "attempts": [
           {
             "_s": "passed",
+            "artifacts": [],
             "attempt": 0,
             "duration": 7000,
             "error": undefined,
@@ -90,6 +96,8 @@ exports[`getInstanceMap > matches snapshot for Test Suite 1 1`] = `
 
 exports[`getInstanceMap > matches snapshot for Test Suite 2 1`] = `
 {
+  "_stdout": "",
+  "artifacts": [],
   "groupId": "Test Collection",
   "results": {
     "stats": {
@@ -107,9 +115,11 @@ exports[`getInstanceMap > matches snapshot for Test Suite 2 1`] = `
     "tests": [
       {
         "_t": 1734732777937,
+        "artifacts": [],
         "attempts": [
           {
             "_s": "passed",
+            "artifacts": [],
             "attempt": 0,
             "duration": 12000,
             "error": undefined,
@@ -139,9 +149,11 @@ exports[`getInstanceMap > matches snapshot for Test Suite 2 1`] = `
       },
       {
         "_t": 1734732777937,
+        "artifacts": [],
         "attempts": [
           {
             "_s": "passed",
+            "artifacts": [],
             "attempt": 0,
             "duration": 30000,
             "error": undefined,

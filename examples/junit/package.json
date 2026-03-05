@@ -1,0 +1,17 @@
+{
+  "name": "examples-junit",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "convert": "npx currents convert --input-format=junit --input-file=./junit.xml --framework=vitest",
+    "convert:attempts": "npx currents convert --input-format=junit --input-file=./junit-attempts.xml --framework=vitest",
+    "report": "CURRENTS_API_URL=http://localhost:1234 currents --project-id=$CURRENTS_PROJECT_ID --key=$CURRENTS_RECORD_KEY"
+  },
+  "devDependencies": {
+    "@currents/cmd": "*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

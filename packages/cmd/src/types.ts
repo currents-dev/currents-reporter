@@ -37,6 +37,15 @@ export type LocationSchema = {
   file: string;
 };
 
+export interface Artifact {
+  path: string;
+  type: string;
+  contentType: string;
+  name?: string;
+  metadata?: Record<string, string>;
+  level?: 'spec' | 'test' | 'attempt';
+}
+
 export type InstanceReportTestAttempt = {
   _s: TestCaseStatus;
   attempt: number;
@@ -47,8 +56,9 @@ export type InstanceReportTestAttempt = {
   duration: number;
   status: TestRunnerStatus;
 
-  stderr: string[];
-  stdout: string[];
+  stderr?: string[];
+  stdout?: string[];
+  artifacts?: Artifact[];
 
   errors: ErrorSchema[];
   error?: ErrorSchema;
@@ -66,6 +76,7 @@ export type InstanceReportTest = {
   timeout: number;
   tags?: string[];
   location: LocationSchema;
+  artifacts?: Artifact[];
   attempts: InstanceReportTestAttempt[];
 };
 
@@ -73,10 +84,12 @@ export type InstanceReport = {
   groupId: string;
   spec: string;
   startTime: string;
+  artifacts?: Artifact[];
   results: {
     error?: string;
     exception?: string | null;
     stats: InstanceReportStats;
     tests: InstanceReportTest[];
   };
+  _stdout?: string;
 };

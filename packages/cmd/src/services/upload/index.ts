@@ -5,9 +5,12 @@ import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
 import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
 import { info, warn } from '@logger';
+import axios from 'axios';
+import fs from 'fs-extra';
 import path from 'path';
 import semver from 'semver';
 import {
+  ArtifactUploadInstruction,
   Framework,
   RunCreationConfig,
   createRun as createRunApi,
@@ -23,6 +26,8 @@ import {
 import { getFullTestSuiteFilePath } from './path';
 import { ReportConfig, UploadMarkerInfo } from './types';
 import { splitArrayIntoChunks } from './utils';
+
+const UPLOAD_TIMEOUT_MS = 30000;
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
@@ -118,6 +123,37 @@ export async function handleCurrentsReport() {
     instancesByGroup[report.groupId].push(report);
   }
 
+  const allArtifactsMap = new Map<string, string>();
+
+  // Pre-calculate artifact content types for all instances
+  Object.values(instancesByGroup).forEach((instances) => {
+    instances.forEach((instance) => {
+      // Process instance-level artifacts
+      instance.artifacts?.forEach((artifact) => {
+        if (artifact) {
+          allArtifactsMap.set(artifact.path, artifact.contentType);
+        }
+      });
+
+      // Process test-level and attempt-level artifacts
+      instance.results.tests.forEach((test) => {
+        test.artifacts?.forEach((artifact) => {
+          if (artifact) {
+            allArtifactsMap.set(artifact.path, artifact.contentType);
+          }
+        });
+
+        test.attempts.forEach((attempt) => {
+          attempt.artifacts?.forEach((artifact) => {
+            if (artifact) {
+              allArtifactsMap.set(artifact.path, artifact.contentType);
+            }
+          });
+        });
+      });
+    });
+  });
+
   for await (const key of Object.keys(instancesByGroup)) {
     let instances = instancesByGroup[key];
     let group = key;
@@ -150,9 +186,12 @@ export async function handleCurrentsReport() {
         framework,
       });
 
+      // We don't handle artifacts for the initial request because it doesn't contain any instances
+      // Artifacts are handled in subsequent chunk processing
+
       // Iterates over the instance chunks and sends the instances without the fullTestSuite
       for (let i = 0; i < chunks.length; i++) {
-        await createRun({
+        const chunkResponse = await createRun({
           ci,
           group,
           instances: chunks[i],
@@ -161,6 +200,17 @@ export async function handleCurrentsReport() {
           machineId,
           framework,
         });
+
+        if (
+          chunkResponse.artifactUploadUrls &&
+          chunkResponse.artifactUploadUrls.length > 0
+        ) {
+          await uploadArtifacts(
+            chunkResponse.artifactUploadUrls,
+            reportOptions.reportDir,
+            allArtifactsMap
+          );
+        }
       }
 
       debug('Api response: %o', response);
@@ -249,3 +299,44 @@ function isEmptyTestSuite(testSuite: FullTestSuite) {
     testSuite.some((project) => project.tests.length === 0)
   );
 }
+
+async function uploadArtifacts(
+  instructions: ArtifactUploadInstruction[],
+  reportDir: string,
+  contentTypeMap: Map<string, string>
+) {
+  debug('Uploading %d artifacts', instructions.length);
+
+  await Promise.all(
+    instructions.map((instruction) => {
+      const filePath = path.join(reportDir, instruction.path);
+      const contentType =
+        contentTypeMap.get(instruction.path) || 'application/octet-stream';
+      return uploadArtifact(filePath, contentType, instruction.uploadUrl);
+    })
+  );
+}
+
+const uploadArtifact = async (
+  filePath: string,
+  contentType: string,
+  uploadUrl: string
+) => {
+  try {
+    if (!(await fs.pathExists(filePath))) {
+      warn('Artifact file not found: %s', filePath);
+      return;
+    }
+
+    const fileBuffer = await fs.readFile(filePath);
+
+    await axios.put(uploadUrl, fileBuffer, {
+      headers: {
+        'Content-Type': contentType,
+      },
+      timeout: UPLOAD_TIMEOUT_MS,
+    });
+  } catch (err) {
+    debug('Failed to upload artifact %s: %o', filePath, err);
+  }
+};

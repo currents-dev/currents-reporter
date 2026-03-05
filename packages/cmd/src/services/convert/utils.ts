@@ -1,13 +1,15 @@
 import { isNumber } from 'lodash';
 import crypto from 'node:crypto';
 import {
+  Artifact,
   ErrorSchema,
   InstanceReportTest,
   InstanceReportTestAttempt,
   TestCaseStatus,
   TestRunnerStatus,
 } from '../../types';
-import { Failure, TestCase, TestSuite } from './types';
+import { getTestAndAttemptArtifacts } from './artifacts';
+import { Failure, Property, TestCase, TestSuite } from './types';
 
 export function getTestCase(
   testCase: TestCase,
@@ -22,6 +24,9 @@ export function getTestCase(
 
   const state = skipped ? 'pending' : hasFailure ? 'failed' : 'passed';
 
+  const { testArtifacts, attemptArtifacts } =
+    getTestAndAttemptArtifacts(testCase);
+
   return {
     _t: getTimestampValue(suiteTimestamp),
     testId: generateTestId(
@@ -35,11 +40,13 @@ export function getTestCase(
     timeout: getTimeout(),
     location: getTestCaseLocation(suite?.file ?? ''),
     retries: getTestRetries(failures),
+    artifacts: testArtifacts,
     attempts: getTestAttempts(
       testCase,
       failures,
       getISODateValue(suiteTimestamp),
       time,
+      attemptArtifacts,
       skipped
     ),
   };
@@ -110,11 +117,31 @@ function getTestRetries(failures: (Failure | string)[]) {
   return retries;
 }
 
+/**
+ * Transforms a TestCase object into an array of InstanceReportTestAttempt objects.
+ *
+ * This function processes a TestCase (which may represent a single test execution or a set of retries/failures)
+ * and generates a list of attempts suitable for the Currents dashboard.
+ *
+ * It handles:
+ * - Skipped tests: Returns a single "skipped" attempt.
+ * - Passed tests: Returns a single "passed" attempt if there are no failures.
+ * - Failed tests: Iterates over the failures to create multiple "failed" attempts, mapping errors and artifacts.
+ *
+ * @param testCase - The source TestCase object from the test report.
+ * @param failures - A list of failure objects or strings associated with the test case.
+ * @param suiteTimestamp - The timestamp of the test suite start.
+ * @param time - The duration or specific time associated with the test case.
+ * @param attemptArtifacts - A map of artifacts keyed by attempt index.
+ * @param skipped - Whether the test case was skipped.
+ * @returns An array of InstanceReportTestAttempt objects representing the test execution(s).
+ */
 function getTestAttempts(
   testCase: TestCase,
   failures: (Failure | string)[],
   suiteTimestamp: string,
   time: number,
+  attemptArtifacts: Map<number, Artifact[]>,
   skipped?: boolean
 ): InstanceReportTestAttempt[] {
   const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
@@ -128,13 +155,21 @@ function getTestAttempts(
         duration: testCaseTime,
         status: 'skipped',
         stdout: getStdOut(testCase?.['system-out']),
-        stderr: [],
+        stderr: getStdErr(testCase?.['system-err']),
+        artifacts: attemptArtifacts.get(0),
         errors: [],
         error: undefined,
       },
     ];
   }
   if (failures.length === 0) {
+    // If no failures (passed), assign all discovered artifacts to attempt 0
+    // regardless of their index, because there is only 1 attempt.
+    const allArtifacts: Artifact[] = [];
+    attemptArtifacts.forEach((artifacts) => {
+      allArtifacts.push(...artifacts);
+    });
+
     return [
       {
         _s: 'passed',
@@ -144,7 +179,8 @@ function getTestAttempts(
         duration: testCaseTime,
         status: 'passed',
         stdout: getStdOut(testCase?.['system-out']),
-        stderr: [],
+        stderr: getStdErr(testCase?.['system-err']),
+        artifacts: allArtifacts,
         errors: [],
         error: undefined,
       },
@@ -155,6 +191,12 @@ function getTestAttempts(
     (attempts, failure, index) => {
       if (failure !== 'true' && failure !== 'false') {
         const errors = getErrors(failure);
+
+        // In JUnit XML, `system-out` and `system-err` are typically associated with the `testcase` node,
+        // not individual failures/attempts. This means we only have one set of logs for the entire test case execution.
+        // Since we cannot distinguish which attempt produced which log, we attach the available logs to every attempt derived from this test case.
+        // This ensures that regardless of which attempt is viewed in the dashboard, the user sees the logs associated with the test case.
+
         attempts.push({
           _s: 'failed' as TestCaseStatus,
           attempt: index,
@@ -164,6 +206,7 @@ function getTestAttempts(
           status: 'failed' as TestRunnerStatus,
           stdout: getStdOut(testCase?.['system-out']),
           stderr: getStdErr(testCase?.['system-err']),
+          artifacts: attemptArtifacts.get(index),
           errors: errors,
           error: errors[0],
         });
@@ -204,7 +247,7 @@ export function ensureArray<T>(value: unknown): T[] {
   if (!value) {
     return [];
   }
-  return Array.isArray(value) ? value : [value] as T[];
+  return Array.isArray(value) ? value : ([value] as T[]);
 }
 
 export function secondsToMilliseconds(seconds: number) {

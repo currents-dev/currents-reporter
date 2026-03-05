@@ -1,5 +1,6 @@
 import { generateShortHash } from '@lib/hash';
 import { InstanceReport } from '../../../types';
+import { getSpecArtifacts } from '../artifacts';
 import { TestCase, TestSuite, TestSuites } from '../types';
 import {
   ensureArray,
@@ -47,6 +48,14 @@ export function createSuiteJson(
   );
   const testcases = ensureArray<TestCase>(suite.testcase);
 
+  const stdOut = [
+    suite['system-out'],
+    suite['system-err'],
+    ...testcases.flatMap((t) => [t['system-out'], t['system-err']]),
+  ]
+    .filter((i) => i)
+    .join('\n');
+
   let accTestTime = 0;
 
   const failures = testcases.filter((tc) => 'failure' in tc).length;
@@ -57,6 +66,8 @@ export function createSuiteJson(
     groupId,
     spec: suiteName,
     startTime,
+    artifacts: getSpecArtifacts(suite),
+    _stdout: stdOut,
     results: {
       stats: {
         suites: 1,

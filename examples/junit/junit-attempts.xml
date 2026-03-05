@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="vitest tests" tests="3" failures="8" time="3.000">
+  <testsuite name="manual-properties-test" timestamp="2024-02-26T12:00:00" hostname="localhost"
+    tests="1" failures="2" errors="0" time="1.000" skipped="0">
+
+    <!-- Instance Level Artifact -->
+    <properties>
+      <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
+      <property name="currents.artifact.instance.type" value="coverage" />
+      <property name="currents.artifact.instance.contentType" value="application/json" />
+      <property name="currents.artifact.instance.name" value="Test Coverage" />
+
+      <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
+      <property name="currents.artifact.instance.type" value="coverage" />
+      <property name="currents.artifact.instance.contentType" value="application/json" />
+      <property name="currents.artifact.instance.name" value="Test Coverage 1" />
+    </properties>
+
+    <testcase classname="manual-properties-test" name="test with property artifacts" time="1.000">
+      <failure message="Attempt 1 failed" type="Error">Stacktrace 1</failure>
+      <failure message="Attempt 2 failed" type="Error">Stacktrace 2</failure>
+      <system-out>This is a standard output message for the test case.</system-out>
+      <system-err>This is a standard error message for the test case.</system-err>
+      <properties>
+        <!-- Test Level Artifact -->
+        <property name="currents.artifact.test.path" value="./artifacts/manual/test-config.json" />
+        <property name="currents.artifact.test.type" value="attachment" />
+        <property name="currents.artifact.test.contentType" value="application/json" />
+        <property name="currents.artifact.test.name" value="Test Configuration" />
+
+        <property name="currents.artifact.test.path" value="./artifacts/manual/test-config.json" />
+        <property name="currents.artifact.test.type" value="attachment" />
+        <property name="currents.artifact.test.contentType" value="application/json" />
+        <property name="currents.artifact.test.name" value="Test Configuration 1" />
+
+
+        <!-- Attempt Level Artifact (Attempt 0) -->
+        <property name="currents.artifact.attempt.0.path" value="./artifacts/manual/attempt-0.txt" />
+        <property name="currents.artifact.attempt.0.type" value="attachment" />
+        <property name="currents.artifact.attempt.0.contentType" value="text/plain" />
+        <property name="currents.artifact.attempt.0.name" value="Attempt attachment" />
+
+        <property name="currents.artifact.attempt.0.path" value="./artifacts/manual/attempt-0.txt" />
+        <property name="currents.artifact.attempt.0.type" value="attachment" />
+        <property name="currents.artifact.attempt.0.contentType" value="text/plain" />
+        <property name="currents.artifact.attempt.0.name" value="Attempt attachment 1" />
+
+        <!-- Attempt Level Artifact (Attempt 1) -->
+        <property name="currents.artifact.attempt.1.path" value="./artifacts/manual/attempt-1.txt" />
+        <property name="currents.artifact.attempt.1.type" value="attachment" />
+        <property name="currents.artifact.attempt.1.contentType" value="text/plain" />
+        <property name="currents.artifact.attempt.1.name" value="Attempt attachment" />
+
+        <property name="currents.artifact.attempt.1.path" value="./artifacts/manual/attempt-1.txt" />
+        <property name="currents.artifact.attempt.1.type" value="attachment" />
+        <property name="currents.artifact.attempt.1.contentType" value="text/plain" />
+        <property name="currents.artifact.attempt.1.name" value="Attempt attachment 1" />
+      </properties>
+    </testcase>
+  </testsuite>
+
+  <testsuite name="complex-artifacts-test" timestamp="2024-02-26T12:00:00" hostname="localhost"
+    tests="2" failures="6" errors="0" time="2.000" skipped="0">
+
+    <!-- Instance Level Artifact -->
+    <properties>
+      <property name="currents.artifact.instance.path" value="./artifacts/manual/coverage.json" />
+      <property name="currents.artifact.instance.type" value="coverage" />
+      <property name="currents.artifact.instance.contentType" value="application/json" />
+      <property name="currents.artifact.instance.name" value="Instance Coverage" />
+    </properties>
+
+    <!-- Test Case 1 -->
+    <testcase classname="complex-artifacts-test" name="test case 1" time="1.000">
+      <failure message="Attempt 1 failed" type="Error">Stacktrace 1</failure>
+      <failure message="Attempt 2 failed" type="Error">Stacktrace 2</failure>
+      <failure message="Attempt 3 failed" type="Error">Stacktrace 3</failure>
+
+      <system-out>Test Case 1 Stdout</system-out>
+      <system-err>Test Case 1 Stderr</system-err>
+
+      <properties>
+        <!-- Test Level Artifact -->
+        <property name="currents.artifact.test.path" value="./artifacts/manual/metadata.txt" />
+        <property name="currents.artifact.test.type" value="attachment" />
+        <property name="currents.artifact.test.contentType" value="text/plain" />
+        <property name="currents.artifact.test.name" value="Test Metadata" />
+
+        <!-- Attempt 0 Artifacts -->
+        <property name="currents.artifact.attempt.0.path" value="./artifacts/manual/image.png" />
+        <property name="currents.artifact.attempt.0.type" value="screenshot" />
+        <property name="currents.artifact.attempt.0.contentType" value="image/png" />
+        <property name="currents.artifact.attempt.0.name" value="Attempt 0 Screenshot" />
+
+        <property name="currents.artifact.attempt.0.path" value="./artifacts/manual/video.mp4" />
+        <property name="currents.artifact.attempt.0.type" value="video" />
+        <property name="currents.artifact.attempt.0.contentType" value="video/mp4" />
+        <property name="currents.artifact.attempt.0.name" value="Attempt 0 Video" />
+
+        <!-- Attempt 1 Artifacts -->
+        <property name="currents.artifact.attempt.1.path" value="./artifacts/manual/image.png" />
+        <property name="currents.artifact.attempt.1.type" value="screenshot" />
+        <property name="currents.artifact.attempt.1.contentType" value="image/png" />
+        <property name="currents.artifact.attempt.1.name" value="Attempt 1 Screenshot" />
+
+        <property name="currents.artifact.attempt.1.path" value="./artifacts/manual/video.mp4" />
+        <property name="currents.artifact.attempt.1.type" value="video" />
+        <property name="currents.artifact.attempt.1.contentType" value="video/mp4" />
+        <property name="currents.artifact.attempt.1.name" value="Attempt 1 Video" />
+
+        <!-- Attempt 2 Artifacts -->
+        <property name="currents.artifact.attempt.2.path" value="./artifacts/manual/image.png" />
+        <property name="currents.artifact.attempt.2.type" value="screenshot" />
+        <property name="currents.artifact.attempt.2.contentType" value="image/png" />
+        <property name="currents.artifact.attempt.2.name" value="Attempt 2 Screenshot" />
+
+        <property name="currents.artifact.attempt.2.path" value="./artifacts/manual/video.mp4" />
+        <property name="currents.artifact.attempt.2.type" value="video" />
+        <property name="currents.artifact.attempt.2.contentType" value="video/mp4" />
+        <property name="currents.artifact.attempt.2.name" value="Attempt 2 Video" />
+      </properties>
+    </testcase>
+
+    <!-- Test Case 2 -->
+    <testcase classname="complex-artifacts-test" name="test case 2" time="1.000">
+      <failure message="Attempt 1 failed" type="Error">Stacktrace 1</failure>
+      <failure message="Attempt 2 failed" type="Error">Stacktrace 2</failure>
+      <failure message="Attempt 3 failed" type="Error">Stacktrace 3</failure>
+
+      <system-out>Test Case 2 Stdout</system-out>
+      <system-err>Test Case 2 Stderr</system-err>
+
+      <properties>
+        <!-- Test Level Artifact -->
+        <property name="currents.artifact.test.path" value="./artifacts/manual/metadata.txt" />
+        <property name="currents.artifact.test.type" value="attachment" />
+        <property name="currents.artifact.test.contentType" value="text/plain" />
+        <property name="currents.artifact.test.name" value="Test Metadata" />
+
+        <!-- Attempt 0 Artifacts -->
+        <property name="currents.artifact.attempt.0.path" value="./artifacts/manual/image.png" />
+        <property name="currents.artifact.attempt.0.type" value="screenshot" />
+        <property name="currents.artifact.attempt.0.contentType" value="image/png" />
+        <property name="currents.artifact.attempt.0.name" value="Attempt 0 Screenshot" />
+
+        <property name="currents.artifact.attempt.0.path" value="./artifacts/manual/video.mp4" />
+        <property name="currents.artifact.attempt.0.type" value="video" />
+        <property name="currents.artifact.attempt.0.contentType" value="video/mp4" />
+        <property name="currents.artifact.attempt.0.name" value="Attempt 0 Video" />
+
+        <!-- Attempt 1 Artifacts -->
+        <property name="currents.artifact.attempt.1.path" value="./artifacts/manual/image.png" />
+        <property name="currents.artifact.attempt.1.type" value="screenshot" />
+        <property name="currents.artifact.attempt.1.contentType" value="image/png" />
+        <property name="currents.artifact.attempt.1.name" value="Attempt 1 Screenshot" />
+
+        <property name="currents.artifact.attempt.1.path" value="./artifacts/manual/video.mp4" />
+        <property name="currents.artifact.attempt.1.type" value="video" />
+        <property name="currents.artifact.attempt.1.contentType" value="video/mp4" />
+        <property name="currents.artifact.attempt.1.name" value="Attempt 1 Video" />
+
+        <!-- Attempt 2 Artifacts -->
+        <property name="currents.artifact.attempt.2.path" value="./artifacts/manual/image.png" />
+        <property name="currents.artifact.attempt.2.type" value="screenshot" />
+        <property name="currents.artifact.attempt.2.contentType" value="image/png" />
+        <property name="currents.artifact.attempt.2.name" value="Attempt 2 Screenshot" />
+
+        <property name="currents.artifact.attempt.2.path" value="./artifacts/manual/video.mp4" />
+        <property name="currents.artifact.attempt.2.type" value="video" />
+        <property name="currents.artifact.attempt.2.contentType" value="video/mp4" />
+        <property name="currents.artifact.attempt.2.name" value="Attempt 2 Video" />
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>
