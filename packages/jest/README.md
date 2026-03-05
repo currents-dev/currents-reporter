@@ -45,9 +45,9 @@ The reporter saves the test results in a folder named using the pattern `.curren
 
 ## Configuration
 
-| Property    | Type     | Description            | Environment variable  | Default                          |
-| ----------- | -------- | ---------------------- | --------------------- | -------------------------------- |
-| `reportDir` | `string` | Test results directory | `CURRENTS_REPORT_DIR` | `.currents/[timestamp]-[uuidv4]` |
+| Property    | Type     | Description            | Environment variable  | Default                            |
+| ----------- | -------- | ---------------------- | --------------------- | ---------------------------------- |
+| `reportDir` | `string` | Test results directory | `CURRENTS_REPORT_DIR` | `.currents/[timestamp]-[uuidv4()]` |
 
 `CURRENTS_REPORT_DIR` overrides `reportDir` when both are set.
 
