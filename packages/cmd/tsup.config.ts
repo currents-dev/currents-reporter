@@ -5,7 +5,6 @@ export default defineConfig({
     'src/index.ts',
     'src/bin/index.ts',
     'src/services/upload/discovery/jest/reporter.ts',
-    'src/helpers/index.ts',
   ],
   esbuildOptions: (options) => {
     options.legalComments = 'linked';

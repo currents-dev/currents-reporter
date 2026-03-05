@@ -102,11 +102,6 @@
       "require": "./dist/services/upload/discovery/jest/reporter.js",
       "types": "./dist/services/upload/discovery/jest/reporter.d.ts"
     },
-    "./helpers": {
-      "import": "./dist/helpers/index.js",
-      "require": "./dist/helpers/index.js",
-      "types": "./dist/helpers/index.d.ts"
-    },
     "./package.json": "./package.json"
   },
   "release-it": {
