@@ -1,4 +1,3 @@
-
 import { describe, expect, it } from 'vitest';
 import { getSpecArtifacts } from '../artifacts';
 import { getTestCase } from '../utils';
@@ -10,9 +9,15 @@ describe('Artifact Parsing', () => {
       const suite: TestSuite = {
         properties: {
           property: [
-            { name: 'currents.artifact.instance.path', value: 'path/to/artifact' },
+            {
+              name: 'currents.artifact.instance.path',
+              value: 'path/to/artifact',
+            },
             { name: 'currents.artifact.instance.type', value: 'video' },
-            { name: 'currents.artifact.instance.contentType', value: 'video/mp4' },
+            {
+              name: 'currents.artifact.instance.contentType',
+              value: 'video/mp4',
+            },
             { name: 'currents.artifact.instance.name', value: 'My Artifact' },
           ],
         },
@@ -36,7 +41,7 @@ describe('Artifact Parsing', () => {
             { name: 'currents.artifact.instance.path', value: 'p1' },
             { name: 'currents.artifact.instance.type', value: 't1' },
             { name: 'currents.artifact.instance.contentType', value: 'c1' },
-            
+
             { name: 'currents.artifact.instance.path', value: 'p2' },
             { name: 'currents.artifact.instance.type', value: 't2' },
             { name: 'currents.artifact.instance.contentType', value: 'c2' },
@@ -113,95 +118,101 @@ describe('Artifact Parsing', () => {
     });
 
     it('parses indexed attempt level artifacts without attempts structure (all assigned to attempt 0)', () => {
-        // Logic change: Indexed artifacts are only assigned to their specific attempt index.
-        // They are NOT rolled up to attempt 0 if they don't match the attempt index.
-        // In this test case, we have 2 failures (fail0, fail1), so we have attempt 0 and attempt 1.
-        
-        const testCase: TestCase = {
-            name: 'test',
-            classname: 'class',
-            time: '1',
-            failure: ['fail0', 'fail1'], 
-            properties: {
-                property: [
-                    // Attempt 0
-                    { name: 'currents.artifact.attempt.0.path', value: 'a0p' },
-                    { name: 'currents.artifact.attempt.0.type', value: 't' },
-                    { name: 'currents.artifact.attempt.0.contentType', value: 'c' },
-                    
-                    // Attempt 1
-                    { name: 'currents.artifact.attempt.1.path', value: 'a1p' },
-                    { name: 'currents.artifact.attempt.1.type', value: 't' },
-                    { name: 'currents.artifact.attempt.1.contentType', value: 'c' },
-                ]
-            }
-        };
+      // Logic change: Indexed artifacts are only assigned to their specific attempt index.
+      // They are NOT rolled up to attempt 0 if they don't match the attempt index.
+      // In this test case, we have 2 failures (fail0, fail1), so we have attempt 0 and attempt 1.
 
-        const result = getTestCase(testCase, mockSuite, mockTime, mockSuiteName);
-        
-        expect(result.attempts[0].artifacts).toHaveLength(1);
-        expect(result.attempts[0].artifacts![0].path).toBe('a0p');
-        
-        expect(result.attempts[1].artifacts).toHaveLength(1);
-        expect(result.attempts[1].artifacts![0].path).toBe('a1p');
+      const testCase: TestCase = {
+        name: 'test',
+        classname: 'class',
+        time: '1',
+        failure: ['fail0', 'fail1'],
+        properties: {
+          property: [
+            // Attempt 0
+            { name: 'currents.artifact.attempt.0.path', value: 'a0p' },
+            { name: 'currents.artifact.attempt.0.type', value: 't' },
+            { name: 'currents.artifact.attempt.0.contentType', value: 'c' },
+
+            // Attempt 1
+            { name: 'currents.artifact.attempt.1.path', value: 'a1p' },
+            { name: 'currents.artifact.attempt.1.type', value: 't' },
+            { name: 'currents.artifact.attempt.1.contentType', value: 'c' },
+          ],
+        },
+      };
+
+      const result = getTestCase(testCase, mockSuite, mockTime, mockSuiteName);
+
+      expect(result.attempts[0].artifacts).toHaveLength(1);
+      expect(result.attempts[0].artifacts![0].path).toBe('a0p');
+
+      expect(result.attempts[1].artifacts).toHaveLength(1);
+      expect(result.attempts[1].artifacts![0].path).toBe('a1p');
     });
 
     it('parses mixed indexed and unindexed attempt level artifacts (all assigned to attempt 0)', () => {
-        // Logic change: Unindexed artifacts are assigned to attempt 0.
-        // Indexed artifacts are assigned to their specific attempt.
-        
-        const testCase: TestCase = {
-            name: 'test',
-            classname: 'class',
-            time: '1',
-            failure: ['fail0', 'fail1'], 
-            properties: {
-                property: [
-                    // Indexed Attempt 1
-                    { name: 'currents.artifact.attempt.1.path', value: 'a1p' },
-                    { name: 'currents.artifact.attempt.1.type', value: 't' },
-                    { name: 'currents.artifact.attempt.1.contentType', value: 'c' },
-                    
-                    // Unindexed (goes to attempt 0)
-                    { name: 'currents.artifact.attempt.path', value: 'a0p' },
-                    { name: 'currents.artifact.attempt.type', value: 't' },
-                    { name: 'currents.artifact.attempt.contentType', value: 'c' },
-                ]
-            }
-        };
+      // Logic change: Unindexed artifacts are assigned to attempt 0.
+      // Indexed artifacts are assigned to their specific attempt.
 
-        const result = getTestCase(testCase, mockSuite, mockTime, mockSuiteName);
-        
-        expect(result.attempts[0].artifacts).toHaveLength(1);
-        expect(result.attempts[0].artifacts![0].path).toBe('a0p');
-        
-        expect(result.attempts[1].artifacts).toHaveLength(1);
-        expect(result.attempts[1].artifacts![0].path).toBe('a1p');
+      const testCase: TestCase = {
+        name: 'test',
+        classname: 'class',
+        time: '1',
+        failure: ['fail0', 'fail1'],
+        properties: {
+          property: [
+            // Indexed Attempt 1
+            { name: 'currents.artifact.attempt.1.path', value: 'a1p' },
+            { name: 'currents.artifact.attempt.1.type', value: 't' },
+            { name: 'currents.artifact.attempt.1.contentType', value: 'c' },
+
+            // Unindexed (goes to attempt 0)
+            { name: 'currents.artifact.attempt.path', value: 'a0p' },
+            { name: 'currents.artifact.attempt.type', value: 't' },
+            { name: 'currents.artifact.attempt.contentType', value: 'c' },
+          ],
+        },
+      };
+
+      const result = getTestCase(testCase, mockSuite, mockTime, mockSuiteName);
+
+      expect(result.attempts[0].artifacts).toHaveLength(1);
+      expect(result.attempts[0].artifacts![0].path).toBe('a0p');
+
+      expect(result.attempts[1].artifacts).toHaveLength(1);
+      expect(result.attempts[1].artifacts![0].path).toBe('a1p');
     });
 
     it('parses instance level artifacts from direct property children of testsuite', () => {
-        // Simulating the structure where property is direct child of suite, not nested in properties
-        const suite: TestSuite = {
-            name: 'suite',
-            timestamp: new Date().toISOString(),
-            file: 'file.js',
-            property: [
-                { name: 'currents.artifact.instance.path', value: 'path/to/artifact' },
-                { name: 'currents.artifact.instance.type', value: 'video' },
-                { name: 'currents.artifact.instance.contentType', value: 'video/mp4' },
-                { name: 'currents.artifact.instance.name', value: 'My Artifact' },
-            ]
-        } as any;
+      // Simulating the structure where property is direct child of suite, not nested in properties
+      const suite: TestSuite = {
+        name: 'suite',
+        timestamp: new Date().toISOString(),
+        file: 'file.js',
+        property: [
+          {
+            name: 'currents.artifact.instance.path',
+            value: 'path/to/artifact',
+          },
+          { name: 'currents.artifact.instance.type', value: 'video' },
+          {
+            name: 'currents.artifact.instance.contentType',
+            value: 'video/mp4',
+          },
+          { name: 'currents.artifact.instance.name', value: 'My Artifact' },
+        ],
+      } as any;
 
-        const artifacts = getSpecArtifacts(suite);
-        expect(artifacts).toHaveLength(1);
-        expect(artifacts[0]).toEqual({
-            path: 'path/to/artifact',
-            type: 'video',
-            contentType: 'video/mp4',
-            name: 'My Artifact',
-            level: 'spec',
-        });
+      const artifacts = getSpecArtifacts(suite);
+      expect(artifacts).toHaveLength(1);
+      expect(artifacts[0]).toEqual({
+        path: 'path/to/artifact',
+        type: 'video',
+        contentType: 'video/mp4',
+        name: 'My Artifact',
+        level: 'spec',
+      });
     });
   });
 });

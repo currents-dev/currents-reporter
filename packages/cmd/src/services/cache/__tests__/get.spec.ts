@@ -73,9 +73,7 @@ describe('handleGetCache', () => {
     vi.mocked(getCacheCommandConfig).mockReturnValue(mockConfig);
     vi.mocked(getCI).mockReturnValue(mockCI);
     vi.mocked(retrieveCache).mockResolvedValue(mockedCacheResponse);
-    vi.mocked(getRefCacheMeta).mockResolvedValue(
-      mockedCacheRetrievelResponse
-    );
+    vi.mocked(getRefCacheMeta).mockResolvedValue(mockedCacheRetrievelResponse);
     vi.mocked(download).mockResolvedValue(mockedBuffer);
     vi.mocked(unzipBuffer).mockResolvedValue(undefined);
   });
@@ -85,7 +83,6 @@ describe('handleGetCache', () => {
     expect(retrieveCache).toHaveBeenCalledWith({
       recordKey: 'testKey',
       cacheKey: mockedMetaFile.cacheKey,
-
     });
     expect(getRefCacheMeta).toHaveBeenCalledWith({
       recordKey: 'testKey',

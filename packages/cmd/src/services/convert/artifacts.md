@@ -13,38 +13,41 @@ The command discovers artifacts associated with tests using **XML Properties** w
 The command looks for properties within `<testcase>` or `<testsuite>` elements with keys following specific patterns.
 
 #### 1. Test Level Artifacts
+
 `currents.artifact.test.{property} = {value}`
 
-*   **Location**: Inside `<testcase> -> <properties>` element.
-*   **Properties**: `path`, `type`, `contentType`, `name`.
+- **Location**: Inside `<testcase> -> <properties>` element.
+- **Properties**: `path`, `type`, `contentType`, `name`.
 
 #### 2. Attempt Level Artifacts
 
 **Indexed Syntax (Recommended for Retries):**
 `currents.artifact.attempt.{index}.{property} = {value}`
 
-*   **Location**: Inside `<testcase> -> <properties>` element.
-*   **Behavior**: Assigns the artifact to the specific attempt index (e.g., `attempt.0.path`, `attempt.1.path`).
-*   **Properties**: `path`, `type`, `contentType`, `name`.
+- **Location**: Inside `<testcase> -> <properties>` element.
+- **Behavior**: Assigns the artifact to the specific attempt index (e.g., `attempt.0.path`, `attempt.1.path`).
+- **Properties**: `path`, `type`, `contentType`, `name`.
 
 **Unindexed Syntax (Legacy/Single Attempt):**
 `currents.artifact.attempt.{property} = {value}`
 
-*   **Location**: Inside `<testcase> -> <properties>` element.
-*   **Behavior**: Assigns the artifact to **Attempt 0**.
-*   **Properties**: `path`, `type`, `contentType`, `name`.
+- **Location**: Inside `<testcase> -> <properties>` element.
+- **Behavior**: Assigns the artifact to **Attempt 0**.
+- **Properties**: `path`, `type`, `contentType`, `name`.
 
 #### 3. Instance Level Artifacts
+
 `currents.artifact.instance.{property} = {value}`
 
-*   **Location**: Inside `<testsuite> -> <properties>` element.
-*   **Properties**: `path`, `type`, `contentType`, `name`.
+- **Location**: Inside `<testsuite> -> <properties>` element.
+- **Properties**: `path`, `type`, `contentType`, `name`.
 
 **Supported Properties:**
--   `path`: Relative or absolute path to the artifact file.
--   `type`: The type of artifact (e.g., `screenshot`, `video`, `trace`, `coverage`, `attachment`, `stdout`).
--   `contentType`: The MIME type of the file (e.g., `image/png`, `video/mp4`).
--   `name`: Optional display name for the artifact.
+
+- `path`: Relative or absolute path to the artifact file.
+- `type`: The type of artifact (e.g., `screenshot`, `video`, `trace`, `coverage`, `attachment`, `stdout`).
+- `contentType`: The MIME type of the file (e.g., `image/png`, `video/mp4`).
+- `name`: Optional display name for the artifact.
 
 **Example XML:**
 
@@ -63,12 +66,12 @@ The command looks for properties within `<testcase>` or `<testsuite>` elements w
       <property name="currents.artifact.test.path" value="screenshots/login-fail.png" />
       <property name="currents.artifact.test.type" value="screenshot" />
       <property name="currents.artifact.test.contentType" value="image/png" />
-      
+
       <!-- Attempt level artifact (Indexed - Attempt 0) -->
       <property name="currents.artifact.attempt.0.path" value="videos/login-attempt-0.mp4" />
       <property name="currents.artifact.attempt.0.type" value="video" />
       <property name="currents.artifact.attempt.0.contentType" value="video/mp4" />
-      
+
       <!-- Attempt level artifact (Indexed - Attempt 1) -->
       <property name="currents.artifact.attempt.1.path" value="videos/login-attempt-1.mp4" />
       <property name="currents.artifact.attempt.1.type" value="video" />
@@ -86,17 +89,17 @@ When artifacts are discovered, the `convert` command performs the following step
 ```mermaid
 flowchart TD
     Start([Start: Process Test Result]) --> ParseProps[Parse XML Properties]
-    
+
     ParseProps --> Extract[Extract Metadata]
     Extract --> CheckProps{Inside &lt;properties&gt;?}
     CheckProps -->|No| SkipProps[Ignore Property]
     CheckProps -->|Yes| ParseKeys[Parse Keys]
-    
+
     ParseKeys --> Validate{File Exists?}
-    
+
     Validate -->|No| Skip[Skip & Log Debug]
     Validate -->|Yes| Hash[Generate Unique Hash]
-    
+
     Hash --> Copy[Copy to .currents/artifacts/]
     Copy --> Update[Update Report JSON]
     Update --> End([End])

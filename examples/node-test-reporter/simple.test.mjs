@@ -30,6 +30,6 @@ test('Math operations - incorrect addition', (t) => {
   const result = 2 + 2;
   t.test('should return 5', () => {
     assert.strictEqual(result, 5);
-  })
+  });
   assert.strictEqual(result, 5);
 });

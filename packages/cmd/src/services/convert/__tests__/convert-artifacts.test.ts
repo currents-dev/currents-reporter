@@ -85,12 +85,12 @@ describe('handleConvert artifacts', () => {
                 errors: [],
                 error: undefined,
                 artifacts: [
-                    {
-                        path: attachmentPath,
-                        type: 'screenshot',
-                        contentType: 'image/bmp'
-                    }
-                ]
+                  {
+                    path: attachmentPath,
+                    type: 'screenshot',
+                    contentType: 'image/bmp',
+                  },
+                ],
               },
             ],
           },
@@ -132,7 +132,6 @@ describe('handleConvert artifacts', () => {
     expect(attachmentArtifact).toBeDefined();
 
     expect(attachmentArtifact?.contentType).toBe('image/bmp');
-
 
     if (attachmentArtifact) {
       const p = join(baseDir, attachmentArtifact.path);
