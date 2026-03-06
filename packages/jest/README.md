@@ -41,13 +41,15 @@ or set the `--reporters` option when running the `jest`
 npx jest --reporters=@currents/jest
 ```
 
-The reporter saves the test results in a folder named using the pattern `.currents/[timestamp]-[uuidv4()]` in the root directory. We recomment to add `.currents*` to your `.gitignore` file.
+The reporter saves the test results in a folder named using the pattern `.currents/[timestamp]-[uuidv4()]` in the root directory. You can override this with the `reportDir` option or the `CURRENTS_REPORT_DIR` environment variable (env takes precedence). We recommend adding `.currents*` to your `.gitignore` file.
 
 ## Configuration
 
-| Property    | Type     | Description            | Environment variable  | Default                          |
-| ----------- | -------- | ---------------------- | --------------------- | -------------------------------- |
-| `reportDir` | `string` | Test results directory | `CURRENTS_REPORT_DIR` | `.currents/[timestamp]-[uuidv4]` |
+| Property    | Type     | Description            | Environment variable  | Default                            |
+| ----------- | -------- | ---------------------- | --------------------- | ---------------------------------- |
+| `reportDir` | `string` | Test results directory | `CURRENTS_REPORT_DIR` | `.currents/[timestamp]-[uuidv4()]` |
+
+`CURRENTS_REPORT_DIR` overrides `reportDir` when both are set.
 
 ## Troubleshooting
 
