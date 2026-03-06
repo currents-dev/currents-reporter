@@ -1,6 +1,18 @@
 # Changelog
 
-## [1.2.3](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.2...${npm.name}-v1.2.3) (2025-10-28)
+# [1.3.0](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.3...jest-v1.3.0) (2026-03-06)
+
+
+### Bug Fixes
+
+* Run npm audit fix to get security fixes for glob (#314) 029ee51, closes #314
+* test script for jest package 3073ab4
+
+### Features
+
+* jest currents report dir env [CSR-3872] (#320) c4413bf, closes #320
+
+## [1.2.3](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.2...jest-v1.2.3) (2025-10-28)
 
 
 ### Bug Fixes
@@ -12,7 +24,7 @@
 
 * add optional tags property to InstanceReportTest type and refactor handleCurrentsReport function for clarity ([0b1f494](https://github.com/currents-dev/currents-reporter/commit/0b1f4943986d002db8c0275395cb58532c90d7c1))
 
-## [1.2.2](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.0...${npm.name}-v1.2.2) (2025-06-13)
+## [1.2.2](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.0...jest-v1.2.2) (2025-06-13)
 
 
 ### Bug Fixes
