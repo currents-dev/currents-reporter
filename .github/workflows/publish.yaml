@@ -22,6 +22,10 @@ on:
           - '@currents/jest'
           - '@currents/node-test-reporter'
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -45,5 +49,3 @@ jobs:
           git config user.name "Currents NPM Bot"
           git config user.email "npm@currents.dev"
           npm run publish:npm --workspace ${{ github.event.inputs.package }} -- --tag ${{ github.event.inputs.channel }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
