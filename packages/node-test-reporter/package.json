@@ -8,6 +8,10 @@
   },
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/currents-dev/currents-reporter"
+  },
   "description": "Currents reporter for Node Test",
   "scripts": {
     "test": "vitest --run --passWithNoTests",

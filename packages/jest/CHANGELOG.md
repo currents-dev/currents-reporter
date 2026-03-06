@@ -1,6 +1,6 @@
 # Changelog
 
-# [1.3.0](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.3...jest-v1.3.0) (2026-03-06)
+# [1.3.1](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.3...jest-v1.3.1) (2026-03-06)
 
 
 ### Bug Fixes
