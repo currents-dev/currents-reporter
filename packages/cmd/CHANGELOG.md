@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.9.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.5...${npm.name}-v1.9.6) (2026-03-12)
+
+
+### Bug Fixes
+
+* remove unnecessary build entry fc5b950
+* report correct test status for jest reporter 50a59dd
+* revert axios version faf549b
+* Run npm audit fix to get security fixes for glob (#314) 029ee51, closes #314
+* test script for jest package 3073ab4
+* use posix pathing to build last run file paths [CSR-3199] (#292) 2ac7063, closes #292
+
+
+### Features
+
+* add optional tags property to InstanceReportTest type and refactor handleCurrentsReport function for clarity 0b1f494
+* **cmd:** support artifacts e545d7e
+* jest currents report dir env [CSR-3872] (#320) c4413bf, closes #320
+
 ## [1.9.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.5) (2025-10-06)
 
 
