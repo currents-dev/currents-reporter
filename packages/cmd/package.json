@@ -75,7 +75,7 @@
     "tmp-promise": "^3.0.3",
     "ts-pattern": "^5.8.0",
     "unzipper": "^0.12.3",
-    "uuid": "^13.0.0",
+    "uuid": "11.1.0",
     "xml2js": "^0.6.2",
     "xxhashjs": "^0.2.2"
   },
