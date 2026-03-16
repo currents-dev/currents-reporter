@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.9.7](/compare/@currents/cmd-v1.9.6...${npm.name}-v1.9.7) (2026-03-16)
+## [1.9.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.6...${npm.name}-v1.9.7) (2026-03-16)
 
 
 ### Bug Fixes
