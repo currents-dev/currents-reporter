@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.7](/compare/@currents/cmd-v1.9.6...${npm.name}-v1.9.7) (2026-03-16)
+
+
+### Bug Fixes
+
+* restore commonjs support for the cmd package 042159b
+
 ## [1.9.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.5...${npm.name}-v1.9.6) (2026-03-12)
 
 
