@@ -75,7 +75,6 @@ export default class DiscoveryReporter implements Reporter {
     testContexts: Set<TestContext>,
     aggregatedResults: AggregatedResult
   ): Promise<void> {
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     const filePath = process.env.CURRENTS_DISCOVERY_PATH;
     if (!filePath) {
       throw new Error('CURRENTS_DISCOVERY_PATH is not set');

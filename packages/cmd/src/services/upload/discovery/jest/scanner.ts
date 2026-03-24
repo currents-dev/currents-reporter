@@ -27,7 +27,6 @@ export async function jestScanner(
 
     debug('running scanner: %o', cliArgs);
 
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     process.env.CURRENTS_DISCOVERY_PATH = tmpFile.name;
     // set openHandlesTimeout to 0 to avoid Jest "open handles" warning
     await run(cliArgs.concat(['--openHandlesTimeout=0']));

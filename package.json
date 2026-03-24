@@ -30,7 +30,10 @@
     "format-fix": "prettier --write ."
   },
   "devDependencies": {
-    "eslint-config-custom": "*",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-plugin-turbo": "^2.0.0",
     "prettier": "^3.6.2",
     "turbo": "^2.8.13"
   },
