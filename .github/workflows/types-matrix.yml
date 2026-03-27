@@ -24,7 +24,6 @@ jobs:
           since_last_remote_commit: true
           files: packages/**
           files_ignore: |
-            packages/eslint-config-custom/**
             packages/node-test-reporter/**
 
       - name: Generate Matrix
@@ -77,7 +76,7 @@ jobs:
         with:
           since_last_remote_commit: 'true'
           files: packages/**
-          files_ignore: packages/eslint-config-custom/**
+          files_ignore: ""
 
       - name: Successful deploy
         if: ${{ steps.changed-files.outputs.any_changed != 'true' || !(contains(needs.*.result, 'failure')) }}

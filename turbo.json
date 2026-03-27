@@ -39,7 +39,8 @@
     },
 
     "lint": {
-      "outputs": []
+      "outputs": [],
+      "env": ["CURRENTS_DISCOVERY_PATH"]
     },
     "dev": {
       "cache": false
