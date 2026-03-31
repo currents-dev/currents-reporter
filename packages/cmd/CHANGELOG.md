@@ -1,95 +1,94 @@
 # Changelog
 
-## [1.9.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.6...${npm.name}-v1.9.7) (2026-03-16)
-
+## [1.9.8](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.7...${npm.name}-v1.9.8) (2026-03-31)
 
 ### Bug Fixes
 
-* restore commonjs support for the cmd package 042159b
+- pin axios version - Update package-lock.json and package.json for axios and axios-retry versions
+
+## [1.9.7](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.6...${npm.name}-v1.9.7) (2026-03-16)
+
+### Bug Fixes
+
+- restore commonjs support for the cmd package 042159b
 
 ## [1.9.6](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.5...${npm.name}-v1.9.6) (2026-03-12)
 
-
 ### Bug Fixes
 
-* remove unnecessary build entry fc5b950
-* report correct test status for jest reporter 50a59dd
-* revert axios version faf549b
-* Run npm audit fix to get security fixes for glob (#314) 029ee51, closes #314
-* test script for jest package 3073ab4
-* use posix pathing to build last run file paths [CSR-3199] (#292) 2ac7063, closes #292
-
+- remove unnecessary build entry fc5b950
+- report correct test status for jest reporter 50a59dd
+- revert axios version faf549b
+- Run npm audit fix to get security fixes for glob (#314) 029ee51, closes #314
+- test script for jest package 3073ab4
+- use posix pathing to build last run file paths [CSR-3199] (#292) 2ac7063, closes #292
 
 ### Features
 
-* add optional tags property to InstanceReportTest type and refactor handleCurrentsReport function for clarity 0b1f494
-* **cmd:** support artifacts e545d7e
-* jest currents report dir env [CSR-3872] (#320) c4413bf, closes #320
+- add optional tags property to InstanceReportTest type and refactor handleCurrentsReport function for clarity 0b1f494
+- **cmd:** support artifacts e545d7e
+- jest currents report dir env [CSR-3872] (#320) c4413bf, closes #320
 
 ## [1.9.5](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.5) (2025-10-06)
 
-
 ### Bug Fixes
 
-* use posix pathing to build last run file paths [CSR-3199] ([#292](https://github.com/currents-dev/currents-reporter/issues/292)) ([2ac7063](https://github.com/currents-dev/currents-reporter/commit/2ac7063fba53df8bbe80b2abd11ccee4f22aee74))
+- use posix pathing to build last run file paths [CSR-3199] ([#292](https://github.com/currents-dev/currents-reporter/issues/292)) ([2ac7063](https://github.com/currents-dev/currents-reporter/commit/2ac7063fba53df8bbe80b2abd11ccee4f22aee74))
 
 ## [1.9.4](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.4) (2025-06-12)
 
 ### Bug fixes
-* change `glob` package to `globby` 
+
+- change `glob` package to `globby`
 
 ## [1.9.3](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.2...${npm.name}-v1.9.3) (2025-06-12)
 
-* Attempted fix for `glob` package issue (superseded by 1.9.4).
+- Attempted fix for `glob` package issue (superseded by 1.9.4).
 
 ## [1.9.2](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.1...${npm.name}-v1.9.2) (2025-06-12)
 
-* Attempted fix for `glob` package issue (superseded by 1.9.4).
+- Attempted fix for `glob` package issue (superseded by 1.9.4).
 
 ## [1.9.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.0...${npm.name}-v1.9.1) (2025-06-12)
 
-* Attempted fix for `glob` package issue (superseded by 1.9.4).
+- Attempted fix for `glob` package issue (superseded by 1.9.4).
 
 # [1.9.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.7.1...${npm.name}-v1.9.0) (2025-06-12)
 
-* Attempted fix for `glob` package issue (superseded by 1.9.4).
+- Attempted fix for `glob` package issue (superseded by 1.9.4).
 
 # [1.8.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.7.1...${npm.name}-v1.8.0) (2025-04-30)
 
-
 ### Bug Fixes
 
-* Cache Run Attempts with GitLab ([#217](https://github.com/currents-dev/currents-reporter/issues/217)) ([a11d0ae](https://github.com/currents-dev/currents-reporter/commit/a11d0ae0687ee37b406c584624c89edb2edd41b2))
-
+- Cache Run Attempts with GitLab ([#217](https://github.com/currents-dev/currents-reporter/issues/217)) ([a11d0ae](https://github.com/currents-dev/currents-reporter/commit/a11d0ae0687ee37b406c584624c89edb2edd41b2))
 
 ### Features
 
-* refactor cache commands implementation ([#216](https://github.com/currents-dev/currents-reporter/issues/216)) ([3e21aab](https://github.com/currents-dev/currents-reporter/commit/3e21aab612a08ba556bc28517a3c581e91bbbae3))
+- refactor cache commands implementation ([#216](https://github.com/currents-dev/currents-reporter/issues/216)) ([3e21aab](https://github.com/currents-dev/currents-reporter/commit/3e21aab612a08ba556bc28517a3c581e91bbbae3))
 
 ## [1.7.1](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.10...${npm.name}-v1.7.1) (2025-04-16)
 
-
 ### Bug Fixes
 
-* api get-run: exit early if no right set of parameters provided ([96e69e6](https://github.com/currents-dev/currents-reporter/commit/96e69e606876dbb514d7e19e340d42990bb5a1f0))
-* http formatting for 404 errors ([c1170b2](https://github.com/currents-dev/currents-reporter/commit/c1170b2606e999af51bd57a3464b10c599dd9aec))
-* omit ciBuildId from cache meta file when null ([#203](https://github.com/currents-dev/currents-reporter/issues/203)) ([72c2362](https://github.com/currents-dev/currents-reporter/commit/72c23625d1f4ad78a5ef4c4fc8386c2d6f985bbd))
-* remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
-
+- api get-run: exit early if no right set of parameters provided ([96e69e6](https://github.com/currents-dev/currents-reporter/commit/96e69e606876dbb514d7e19e340d42990bb5a1f0))
+- http formatting for 404 errors ([c1170b2](https://github.com/currents-dev/currents-reporter/commit/c1170b2606e999af51bd57a3464b10c599dd9aec))
+- omit ciBuildId from cache meta file when null ([#203](https://github.com/currents-dev/currents-reporter/issues/203)) ([72c2362](https://github.com/currents-dev/currents-reporter/commit/72c23625d1f4ad78a5ef4c4fc8386c2d6f985bbd))
+- remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
 
 ### Features
 
-* add node reporter v2 ([dae78a9](https://github.com/currents-dev/currents-reporter/commit/dae78a9a15df18751e7e139a134abe492003a3e3))
+- add node reporter v2 ([dae78a9](https://github.com/currents-dev/currents-reporter/commit/dae78a9a15df18751e7e139a134abe492003a3e3))
 
 # [1.7.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.10...${npm.name}-v1.7.0) (2025-04-10)
 
 ### Features
 
-* Add support for Node as a framework for the convert command
+- Add support for Node as a framework for the convert command
 
 ### Bug Fixes
 
-* remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
+- remove tsconfig.json, add commander to dev deps ([8e7e83c](https://github.com/currents-dev/currents-reporter/commit/8e7e83c986b4cc03c47dc8a779ea9b05fb555ae6))
 
 ## [1.6.10](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.6.9...${npm.name}-v1.6.10) (2025-04-04)
 
