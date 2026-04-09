@@ -252,13 +252,9 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'CIRCLE_PR_USERNAME',
       'CIRCLE_COMPARE_URL',
       'CIRCLE_WORKFLOW_ID',
-      'CIRCLE_WORKFLOW_WORKSPACE_ID',
       'CIRCLE_PULL_REQUEST',
       'CIRCLE_REPOSITORY_URL',
       'CI_PULL_REQUEST',
-      // matrix information
-      'CIRCLE_NODE_INDEX',
-      'CIRCLE_NODE_TOTAL',
     ]),
     codeshipBasic: extract([
       'CI_BUILD_ID',
@@ -319,9 +315,6 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'CI_JOB_ID',
       'CI_JOB_URL',
       'CI_JOB_NAME',
-      // matrix information
-      'CI_NODE_INDEX',
-      'CI_NODE_TOTAL',
       // other information
       'GITLAB_HOST',
       'CI_PROJECT_ID',
@@ -329,8 +322,6 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'CI_REPOSITORY_URL',
       'CI_ENVIRONMENT_URL',
       'CI_DEFAULT_BRANCH',
-      // custom variables
-      'RUN_ATTEMPT', // custom param that we ourselves sometimes add for retrying jobs
       // for PRs: https://gitlab.com/gitlab-org/gitlab-ce/issues/23902
     ]),
     // https://docs.gocd.org/current/faq/dev_use_current_revision_in_build.html#standard-gocd-environment-variables

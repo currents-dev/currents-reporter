@@ -57,14 +57,13 @@ async function dumpPwConfigForGitlab(
   ci: ReturnType<typeof getCI>,
   meta: MetaFile | null = null
 ) {
-  const ciParams = ci.params as GitLabParams;
   const prevCiParams = meta?.ci.params as null | GitLabParams;
   const prevRunAttempt = prevCiParams
-    ? parseIntSafe(prevCiParams.runAttempt, 0)
+    ? parseIntSafe((prevCiParams as any).runAttempt, 0)
     : 0;
   const runAttempt = prevRunAttempt + 1;
-  const nodeIndex = parseIntSafe(ciParams.ciNodeIndex, 1);
-  const jobTotal = parseIntSafe(ciParams.ciNodeTotal, 1);
+  const nodeIndex = parseIntSafe(process.env.CI_NODE_INDEX, 1);
+  const jobTotal = parseIntSafe(process.env.CI_NODE_TOTAL, 1);
 
   const wasPWExecuted = wasLastRunFileUploaded(meta);
   const isLastFailed = runAttempt > 1 && wasPWExecuted;
@@ -127,11 +126,11 @@ async function dumpPWConfigForCircle(
 
   const prevCiParams = meta?.ci.params as null | CircleParams;
   const prevWorkflowId = prevCiParams?.circleWorkflowId;
-  const prevWorkspaceId = prevCiParams?.circleWorkflowWorkspaceId;
-  const nodeIndex = parseIntSafe(ciParams.circleNodeIndex, 0);
-  const nodeTotal = parseIntSafe(ciParams.circleNodeTotal, 1);
+  const prevWorkspaceId = (prevCiParams as any)?.circleWorkflowWorkspaceId;
+  const nodeIndex = parseIntSafe(process.env.CIRCLE_NODE_INDEX, 0);
+  const nodeTotal = parseIntSafe(process.env.CIRCLE_NODE_TOTAL, 1);
   const isRerun =
-    prevWorkspaceId == ciParams.circleWorkflowWorkspaceId &&
+    prevWorkspaceId == process.env.CIRCLE_WORKFLOW_WORKSPACE_ID &&
     prevWorkflowId !== ciParams.circleWorkflowId;
 
   const wasPWExecuted = wasLastRunFileUploaded(meta);

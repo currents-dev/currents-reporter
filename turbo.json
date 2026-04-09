@@ -40,7 +40,14 @@
 
     "lint": {
       "outputs": [],
-      "env": ["CURRENTS_DISCOVERY_PATH"]
+      "env": [
+        "CURRENTS_DISCOVERY_PATH",
+        "CI_NODE_INDEX",
+        "CI_NODE_TOTAL",
+        "CIRCLE_NODE_INDEX",
+        "CIRCLE_NODE_TOTAL",
+        "CIRCLE_WORKFLOW_WORKSPACE_ID"
+      ]
     },
     "dev": {
       "cache": false
