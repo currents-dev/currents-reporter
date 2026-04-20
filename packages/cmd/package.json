@@ -1,6 +1,6 @@
 {
   "name": "@currents/cmd",
-  "version": "1.9.8",
+  "version": "1.9.9",
   "main": "./dist/index.js",
   "author": {
     "name": "Currents Software Inc",

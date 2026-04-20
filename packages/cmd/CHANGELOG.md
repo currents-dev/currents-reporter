@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.9](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.8...${npm.name}-v1.9.9) (2026-04-20)
+
+
+### Bug Fixes
+
+* Update ci-provider variables ([#347](https://github.com/currents-dev/currents-reporter/issues/347)) ([9da1c73](https://github.com/currents-dev/currents-reporter/commit/9da1c736bd931c86504c77755dd03b485373974e))
+
 ## [1.9.8](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.7...${npm.name}-v1.9.8) (2026-03-31)
 
 ### Bug Fixes
