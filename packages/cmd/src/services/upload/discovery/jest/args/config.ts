@@ -98,7 +98,7 @@ export async function getConfigFilePath(
 
     const tmpFilePath = path.resolve(
       configPath ? path.dirname(configPath) : process.cwd(),
-      `.jest-scanner-${new Date().getTime()}.config.js`
+      `.jest-scanner-${new Date().getTime()}.config.cjs`
     );
 
     const configFileContents = `module.exports=${JSON.stringify(parsedConfigObject, null, 2)}`;
