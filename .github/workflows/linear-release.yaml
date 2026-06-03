@@ -1,0 +1,89 @@
+name: Linear Release
+
+on:
+  push:
+    tags:
+      - '@currents/cmd-v*'
+      - '@currents/jest-v*'
+      - '@currents/node-test-reporter-v*'
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  linear-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Main branch: sync to all package pipelines
+      - name: Sync main branch to Linear (cmd)
+        if: github.ref_type == 'branch' && github.ref_name == 'main'
+        uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets.LINEAR_ACCESS_KEY_CMD }}
+
+      - name: Sync main branch to Linear (jest)
+        if: github.ref_type == 'branch' && github.ref_name == 'main'
+        uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets.LINEAR_ACCESS_KEY_JEST }}
+
+      - name: Sync main branch to Linear (node-test-reporter)
+        if: github.ref_type == 'branch' && github.ref_name == 'main'
+        uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets.LINEAR_ACCESS_KEY_NODE_TEST_REPORTER }}
+
+      # Tag pushed: extract package name and version
+      - name: Extract package and version from tag
+        if: github.ref_type == 'tag'
+        id: extract_tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          # Format: @currents/PACKAGE_NAME-vVERSION
+          # Use digit anchor to correctly capture multi-hyphen package names
+          if [[ $TAG =~ ^@currents/(.+)-v([0-9]+\..+)$ ]]; then
+            PACKAGE="${BASH_REMATCH[1]}"
+            VERSION="${BASH_REMATCH[2]}"
+            echo "package=$PACKAGE" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Tag '$TAG' does not match expected format '@currents/PACKAGE-vVERSION'"
+            exit 1
+          fi
+
+      # Determine Linear access key based on package
+      - name: Set Linear access key
+        if: github.ref_type == 'tag'
+        id: linear_key
+        run: |
+          PACKAGE="${{ steps.extract_tag.outputs.package }}"
+          case "$PACKAGE" in
+            cmd)
+              echo "key=LINEAR_ACCESS_KEY_CMD" >> $GITHUB_OUTPUT
+              ;;
+            jest)
+              echo "key=LINEAR_ACCESS_KEY_JEST" >> $GITHUB_OUTPUT
+              ;;
+            node-test-reporter)
+              echo "key=LINEAR_ACCESS_KEY_NODE_TEST_REPORTER" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Error: Unknown package '$PACKAGE'"
+              exit 1
+              ;;
+          esac
+
+      # Sync tag to Linear with package-specific key
+      - name: Sync tag to Linear
+        if: github.ref_type == 'tag'
+        uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets[steps.linear_key.outputs.key] }}
+          version: ${{ steps.extract_tag.outputs.version }}

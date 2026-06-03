@@ -26,6 +26,14 @@ permissions:
   id-token: write  # Required for OIDC
   contents: read
 
+env:
+  PACKAGE_MAP: |
+    {
+      "@currents/cmd": "cmd",
+      "@currents/jest": "jest",
+      "@currents/node-test-reporter": "node-test-reporter"
+    }
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -43,9 +51,69 @@ jobs:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Extract package version
+        id: extract_version
+        env:
+          PACKAGE_INPUT: ${{ github.event.inputs.package }}
+        run: |
+          PACKAGE_SHORT_NAME=$(node -e "const m = JSON.parse(process.env.PACKAGE_MAP); console.log(m[process.env.PACKAGE_INPUT])")
+          PACKAGE_VERSION=$(node -p "require('./packages/$PACKAGE_SHORT_NAME/package.json').version")
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "package_short=$PACKAGE_SHORT_NAME" >> $GITHUB_OUTPUT
+
       - run: npm ci
       - name: Publish to NPM
         run: |
           git config user.name "Currents NPM Bot"
           git config user.email "npm@currents.dev"
           npm run publish:npm --workspace ${{ github.event.inputs.package }} -- --tag ${{ github.event.inputs.channel }}
+
+      - name: Determine Linear access key
+        id: linear_key
+        if: success() && github.event.inputs.channel == 'latest'
+        run: |
+          PACKAGE_SHORT="${{ steps.extract_version.outputs.package_short }}"
+          case "$PACKAGE_SHORT" in
+            cmd)
+              echo "key=LINEAR_ACCESS_KEY_CMD" >> $GITHUB_OUTPUT
+              ;;
+            jest)
+              echo "key=LINEAR_ACCESS_KEY_JEST" >> $GITHUB_OUTPUT
+              ;;
+            node-test-reporter)
+              echo "key=LINEAR_ACCESS_KEY_NODE_TEST_REPORTER" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Error: Unknown package '$PACKAGE_SHORT'"
+              exit 1
+              ;;
+          esac
+
+      - name: Mark Linear release as complete
+        id: release
+        if: success() && github.event.inputs.channel == 'latest'
+        uses: linear/linear-release-action@v0
+        with:
+          access_key: ${{ secrets[steps.linear_key.outputs.key] }}
+          command: complete
+          version: ${{ steps.extract_version.outputs.version }}
+
+      - name: Post to Slack
+        if: success() && github.event.inputs.channel == 'latest' && steps.release.outputs.release-url
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚀 Release: ${{ github.event.inputs.package }}@${{ steps.extract_version.outputs.version }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*🚀 Release: ${{ github.event.inputs.package }}@${{ steps.extract_version.outputs.version }}* has been marked as complete in Linear.\n\n<${{ steps.release.outputs.release-url }}|View Release Notes>"
+                  }
+                }
+              ]
+            }

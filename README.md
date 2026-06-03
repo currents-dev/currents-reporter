@@ -100,6 +100,28 @@ npm run release
 
 You can create a PR from the release branch to be merged after publish.
 
+### Linear Releases Integration
+
+The release process integrates with Linear Releases to track release scope, status, and changelog for each package:
+
+- **Main branch push:** When changes are pushed to main, they're automatically synced to the current started release in Linear for each respective package
+- **Release tag push:** When a release tag (e.g., `@currents/cmd-v1.9.10`) is pushed, all commits since the previous tag are scanned and synced to the corresponding Linear release pipeline
+- **Release completion:** When publishing to npm via the "Publish NPM Package" workflow with `latest` channel, the release is automatically marked as complete in Linear and posted to Slack
+
+When publishing to the latest channel, the workflow will:
+
+- Mark the release as complete in Linear using the package-specific pipeline access key
+- Post a release announcement to Slack with a link to view release notes in Linear
+
+**Required secrets:**
+
+- `LINEAR_ACCESS_KEY_CMD` — pipeline-scoped access key for @currents/cmd releases
+- `LINEAR_ACCESS_KEY_JEST` — pipeline-scoped access key for @currents/jest releases
+- `LINEAR_ACCESS_KEY_NODE_TEST_REPORTER` — pipeline-scoped access key for @currents/node-test-reporter releases
+- `SLACK_RELEASE_WEBHOOK_URL` — Slack incoming webhook for posting messages
+
+**Note:** Each pipeline access key is scoped to your specific release pipeline in Linear, ensuring operations only affect that pipeline.
+
 ## Publishing
 
 Dispatch the GitHub Actions Workflow to publish new releases: https://github.com/currents-dev/currents-reporter/actions/workflows/publish.yaml
