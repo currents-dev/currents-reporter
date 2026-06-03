@@ -53,8 +53,10 @@ jobs:
 
       - name: Extract package version
         id: extract_version
+        env:
+          PACKAGE_INPUT: ${{ github.event.inputs.package }}
         run: |
-          PACKAGE_SHORT_NAME=$(node -e "const m = JSON.parse('${{ env.PACKAGE_MAP }}'); console.log(m['${{ github.event.inputs.package }}'])")
+          PACKAGE_SHORT_NAME=$(node -e "const m = JSON.parse(process.env.PACKAGE_MAP); console.log(m[process.env.PACKAGE_INPUT])")
           PACKAGE_VERSION=$(node -p "require('./packages/$PACKAGE_SHORT_NAME/package.json').version")
           echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
           echo "package_short=$PACKAGE_SHORT_NAME" >> $GITHUB_OUTPUT
@@ -80,6 +82,10 @@ jobs:
               ;;
             node-test-reporter)
               echo "key=LINEAR_ACCESS_KEY_NODE_TEST_REPORTER" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "Error: Unknown package '$PACKAGE_SHORT'"
+              exit 1
               ;;
           esac
 
