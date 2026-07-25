@@ -1,4 +1,5 @@
 import { debug } from '@debug';
+import { isAxiosError } from 'axios';
 import { cancelRun } from '../../api';
 import { getCancelCommandConfig } from '../../config/cancel';
 import { info } from '../../logger';
@@ -24,6 +25,18 @@ export async function handleCancelRun() {
 
     return result;
   } catch (e) {
+    // A job cancelled before it recorded anything has no run. The command runs
+    // on the cancellation path, so exiting non-zero here would put a failed
+    // step on an already cancelled job.
+    if (isAxiosError(e) && e.response?.status === 404) {
+      info(
+        'No run to cancel for ciBuildId "%s" in project "%s"',
+        config.ciBuildId,
+        config.projectId
+      );
+      return null;
+    }
+
     debug('Failed to cancel the run');
     throw e;
   }

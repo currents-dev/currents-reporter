@@ -1,3 +1,4 @@
+import { AxiosError, AxiosResponse } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cancelRun } from '../../../api';
 import { setCancelCommandConfig } from '../../../config/cancel';
@@ -54,5 +55,21 @@ describe('handleCancelRun', () => {
     });
 
     await expect(handleCancelRun()).rejects.toThrow('nope');
+  });
+
+  it('succeeds when there is no run to cancel', async () => {
+    mockCancelRun.mockRejectedValue(
+      new AxiosError('Not found', undefined, undefined, undefined, {
+        status: 404,
+      } as AxiosResponse)
+    );
+
+    setCancelCommandConfig({
+      recordKey: 'key',
+      projectId: 'proj',
+      ciBuildId: 'build-1',
+    });
+
+    await expect(handleCancelRun()).resolves.toBeNull();
   });
 });
