@@ -58,11 +58,10 @@ describe('handleCancelRun', () => {
   });
 
   it('succeeds when there is no run to cancel', async () => {
-    mockCancelRun.mockRejectedValue(
-      notFoundError(
-        'No run with ciBuildId "build-1" was found in project "proj". A run is only created once results are recorded.'
-      )
-    );
+    mockCancelRun.mockResolvedValue({
+      status: 'OK',
+      data: { runId: null, cancellation: null },
+    });
 
     setCancelCommandConfig({
       recordKey: 'key',
@@ -70,11 +69,22 @@ describe('handleCancelRun', () => {
       ciBuildId: 'build-1',
     });
 
-    await expect(handleCancelRun()).resolves.toBeNull();
+    await expect(handleCancelRun()).resolves.toEqual({
+      status: 'OK',
+      data: { runId: null, cancellation: null },
+    });
   });
 
-  it('propagates a 404 that is not about the build being cancelled', async () => {
-    mockCancelRun.mockRejectedValue(notFoundError('Not found'));
+  // "No run to cancel" is a 200 with a null runId. A 404 means something else -
+  // a director without the cancel route, or an api url pointing elsewhere - and
+  // must not be mistaken for it.
+  it('propagates a 404', async () => {
+    mockCancelRun.mockRejectedValue(
+      new AxiosError('Not found', undefined, undefined, undefined, {
+        status: 404,
+        data: 'Not found',
+      } as AxiosResponse)
+    );
 
     setCancelCommandConfig({
       recordKey: 'key',
@@ -85,10 +95,3 @@ describe('handleCancelRun', () => {
     await expect(handleCancelRun()).rejects.toThrow('Not found');
   });
 });
-
-function notFoundError(data: string) {
-  return new AxiosError('Not found', undefined, undefined, undefined, {
-    status: 404,
-    data,
-  } as AxiosResponse);
-}

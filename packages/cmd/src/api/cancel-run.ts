@@ -14,7 +14,11 @@ export type CancelRunParams = {
 export type CancelRunResponse = {
   status: 'OK';
   data: {
-    runId: string;
+    /**
+     * `null` when no run was recorded under the ciBuildId - a job cancelled
+     * before it reported anything has nothing to cancel.
+     */
+    runId: string | null;
     cancellation: {
       actor: string;
       reason: string;
