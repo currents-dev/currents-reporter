@@ -28,21 +28,19 @@ export type CancelRunResponse = {
 };
 
 export async function cancelRun(params: CancelRunParams) {
-  try {
-    debug('Cancel params: %o', maskRecordKey(params));
+  debug('Cancel params: %o', maskRecordKey(params));
 
-    const res = await makeRequest<CancelRunResponse, CancelRunParams>(
-      ClientType.API,
-      {
-        url: `v1/runs/cancel`,
-        method: 'POST',
-        data: params,
-      }
-    );
+  // No catch: an AxiosError carries the request config, so logging it would put
+  // the record key in the debug output. makeRequest already logs the status,
+  // url and response body of a failure.
+  const res = await makeRequest<CancelRunResponse, CancelRunParams>(
+    ClientType.API,
+    {
+      url: `v1/runs/cancel`,
+      method: 'POST',
+      data: params,
+    }
+  );
 
-    return res.data;
-  } catch (err) {
-    debug('Failed to cancel the run:', err);
-    throw err;
-  }
+  return res.data;
 }
