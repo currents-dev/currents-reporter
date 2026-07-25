@@ -23,6 +23,18 @@ export function removeUndefined<T extends {}>(obj?: T): T {
   }, {} as T);
 }
 
+/**
+ * `CURRENTS_DEBUG=false` should turn debug off rather than on, and an unset
+ * variable has to stay `undefined` so that `getValidatedConfig` does not
+ * overwrite a `--debug` flag with it.
+ */
+export function parseBooleanEnv(value?: string): boolean | undefined {
+  if (value === undefined || value.trim() === '') {
+    return undefined;
+  }
+  return !['false', '0', 'no', 'off'].includes(value.trim().toLowerCase());
+}
+
 export function getEnvironmentVariableName<T extends ConfigKeys>(
   configKeys: T,
   variable: keyof T

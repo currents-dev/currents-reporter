@@ -27,11 +27,16 @@ export async function cancelRun(params: CancelRunParams) {
   try {
     debug('Cancel params: %o', maskRecordKey(params));
 
-    return makeRequest<CancelRunResponse, CancelRunParams>(ClientType.API, {
-      url: `v1/runs/cancel`,
-      method: 'POST',
-      data: params,
-    }).then((res) => res.data);
+    const res = await makeRequest<CancelRunResponse, CancelRunParams>(
+      ClientType.API,
+      {
+        url: `v1/runs/cancel`,
+        method: 'POST',
+        data: params,
+      }
+    );
+
+    return res.data;
   } catch (err) {
     debug('Failed to cancel the run:', err);
     throw err;

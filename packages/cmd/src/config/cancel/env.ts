@@ -1,3 +1,4 @@
+import { parseBooleanEnv } from '../utils';
 import { CancelCommandConfig } from './config';
 
 export const configKeys = {
@@ -33,6 +34,6 @@ export function getEnvVariables(): Partial<
     recordKey: process.env[configKeys.recordKey.env],
     projectId: process.env[configKeys.projectId.env],
     ciBuildId: process.env[configKeys.ciBuildId.env],
-    debug: !!process.env[configKeys.debug.env],
+    debug: parseBooleanEnv(process.env[configKeys.debug.env]),
   };
 }

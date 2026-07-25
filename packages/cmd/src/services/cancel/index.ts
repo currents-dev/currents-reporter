@@ -28,7 +28,7 @@ export async function handleCancelRun() {
     // A job cancelled before it recorded anything has no run. The command runs
     // on the cancellation path, so exiting non-zero here would put a failed
     // step on an already cancelled job.
-    if (isAxiosError(e) && e.response?.status === 404) {
+    if (isRunNotFound(e, config.ciBuildId)) {
       info(
         'No run to cancel for ciBuildId "%s" in project "%s"',
         config.ciBuildId,
@@ -40,4 +40,19 @@ export async function handleCancelRun() {
     debug('Failed to cancel the run');
     throw e;
   }
+}
+
+/**
+ * The cloud sends this 404 as plain text, so there is no error code to match
+ * on - only the message, which names the build. Other 404s (a missing route, an
+ * api url pointing elsewhere) must still fail: exiting 0 for those would report
+ * a run as cancelled when nothing was.
+ */
+function isRunNotFound(e: unknown, ciBuildId: string) {
+  return (
+    isAxiosError(e) &&
+    e.response?.status === 404 &&
+    typeof e.response.data === 'string' &&
+    e.response.data.includes(ciBuildId)
+  );
 }

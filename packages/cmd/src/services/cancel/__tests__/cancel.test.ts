@@ -59,9 +59,9 @@ describe('handleCancelRun', () => {
 
   it('succeeds when there is no run to cancel', async () => {
     mockCancelRun.mockRejectedValue(
-      new AxiosError('Not found', undefined, undefined, undefined, {
-        status: 404,
-      } as AxiosResponse)
+      notFoundError(
+        'No run with ciBuildId "build-1" was found in project "proj". A run is only created once results are recorded.'
+      )
     );
 
     setCancelCommandConfig({
@@ -72,4 +72,23 @@ describe('handleCancelRun', () => {
 
     await expect(handleCancelRun()).resolves.toBeNull();
   });
+
+  it('propagates a 404 that is not about the build being cancelled', async () => {
+    mockCancelRun.mockRejectedValue(notFoundError('Not found'));
+
+    setCancelCommandConfig({
+      recordKey: 'key',
+      projectId: 'proj',
+      ciBuildId: 'build-1',
+    });
+
+    await expect(handleCancelRun()).rejects.toThrow('Not found');
+  });
 });
+
+function notFoundError(data: string) {
+  return new AxiosError('Not found', undefined, undefined, undefined, {
+    status: 404,
+    data,
+  } as AxiosResponse);
+}
