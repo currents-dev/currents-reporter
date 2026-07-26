@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
+import { maskRecordKey } from '../lib/credentials';
 import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from './httpConfig';
 import {
   getDelay,
@@ -119,13 +120,15 @@ function getNetworkRequestDebugData(data: {
 
 function getPayloadDebugData(data: any) {
   if (data?.results?.raw) {
-    return {
+    return maskRecordKey({
       ...data,
       results: {
         ...data.results,
         raw: '***',
       },
-    };
+    });
   }
-  return data;
+  // Request bodies that carry a record key - cancel, cache - would otherwise
+  // print it in full whenever debug is on.
+  return _.isPlainObject(data) ? maskRecordKey(data) : data;
 }
