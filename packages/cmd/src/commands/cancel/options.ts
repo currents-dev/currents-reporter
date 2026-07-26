@@ -17,6 +17,11 @@ export const ciBuildIdOption = new Option(
   'the unique identifier of the build (run) to cancel'
 ).env(getEnvironmentVariableName(configKeys, 'ciBuildId'));
 
+export const runIdOption = new Option(
+  '--run-id <id>',
+  'the identifier of the run to cancel, as reported when the run was created'
+).env(getEnvironmentVariableName(configKeys, 'runId'));
+
 export const debugOption = new Option('--debug', 'enable debug logs')
   .env(getEnvironmentVariableName(configKeys, 'debug'))
   .default(false);

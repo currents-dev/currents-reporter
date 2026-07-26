@@ -7,6 +7,7 @@ import {
   debugOption,
   projectOption,
   recordKeyOption,
+  runIdOption,
 } from './options';
 
 const COMMAND_NAME = 'cancel';
@@ -16,6 +17,9 @@ ${chalk.bold('Examples')}
 
 Cancel the run recorded under a CI build id:
 ${dim(`${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id>`)}
+
+Cancel a run by its id, as reported when the run was created:
+${dim(`${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --run-id <run-id>`)}
 
 Cancel the run when a GitHub Actions workflow is cancelled:
 ${dim(`- if: \${{ cancelled() }}
@@ -35,6 +39,7 @@ export const getCancelCommand = (name: string) => {
     .addOption(recordKeyOption)
     .addOption(projectOption)
     .addOption(ciBuildIdOption)
+    .addOption(runIdOption)
     .addOption(debugOption)
     .action(cancelHandler);
 

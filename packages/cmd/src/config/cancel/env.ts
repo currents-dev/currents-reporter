@@ -17,6 +17,11 @@ export const configKeys = {
     env: 'CURRENTS_CI_BUILD_ID',
     cli: '--ci-build-id',
   },
+  runId: {
+    name: 'Run ID',
+    env: 'CURRENTS_RUN_ID',
+    cli: '--run-id',
+  },
   debug: {
     name: 'Debug',
     env: 'CURRENTS_DEBUG',
@@ -34,6 +39,7 @@ export function getEnvVariables(): Partial<
     recordKey: process.env[configKeys.recordKey.env],
     projectId: process.env[configKeys.projectId.env],
     ciBuildId: process.env[configKeys.ciBuildId.env],
+    runId: process.env[configKeys.runId.env],
     debug: parseBooleanEnv(process.env[configKeys.debug.env]),
   };
 }

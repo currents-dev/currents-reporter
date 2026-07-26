@@ -9,11 +9,18 @@ export async function handleCancelRun() {
     throw new Error('Config is missing!');
   }
 
+  // Names the run the way the caller asked for it, so the output matches what
+  // was passed rather than always reporting a ciBuildId.
+  const requestedAs = config.runId
+    ? `runId: ${config.runId}`
+    : `ciBuildId: ${config.ciBuildId}`;
+
   try {
     const result = await cancelRun({
       recordKey: config.recordKey,
       projectId: config.projectId,
       ciBuildId: config.ciBuildId,
+      runId: config.runId,
     });
 
     // A job cancelled before it recorded anything has no run, which the cloud
@@ -21,16 +28,12 @@ export async function handleCancelRun() {
     // path, so there is nothing left to do and nothing to fail about.
     if (!result.data.runId) {
       info(
-        'No run to cancel for ciBuildId "%s" in project "%s"',
-        config.ciBuildId,
+        'No run to cancel (%s) in project "%s"',
+        requestedAs,
         config.projectId
       );
     } else {
-      info(
-        'Run "%s" (ciBuildId: %s) is cancelled',
-        result.data.runId,
-        config.ciBuildId
-      );
+      info('Run "%s" (%s) is cancelled', result.data.runId, requestedAs);
     }
 
     return result;

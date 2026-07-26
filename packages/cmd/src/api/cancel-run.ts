@@ -8,15 +8,19 @@ const debug = _debug.extend('api');
 export type CancelRunParams = {
   recordKey: string;
   projectId: string;
-  ciBuildId: string;
+  /**
+   * Either identifies the run. `runId` wins when both are sent.
+   */
+  ciBuildId?: string;
+  runId?: string;
 };
 
 export type CancelRunResponse = {
   status: 'OK';
   data: {
     /**
-     * `null` when no run was recorded under the ciBuildId - a job cancelled
-     * before it reported anything has nothing to cancel.
+     * `null` when there is no run to cancel - a job cancelled before it
+     * reported anything never created one.
      */
     runId: string | null;
     cancellation: {

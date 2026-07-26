@@ -18,6 +18,7 @@ describe('handleCancelRun', () => {
     vi.stubEnv('CURRENTS_RECORD_KEY', undefined);
     vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
     vi.stubEnv('CURRENTS_CI_BUILD_ID', undefined);
+    vi.stubEnv('CURRENTS_RUN_ID', undefined);
   });
 
   afterEach(() => {
@@ -42,6 +43,29 @@ describe('handleCancelRun', () => {
       recordKey: 'key',
       projectId: 'proj',
       ciBuildId: 'build-1',
+      runId: undefined,
+    });
+  });
+
+  it('forwards the run id when one is configured', async () => {
+    mockCancelRun.mockResolvedValue({
+      status: 'OK',
+      data: { runId: 'run-1', cancellation: null },
+    });
+
+    setCancelCommandConfig({
+      recordKey: 'key',
+      projectId: 'proj',
+      runId: 'run-1',
+    });
+
+    await handleCancelRun();
+
+    expect(mockCancelRun).toHaveBeenCalledWith({
+      recordKey: 'key',
+      projectId: 'proj',
+      ciBuildId: undefined,
+      runId: 'run-1',
     });
   });
 
