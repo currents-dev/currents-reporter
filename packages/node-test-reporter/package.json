@@ -49,7 +49,7 @@
     "xmlbuilder2": "^3.1.1"
   },
   "devDependencies": {
-    "@release-it/conventional-changelog": "^10.0.1",
+    "@release-it/conventional-changelog": "^12.0.0",
     "commander": "^13.1.0",
     "release-it": "^19.2.4",
     "rimraf": "^6.0.1",
