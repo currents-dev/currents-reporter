@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.2](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.3.1...${npm.name}-v1.3.2) (2026-07-30)
+
+
+### Bug Fixes
+
+* ai feedback ([aef0f44](https://github.com/currents-dev/currents-reporter/commit/aef0f443add2368414202ae7fe53d020829cff47))
+* restore commonjs support for the cmd package ([042159b](https://github.com/currents-dev/currents-reporter/commit/042159b68e1a0ad29443828a91f35e5ea390a0dd))
+* Update ci-provider variables ([#347](https://github.com/currents-dev/currents-reporter/issues/347)) ([9da1c73](https://github.com/currents-dev/currents-reporter/commit/9da1c736bd931c86504c77755dd03b485373974e))
+* use .cjs extension for temp jest scanner config ([#362](https://github.com/currents-dev/currents-reporter/issues/362)) ([ee7082c](https://github.com/currents-dev/currents-reporter/commit/ee7082c74d6ec53368bada3b9e23a795982cc365))
+
 # [1.3.1](https://github.com/currents-dev/currents-reporter/compare/@currents/jest-v1.2.3...jest-v1.3.1) (2026-03-06)
 
 
