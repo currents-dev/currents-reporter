@@ -29,8 +29,15 @@
     "format": "prettier --check .",
     "format-fix": "prettier --write ."
   },
+  "overrides": {
+    "brace-expansion@1": "^1.1.18",
+    "brace-expansion@2": "^2.1.4",
+    "brace-expansion@3": "^3.0.6",
+    "brace-expansion@4": "^4.0.1",
+    "brace-expansion@5": "^5.0.9"
+  },
   "devDependencies": {
-    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/parser": "^8.65.0",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.0.0",
     "eslint-plugin-turbo": "^2.0.0",
