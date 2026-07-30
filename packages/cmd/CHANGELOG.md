@@ -1,5 +1,13 @@
 # Changelog
 
+# [1.10.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.9...${npm.name}-v1.10.0) (2026-07-30)
+
+
+### Bug Fixes
+
+* ai feedback ([aef0f44](https://github.com/currents-dev/currents-reporter/commit/aef0f443add2368414202ae7fe53d020829cff47))
+* use .cjs extension for temp jest scanner config ([#362](https://github.com/currents-dev/currents-reporter/issues/362)) ([ee7082c](https://github.com/currents-dev/currents-reporter/commit/ee7082c74d6ec53368bada3b9e23a795982cc365))
+
 ## [1.9.9](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.8...${npm.name}-v1.9.9) (2026-04-20)
 
 
