@@ -13,8 +13,8 @@
     "@babel/preset-typescript": "^8.0.1",
     "@currents/jest": "*",
     "@currents/cmd": "*",
-    "@types/jest": "^29.5.12",
-    "jest": "^29.7.0"
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2"
   },
   "keywords": [],
   "author": "",
