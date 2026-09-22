@@ -1,12 +1,10 @@
-jest.retryTimes(1);
-
-let attempts = 0;
+const { readSession } = require('../detoxSim/session');
 
 describe('transfer', () => {
+  // Passes once Detox reruns it, the way a flaky test behaves under
+  // `detox test --retries`.
   it('sends coins', async () => {
-    attempts += 1;
-
-    if (attempts === 1) {
+    if (readSession().testSessionIndex === 0) {
       throw new Error(
         'Test Failed: Timed out waiting for element by id "confirm-dialog" to be visible (5000ms)'
       );

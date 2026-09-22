@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "jest --config jest.config.js",
+    "test": "node detoxSim/detoxTest.js",
     "report": "currents upload --report-dir ./.currents",
     "stub": "node detoxSim/stubApi.js",
     "report:stub": "CURRENTS_API_URL=http://localhost:4567 currents upload --report-dir ./.currents --project-id=detoxPOC --key=stub-record-key --ci-build-id=detox-poc-stub",
-    "build": "echo \"No build specified\" && exit 0"
+    "build": "echo \"No build specified\" && exit 0",
+    "test:once": "jest --config jest.config.js"
   },
   "devDependencies": {
     "@currents/cmd": "*",

@@ -1,24 +1,13 @@
 const fs = require('fs');
-const {
-  CONFIGURATION,
-  getArtifactsRootDir,
-  getSessionFilePath,
-} = require('./session');
+const { createSession, getSessionFilePath } = require('./session');
 
 module.exports = async () => {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const sessionFilePath = getSessionFilePath();
 
-  fs.writeFileSync(
-    sessionFilePath,
-    JSON.stringify({
-      id: 'detox-poc-session',
-      detoxConfig: {
-        configurationName: CONFIGURATION,
-        artifacts: { rootDir: getArtifactsRootDir(timestamp) },
-      },
-    })
-  );
+  // A rerun of `detox test --retries` reuses the session of the first run.
+  if (!fs.existsSync(sessionFilePath)) {
+    createSession();
+  }
 
   process.env.DETOX_CONFIG_SNAPSHOT_PATH = sessionFilePath;
 };

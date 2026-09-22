@@ -34,6 +34,8 @@ import {
   jestStatusFromInvocations,
   getTestTags,
   isPartialRun,
+  mergeInstanceReport,
+  readInstanceReport,
   testToSpecName,
   withDefaultProjectName,
   writeDetoxManifest,
@@ -296,7 +298,9 @@ export default class CustomReporter implements Reporter {
           const jestStatus = jestStatusFromInvocations(testCase.result);
 
           if (this.detoxSession) {
-            this.detoxTests.push(getDetoxManifestTest(testCase));
+            this.detoxTests.push(
+              getDetoxManifestTest(testCase, this.detoxSession)
+            );
           }
 
           return {
@@ -382,10 +386,14 @@ export default class CustomReporter implements Reporter {
       result
     );
 
+    const instanceFileName = `${generateShortHash(
+      this.specInfo[specKey].specName
+    )}.json`;
+
     await writeFileAsync(
       this.instancesDir,
-      `${generateShortHash(this.specInfo[specKey].specName)}.json`,
-      JSON.stringify(result)
+      instanceFileName,
+      JSON.stringify(await this.withPreviousAttempts(instanceFileName, result))
     );
     this.processedSpecsCount += 1;
     // info(
@@ -413,6 +421,33 @@ export default class CustomReporter implements Reporter {
     }
 
     info('[currents]: Run completed');
+  }
+
+  /**
+   * Only a Detox rerun writes a spec a previous Jest process already reported;
+   * a first run overwrites whatever an earlier, unrelated run left behind.
+   */
+  private async withPreviousAttempts(
+    instanceFileName: string,
+    result: InstanceReport
+  ): Promise<InstanceReport> {
+    if (!this.detoxSession?.testSessionIndex) {
+      return result;
+    }
+
+    const previous = await readInstanceReport<InstanceReport>(
+      join(this.instancesDir, instanceFileName)
+    );
+
+    if (!previous) {
+      return result;
+    }
+
+    debug('Merging the results of Detox rerun %d', {
+      session: this.detoxSession.testSessionIndex,
+    });
+
+    return mergeInstanceReport(previous, result);
   }
 
   private getFullTestSuite(): FullTestSuite {
@@ -456,12 +491,16 @@ function getTestCaseKey(projectId: string, specName: string, testId: string) {
  * its invocation count, so those are recorded per attempt for `currents upload`
  * to resolve the directories once Detox has closed the files.
  */
-function getDetoxManifestTest(testCase: TestCase): DetoxManifestTest {
+function getDetoxManifestTest(
+  testCase: TestCase,
+  session: DetoxSession
+): DetoxManifestTest {
   return {
     testId: testCase.id,
     fullName: testCase.result[0]?.fullName ?? testCase.title.join(' '),
     attempts: testCase.result.map((result) => ({
       attempt: getAttemptNumber(result),
+      session: session.testSessionIndex,
       invocations: result.invocations ?? 1,
       status: result.status,
     })),

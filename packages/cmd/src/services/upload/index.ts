@@ -132,7 +132,11 @@ export async function handleCurrentsReport() {
       manifest: detoxManifest,
     });
 
-    info('[currents] Attached %d Detox artifacts', attached);
+    info(
+      '[currents] Attached %d Detox artifacts and %d steps',
+      attached.artifacts,
+      attached.steps
+    );
   }
 
   const allArtifactsMap = new Map<string, string>();

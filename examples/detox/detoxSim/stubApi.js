@@ -47,6 +47,13 @@ const server = http.createServer(async (req, res) => {
     const payload = parseRunPayload(req, body);
     const artifacts = collectArtifacts(payload.instances ?? []);
 
+    if ((payload.instances ?? []).length > 0) {
+      require('fs').writeFileSync(
+        '/tmp/currents-detox-payload.json',
+        JSON.stringify(payload, null, 2)
+      );
+    }
+
     console.log(
       `\n[stub] POST /v1/runs framework=${payload.framework.type}` +
         ` origin=${payload.framework.frameworkConfig?.originFramework ?? '-'}` +

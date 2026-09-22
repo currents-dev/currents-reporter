@@ -14,6 +14,14 @@ export type TestArtifactsDirParams = {
 };
 
 /**
+ * Detox derives the number from the rerun index and the Jest retry count
+ * (`testSessionIndex * (1 + retryTimes) + invocations`), which the reporter
+ * cannot read for the spec files it did not run. The attempts are matched by
+ * looking for the next number that exists on disk instead of recomputing it.
+ */
+export const MAX_INVOCATION_PROBE = 4;
+
+/**
  * Detox builds the per-test artifact directory name itself - status sign, retry
  * suffix, sanitizing and trimming - so its own path builder is used when detox
  * is resolvable from the project. buildOwnTestArtifactsDir covers the case

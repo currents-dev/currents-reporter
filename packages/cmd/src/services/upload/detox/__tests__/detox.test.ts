@@ -75,8 +75,8 @@ describe('attachDetoxArtifacts', () => {
         testId: 'test-1',
         fullName: 'transfer sends coins',
         attempts: [
-          { attempt: 0, invocations: 1, status: 'failed' },
-          { attempt: 1, invocations: 2, status: 'passed' },
+          { attempt: 0, session: 0, invocations: 1, status: 'failed' },
+          { attempt: 1, session: 0, invocations: 2, status: 'passed' },
         ],
       },
     ],
@@ -127,7 +127,7 @@ describe('attachDetoxArtifacts', () => {
       manifest: manifest(),
     });
 
-    expect(attached).toBe(4);
+    expect(attached).toEqual({ artifacts: 4, steps: 0 });
 
     const [firstAttempt, secondAttempt] =
       instances[0].results.tests[0].attempts;
@@ -168,7 +168,150 @@ describe('attachDetoxArtifacts', () => {
       manifest: manifest(),
     });
 
-    expect(attached).toBe(0);
+    expect(attached).toEqual({ artifacts: 0, steps: 0 });
     expect(instances[0].results.tests[0].attempts[0].artifacts).toBeUndefined();
+  });
+
+  it('follows the Detox numbering of a rerun, where Jest restarts at attempt 0', async () => {
+    const rerunDir = join(artifactsRootDir, '✓ transfer sends coins (3)');
+    await fs.ensureDir(rerunDir);
+    await fs.writeFile(join(rerunDir, 'test.mp4'), 'video');
+
+    const instances = [instance()];
+    instances[0].results.tests[0].attempts.push({ attempt: 2 } as never);
+
+    const attached = await attachDetoxArtifacts({
+      instances,
+      reportDir,
+      manifest: {
+        ...manifest(),
+        tests: [
+          {
+            testId: 'test-1',
+            fullName: 'transfer sends coins',
+            attempts: [
+              { attempt: 0, session: 0, invocations: 1, status: 'failed' },
+              { attempt: 1, session: 0, invocations: 2, status: 'passed' },
+              // The rerun reported this as its own attempt 0.
+              { attempt: 2, session: 1, invocations: 1, status: 'passed' },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(attached.artifacts).toBe(5);
+    expect(instances[0].results.tests[0].attempts[2].artifacts).toEqual([
+      {
+        name: 'test.mp4',
+        type: 'video',
+        contentType: 'video/mp4',
+        path: expect.stringMatching(/^artifacts\/.+\.mp4$/),
+      },
+    ]);
+  });
+
+  it('matches the attempts of a rerun, which Jest also reported as attempt 0', async () => {
+    const instances = [instance()];
+    const attached = await attachDetoxArtifacts({
+      instances,
+      reportDir,
+      manifest: {
+        ...manifest(),
+        tests: [
+          {
+            testId: 'test-1',
+            fullName: 'transfer sends coins',
+            attempts: [
+              { attempt: 0, session: 0, invocations: 1, status: 'failed' },
+              { attempt: 0, session: 1, invocations: 1, status: 'passed' },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(attached.artifacts).toBe(4);
+
+    const [firstAttempt, secondAttempt] =
+      instances[0].results.tests[0].attempts;
+    expect(firstAttempt.artifacts?.map((a) => a.name)).toEqual([
+      'device.log',
+      'test-after-failure.png',
+      'test.mp4',
+    ]);
+    expect(secondAttempt.artifacts?.map((a) => a.name)).toEqual(['test.mp4']);
+  });
+
+  it('skips tests whose full name Detox cannot tell apart', async () => {
+    const instances = [instance()];
+    const attached = await attachDetoxArtifacts({
+      instances,
+      reportDir,
+      manifest: {
+        ...manifest(),
+        tests: [
+          manifest().tests[0],
+          { ...manifest().tests[0], testId: 'test-2' },
+        ],
+      },
+    });
+
+    expect(attached).toEqual({ artifacts: 0, steps: 0 });
+  });
+
+  it('attaches the element actions of the trace as steps', async () => {
+    const testStart = 1_769_000_000_000_000;
+    await fs.writeJson(join(artifactsRootDir, 'detox.trace.json'), [
+      {
+        ph: 'B',
+        name: 'sends coins',
+        pid: 100,
+        tid: 0,
+        cat: 'lifecycle',
+        ts: testStart,
+        args: {
+          context: 'test',
+          status: 'running',
+          fullName: 'transfer sends coins',
+          invocations: 1,
+        },
+      },
+      {
+        ph: 'B',
+        name: 'tap on view with id "send-button"',
+        pid: 100,
+        tid: 1,
+        cat: 'ws-client,ws-client-invocation',
+        ts: testStart + 1000,
+        args: {},
+      },
+      {
+        ph: 'E',
+        pid: 100,
+        tid: 1,
+        cat: 'ws-client,ws-client-invocation',
+        ts: testStart + 251_000,
+      },
+      { ph: 'E', pid: 100, tid: 0, cat: 'lifecycle', ts: testStart + 400_000 },
+    ]);
+
+    const instances = [instance()];
+    const attached = await attachDetoxArtifacts({
+      instances,
+      reportDir,
+      manifest: manifest(),
+    });
+
+    expect(attached.steps).toBe(1);
+    expect(instances[0].results.tests[0].attempts[0].steps).toEqual([
+      {
+        title: 'tap on view with id "send-button"',
+        category: 'detox',
+        startTime: new Date((testStart + 1000) / 1e3).toISOString(),
+        duration: 250,
+        steps: [],
+      },
+    ]);
   });
 });

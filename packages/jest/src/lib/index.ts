@@ -4,6 +4,7 @@ export * from './deferred';
 export * from './detox';
 export * from './fs';
 export * from './fullTestSuite';
+export * from './mergeInstanceReport';
 export * from './error';
 export * from './hash';
 export * from './relativeFileLocation';
