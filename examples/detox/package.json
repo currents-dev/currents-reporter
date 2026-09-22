@@ -1,0 +1,18 @@
+{
+  "name": "detox-example",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest --config jest.config.js",
+    "report": "currents upload --report-dir ./.currents",
+    "stub": "node detoxSim/stubApi.js",
+    "report:stub": "CURRENTS_API_URL=http://localhost:4567 currents upload --report-dir ./.currents --project-id=detoxPOC --key=stub-record-key --ci-build-id=detox-poc-stub",
+    "build": "echo \"No build specified\" && exit 0"
+  },
+  "devDependencies": {
+    "@currents/cmd": "*",
+    "@currents/jest": "*",
+    "jest": "^29.7.0"
+  },
+  "license": "ISC"
+}

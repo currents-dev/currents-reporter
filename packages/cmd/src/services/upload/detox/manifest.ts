@@ -1,0 +1,42 @@
+import { debug as _debug } from '@debug';
+import fs from 'fs-extra';
+import { join } from 'path';
+
+const debug = _debug.extend('detox');
+
+export const DETOX_MANIFEST_FILE = 'detox.json';
+
+export type DetoxManifestAttempt = {
+  attempt: number;
+  invocations: number;
+  status: string;
+};
+
+export type DetoxManifestTest = {
+  testId: string;
+  fullName: string;
+  attempts: DetoxManifestAttempt[];
+};
+
+export type DetoxManifest = {
+  artifactsRootDir: string;
+  configuration?: string;
+  version?: string;
+  tests: DetoxManifestTest[];
+};
+
+/** Written by @currents/jest when the tests ran under Detox; absent otherwise. */
+export async function readDetoxManifest(
+  reportDir: string
+): Promise<DetoxManifest | undefined> {
+  const filePath = join(reportDir, DETOX_MANIFEST_FILE);
+
+  try {
+    const manifest = (await fs.readJson(filePath)) as DetoxManifest;
+    debug('Detox manifest: %o', manifest);
+    return manifest;
+  } catch {
+    debug('No Detox manifest at %s', filePath);
+    return undefined;
+  }
+}
