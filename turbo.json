@@ -16,6 +16,7 @@
         "CURRENTS_REMOTE_LOGGING",
         "CURRENTS_PREVIOUS_CI_BUILD_ID",
         "CURRENTS_REPORT_DIR",
+        "DETOX_CONFIG_SNAPSHOT_PATH",
         "TF_BUILD",
         "AZURE_HTTP_USER_AGENT",
         "bamboo_buildNumber",
