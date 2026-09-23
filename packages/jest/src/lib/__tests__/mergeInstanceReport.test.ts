@@ -110,4 +110,23 @@ describe('mergeInstanceReport', () => {
     expect(merged.results.tests).toHaveLength(1);
     expect(merged.results.tests[0].attempts).toHaveLength(1);
   });
+
+  it('counts a skipped test that both runs reported once', () => {
+    const withSkipped = (base: InstanceReport): InstanceReport => ({
+      ...base,
+      results: {
+        ...base.results,
+        stats: { ...base.results.stats, skipped: 1 },
+        tests: [
+          ...base.results.tests,
+          { ...base.results.tests[0], testId: 'test-2', state: 'pending' },
+        ],
+      },
+    });
+
+    const merged = mergeInstanceReport(withSkipped(first), withSkipped(rerun));
+
+    expect(merged.results.stats.skipped).toBe(1);
+    expect(merged.results.stats.pending).toBe(0);
+  });
 });

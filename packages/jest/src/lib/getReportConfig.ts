@@ -24,7 +24,7 @@ export function getReportConfig(
       ? {
           ...config,
           originFramework: 'detox',
-          originFrameworkVersion: detox.version ?? null,
+          ...(detox.version && { originFrameworkVersion: detox.version }),
         }
       : config,
   };

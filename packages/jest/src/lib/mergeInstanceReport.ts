@@ -32,9 +32,11 @@ export function mergeInstanceReport(
         suites: previous.results.stats.suites,
         tests: mergedTests.length,
         passes: countState(mergedTests, 'passed'),
-        pending: countState(mergedTests, 'pending'),
+        pending: next.results.stats.pending,
         failures: countState(mergedTests, 'failed'),
-        skipped: previous.results.stats.skipped + next.results.stats.skipped,
+        // Skipped and todo tests have the state `pending` and are counted as
+        // skipped, the same way the reporter counts them for one run.
+        skipped: countState(mergedTests, 'pending'),
         flaky: mergedTests.filter((test) => test.isFlaky).length,
         wallClockStartedAt: earliest(
           previous.results.stats.wallClockStartedAt,
