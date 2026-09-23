@@ -217,6 +217,11 @@ describe('reporter', () => {
 
     for (const fileName of (await fs.readdir(instancesDir)).sort()) {
       const instance = await fs.readJson(join(instancesDir, fileName));
+      // The order of the tests differs between machines.
+      instance.results.tests.sort(
+        (a: { title: string[] }, b: { title: string[] }) =>
+          a.title.join(' ').localeCompare(b.title.join(' '))
+      );
       instances[instance.spec] = normalize(instance);
     }
 

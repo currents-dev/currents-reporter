@@ -82,37 +82,6 @@ exports[`reporter reports a Jest run 1`] = `
             "_t": "<timing>",
             "attempts": [
               {
-                "_s": "passed",
-                "attempt": 0,
-                "duration": "<timing>",
-                "errors": [],
-                "startTime": "<timing>",
-                "status": "passed",
-                "stderr": [],
-                "stdout": [],
-                "steps": [],
-              },
-            ],
-            "expectedStatus": "passed",
-            "isFlaky": false,
-            "location": {
-              "column": 1,
-              "file": "specs/basic.check.js",
-              "line": 1,
-            },
-            "retries": 1,
-            "state": "passed",
-            "testId": "6dbd245bf96beef6",
-            "timeout": 0,
-            "title": [
-              "basic",
-              "passes",
-            ],
-          },
-          {
-            "_t": "<timing>",
-            "attempts": [
-              {
                 "_s": "failed",
                 "attempt": 0,
                 "duration": "<timing>",
@@ -221,6 +190,37 @@ Received: 1",
             "_t": "<timing>",
             "attempts": [
               {
+                "_s": "pending",
+                "attempt": 0,
+                "duration": "<timing>",
+                "errors": [],
+                "startTime": "<timing>",
+                "status": "skipped",
+                "stderr": [],
+                "stdout": [],
+                "steps": [],
+              },
+            ],
+            "expectedStatus": "skipped",
+            "isFlaky": false,
+            "location": {
+              "column": 6,
+              "file": "specs/basic.check.js",
+              "line": 10,
+            },
+            "retries": 1,
+            "state": "pending",
+            "testId": "9cbfe481a2918315",
+            "timeout": 0,
+            "title": [
+              "basic",
+              "is skipped",
+            ],
+          },
+          {
+            "_t": "<timing>",
+            "attempts": [
+              {
                 "_s": "passed",
                 "attempt": 0,
                 "duration": "<timing>",
@@ -253,31 +253,31 @@ Received: 1",
             "_t": "<timing>",
             "attempts": [
               {
-                "_s": "pending",
+                "_s": "passed",
                 "attempt": 0,
                 "duration": "<timing>",
                 "errors": [],
                 "startTime": "<timing>",
-                "status": "skipped",
+                "status": "passed",
                 "stderr": [],
                 "stdout": [],
                 "steps": [],
               },
             ],
-            "expectedStatus": "skipped",
+            "expectedStatus": "passed",
             "isFlaky": false,
             "location": {
-              "column": 6,
+              "column": 1,
               "file": "specs/basic.check.js",
-              "line": 10,
+              "line": 1,
             },
             "retries": 1,
-            "state": "pending",
-            "testId": "9cbfe481a2918315",
+            "state": "passed",
+            "testId": "6dbd245bf96beef6",
             "timeout": 0,
             "title": [
               "basic",
-              "is skipped",
+              "passes",
             ],
           },
         ],
@@ -301,94 +301,6 @@ Received: 1",
           "wallClockStartedAt": "<timing>",
         },
         "tests": [
-          {
-            "_t": "<timing>",
-            "attempts": [
-              {
-                "_s": "failed",
-                "attempt": 0,
-                "duration": "<timing>",
-                "error": {
-                  "location": {
-                    "column": 25,
-                    "file": "../..",
-                    "line": 8,
-                  },
-                  "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 0
-
-   6 | describe('retries', () => {
-   7 |   it('passes on the second attempt', () => {
->  8 |     expect(flakyRuns++).toBe(1);
-     |                         ^
-   9 |   });
-  10 |
-  11 |   it('fails every attempt', () => {
-",
-                },
-                "errors": [
-                  {
-                    "location": {
-                      "column": 25,
-                      "file": "../..",
-                      "line": 8,
-                    },
-                    "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 0
-
-   6 | describe('retries', () => {
-   7 |   it('passes on the second attempt', () => {
->  8 |     expect(flakyRuns++).toBe(1);
-     |                         ^
-   9 |   });
-  10 |
-  11 |   it('fails every attempt', () => {
-",
-                  },
-                ],
-                "startTime": "<timing>",
-                "status": "failed",
-                "stderr": [
-                  "Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 0",
-                ],
-                "stdout": [],
-                "steps": [],
-              },
-              {
-                "_s": "passed",
-                "attempt": 1,
-                "duration": "<timing>",
-                "errors": [],
-                "startTime": "<timing>",
-                "status": "passed",
-                "stderr": [],
-                "stdout": [],
-                "steps": [],
-              },
-            ],
-            "expectedStatus": "passed",
-            "isFlaky": true,
-            "location": {
-              "column": 1,
-              "file": "specs/retries.check.js",
-              "line": 1,
-            },
-            "retries": 2,
-            "state": "passed",
-            "testId": "e1698fa9e1e0038d",
-            "timeout": 0,
-            "title": [
-              "retries",
-              "passes on the second attempt",
-            ],
-          },
           {
             "_t": "<timing>",
             "attempts": [
@@ -578,6 +490,94 @@ Received: "always"",
             "title": [
               "retries",
               "fails every attempt",
+            ],
+          },
+          {
+            "_t": "<timing>",
+            "attempts": [
+              {
+                "_s": "failed",
+                "attempt": 0,
+                "duration": "<timing>",
+                "error": {
+                  "location": {
+                    "column": 25,
+                    "file": "../..",
+                    "line": 8,
+                  },
+                  "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 1
+Received: 0
+
+   6 | describe('retries', () => {
+   7 |   it('passes on the second attempt', () => {
+>  8 |     expect(flakyRuns++).toBe(1);
+     |                         ^
+   9 |   });
+  10 |
+  11 |   it('fails every attempt', () => {
+",
+                },
+                "errors": [
+                  {
+                    "location": {
+                      "column": 25,
+                      "file": "../..",
+                      "line": 8,
+                    },
+                    "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 1
+Received: 0
+
+   6 | describe('retries', () => {
+   7 |   it('passes on the second attempt', () => {
+>  8 |     expect(flakyRuns++).toBe(1);
+     |                         ^
+   9 |   });
+  10 |
+  11 |   it('fails every attempt', () => {
+",
+                  },
+                ],
+                "startTime": "<timing>",
+                "status": "failed",
+                "stderr": [
+                  "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 1
+Received: 0",
+                ],
+                "stdout": [],
+                "steps": [],
+              },
+              {
+                "_s": "passed",
+                "attempt": 1,
+                "duration": "<timing>",
+                "errors": [],
+                "startTime": "<timing>",
+                "status": "passed",
+                "stderr": [],
+                "stdout": [],
+                "steps": [],
+              },
+            ],
+            "expectedStatus": "passed",
+            "isFlaky": true,
+            "location": {
+              "column": 1,
+              "file": "specs/retries.check.js",
+              "line": 1,
+            },
+            "retries": 2,
+            "state": "passed",
+            "testId": "e1698fa9e1e0038d",
+            "timeout": 0,
+            "title": [
+              "retries",
+              "passes on the second attempt",
             ],
           },
           {
