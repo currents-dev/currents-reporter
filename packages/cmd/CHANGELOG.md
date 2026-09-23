@@ -1,5 +1,13 @@
 # Changelog
 
+# [1.11.0-beta.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0-beta.0...%24%7Bnpm.name%7D-v1.11.0-beta.1) (2026-09-23)
+
+### Bug Fixes
+
+* count skipped tests once when merging a Detox rerun, omit an unknown Detox version ([40a619c](https://github.com/currents-dev/currents-reporter/commit/40a619cc7dc85df2217e37fd607f828a7ca44d15))
+* ignore a Detox manifest without a list of tests ([6fb380c](https://github.com/currents-dev/currents-reporter/commit/6fb380c9ebc2a21764d081d1aab77f6527da30e3))
+* read the steps of tests with hooks from a Detox trace ([f2a0d1e](https://github.com/currents-dev/currents-reporter/commit/f2a0d1ea39fcd8516c1bb38f415e6ec0618a77a5))
+
 # [1.11.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.10.0...%24%7Bnpm.name%7D-v1.11.0-beta.0) (2026-09-23)
 
 ### Bug Fixes
