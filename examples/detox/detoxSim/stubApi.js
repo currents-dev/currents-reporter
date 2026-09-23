@@ -63,7 +63,7 @@ const server = http.createServer(async (req, res) => {
 
     artifacts.forEach((artifact) =>
       console.log(
-        `[stub]   ${artifact.type.padEnd(10)} ${artifact.name.padEnd(24)} ${artifact.on}`
+        `[stub]   ${artifact.type.padEnd(10)} ${(artifact.name ?? artifact.path).padEnd(24)} ${artifact.on}`
       )
     );
 

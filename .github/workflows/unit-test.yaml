@@ -13,6 +13,11 @@ jobs:
     name: 'Unit Tests'
     runs-on: ubuntu-22.04
     container: mcr.microsoft.com/playwright:v1.28.1-focal
+    env:
+      CURRENTS_PROJECT_ID: ${{ vars.CURRENTS_PROJECT_ID }}
+      CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}
+      # One Currents run per workflow run, with a group per package.
+      CURRENTS_CI_BUILD_ID: reporter-unit-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,10 +36,36 @@ jobs:
 
       - name: Run Tests
         working-directory: ./packages/cmd
+        env:
+          CURRENTS_JUNIT_FILE: ${{ github.workspace }}/test-results/cmd-junit.xml
         run: |
           npm run test
 
       - name: Run Jest Reporter Tests
+        if: ${{ !cancelled() }}
         working-directory: ./packages/jest
+        env:
+          CURRENTS_REPORT_DIR: ${{ github.workspace }}/test-results/jest-report
         run: |
           npm run test
+
+      # The uploads use the CLI built from this commit. Pull requests from forks
+      # have no record key and skip them.
+      - name: Upload cmd Results to Currents
+        if: ${{ !cancelled() && env.CURRENTS_RECORD_KEY != '' && hashFiles('test-results/cmd-junit.xml') != '' }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node packages/cmd/dist/bin/index.js convert --input-format junit \
+            --input-file test-results/cmd-junit.xml --framework vitest \
+            --framework-version "$(node -p "require('vitest/package.json').version")" \
+            --output-dir test-results/cmd-report
+          node packages/cmd/dist/bin/index.js upload --report-dir test-results/cmd-report
+
+      # Runs where the Jest config is: upload lists the tests with a discovery
+      # run of Jest.
+      - name: Upload Jest Reporter Results to Currents
+        if: ${{ !cancelled() && env.CURRENTS_RECORD_KEY != '' && hashFiles('test-results/jest-report/config.json') != '' }}
+        working-directory: ./packages/jest
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node ../cmd/dist/bin/index.js upload --report-dir ../../test-results/jest-report
