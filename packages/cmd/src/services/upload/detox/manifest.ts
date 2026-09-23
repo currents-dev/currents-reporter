@@ -48,9 +48,16 @@ export async function readDetoxManifest(
   const filePath = join(reportDir, DETOX_MANIFEST_FILE);
 
   try {
-    const manifest = (await fs.readJson(filePath)) as DetoxManifest;
+    const manifest = await fs.readJson(filePath);
+    if (
+      typeof manifest?.artifactsRootDir !== 'string' ||
+      !Array.isArray(manifest?.tests)
+    ) {
+      debug('Unexpected Detox manifest contents at %s', filePath);
+      return undefined;
+    }
     debug('Detox manifest: %o', manifest);
-    return manifest;
+    return manifest as DetoxManifest;
   } catch {
     debug('No Detox manifest at %s', filePath);
     return undefined;

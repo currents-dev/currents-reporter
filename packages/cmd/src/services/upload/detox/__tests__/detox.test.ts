@@ -1,9 +1,10 @@
+import os from 'os';
 import fs from 'fs-extra';
 import { join } from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { InstanceReport } from '../../../../types';
 import { attachDetoxArtifacts } from '../collect';
-import { DetoxManifest } from '../manifest';
+import { DetoxManifest, readDetoxManifest } from '../manifest';
 import { getTestArtifactsDir } from '../paths';
 
 describe('getTestArtifactsDir', () => {
@@ -379,5 +380,25 @@ describe('attachDetoxArtifacts', () => {
     });
     expect(await fs.pathExists(join(reportDir, trace.path))).toBe(true);
     expect(attached.artifacts).toBe(4 + 1);
+  });
+});
+
+describe('readDetoxManifest', () => {
+  let reportDir: string;
+
+  beforeEach(async () => {
+    reportDir = await fs.mkdtemp(join(os.tmpdir(), 'detox-manifest-'));
+  });
+
+  afterEach(async () => {
+    await fs.remove(reportDir);
+  });
+
+  it('treats a manifest without a list of tests as absent', async () => {
+    await fs.writeJson(join(reportDir, 'detox.json'), {
+      artifactsRootDir: 'artifacts',
+    });
+
+    expect(await readDetoxManifest(reportDir)).toBeUndefined();
   });
 });
