@@ -406,13 +406,15 @@ export default class CustomReporter implements Reporter {
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
-    if (isPartialRun(this.globalConfig)) {
-      debug('Partial run - not writing the full test suite');
-    } else {
-      await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
-    }
-
     if (this.detoxSession) {
+      // Without this file `currents upload` lists the tests with a second Jest
+      // run, which for Detox boots a device and installs the app again.
+      if (isPartialRun(this.globalConfig)) {
+        debug('Partial run - not writing the full test suite');
+      } else {
+        await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
+      }
+
       await writeDetoxManifest(
         this.reportDir,
         this.detoxSession,

@@ -1,0 +1,285 @@
+{
+  "groupId": "checks",
+  "spec": "specs/retries.check.js",
+  "startTime": "2026-09-23T19:55:23.778Z",
+  "results": {
+    "stats": {
+      "suites": 1,
+      "tests": 5,
+      "passes": 3,
+      "pending": 0,
+      "skipped": 1,
+      "failures": 1,
+      "flaky": 2,
+      "wallClockStartedAt": "2026-09-23T19:55:23.778Z",
+      "wallClockEndedAt": "2026-09-23T19:55:23.837Z",
+      "wallClockDuration": 59
+    },
+    "tests": [
+      {
+        "_t": 1790193323825,
+        "testId": "e1698fa9e1e0038d",
+        "title": ["retries", "passes on the second attempt"],
+        "state": "passed",
+        "isFlaky": true,
+        "expectedStatus": "passed",
+        "timeout": 0,
+        "location": {
+          "column": 1,
+          "file": "specs/retries.check.js",
+          "line": 1
+        },
+        "retries": 2,
+        "attempts": [
+          {
+            "_s": "failed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.825Z",
+            "steps": [],
+            "duration": 2,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0"
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0\n\n   6 | describe('retries', () => {\n   7 |   it('passes on the second attempt', () => {\n>  8 |     expect(flakyRuns++).toBe(1);\n     |                         ^\n   9 |   });\n  10 |\n  11 |   it('fails every attempt', () => {\n",
+                "location": {
+                  "column": 25,
+                  "file": "../..",
+                  "line": 8
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 0\n\n   6 | describe('retries', () => {\n   7 |   it('passes on the second attempt', () => {\n>  8 |     expect(flakyRuns++).toBe(1);\n     |                         ^\n   9 |   });\n  10 |\n  11 |   it('fails every attempt', () => {\n",
+              "location": {
+                "column": 25,
+                "file": "../..",
+                "line": 8
+              }
+            }
+          },
+          {
+            "_s": "passed",
+            "attempt": 1,
+            "startTime": "2026-09-23T19:55:23.831Z",
+            "steps": [],
+            "duration": 0,
+            "status": "passed",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          }
+        ]
+      },
+      {
+        "_t": 1790193323828,
+        "testId": "53afd61f2490ceef",
+        "title": ["retries", "fails every attempt"],
+        "state": "failed",
+        "isFlaky": false,
+        "expectedStatus": "passed",
+        "timeout": 0,
+        "location": {
+          "column": 1,
+          "file": "specs/retries.check.js",
+          "line": 1
+        },
+        "retries": 3,
+        "attempts": [
+          {
+            "_s": "failed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.828Z",
+            "steps": [],
+            "duration": 2,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\""
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\"\n\n  10 |\n  11 |   it('fails every attempt', () => {\n> 12 |     expect('always').toBe('never');\n     |                      ^\n  13 |   });\n  14 |\n  15 |   it('shares a title', () => {\n",
+                "location": {
+                  "column": 22,
+                  "file": "../..",
+                  "line": 12
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\"\n\n  10 |\n  11 |   it('fails every attempt', () => {\n> 12 |     expect('always').toBe('never');\n     |                      ^\n  13 |   });\n  14 |\n  15 |   it('shares a title', () => {\n",
+              "location": {
+                "column": 22,
+                "file": "../..",
+                "line": 12
+              }
+            }
+          },
+          {
+            "_s": "failed",
+            "attempt": 1,
+            "startTime": "2026-09-23T19:55:23.831Z",
+            "steps": [],
+            "duration": 0,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\""
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\"\n\n  10 |\n  11 |   it('fails every attempt', () => {\n> 12 |     expect('always').toBe('never');\n     |                      ^\n  13 |   });\n  14 |\n  15 |   it('shares a title', () => {\n",
+                "location": {
+                  "column": 22,
+                  "file": "../..",
+                  "line": 12
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\"\n\n  10 |\n  11 |   it('fails every attempt', () => {\n> 12 |     expect('always').toBe('never');\n     |                      ^\n  13 |   });\n  14 |\n  15 |   it('shares a title', () => {\n",
+              "location": {
+                "column": 22,
+                "file": "../..",
+                "line": 12
+              }
+            }
+          },
+          {
+            "_s": "failed",
+            "attempt": 2,
+            "startTime": "2026-09-23T19:55:23.831Z",
+            "steps": [],
+            "duration": 0,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\""
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\"\n\n  10 |\n  11 |   it('fails every attempt', () => {\n> 12 |     expect('always').toBe('never');\n     |                      ^\n  13 |   });\n  14 |\n  15 |   it('shares a title', () => {\n",
+                "location": {
+                  "column": 22,
+                  "file": "../..",
+                  "line": 12
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"never\"\nReceived: \"always\"\n\n  10 |\n  11 |   it('fails every attempt', () => {\n> 12 |     expect('always').toBe('never');\n     |                      ^\n  13 |   });\n  14 |\n  15 |   it('shares a title', () => {\n",
+              "location": {
+                "column": 22,
+                "file": "../..",
+                "line": 12
+              }
+            }
+          }
+        ]
+      },
+      {
+        "_t": 1790193323830,
+        "testId": "dbb3c7dd63141ad6",
+        "title": ["retries", "shares a title"],
+        "state": "passed",
+        "isFlaky": true,
+        "expectedStatus": "passed",
+        "timeout": 0,
+        "location": {
+          "column": 1,
+          "file": "specs/retries.check.js",
+          "line": 1
+        },
+        "retries": 4,
+        "attempts": [
+          {
+            "_s": "failed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.830Z",
+            "steps": [],
+            "duration": 1,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 0"
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 0\n\n  14 |\n  15 |   it('shares a title', () => {\n> 16 |     expect(sameTitleRuns++).toBe(2);\n     |                             ^\n  17 |   });\n  18 |\n  19 |   it.skip('shares a title', () => {});\n",
+                "location": {
+                  "column": 29,
+                  "file": "../..",
+                  "line": 16
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 0\n\n  14 |\n  15 |   it('shares a title', () => {\n> 16 |     expect(sameTitleRuns++).toBe(2);\n     |                             ^\n  17 |   });\n  18 |\n  19 |   it.skip('shares a title', () => {});\n",
+              "location": {
+                "column": 29,
+                "file": "../..",
+                "line": 16
+              }
+            }
+          },
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.831Z",
+            "steps": [],
+            "duration": 0,
+            "status": "passed",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          },
+          {
+            "_s": "failed",
+            "attempt": 1,
+            "startTime": "2026-09-23T19:55:23.831Z",
+            "steps": [],
+            "duration": 0,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1"
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n\n  14 |\n  15 |   it('shares a title', () => {\n> 16 |     expect(sameTitleRuns++).toBe(2);\n     |                             ^\n  17 |   });\n  18 |\n  19 |   it.skip('shares a title', () => {});\n",
+                "location": {
+                  "column": 29,
+                  "file": "../..",
+                  "line": 16
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n\n  14 |\n  15 |   it('shares a title', () => {\n> 16 |     expect(sameTitleRuns++).toBe(2);\n     |                             ^\n  17 |   });\n  18 |\n  19 |   it.skip('shares a title', () => {});\n",
+              "location": {
+                "column": 29,
+                "file": "../..",
+                "line": 16
+              }
+            }
+          },
+          {
+            "_s": "passed",
+            "attempt": 2,
+            "startTime": "2026-09-23T19:55:23.832Z",
+            "steps": [],
+            "duration": 0,
+            "status": "passed",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          }
+        ]
+      }
+    ]
+  }
+}

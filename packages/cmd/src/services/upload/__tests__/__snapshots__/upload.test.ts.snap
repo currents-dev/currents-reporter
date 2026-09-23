@@ -1,0 +1,986 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`currents upload > sends the results and uploads their artifacts 1`] = `
+{
+  "runRequests": [
+    {
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {},
+        "type": "jest",
+        "version": "29.7.0",
+      },
+      "fullTestSuite": [
+        {
+          "name": "checks",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "specs/retries.check.js",
+              "tags": [],
+              "testId": "e1698fa9e1e0038d",
+              "title": [
+                "retries",
+                "passes on the second attempt",
+              ],
+            },
+            {
+              "spec": "specs/retries.check.js",
+              "tags": [],
+              "testId": "53afd61f2490ceef",
+              "title": [
+                "retries",
+                "fails every attempt",
+              ],
+            },
+            {
+              "spec": "specs/retries.check.js",
+              "tags": [],
+              "testId": "dbb3c7dd63141ad6",
+              "title": [
+                "retries",
+                "shares a title",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "6dbd245bf96beef6",
+              "title": [
+                "basic",
+                "passes",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "2bb7496eae9f08f5",
+              "title": [
+                "basic",
+                "fails",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "df308ec9470dde93",
+              "title": [
+                "basic",
+                "is a todo",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "7873ab73aff24323",
+              "title": [
+                "basic",
+                "nested",
+                "carries a tag @smoke",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "9cbfe481a2918315",
+              "title": [
+                "basic",
+                "is skipped",
+              ],
+            },
+          ],
+        },
+        {
+          "name": "probes",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "api/api.probe.js",
+              "tags": [],
+              "testId": "6d0a1f09efe42b93",
+              "title": [
+                "responds",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "checks",
+      "instances": [],
+    },
+    {
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {},
+        "type": "jest",
+        "version": "29.7.0",
+      },
+      "fullTestSuite": [],
+      "group": "checks",
+      "instances": [
+        {
+          "groupId": "checks",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 2,
+              "passes": 3,
+              "pending": 0,
+              "skipped": 1,
+              "suites": 1,
+              "tests": 5,
+              "wallClockDuration": 59,
+              "wallClockEndedAt": "2026-09-23T19:55:23.837Z",
+              "wallClockStartedAt": "2026-09-23T19:55:23.778Z",
+            },
+            "tests": [
+              {
+                "_t": 1790193323825,
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 2,
+                    "error": {
+                      "location": {
+                        "column": 25,
+                        "file": "../..",
+                        "line": 8,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 1
+Received: 0
+
+   6 | describe('retries', () => {
+   7 |   it('passes on the second attempt', () => {
+>  8 |     expect(flakyRuns++).toBe(1);
+     |                         ^
+   9 |   });
+  10 |
+  11 |   it('fails every attempt', () => {
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 25,
+                          "file": "../..",
+                          "line": 8,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 1
+Received: 0
+
+   6 | describe('retries', () => {
+   7 |   it('passes on the second attempt', () => {
+>  8 |     expect(flakyRuns++).toBe(1);
+     |                         ^
+   9 |   });
+  10 |
+  11 |   it('fails every attempt', () => {
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.825Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 1
+Received: 0",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                  {
+                    "_s": "passed",
+                    "attempt": 1,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.831Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": true,
+                "location": {
+                  "column": 1,
+                  "file": "specs/retries.check.js",
+                  "line": 1,
+                },
+                "retries": 2,
+                "state": "passed",
+                "testId": "e1698fa9e1e0038d",
+                "timeout": 0,
+                "title": [
+                  "retries",
+                  "passes on the second attempt",
+                ],
+              },
+              {
+                "_t": 1790193323828,
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 2,
+                    "error": {
+                      "location": {
+                        "column": 22,
+                        "file": "../..",
+                        "line": 12,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"
+
+  10 |
+  11 |   it('fails every attempt', () => {
+> 12 |     expect('always').toBe('never');
+     |                      ^
+  13 |   });
+  14 |
+  15 |   it('shares a title', () => {
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 22,
+                          "file": "../..",
+                          "line": 12,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"
+
+  10 |
+  11 |   it('fails every attempt', () => {
+> 12 |     expect('always').toBe('never');
+     |                      ^
+  13 |   });
+  14 |
+  15 |   it('shares a title', () => {
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.828Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                  {
+                    "_s": "failed",
+                    "attempt": 1,
+                    "duration": 0,
+                    "error": {
+                      "location": {
+                        "column": 22,
+                        "file": "../..",
+                        "line": 12,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"
+
+  10 |
+  11 |   it('fails every attempt', () => {
+> 12 |     expect('always').toBe('never');
+     |                      ^
+  13 |   });
+  14 |
+  15 |   it('shares a title', () => {
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 22,
+                          "file": "../..",
+                          "line": 12,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"
+
+  10 |
+  11 |   it('fails every attempt', () => {
+> 12 |     expect('always').toBe('never');
+     |                      ^
+  13 |   });
+  14 |
+  15 |   it('shares a title', () => {
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.831Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                  {
+                    "_s": "failed",
+                    "attempt": 2,
+                    "duration": 0,
+                    "error": {
+                      "location": {
+                        "column": 22,
+                        "file": "../..",
+                        "line": 12,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"
+
+  10 |
+  11 |   it('fails every attempt', () => {
+> 12 |     expect('always').toBe('never');
+     |                      ^
+  13 |   });
+  14 |
+  15 |   it('shares a title', () => {
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 22,
+                          "file": "../..",
+                          "line": 12,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"
+
+  10 |
+  11 |   it('fails every attempt', () => {
+> 12 |     expect('always').toBe('never');
+     |                      ^
+  13 |   });
+  14 |
+  15 |   it('shares a title', () => {
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.831Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "never"
+Received: "always"",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "specs/retries.check.js",
+                  "line": 1,
+                },
+                "retries": 3,
+                "state": "failed",
+                "testId": "53afd61f2490ceef",
+                "timeout": 0,
+                "title": [
+                  "retries",
+                  "fails every attempt",
+                ],
+              },
+              {
+                "_t": 1790193323830,
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 1,
+                    "error": {
+                      "location": {
+                        "column": 29,
+                        "file": "../..",
+                        "line": 16,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 0
+
+  14 |
+  15 |   it('shares a title', () => {
+> 16 |     expect(sameTitleRuns++).toBe(2);
+     |                             ^
+  17 |   });
+  18 |
+  19 |   it.skip('shares a title', () => {});
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 29,
+                          "file": "../..",
+                          "line": 16,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 0
+
+  14 |
+  15 |   it('shares a title', () => {
+> 16 |     expect(sameTitleRuns++).toBe(2);
+     |                             ^
+  17 |   });
+  18 |
+  19 |   it.skip('shares a title', () => {});
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.830Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 0",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                  {
+                    "_s": "passed",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.831Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                  {
+                    "_s": "failed",
+                    "attempt": 1,
+                    "duration": 0,
+                    "error": {
+                      "location": {
+                        "column": 29,
+                        "file": "../..",
+                        "line": 16,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 1
+
+  14 |
+  15 |   it('shares a title', () => {
+> 16 |     expect(sameTitleRuns++).toBe(2);
+     |                             ^
+  17 |   });
+  18 |
+  19 |   it.skip('shares a title', () => {});
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 29,
+                          "file": "../..",
+                          "line": 16,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 1
+
+  14 |
+  15 |   it('shares a title', () => {
+> 16 |     expect(sameTitleRuns++).toBe(2);
+     |                             ^
+  17 |   });
+  18 |
+  19 |   it.skip('shares a title', () => {});
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.831Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 1",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                  {
+                    "_s": "passed",
+                    "attempt": 2,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.832Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": true,
+                "location": {
+                  "column": 1,
+                  "file": "specs/retries.check.js",
+                  "line": 1,
+                },
+                "retries": 4,
+                "state": "passed",
+                "testId": "dbb3c7dd63141ad6",
+                "timeout": 0,
+                "title": [
+                  "retries",
+                  "shares a title",
+                ],
+              },
+            ],
+          },
+          "spec": "specs/retries.check.js",
+          "startTime": "2026-09-23T19:55:23.778Z",
+        },
+        {
+          "groupId": "checks",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 0,
+              "passes": 2,
+              "pending": 0,
+              "skipped": 2,
+              "suites": 1,
+              "tests": 5,
+              "wallClockDuration": 10,
+              "wallClockEndedAt": "2026-09-23T19:55:23.857Z",
+              "wallClockStartedAt": "2026-09-23T19:55:23.847Z",
+            },
+            "tests": [
+              {
+                "_t": 1790193323856,
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.856Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "specs/basic.check.js",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "passed",
+                "testId": "6dbd245bf96beef6",
+                "timeout": 0,
+                "title": [
+                  "basic",
+                  "passes",
+                ],
+              },
+              {
+                "_t": 1790193323856,
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "artifacts": [
+                      {
+                        "contentType": "image/png",
+                        "path": "artifacts/basic-fails.png",
+                        "type": "screenshot",
+                      },
+                    ],
+                    "attempt": 0,
+                    "duration": 0,
+                    "error": {
+                      "location": {
+                        "column": 15,
+                        "file": "../..",
+                        "line": 7,
+                      },
+                      "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 1
+
+   5 |
+   6 |   it('fails', () => {
+>  7 |     expect(1).toBe(2);
+     |               ^
+   8 |   });
+   9 |
+  10 |   it.skip('is skipped', () => {});
+",
+                    },
+                    "errors": [
+                      {
+                        "location": {
+                          "column": 15,
+                          "file": "../..",
+                          "line": 7,
+                        },
+                        "message": "Error: Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 1
+
+   5 |
+   6 |   it('fails', () => {
+>  7 |     expect(1).toBe(2);
+     |               ^
+   8 |   });
+   9 |
+  10 |   it.skip('is skipped', () => {});
+",
+                      },
+                    ],
+                    "startTime": "2026-09-23T19:55:23.856Z",
+                    "status": "failed",
+                    "stderr": [
+                      "Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 2
+Received: 1",
+                    ],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "specs/basic.check.js",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "failed",
+                "testId": "2bb7496eae9f08f5",
+                "timeout": 0,
+                "title": [
+                  "basic",
+                  "fails",
+                ],
+              },
+              {
+                "_t": 1790193323847,
+                "attempts": [
+                  {
+                    "_s": "pending",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.847Z",
+                    "status": "skipped",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "skipped",
+                "isFlaky": false,
+                "location": {
+                  "column": 6,
+                  "file": "specs/basic.check.js",
+                  "line": 12,
+                },
+                "retries": 1,
+                "state": "pending",
+                "testId": "df308ec9470dde93",
+                "timeout": 0,
+                "title": [
+                  "basic",
+                  "is a todo",
+                ],
+              },
+              {
+                "_t": 1790193323857,
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.857Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "specs/basic.check.js",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "passed",
+                "testId": "7873ab73aff24323",
+                "timeout": 0,
+                "title": [
+                  "basic",
+                  "nested",
+                  "carries a tag @smoke",
+                ],
+              },
+              {
+                "_t": 1790193323847,
+                "attempts": [
+                  {
+                    "_s": "pending",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.847Z",
+                    "status": "skipped",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "skipped",
+                "isFlaky": false,
+                "location": {
+                  "column": 6,
+                  "file": "specs/basic.check.js",
+                  "line": 10,
+                },
+                "retries": 1,
+                "state": "pending",
+                "testId": "9cbfe481a2918315",
+                "timeout": 0,
+                "title": [
+                  "basic",
+                  "is skipped",
+                ],
+              },
+            ],
+          },
+          "spec": "specs/basic.check.js",
+          "startTime": "2026-09-23T19:55:23.847Z",
+        },
+      ],
+    },
+    {
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {},
+        "type": "jest",
+        "version": "29.7.0",
+      },
+      "fullTestSuite": [
+        {
+          "name": "checks",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "specs/retries.check.js",
+              "tags": [],
+              "testId": "e1698fa9e1e0038d",
+              "title": [
+                "retries",
+                "passes on the second attempt",
+              ],
+            },
+            {
+              "spec": "specs/retries.check.js",
+              "tags": [],
+              "testId": "53afd61f2490ceef",
+              "title": [
+                "retries",
+                "fails every attempt",
+              ],
+            },
+            {
+              "spec": "specs/retries.check.js",
+              "tags": [],
+              "testId": "dbb3c7dd63141ad6",
+              "title": [
+                "retries",
+                "shares a title",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "6dbd245bf96beef6",
+              "title": [
+                "basic",
+                "passes",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "2bb7496eae9f08f5",
+              "title": [
+                "basic",
+                "fails",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "df308ec9470dde93",
+              "title": [
+                "basic",
+                "is a todo",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "7873ab73aff24323",
+              "title": [
+                "basic",
+                "nested",
+                "carries a tag @smoke",
+              ],
+            },
+            {
+              "spec": "specs/basic.check.js",
+              "tags": [],
+              "testId": "9cbfe481a2918315",
+              "title": [
+                "basic",
+                "is skipped",
+              ],
+            },
+          ],
+        },
+        {
+          "name": "probes",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "api/api.probe.js",
+              "tags": [],
+              "testId": "6d0a1f09efe42b93",
+              "title": [
+                "responds",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "probes",
+      "instances": [],
+    },
+    {
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {},
+        "type": "jest",
+        "version": "29.7.0",
+      },
+      "fullTestSuite": [],
+      "group": "probes",
+      "instances": [
+        {
+          "groupId": "probes",
+          "results": {
+            "stats": {
+              "failures": 0,
+              "flaky": 0,
+              "passes": 1,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 1,
+              "wallClockDuration": 14,
+              "wallClockEndedAt": "2026-09-23T19:55:23.873Z",
+              "wallClockStartedAt": "2026-09-23T19:55:23.859Z",
+            },
+            "tests": [
+              {
+                "_t": 1790193323872,
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-09-23T19:55:23.872Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "api/api.probe.js",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "passed",
+                "testId": "6d0a1f09efe42b93",
+                "timeout": 0,
+                "title": [
+                  "responds",
+                ],
+              },
+            ],
+          },
+          "spec": "api/api.probe.js",
+          "startTime": "2026-09-23T19:55:23.859Z",
+        },
+      ],
+    },
+  ],
+  "uploads": [
+    {
+      "bytes": 3,
+      "contentType": "image/png",
+      "path": "artifacts/basic-fails.png",
+    },
+  ],
+}
+`;

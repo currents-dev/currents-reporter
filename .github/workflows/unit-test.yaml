@@ -24,7 +24,17 @@ jobs:
         run: |
           npm ci
 
+      # The upload and reporter tests run the built packages.
+      - name: Build
+        run: |
+          npx turbo run build --filter=@currents/cmd --filter=@currents/jest
+
       - name: Run Tests
         working-directory: ./packages/cmd
+        run: |
+          npm run test
+
+      - name: Run Jest Reporter Tests
+        working-directory: ./packages/jest
         run: |
           npm run test
