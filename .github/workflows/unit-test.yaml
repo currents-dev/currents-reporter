@@ -13,6 +13,11 @@ jobs:
     name: 'Unit Tests'
     runs-on: ubuntu-22.04
     container: mcr.microsoft.com/playwright:v1.28.1-focal
+    env:
+      CURRENTS_PROJECT_ID: ${{ vars.CURRENTS_PROJECT_ID }}
+      HAS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY != '' }}
+      # One Currents run per workflow run, with a group per package.
+      CURRENTS_CI_BUILD_ID: reporter-unit-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,7 +29,72 @@ jobs:
         run: |
           npm ci
 
+      # The upload and reporter tests run the built packages.
+      - name: Build
+        run: |
+          npx turbo run build --filter=@currents/cmd --filter=@currents/jest
+
       - name: Run Tests
         working-directory: ./packages/cmd
+        env:
+          CURRENTS_JUNIT_FILE: ${{ github.workspace }}/test-results/cmd-junit.xml
         run: |
           npm run test
+
+      - name: Run Jest Reporter Tests
+        if: ${{ !cancelled() }}
+        working-directory: ./packages/jest
+        env:
+          CURRENTS_REPORT_DIR: ${{ github.workspace }}/test-results/jest-report
+        run: |
+          npm run test
+
+      # On pull requests the tests run on a merge commit made by GitHub, which
+      # Currents would show as "Merge <sha> into <sha>". The CLI takes the
+      # commit from COMMIT_INFO_* before git, so the uploads record the last
+      # commit of the pull request instead.
+      - name: Use the Pull Request Commit for Currents
+        if: ${{ !cancelled() && env.HAS_RECORD_KEY == 'true' && github.event_name == 'pull_request' }}
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin "$HEAD_SHA"
+          # A random delimiter: a commit message line equal to a fixed one would end the
+          # value early and add the lines after it as variables.
+          delimiter="EOF_$(openssl rand -hex 16)"
+          {
+            echo "COMMIT_INFO_SHA=$HEAD_SHA"
+            echo "COMMIT_INFO_BRANCH=$HEAD_REF"
+            echo "COMMIT_INFO_AUTHOR=$(git log -1 --format=%an "$HEAD_SHA")"
+            echo "COMMIT_INFO_EMAIL=$(git log -1 --format=%ae "$HEAD_SHA")"
+            echo "COMMIT_INFO_MESSAGE<<$delimiter"
+            git log -1 --format=%B "$HEAD_SHA"
+            echo "$delimiter"
+          } >> "$GITHUB_ENV"
+
+      # The uploads use the CLI built from this commit. Pull requests from forks
+      # have no record key and skip them.
+      - name: Upload cmd Results to Currents
+        if: ${{ !cancelled() && env.HAS_RECORD_KEY == 'true' && hashFiles('test-results/cmd-junit.xml') != '' }}
+        env:
+          CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node packages/cmd/dist/bin/index.js convert --input-format junit \
+            --input-file test-results/cmd-junit.xml --framework vitest \
+            --framework-version "$(node -p "require('vitest/package.json').version")" \
+            --output-dir test-results/cmd-report
+          node packages/cmd/dist/bin/index.js upload --report-dir test-results/cmd-report
+
+      # Runs where the Jest config is: upload lists the tests with a discovery
+      # run of Jest.
+      - name: Upload Jest Reporter Results to Currents
+        if: ${{ !cancelled() && env.HAS_RECORD_KEY == 'true' && hashFiles('test-results/jest-report/config.json') != '' }}
+        working-directory: ./packages/jest
+        env:
+          CURRENTS_RECORD_KEY: ${{ secrets.CURRENTS_RECORD_KEY }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node ../cmd/dist/bin/index.js upload --report-dir ../../test-results/jest-report

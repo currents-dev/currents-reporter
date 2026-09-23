@@ -10,8 +10,10 @@ import type {
 } from '@jest/reporters';
 import { Circus } from '@jest/types';
 
-import { join } from 'path';
+import { basename, join } from 'path';
 import {
+  DetoxManifestTest,
+  DetoxSession,
   Deferred,
   createFolder,
   createUniqueFolder,
@@ -25,11 +27,20 @@ import {
   getTestCaseFullTitle,
   getTestCaseId,
   getTestCaseStatus,
+  FullTestSuite,
+  getDetoxSession,
   getTestRunnerStatus,
   isTestFlaky,
   jestStatusFromInvocations,
+  getTestTags,
+  isPartialRun,
+  mergeInstanceReport,
+  readInstanceReport,
   testToSpecName,
+  withDefaultProjectName,
+  writeDetoxManifest,
   writeFileAsync,
+  writeFullTestSuite,
 } from './lib';
 import { getReportConfig } from './lib/getReportConfig';
 import { info } from './logger';
@@ -66,6 +77,8 @@ export default class CustomReporter implements Reporter {
   private projectBySpecMap: Record<string, string> = {};
   private specsCount = 0;
   private processedSpecsCount = 0;
+  private detoxSession?: DetoxSession;
+  private detoxTests: DetoxManifestTest[] = [];
 
   // Deferred promises for various operations
   private reportDirDeferred = new Deferred<void>();
@@ -88,18 +101,20 @@ export default class CustomReporter implements Reporter {
 
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
+    this.detoxSession = await getDetoxSession();
+
     const envReportDir = process.env.CURRENTS_REPORT_DIR?.trim();
     const reportDirOption = envReportDir || this.options?.reportDir;
     this.reportDir = reportDirOption
       ? await createFolder(reportDirOption)
-      : await createUniqueFolder(this.rootDir, '.currents');
+      : await this.createDefaultReportDir();
 
     info('[currents]: Run started');
     info('[currents]: Report directory is set to - %s', this.reportDir);
 
     this.instancesDir = await createFolder(join(this.reportDir, 'instances'));
 
-    const reportConfig = getReportConfig(this.globalConfig);
+    const reportConfig = getReportConfig(this.globalConfig, this.detoxSession);
     debug('Report config:', reportConfig);
 
     await writeFileAsync(
@@ -282,6 +297,12 @@ export default class CustomReporter implements Reporter {
 
           const jestStatus = jestStatusFromInvocations(testCase.result);
 
+          if (this.detoxSession) {
+            this.detoxTests.push(
+              getDetoxManifestTest(testCase, this.detoxSession)
+            );
+          }
+
           return {
             _t: testCase.timestamps[0] ?? testResult.perfStats.start,
             testId: testCase.id,
@@ -365,10 +386,14 @@ export default class CustomReporter implements Reporter {
       result
     );
 
+    const instanceFileName = `${generateShortHash(
+      this.specInfo[specKey].specName
+    )}.json`;
+
     await writeFileAsync(
       this.instancesDir,
-      `${generateShortHash(this.specInfo[specKey].specName)}.json`,
-      JSON.stringify(result)
+      instanceFileName,
+      JSON.stringify(await this.withPreviousAttempts(instanceFileName, result))
     );
     this.processedSpecsCount += 1;
     // info(
@@ -381,7 +406,96 @@ export default class CustomReporter implements Reporter {
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
+    if (this.detoxSession) {
+      // Without this file `currents upload` lists the tests with a second Jest
+      // run, which for Detox boots a device and installs the app again.
+      if (isPartialRun(this.globalConfig)) {
+        debug('Partial run - not writing the full test suite');
+      } else {
+        await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
+      }
+
+      await writeDetoxManifest(
+        this.reportDir,
+        this.detoxSession,
+        this.detoxTests
+      );
+    }
+
     info('[currents]: Run completed');
+  }
+
+  /**
+   * `detox test --retries` starts a Jest process for every rerun, so a Detox
+   * run gets the directory of its session - named like the session's artifacts
+   * root - which every rerun writes to.
+   */
+  private createDefaultReportDir() {
+    if (this.detoxSession) {
+      return createFolder(
+        join(
+          this.rootDir,
+          '.currents',
+          basename(this.detoxSession.artifactsRootDir)
+        )
+      );
+    }
+
+    return createUniqueFolder(this.rootDir, '.currents');
+  }
+
+  /**
+   * Only a Detox rerun writes a spec a previous Jest process already reported;
+   * a first run overwrites whatever an earlier, unrelated run left behind.
+   */
+  private async withPreviousAttempts(
+    instanceFileName: string,
+    result: InstanceReport
+  ): Promise<InstanceReport> {
+    if (!this.detoxSession?.testSessionIndex) {
+      return result;
+    }
+
+    const previous = await readInstanceReport<InstanceReport>(
+      join(this.instancesDir, instanceFileName)
+    );
+
+    if (!previous) {
+      return result;
+    }
+
+    debug('Merging the results of Detox rerun %d', {
+      session: this.detoxSession.testSessionIndex,
+    });
+
+    return mergeInstanceReport(previous, result);
+  }
+
+  private getFullTestSuite(): FullTestSuite {
+    const projects: Record<string, FullTestSuite[number]> = {};
+    const configIds = new Set<string>();
+
+    Object.values(this.specInfo).forEach(
+      ({ projectId, specName, testCaseList }) => {
+        projects[projectId] = projects[projectId] ?? {
+          name: projectId,
+          tags: [],
+          tests: [],
+        };
+
+        Object.values(testCaseList).forEach((testCase) => {
+          configIds.add(testCase.config.id);
+          projects[projectId].tests.push({
+            spec: specName,
+            testId: testCase.id,
+            title: testCase.title,
+            tags: getTestTags(testCase.title),
+          });
+        });
+      }
+    );
+
+    return withDefaultProjectName(Object.values(projects), [...configIds]);
   }
 }
 
@@ -391,4 +505,25 @@ function getSpecKey(projectId: string, specName: string) {
 
 function getTestCaseKey(projectId: string, specName: string, testId: string) {
   return `${projectId}:${specName}:${testId}`;
+}
+
+/**
+ * Detox names an artifact directory after the test's full name, its status and
+ * its invocation count, so those are recorded per attempt for `currents upload`
+ * to resolve the directories once Detox has closed the files.
+ */
+function getDetoxManifestTest(
+  testCase: TestCase,
+  session: DetoxSession
+): DetoxManifestTest {
+  return {
+    testId: testCase.id,
+    fullName: testCase.result[0]?.fullName ?? testCase.title.join(' '),
+    attempts: testCase.result.map((result) => ({
+      attempt: getAttemptNumber(result),
+      session: session.testSessionIndex,
+      invocations: result.invocations ?? 1,
+      status: result.status,
+    })),
+  };
 }

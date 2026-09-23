@@ -1,0 +1,68 @@
+[
+  {
+    "name": "checks",
+    "tags": [],
+    "tests": [
+      {
+        "spec": "specs/retries.check.js",
+        "testId": "e1698fa9e1e0038d",
+        "title": ["retries", "passes on the second attempt"],
+        "tags": []
+      },
+      {
+        "spec": "specs/retries.check.js",
+        "testId": "53afd61f2490ceef",
+        "title": ["retries", "fails every attempt"],
+        "tags": []
+      },
+      {
+        "spec": "specs/retries.check.js",
+        "testId": "dbb3c7dd63141ad6",
+        "title": ["retries", "shares a title"],
+        "tags": []
+      },
+      {
+        "spec": "specs/basic.check.js",
+        "testId": "6dbd245bf96beef6",
+        "title": ["basic", "passes"],
+        "tags": []
+      },
+      {
+        "spec": "specs/basic.check.js",
+        "testId": "2bb7496eae9f08f5",
+        "title": ["basic", "fails"],
+        "tags": []
+      },
+      {
+        "spec": "specs/basic.check.js",
+        "testId": "df308ec9470dde93",
+        "title": ["basic", "is a todo"],
+        "tags": []
+      },
+      {
+        "spec": "specs/basic.check.js",
+        "testId": "7873ab73aff24323",
+        "title": ["basic", "nested", "carries a tag @smoke"],
+        "tags": []
+      },
+      {
+        "spec": "specs/basic.check.js",
+        "testId": "9cbfe481a2918315",
+        "title": ["basic", "is skipped"],
+        "tags": []
+      }
+    ]
+  },
+  {
+    "name": "probes",
+    "tags": [],
+    "tests": [
+      {
+        "spec": "api/api.probe.js",
+        "testId": "6d0a1f09efe42b93",
+        "title": ["responds"],
+        "tags": []
+      }
+    ]
+  }
+]

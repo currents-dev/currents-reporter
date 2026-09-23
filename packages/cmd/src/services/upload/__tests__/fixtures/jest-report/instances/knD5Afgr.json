@@ -1,0 +1,187 @@
+{
+  "groupId": "checks",
+  "spec": "specs/basic.check.js",
+  "startTime": "2026-09-23T19:55:23.847Z",
+  "results": {
+    "stats": {
+      "suites": 1,
+      "tests": 5,
+      "passes": 2,
+      "pending": 0,
+      "skipped": 2,
+      "failures": 1,
+      "flaky": 0,
+      "wallClockStartedAt": "2026-09-23T19:55:23.847Z",
+      "wallClockEndedAt": "2026-09-23T19:55:23.857Z",
+      "wallClockDuration": 10
+    },
+    "tests": [
+      {
+        "_t": 1790193323856,
+        "testId": "6dbd245bf96beef6",
+        "title": ["basic", "passes"],
+        "state": "passed",
+        "isFlaky": false,
+        "expectedStatus": "passed",
+        "timeout": 0,
+        "location": {
+          "column": 1,
+          "file": "specs/basic.check.js",
+          "line": 1
+        },
+        "retries": 1,
+        "attempts": [
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.856Z",
+            "steps": [],
+            "duration": 0,
+            "status": "passed",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          }
+        ]
+      },
+      {
+        "_t": 1790193323856,
+        "testId": "2bb7496eae9f08f5",
+        "title": ["basic", "fails"],
+        "state": "failed",
+        "isFlaky": false,
+        "expectedStatus": "passed",
+        "timeout": 0,
+        "location": {
+          "column": 1,
+          "file": "specs/basic.check.js",
+          "line": 1
+        },
+        "retries": 1,
+        "attempts": [
+          {
+            "_s": "failed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.856Z",
+            "steps": [],
+            "duration": 0,
+            "status": "failed",
+            "stdout": [],
+            "stderr": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1"
+            ],
+            "errors": [
+              {
+                "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n\n   5 |\n   6 |   it('fails', () => {\n>  7 |     expect(1).toBe(2);\n     |               ^\n   8 |   });\n   9 |\n  10 |   it.skip('is skipped', () => {});\n",
+                "location": {
+                  "column": 15,
+                  "file": "../..",
+                  "line": 7
+                }
+              }
+            ],
+            "error": {
+              "message": "Error: Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n\n   5 |\n   6 |   it('fails', () => {\n>  7 |     expect(1).toBe(2);\n     |               ^\n   8 |   });\n   9 |\n  10 |   it.skip('is skipped', () => {});\n",
+              "location": {
+                "column": 15,
+                "file": "../..",
+                "line": 7
+              }
+            },
+            "artifacts": [
+              {
+                "path": "artifacts/basic-fails.png",
+                "type": "screenshot",
+                "contentType": "image/png"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "_t": 1790193323847,
+        "testId": "df308ec9470dde93",
+        "title": ["basic", "is a todo"],
+        "state": "pending",
+        "isFlaky": false,
+        "expectedStatus": "skipped",
+        "timeout": 0,
+        "location": {
+          "column": 6,
+          "file": "specs/basic.check.js",
+          "line": 12
+        },
+        "retries": 1,
+        "attempts": [
+          {
+            "_s": "pending",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.847Z",
+            "steps": [],
+            "duration": 0,
+            "status": "skipped",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          }
+        ]
+      },
+      {
+        "_t": 1790193323857,
+        "testId": "7873ab73aff24323",
+        "title": ["basic", "nested", "carries a tag @smoke"],
+        "state": "passed",
+        "isFlaky": false,
+        "expectedStatus": "passed",
+        "timeout": 0,
+        "location": {
+          "column": 1,
+          "file": "specs/basic.check.js",
+          "line": 1
+        },
+        "retries": 1,
+        "attempts": [
+          {
+            "_s": "passed",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.857Z",
+            "steps": [],
+            "duration": 0,
+            "status": "passed",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          }
+        ]
+      },
+      {
+        "_t": 1790193323847,
+        "testId": "9cbfe481a2918315",
+        "title": ["basic", "is skipped"],
+        "state": "pending",
+        "isFlaky": false,
+        "expectedStatus": "skipped",
+        "timeout": 0,
+        "location": {
+          "column": 6,
+          "file": "specs/basic.check.js",
+          "line": 10
+        },
+        "retries": 1,
+        "attempts": [
+          {
+            "_s": "pending",
+            "attempt": 0,
+            "startTime": "2026-09-23T19:55:23.847Z",
+            "steps": [],
+            "duration": 0,
+            "status": "skipped",
+            "stdout": [],
+            "stderr": [],
+            "errors": []
+          }
+        ]
+      }
+    ]
+  }
+}

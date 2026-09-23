@@ -47,3 +47,14 @@ export async function writeFileAsync(
     throw err;
   }
 }
+
+export async function readInstanceReport<T>(
+  filePath: string
+): Promise<T | undefined> {
+  try {
+    return await fs.readJson(filePath);
+  } catch {
+    debug('No previous report at %s', filePath);
+    return undefined;
+  }
+}

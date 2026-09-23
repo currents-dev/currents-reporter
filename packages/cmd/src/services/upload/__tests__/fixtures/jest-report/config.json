@@ -1,0 +1,11 @@
+{
+  "framework": "jest",
+  "frameworkVersion": "29.7.0",
+  "cliArgs": {
+    "options": {},
+    "args": []
+  },
+  "frameworkConfig": {
+    "rootDir": "<rootDir>"
+  }
+}

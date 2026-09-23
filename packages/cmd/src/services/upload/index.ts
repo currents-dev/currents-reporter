@@ -17,6 +17,7 @@ import {
 } from '../../api';
 import { getCurrentsConfig } from '../../config/upload';
 import { InstanceReport } from '../../types';
+import { attachDetoxArtifacts, readDetoxManifest } from './detox';
 import { FullTestSuite, createScanner } from './discovery';
 import {
   checkPathExists,
@@ -121,6 +122,21 @@ export async function handleCurrentsReport() {
       instancesByGroup[report.groupId] = [];
     }
     instancesByGroup[report.groupId].push(report);
+  }
+
+  const detoxManifest = await readDetoxManifest(reportOptions.reportDir);
+  if (detoxManifest) {
+    const attached = await attachDetoxArtifacts({
+      instances: Object.values(instancesByGroup).flat(),
+      reportDir: reportOptions.reportDir,
+      manifest: detoxManifest,
+    });
+
+    info(
+      '[currents] Attached %d Detox artifacts and %d steps',
+      attached.artifacts,
+      attached.steps
+    );
   }
 
   const allArtifactsMap = new Map<string, string>();

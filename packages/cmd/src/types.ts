@@ -46,12 +46,22 @@ export interface Artifact {
   level?: 'spec' | 'test' | 'attempt';
 }
 
+export type Step = {
+  title: string;
+  category?: string;
+  startTime: string;
+  duration: number;
+  error?: ErrorSchema;
+  /** Required by the API, which stores steps as a tree. */
+  steps: Step[];
+};
+
 export type InstanceReportTestAttempt = {
   _s: TestCaseStatus;
   attempt: number;
 
   startTime: string;
-  steps: unknown[];
+  steps: Step[];
 
   duration: number;
   status: TestRunnerStatus;

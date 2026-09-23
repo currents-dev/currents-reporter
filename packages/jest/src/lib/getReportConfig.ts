@@ -1,10 +1,14 @@
-import { omit } from 'lodash';
-import { getJestArgv } from './args';
 import { Config } from '@jest/types';
-import { getJestVersion } from './versions';
+import { omit } from 'lodash';
 import { ReportConfig } from '../types';
+import { getJestArgv } from './args';
+import { DetoxSession } from './detox';
+import { getJestVersion } from './versions';
 
-export function getReportConfig(config: Config.GlobalConfig): ReportConfig {
+export function getReportConfig(
+  config: Config.GlobalConfig,
+  detox?: DetoxSession
+): ReportConfig {
   const argv = getJestArgv();
 
   return {
@@ -14,6 +18,14 @@ export function getReportConfig(config: Config.GlobalConfig): ReportConfig {
       options: omit(argv, '_', '$0'),
       args: argv._ as string[],
     },
-    frameworkConfig: config,
+    // originFramework is read by `currents upload` and shown as the framework
+    // of the run, the same way junit reports carry postman or vitest.
+    frameworkConfig: detox
+      ? {
+          ...config,
+          originFramework: 'detox',
+          ...(detox.version && { originFrameworkVersion: detox.version }),
+        }
+      : config,
   };
 }
