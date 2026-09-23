@@ -314,4 +314,27 @@ describe('attachDetoxArtifacts', () => {
       },
     ]);
   });
+
+  it('attaches the trace file to the first test of each spec file', async () => {
+    await fs.writeJson(join(artifactsRootDir, 'detox.trace.json'), []);
+
+    const empty = instance();
+    empty.spec = 'e2e/empty.test.js';
+    empty.results.tests = [];
+    const instances = [instance(), empty];
+    const attached = await attachDetoxArtifacts({
+      instances,
+      reportDir,
+      manifest: manifest(),
+    });
+
+    const [trace] = instances[0].results.tests[0].artifacts ?? [];
+    expect(trace).toMatchObject({
+      type: 'attachment',
+      contentType: 'application/json',
+      name: 'detox.trace.json',
+    });
+    expect(await fs.pathExists(join(reportDir, trace.path))).toBe(true);
+    expect(attached.artifacts).toBe(4 + 1);
+  });
 });

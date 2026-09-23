@@ -5,7 +5,7 @@ import { extname, join } from 'path';
 import { Artifact, InstanceReport, InstanceReportTest } from '../../../types';
 import { DetoxManifest, DetoxManifestTest, inExecutionOrder } from './manifest';
 import { MAX_INVOCATION_PROBE, getTestArtifactsDir } from './paths';
-import { TraceTestSlice, readDetoxTrace } from './trace';
+import { DETOX_TRACE_FILE, TraceTestSlice, readDetoxTrace } from './trace';
 
 const debug = _debug.extend('detox');
 
@@ -70,7 +70,49 @@ export async function attachDetoxArtifacts({
     }
   }
 
+  result.artifacts += await attachTraceFile({
+    instances,
+    rootDir: manifest.artifactsRootDir,
+    artifactsDir,
+  });
+
   return result;
+}
+
+/**
+ * The trace covers the whole Detox session rather than one test. It is kept as
+ * it is, to be read again later, e.g. to rebuild steps, on the first test of
+ * each spec file: the API uploads spec file attachments but does not record
+ * them anywhere they can be found again.
+ */
+async function attachTraceFile({
+  instances,
+  rootDir,
+  artifactsDir,
+}: {
+  instances: InstanceReport[];
+  rootDir: string;
+  artifactsDir: string;
+}) {
+  if (!(await fs.pathExists(join(rootDir, DETOX_TRACE_FILE)))) {
+    return 0;
+  }
+
+  const [trace] = await copyArtifacts(
+    rootDir,
+    [DETOX_TRACE_FILE],
+    artifactsDir
+  );
+
+  const firstTests = instances
+    .map((instance) => instance.results.tests[0])
+    .filter((test) => test !== undefined);
+
+  firstTests.forEach((test) => {
+    test.artifacts = [...(test.artifacts ?? []), trace];
+  });
+
+  return firstTests.length;
 }
 
 /**
