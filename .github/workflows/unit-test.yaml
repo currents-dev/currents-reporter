@@ -19,13 +19,7 @@ jobs:
       # One Currents run per workflow run, with a group per package.
       CURRENTS_CI_BUILD_ID: reporter-unit-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      # On pull requests the default checkout is a merge commit made by GitHub,
-      # which Currents would show as "Merge <sha> into <sha>" on branch
-      # refs/pull/<n>/merge. Checking out the head of the pull request records
-      # its last commit instead.
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
@@ -54,6 +48,28 @@ jobs:
           CURRENTS_REPORT_DIR: ${{ github.workspace }}/test-results/jest-report
         run: |
           npm run test
+
+      # On pull requests the tests run on a merge commit made by GitHub, which
+      # Currents would show as "Merge <sha> into <sha>". The CLI takes the
+      # commit from COMMIT_INFO_* before git, so the uploads record the last
+      # commit of the pull request instead.
+      - name: Use the Pull Request Commit for Currents
+        if: ${{ !cancelled() && env.CURRENTS_RECORD_KEY != '' && github.event_name == 'pull_request' }}
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch --depth=1 origin "$HEAD_SHA"
+          {
+            echo "COMMIT_INFO_SHA=$HEAD_SHA"
+            echo "COMMIT_INFO_BRANCH=$HEAD_REF"
+            echo "COMMIT_INFO_AUTHOR=$(git log -1 --format=%an "$HEAD_SHA")"
+            echo "COMMIT_INFO_EMAIL=$(git log -1 --format=%ae "$HEAD_SHA")"
+            echo "COMMIT_INFO_MESSAGE<<COMMIT_INFO_EOF"
+            git log -1 --format=%B "$HEAD_SHA"
+            echo "COMMIT_INFO_EOF"
+          } >> "$GITHUB_ENV"
 
       # The uploads use the CLI built from this commit. Pull requests from forks
       # have no record key and skip them.
