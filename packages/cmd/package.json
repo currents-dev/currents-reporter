@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^13.1.0",
-    "@currents/commit-info": "1.0.1-beta.0",
+    "@currents/commit-info": "1.1.0-beta.0",
     "archiver": "^7.0.1",
     "async-retry": "^1.3.3",
     "axios": "1.18.1",
