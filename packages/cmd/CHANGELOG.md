@@ -1,5 +1,18 @@
 # Changelog
 
+# [1.11.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.10.0...%24%7Bnpm.name%7D-v1.11.0-beta.0) (2026-09-23)
+
+### Bug Fixes
+
+* bump turbo to 2.9.18 to patch GHSA-hcf7-66rw-9f5r and GHSA-3qcw-2rhx-2726 ([#410](https://github.com/currents-dev/currents-reporter/issues/410)) ([48a6a25](https://github.com/currents-dev/currents-reporter/commit/48a6a253ab2fbb10b86ab61acddceb58b4cb1396))
+* keep the reruns of a Detox session in one report directory ([0c7e46c](https://github.com/currents-dev/currents-reporter/commit/0c7e46ca2a8689f67b29aaea6f7242206b3dad08))
+
+### Features
+
+* attach Detox artifacts to the results of a Jest run ([0758bde](https://github.com/currents-dev/currents-reporter/commit/0758bdec531fd54262dfd2bebd0af96d29aa9a22))
+* merge Detox reruns and report its trace as steps ([7e49e86](https://github.com/currents-dev/currents-reporter/commit/7e49e863e5fb11be38c0da5f1cab6d24ca153c3e))
+* upload detox.trace.json with the results of a Detox run ([498ee5a](https://github.com/currents-dev/currents-reporter/commit/498ee5a34cf58187bc6e449fa10e47cd36637b13))
+
 # [1.10.0](https://github.com/currents-dev/currents-reporter/compare/@currents/cmd-v1.9.9...${npm.name}-v1.10.0) (2026-07-30)
 
 
