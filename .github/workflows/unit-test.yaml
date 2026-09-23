@@ -19,7 +19,13 @@ jobs:
       # One Currents run per workflow run, with a group per package.
       CURRENTS_CI_BUILD_ID: reporter-unit-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
+      # On pull requests the default checkout is a merge commit made by GitHub,
+      # which Currents would show as "Merge <sha> into <sha>" on branch
+      # refs/pull/<n>/merge. Checking out the head of the pull request records
+      # its last commit instead.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
