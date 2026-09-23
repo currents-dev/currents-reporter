@@ -315,6 +315,49 @@ describe('attachDetoxArtifacts', () => {
     ]);
   });
 
+  it('attaches the actions that run after the hooks of the test', async () => {
+    const testStart = 1_769_000_000_000_000;
+    const lifecycle = { pid: 100, tid: 12, cat: 'lifecycle,jest-environment' };
+    const invocation = {
+      pid: 100,
+      tid: 3,
+      cat: 'ws-client, ws,ws-client-invocation',
+    };
+    await fs.writeJson(join(artifactsRootDir, 'detox.trace.json'), [
+      {
+        ...lifecycle,
+        ph: 'B',
+        name: 'sends coins',
+        ts: testStart,
+        args: {
+          context: 'test',
+          status: 'running',
+          fullName: 'transfer sends coins',
+          invocations: 1,
+        },
+      },
+      { ...lifecycle, ph: 'B', name: 'beforeEach', ts: testStart + 1000 },
+      { ...lifecycle, ph: 'E', ts: testStart + 2000 },
+      { ...lifecycle, ph: 'B', name: 'test_fn', ts: testStart + 3000 },
+      { ...invocation, ph: 'B', name: 'tap', ts: testStart + 4000 },
+      { ...invocation, ph: 'E', ts: testStart + 5000 },
+      { ...lifecycle, ph: 'E', ts: testStart + 6000 },
+      { ...lifecycle, ph: 'E', ts: testStart + 7000 },
+    ]);
+
+    const instances = [instance()];
+    const attached = await attachDetoxArtifacts({
+      instances,
+      reportDir,
+      manifest: manifest(),
+    });
+
+    expect(attached.steps).toBe(1);
+    expect(instances[0].results.tests[0].attempts[0].steps).toMatchObject([
+      { title: 'tap', duration: 1 },
+    ]);
+  });
+
   it('attaches the trace file to the first test of each spec file', async () => {
     await fs.writeJson(join(artifactsRootDir, 'detox.trace.json'), []);
 

@@ -98,38 +98,50 @@ type TestWindow = TraceTestSlice & {
 };
 
 function getTestSlices(events: TraceEvent[]): TestWindow[] {
-  const open = new Map<string, TestWindow>();
+  // Hooks and the test function are spans nested in the test span on the same
+  // thread, so an `E` event closes the test only when it closes the test span.
+  const stacks = new Map<string, (TestWindow | undefined)[]>();
   const tests: TestWindow[] = [];
 
   events.forEach((event) => {
     const key = `${event.pid}:${event.tid}`;
+    const stack = stacks.get(key) ?? [];
+    stacks.set(key, stack);
 
-    if (event.ph === 'B' && event.args?.context === 'test') {
-      const fullName = event.args?.fullName;
-      if (typeof fullName !== 'string') {
-        return;
-      }
-
-      open.set(key, {
-        fullName,
-        invocations: Number(event.args?.invocations ?? 1),
-        pid: Number(event.pid),
-        startTs: Number(event.ts),
-        endTs: Number.MAX_SAFE_INTEGER,
-        steps: [],
-      });
+    if (event.ph === 'B') {
+      stack.push(getTestWindow(event));
       return;
     }
 
-    if (event.ph === 'E' && open.has(key)) {
-      const test = open.get(key)!;
-      open.delete(key);
-      tests.push({ ...test, endTs: Number(event.ts) });
+    if (event.ph === 'E') {
+      const test = stack.pop();
+      if (test) {
+        tests.push({ ...test, endTs: Number(event.ts) });
+      }
     }
   });
 
   // A crashed run leaves the last test unclosed; its steps are still wanted.
-  return [...tests, ...open.values()];
+  const unclosed = [...stacks.values()].flatMap((stack) =>
+    stack.filter((test): test is TestWindow => test !== undefined)
+  );
+  return [...tests, ...unclosed];
+}
+
+function getTestWindow(event: TraceEvent): TestWindow | undefined {
+  const fullName = event.args?.fullName;
+  if (event.args?.context !== 'test' || typeof fullName !== 'string') {
+    return undefined;
+  }
+
+  return {
+    fullName,
+    invocations: Number(event.args?.invocations ?? 1),
+    pid: Number(event.pid),
+    startTs: Number(event.ts),
+    endTs: Number.MAX_SAFE_INTEGER,
+    steps: [],
+  };
 }
 
 function getStepSpans(events: TraceEvent[]) {
