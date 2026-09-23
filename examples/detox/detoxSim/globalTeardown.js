@@ -5,9 +5,7 @@ const {
   getTraceEvents,
   writeTestArtifacts,
 } = require('./artifacts');
-const { readSession, writeSession } = require('./session');
-
-const REPORT_DIR = path.resolve(__dirname, '..', '.currents');
+const { getReportDir, readSession, writeSession } = require('./session');
 
 /**
  * Stands in for the Detox artifact plugins and the log finalizer, which write
@@ -20,7 +18,7 @@ module.exports = async () => {
   const { detoxConfig, testSessionIndex } = session;
   const rootDir = path.resolve(__dirname, '..', detoxConfig.artifacts.rootDir);
   const manifest = JSON.parse(
-    fs.readFileSync(path.join(REPORT_DIR, 'detox.json'), 'utf8')
+    fs.readFileSync(path.join(getReportDir(), 'detox.json'), 'utf8')
   );
 
   // Each simulated test gets its own window in the trace, the way real

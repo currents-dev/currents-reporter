@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const {
   createSession,
+  getReportDir,
   getSessionFilePath,
   readSession,
   writeSession,
@@ -10,7 +11,7 @@ const {
 
 const RETRIES = Number(process.env.DETOX_RETRIES ?? 1);
 const EXAMPLE_DIR = path.resolve(__dirname, '..');
-const REPORT_DIR = path.join(EXAMPLE_DIR, '.currents');
+const CURRENTS_DIR = path.join(EXAMPLE_DIR, '.currents');
 
 /**
  * Stands in for `detox test --retries`: one session, and a new Jest process per
@@ -31,7 +32,7 @@ const runJest = (specs) => {
 };
 
 const getFailedSpecs = () => {
-  const instancesDir = path.join(REPORT_DIR, 'instances');
+  const instancesDir = path.join(getReportDir(), 'instances');
 
   return fs
     .readdirSync(instancesDir)
@@ -45,7 +46,7 @@ const getFailedSpecs = () => {
 };
 
 const main = () => {
-  fs.rmSync(REPORT_DIR, { recursive: true, force: true });
+  fs.rmSync(CURRENTS_DIR, { recursive: true, force: true });
   fs.rmSync(path.join(EXAMPLE_DIR, 'artifacts'), {
     recursive: true,
     force: true,

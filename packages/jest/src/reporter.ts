@@ -10,7 +10,7 @@ import type {
 } from '@jest/reporters';
 import { Circus } from '@jest/types';
 
-import { join } from 'path';
+import { basename, join } from 'path';
 import {
   DetoxManifestTest,
   DetoxSession,
@@ -101,18 +101,18 @@ export default class CustomReporter implements Reporter {
 
     this.specsCount = aggregatedResults.numTotalTestSuites;
 
+    this.detoxSession = await getDetoxSession();
+
     const envReportDir = process.env.CURRENTS_REPORT_DIR?.trim();
     const reportDirOption = envReportDir || this.options?.reportDir;
     this.reportDir = reportDirOption
       ? await createFolder(reportDirOption)
-      : await createUniqueFolder(this.rootDir, '.currents');
+      : await this.createDefaultReportDir();
 
     info('[currents]: Run started');
     info('[currents]: Report directory is set to - %s', this.reportDir);
 
     this.instancesDir = await createFolder(join(this.reportDir, 'instances'));
-
-    this.detoxSession = await getDetoxSession();
 
     const reportConfig = getReportConfig(this.globalConfig, this.detoxSession);
     debug('Report config:', reportConfig);
@@ -423,6 +423,25 @@ export default class CustomReporter implements Reporter {
     }
 
     info('[currents]: Run completed');
+  }
+
+  /**
+   * `detox test --retries` starts a Jest process for every rerun, so a Detox
+   * run gets the directory of its session - named like the session's artifacts
+   * root - which every rerun writes to.
+   */
+  private createDefaultReportDir() {
+    if (this.detoxSession) {
+      return createFolder(
+        join(
+          this.rootDir,
+          '.currents',
+          basename(this.detoxSession.artifactsRootDir)
+        )
+      );
+    }
+
+    return createUniqueFolder(this.rootDir, '.currents');
   }
 
   /**

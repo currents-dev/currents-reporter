@@ -38,9 +38,22 @@ const createSession = () => {
   return session;
 };
 
+/**
+ * Where @currents/jest writes the report of a Detox session when no reportDir
+ * is set: named like the session's artifacts root.
+ */
+const getReportDir = () =>
+  path.resolve(
+    __dirname,
+    '..',
+    '.currents',
+    path.basename(readSession().detoxConfig.artifacts.rootDir)
+  );
+
 module.exports = {
   CONFIGURATION,
   createSession,
+  getReportDir,
   getSessionFilePath,
   readSession,
   writeSession,

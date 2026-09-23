@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "test": "node detoxSim/detoxTest.js",
-    "report": "currents upload --report-dir ./.currents",
+    "report": "currents upload",
     "stub": "node detoxSim/stubApi.js",
-    "report:stub": "CURRENTS_API_URL=http://localhost:4567 currents upload --report-dir ./.currents --project-id=detoxPOC --key=stub-record-key --ci-build-id=detox-poc-stub",
+    "report:stub": "CURRENTS_API_URL=http://localhost:4567 currents upload --project-id=detoxPOC --key=stub-record-key --ci-build-id=detox-poc-stub",
     "build": "echo \"No build specified\" && exit 0",
     "test:once": "jest --config jest.config.js"
   },

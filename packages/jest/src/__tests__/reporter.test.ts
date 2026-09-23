@@ -1,7 +1,7 @@
 import { execFileSync } from 'child_process';
 import fs from 'fs-extra';
 import os from 'os';
-import { join } from 'path';
+import { basename, join } from 'path';
 
 const projectDir = join(__dirname, 'fixtures', 'report-project');
 
@@ -119,11 +119,56 @@ describe('reporter', () => {
     expect(attemptCount(merged, 'basic passes')).toBe(2);
   });
 
+  it('writes a Detox run and its reruns to the directory of the session', async () => {
+    const sessionReportDir = join(
+      projectDir,
+      '.currents',
+      basename(artifactsRootDir)
+    );
+
+    try {
+      runJest({
+        CURRENTS_TEST_REPORT_DIR: '',
+        DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(0),
+      });
+      runJest({
+        CURRENTS_TEST_REPORT_DIR: '',
+        DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(1),
+      });
+
+      const manifest = await fs.readJson(join(sessionReportDir, 'detox.json'));
+      expect(
+        manifest.tests.find(
+          (test: { fullName: string }) => test.fullName === 'basic passes'
+        )?.attempts
+      ).toEqual([
+        { attempt: 0, session: 0, invocations: 1, status: 'passed' },
+        { attempt: 0, session: 1, invocations: 1, status: 'passed' },
+      ]);
+    } finally {
+      await fs.remove(join(projectDir, '.currents'));
+    }
+  });
+
+  it('leaves out the reruns of an earlier session', async () => {
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(0) });
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(1) });
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(0) });
+
+    const manifest = await fs.readJson(join(reportDir, 'detox.json'));
+    expect(
+      manifest.tests.find(
+        (test: { fullName: string }) => test.fullName === 'basic passes'
+      )?.attempts
+    ).toEqual([{ attempt: 0, session: 0, invocations: 1, status: 'passed' }]);
+  });
+
   function runJest(env: NodeJS.ProcessEnv = {}) {
     const inheritedEnv = { ...process.env };
     // Set by the Jest process running this test, and read by the one it starts.
     delete inheritedEnv.JEST_WORKER_ID;
     delete inheritedEnv.DETOX_CONFIG_SNAPSHOT_PATH;
+    delete inheritedEnv.CURRENTS_REPORT_DIR;
 
     try {
       execFileSync(

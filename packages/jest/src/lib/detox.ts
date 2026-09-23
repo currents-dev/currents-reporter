@@ -111,7 +111,10 @@ export async function writeDetoxManifest(
   tests: DetoxManifestTest[]
 ) {
   const filePath = join(reportDir, DETOX_MANIFEST_FILE);
-  const previous = await readDetoxManifest(filePath);
+  // A report dir set in the config is reused by later sessions too.
+  const previous = session.testSessionIndex
+    ? await readDetoxManifest(filePath)
+    : undefined;
   const merged = new Map(
     (previous?.tests ?? []).map((test) => [test.testId, test])
   );

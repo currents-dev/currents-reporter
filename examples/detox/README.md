@@ -8,10 +8,10 @@ attempt, the element actions of the Detox trace as steps, and the attempts of
 What a Detox project adds is the reporter line in `jest.config.js`:
 
 ```js
-reporters: ['detox/runners/jest/reporter', ['@currents/jest', { reportDir: './.currents' }]],
+reporters: ['detox/runners/jest/reporter', '@currents/jest'],
 ```
 
-Then `detox test` followed by `currents upload --report-dir ./.currents`.
+Then `detox test` followed by `currents upload`.
 
 ## How the pieces fit
 
@@ -19,6 +19,9 @@ Then `detox test` followed by `currents upload --report-dir ./.currents`.
   learn the artifacts root and the rerun index, writes `detox.json` with the full
   name, status, rerun and invocation of every attempt, and marks the run as
   Detox in `config.json`.
+- The report goes to `.currents/<session>`, named like the Detox artifacts root,
+  unless `reportDir` is set. Every Jest process of one `detox test` writes
+  there, and `currents upload` picks the newest directory in `.currents`.
 - A rerun of `detox test --retries` starts Jest again for the failed spec files
   only, and Jest numbers its attempts from 0 again. The reporter merges the new
   attempts into the instance report the earlier run wrote instead of replacing

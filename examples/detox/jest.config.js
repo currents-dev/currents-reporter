@@ -10,5 +10,5 @@ module.exports = {
   testLocationInResults: true,
   globalSetup: './detoxSim/globalSetup.js',
   globalTeardown: './detoxSim/globalTeardown.js',
-  reporters: ['default', ['@currents/jest', { reportDir: './.currents' }]],
+  reporters: ['default', '@currents/jest'],
 };
