@@ -1,5 +1,11 @@
 # Changelog
 
+# [1.11.0-beta.2](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0-beta.1...%24%7Bnpm.name%7D-v1.11.0-beta.2) (2026-09-24)
+
+### Bug Fixes
+
+* record the pull request's commit when CI checks out a merge commit ([3f9bda4](https://github.com/currents-dev/currents-reporter/commit/3f9bda41b25c05e9eab1eaed73a9bf6f0a0550d6))
+
 # [1.11.0-beta.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0-beta.0...%24%7Bnpm.name%7D-v1.11.0-beta.1) (2026-09-23)
 
 ### Bug Fixes
