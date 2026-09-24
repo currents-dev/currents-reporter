@@ -1,5 +1,22 @@
 # Changelog
 
+# [1.11.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.10.0...%40currents%2Fcmd-v1.11.0) (2026-09-24)
+
+### Bug Fixes
+
+* bump turbo to 2.9.18 to patch GHSA-hcf7-66rw-9f5r and GHSA-3qcw-2rhx-2726 ([#410](https://github.com/currents-dev/currents-reporter/issues/410)) ([48a6a25](https://github.com/currents-dev/currents-reporter/commit/48a6a253ab2fbb10b86ab61acddceb58b4cb1396))
+* count skipped tests once when merging a Detox rerun, omit an unknown Detox version ([40a619c](https://github.com/currents-dev/currents-reporter/commit/40a619cc7dc85df2217e37fd607f828a7ca44d15))
+* ignore a Detox manifest without a list of tests ([6fb380c](https://github.com/currents-dev/currents-reporter/commit/6fb380c9ebc2a21764d081d1aab77f6527da30e3))
+* keep the reruns of a Detox session in one report directory ([0c7e46c](https://github.com/currents-dev/currents-reporter/commit/0c7e46ca2a8689f67b29aaea6f7242206b3dad08))
+* read the steps of tests with hooks from a Detox trace ([f2a0d1e](https://github.com/currents-dev/currents-reporter/commit/f2a0d1ea39fcd8516c1bb38f415e6ec0618a77a5))
+* record the pull request's commit when CI checks out a merge commit ([3f9bda4](https://github.com/currents-dev/currents-reporter/commit/3f9bda41b25c05e9eab1eaed73a9bf6f0a0550d6))
+
+### Features
+
+* attach Detox artifacts to the results of a Jest run ([0758bde](https://github.com/currents-dev/currents-reporter/commit/0758bdec531fd54262dfd2bebd0af96d29aa9a22))
+* merge Detox reruns and report its trace as steps ([7e49e86](https://github.com/currents-dev/currents-reporter/commit/7e49e863e5fb11be38c0da5f1cab6d24ca153c3e))
+* upload detox.trace.json with the results of a Detox run ([498ee5a](https://github.com/currents-dev/currents-reporter/commit/498ee5a34cf58187bc6e449fa10e47cd36637b13))
+
 # [1.11.0-beta.2](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0-beta.1...%24%7Bnpm.name%7D-v1.11.0-beta.2) (2026-09-24)
 
 ### Bug Fixes
