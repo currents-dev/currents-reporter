@@ -40,7 +40,7 @@
     "@typescript-eslint/parser": "^8.65.0",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.0.0",
-    "eslint-plugin-turbo": "^2.0.0",
+    "eslint-plugin-turbo": "^2.10.12",
     "prettier": "^3.6.2",
     "turbo": "^2.9.18"
   },
