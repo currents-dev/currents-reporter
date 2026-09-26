@@ -1,8 +1,14 @@
 import { createHash } from 'crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { authorize, canOpenBrowser, OAuthLoginError, refresh } from '../oauth';
+import {
+  assertOwnEndpoint,
+  authorize,
+  canOpenBrowser,
+  OAuthLoginError,
+  refresh,
+} from '../oauth';
 
-const API = 'http://api.test';
+const API = 'https://api.test';
 const metadata = {
   issuer: API,
   authorization_endpoint: `${API}/api/auth/oauth2/authorize`,
@@ -115,16 +121,52 @@ describe('authorize', () => {
     });
   });
 
-  it('refuses a response with another state', async () => {
+  it('ignores a callback with another state and keeps waiting', async () => {
+    stubAuthServer(() => json(200, { access_token: jwt({ org_id: 'o' }) }));
+    let authorizeUrl = '';
+    const done = authorize({
+      apiUrl: API,
+      signup: false,
+      browser: false,
+      timeoutMs: 5_000,
+      onUrl: (url) => {
+        authorizeUrl = url;
+      },
+    });
+    await vi.waitFor(() => expect(authorizeUrl).not.toBe(''));
+    const callback = new URL(authorizeUrl).searchParams.get('redirect_uri')!;
+
+    const forged = await fetch(`${callback}?code=x&state=forged`);
+    expect(forged.status).toBe(400);
+
+    respondWith((params) => ({ code: 'c', state: params.get('state')! }))(
+      authorizeUrl
+    );
+    await expect(done).resolves.toMatchObject({ orgId: 'o' });
+  });
+
+  it('escapes the error it shows on the callback page', async () => {
     stubAuthServer(() => json(200, {}));
-    await expect(
-      authorize({
-        apiUrl: API,
-        signup: false,
-        browser: false,
-        onUrl: respondWith(() => ({ code: 'c', state: 'forged' })),
-      })
-    ).rejects.toMatchObject({ code: 'authorization_failed' });
+    let authorizeUrl = '';
+    const done = authorize({
+      apiUrl: API,
+      signup: false,
+      browser: false,
+      onUrl: (url) => {
+        authorizeUrl = url;
+      },
+    });
+    await vi.waitFor(() => expect(authorizeUrl).not.toBe(''));
+    const params = new URL(authorizeUrl).searchParams;
+    const callback = new URL(params.get('redirect_uri')!);
+    callback.searchParams.set('state', params.get('state')!);
+    callback.searchParams.set('error', '<script>x</script>');
+
+    const html = await (await fetch(callback.toString())).text();
+
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&#60;script&#62;');
+    await expect(done).rejects.toMatchObject({ code: 'authorization_failed' });
   });
 
   it('reports access_denied', async () => {
@@ -178,5 +220,57 @@ describe('refresh', () => {
       accessToken: expect.any(String),
       refreshToken: 'rt',
     });
+  });
+});
+
+describe('assertOwnEndpoint', () => {
+  it.each([
+    [
+      'https://api.currents.dev',
+      'https://api.currents.dev/api/auth/oauth2/authorize',
+    ],
+    ['http://localhost:4000', 'http://localhost:4000/api/auth/oauth2/token'],
+  ])('accepts %s → %s', (api, endpoint) => {
+    expect(() => assertOwnEndpoint(api, endpoint, 'x')).not.toThrow();
+  });
+
+  it.each([
+    [
+      'another host',
+      'https://api.currents.dev',
+      'https://evil.example/authorize',
+    ],
+    [
+      'another port',
+      'http://localhost:4000',
+      'http://localhost:5000/authorize',
+    ],
+    [
+      'plain HTTP off localhost',
+      'http://api.example.com',
+      'http://api.example.com/authorize',
+    ],
+    ['a file URL', 'https://api.currents.dev', 'file:///etc/passwd'],
+  ])('refuses %s', (_, api, endpoint) => {
+    expect(() => assertOwnEndpoint(api, endpoint, 'x')).toThrow(
+      OAuthLoginError
+    );
+  });
+
+  it('stops login before opening a foreign authorize URL', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        json(200, {
+          ...metadata,
+          authorization_endpoint: 'https://evil.example/a',
+        })
+      )
+    );
+    const onUrl = vi.fn();
+    await expect(
+      authorize({ apiUrl: API, signup: false, browser: false, onUrl })
+    ).rejects.toMatchObject({ code: 'authorization_failed' });
+    expect(onUrl).not.toHaveBeenCalled();
   });
 });

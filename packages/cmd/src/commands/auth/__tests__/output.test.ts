@@ -106,6 +106,19 @@ describe('runAccountCommand text', () => {
   });
 });
 
+describe('text output', () => {
+  it('drops control characters from server text', async () => {
+    await runAccountCommand(
+      async () => ({ data: {}, text: ['name\u001b[2Jcleared\u0007'] }),
+      { json: false }
+    );
+    const printed = stdout.join('');
+    expect(printed).toContain('name[2Jcleared');
+    expect(printed).not.toContain('\u001b');
+    expect(printed).not.toContain('\u0007');
+  });
+});
+
 describe('progressFor', () => {
   it('writes JSON lines to stderr with --json, and text to stdout without', () => {
     progressFor(true)('Waiting…', { status: 'waiting', url: 'u' });

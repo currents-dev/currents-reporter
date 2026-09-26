@@ -48,3 +48,13 @@ export function maskEmail(email: string) {
   }
   return `${local.slice(0, Math.min(2, local.length))}***@${domain}`;
 }
+
+/**
+ * Text from the server (project names, error messages) without control
+ * characters, so it cannot move the cursor, rewrite earlier lines or hide
+ * text in the terminal, or in the context of the agent reading it. Line
+ * breaks and tabs stay.
+ */
+export function printable(text: string): string {
+  return text.replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, '');
+}

@@ -5,6 +5,7 @@ import {
   CommandResult,
   ExitCode,
   NextStep,
+  printable,
 } from '../../services/auth/result';
 
 type Progress = (line: string, fields: Record<string, unknown>) => void;
@@ -19,7 +20,7 @@ export const progressFor =
     if (json) {
       process.stderr.write(`${JSON.stringify(fields)}\n`);
     } else {
-      info(line);
+      info(printable(line));
     }
   };
 
@@ -55,7 +56,7 @@ export async function runAccountCommand(
         })}\n`
       );
     } else {
-      result.text.forEach((line) => info(line));
+      result.text.forEach((line) => info(printable(line)));
       printNextSteps(result.nextSteps);
     }
     process.exit(result.exitCode ?? ExitCode.ok);
@@ -81,9 +82,9 @@ export async function runAccountCommand(
         })}\n`
       );
     } else {
-      error(failure.message);
+      error(printable(failure.message));
       if (failure.hint) {
-        info(failure.hint);
+        info(printable(failure.hint));
       }
       printNextSteps(failure.nextSteps);
     }

@@ -28,6 +28,7 @@ import {
   ExitCode,
   maskEmail,
   NextStep,
+  printable,
 } from './result';
 import {
   pollSignupRequest,
@@ -665,6 +666,8 @@ export async function handleSetup({
       CURRENTS_RECORD_KEY: data.recordKey,
     })
   );
-  success(`Created project "${data.name}" (${data.projectId})`);
+  success(
+    `Created project "${printable(data.name)}" (${printable(data.projectId)})`
+  );
   info(`Wrote CURRENTS_PROJECT_ID and CURRENTS_RECORD_KEY to ${envFile}`);
 }

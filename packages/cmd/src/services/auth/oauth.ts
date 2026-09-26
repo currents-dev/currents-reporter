@@ -55,10 +55,47 @@ async function getJson<T>(url: string): Promise<T> {
  * The RFC 8414 document for the authorization server and the RFC 9728 document
  * naming the `resource` every authorize and token request must carry.
  */
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
+
+/**
+ * The endpoints the server advertises must be on the API's own origin, over
+ * HTTPS unless it is local. The API URL can come from a `.env` in whatever
+ * directory the CLI runs in; without this, such a file could have `login`
+ * open a look-alike sign-in page, or send the refresh token elsewhere.
+ */
+export function assertOwnEndpoint(
+  apiUrl: string,
+  endpoint: string,
+  name: string
+) {
+  const api = new URL(apiUrl);
+  const url = new URL(endpoint);
+  const local = LOOPBACK_HOSTS.includes(url.hostname);
+  if (url.origin !== api.origin || (url.protocol !== 'https:' && !local)) {
+    throw new OAuthLoginError(
+      'authorization_failed',
+      `${apiUrl} advertised ${name} at ${url.origin}, which is not the API's own HTTPS origin`
+    );
+  }
+}
+
 export async function discover(apiUrl: string) {
   const metadata = await getJson<AuthServerMetadata>(
     `${apiUrl}/.well-known/oauth-authorization-server`
   );
+  assertOwnEndpoint(
+    apiUrl,
+    metadata.authorization_endpoint,
+    'authorization_endpoint'
+  );
+  assertOwnEndpoint(apiUrl, metadata.token_endpoint, 'token_endpoint');
+  if (metadata.revocation_endpoint) {
+    assertOwnEndpoint(
+      apiUrl,
+      metadata.revocation_endpoint,
+      'revocation_endpoint'
+    );
+  }
   const { resource } = await getJson<{ resource: string }>(
     `${apiUrl}/.well-known/oauth-protected-resource`
   );
@@ -95,6 +132,9 @@ function openBrowser(url: string) {
   }
 }
 
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
 const page = (title: string, body: string) =>
   `<!doctype html><html><head><title>${title}</title></head><body style="font-family:system-ui;padding:48px;text-align:center"><h2>${title}</h2><p>${body}</p></body></html>`;
 
@@ -102,7 +142,7 @@ const page = (title: string, body: string) =>
  * Listens on 127.0.0.1 (not `localhost`: the provider ignores the port only for
  * loopback IPs) and resolves with the query of the first /callback request.
  */
-async function startLoopback() {
+async function startLoopback(state: string) {
   let resolveQuery: (query: URLSearchParams) => void;
   const received = new Promise<URLSearchParams>((resolve) => {
     resolveQuery = resolve;
@@ -113,6 +153,12 @@ async function startLoopback() {
       res.writeHead(404).end();
       return;
     }
+    // Any page the browser visits can request this port. Only the response to
+    // our own authorization request, which carries its state, ends the wait.
+    if (url.searchParams.get('state') !== state) {
+      res.writeHead(400).end();
+      return;
+    }
     const failed = url.searchParams.get('error');
     res
       .writeHead(200, { 'Content-Type': 'text/html' })
@@ -120,7 +166,7 @@ async function startLoopback() {
         failed
           ? page(
               'Currents CLI was not authorized',
-              `${failed}. You can close this tab.`
+              `${escapeHtml(failed)}. You can close this tab.`
             )
           : page(
               'Currents CLI is authorized',
@@ -206,7 +252,7 @@ export async function authorize({
   const verifier = base64url(randomBytes(32));
   const challenge = base64url(createHash('sha256').update(verifier).digest());
   const state = base64url(randomBytes(16));
-  const loopback = await startLoopback();
+  const loopback = await startLoopback(state);
 
   try {
     const params = new URLSearchParams({
