@@ -19,7 +19,7 @@ export type SignupOutcome =
       orgName: string;
     }
   | { status: 'existing_account' }
-  | { status: 'expired' | 'consumed' }
+  | { status: 'expired' | 'consumed' | 'revoked' }
   /** `timeoutMs` passed; the request itself may still be pending. */
   | { status: 'timeout' };
 
@@ -157,7 +157,12 @@ export async function pollSignupRequest(
 
     const body = (await readJson(res)) as Record<string, string> | null;
     if (res.status === 410 || res.status === 404) {
-      return { status: body?.status === 'consumed' ? 'consumed' : 'expired' };
+      return {
+        status:
+          body?.status === 'consumed' || body?.status === 'revoked'
+            ? body.status
+            : 'expired',
+      };
     }
     if (!res.ok || !body) {
       throw unexpected('POST /v1/signup-requests/token', res, body);

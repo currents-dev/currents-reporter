@@ -89,6 +89,7 @@ describe('pollSignupRequest', () => {
   it.each([
     [410, { status: 'consumed' }, 'consumed'],
     [410, { status: 'expired' }, 'expired'],
+    [410, { status: 'revoked' }, 'revoked'],
     [404, { status: 'not_found' }, 'expired'],
   ])('reports HTTP %i %o as %s', async (status, body, expected) => {
     await expect(poll(fetchSequence(json(status, body)))).resolves.toEqual({

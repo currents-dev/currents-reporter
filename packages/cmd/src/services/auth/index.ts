@@ -238,7 +238,7 @@ const waitingForConfirmation = (pending: PendingSignup) => ({
     expires_at: pending.expiresAt,
   },
   text: [
-    `Still waiting for ${maskEmail(pending.email)} to confirm (code ${pending.code}).`,
+    `Still waiting for ${maskEmail(pending.email)} to confirm with code ${pending.code}.`,
   ],
   nextSteps: [NEXT_RESUME],
   exitCode: ExitCode.waitingForPerson,
@@ -346,6 +346,13 @@ async function collectSignup(pending: PendingSignup, timeoutSeconds?: number) {
     case 'consumed':
       await writePendingSignup(null);
       throw signupEnded(outcome.status);
+    case 'revoked':
+      await writePendingSignup(null);
+      throw new CommandFailure(
+        'revoked',
+        `The owner of ${maskEmail(pending.email)} confirmed the account and then revoked this agent's key.`,
+        ExitCode.refused
+      );
     case 'existing_account':
       await writePendingSignup(null);
       throw new CommandFailure(
@@ -451,7 +458,7 @@ export async function handleSignup({
       ...waitingForConfirmation(pending),
       text: [
         `Sent a confirmation email to ${maskEmail(pending.email)}.`,
-        `Ask its owner to click Confirm and check the code matches: ${pending.code}`,
+        `Ask its owner to open the link and enter this code: ${pending.code}`,
       ],
     };
   }
@@ -460,8 +467,8 @@ export async function handleSignup({
   onProgress(
     `${
       started
-        ? `Sent a confirmation email to ${maskEmail(pending.email)}.\nAsk its owner to click Confirm and check the code matches: ${pending.code}`
-        : `Waiting for ${maskEmail(pending.email)} to confirm (code ${pending.code}).`
+        ? `Sent a confirmation email to ${maskEmail(pending.email)}.\nAsk its owner to open the link and enter this code: ${pending.code}`
+        : `Waiting for ${maskEmail(pending.email)} to confirm with code ${pending.code}.`
     }\nWaiting… (expires ${new Date(pending.expiresAt).toLocaleTimeString()})`,
     {
       status: 'waiting',

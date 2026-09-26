@@ -355,6 +355,21 @@ describe('signup', () => {
     });
   });
 
+  it('exits 4 when the owner revoked the key before it was collected', async () => {
+    stubApi({
+      'POST /v1/signup-requests': () => json(202, created),
+      'POST /v1/signup-requests/token': () => json(410, { status: 'revoked' }),
+    });
+
+    const failure = await failureOf(signup());
+
+    expect(failure).toMatchObject({
+      code: 'revoked',
+      exitCode: ExitCode.refused,
+    });
+    expect(await fileExists()).toBe(false);
+  });
+
   it.each([
     [json(400, { error: 'email_not_allowed' }), 'email_not_allowed', undefined],
     [
