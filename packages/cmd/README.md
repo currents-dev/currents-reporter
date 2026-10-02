@@ -89,6 +89,23 @@ npx currents cache get --key <record-key> --id <id>
 
 For more examples and usage options, run `npx currents cache --help`.
 
+## Agent skill
+
+The package includes the `currents-cli` agent skill, which tells coding agents how to use this CLI.
+
+```sh
+# Print the skill
+npx currents skill
+
+# Add it to the project for Codex and Cursor, in .agents/skills/currents-cli
+npx currents skill --install
+
+# Add it for Claude Code
+npx currents skill --install --dir .claude/skills
+```
+
+The skill is also in this repository, in `skills/currents-cli`: `npx skills add https://github.com/currents-dev/currents-reporter --skill currents-cli`.
+
 ## Troubleshooting
 
 Run the CLI command with the `--debug` argument or prefix it with `DEBUG="currents,currents:*"` to obtain detailed information about the command execution process.

@@ -97,6 +97,15 @@ describe('currents program', () => {
     }
   });
 
+  it('points to the skill command before the documentation link', async () => {
+    expect(await run(['--help'])).toBe(0);
+
+    expect(stdout).toMatch(/^\s+skill \[options\]/m);
+    expect(stdout).toContain(
+      'Agent skill:   currents skill --install\nDocumentation: https://docs.currents.dev'
+    );
+  });
+
   it('does not list the deprecated cancel command in the root help', async () => {
     expect(await run(['--help'])).toBe(0);
 

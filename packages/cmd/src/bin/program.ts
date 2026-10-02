@@ -11,6 +11,7 @@ import { getConvertCommand, getConvertExamples } from '../commands/convert';
 import { formatExamples } from '../commands/help';
 import { getRunExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
+import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
 
 const NAME = 'currents';
@@ -28,6 +29,7 @@ export const getProgram = () => {
     .addCommand(getSessionCommand(NAME))
     .addCommand(getCacheCommand(NAME))
     .addCommand(getApiCommand(NAME))
+    .addCommand(getSkillCommand(NAME))
     .addHelpText(
       'after',
       `${formatExamples([
@@ -41,6 +43,7 @@ export const getProgram = () => {
       ])}
 Run '${NAME} <command> --help' for the options and examples of a command.
 
+Agent skill:   ${NAME} skill --install
 Documentation: https://docs.currents.dev
 Support:       support@currents.dev
 `

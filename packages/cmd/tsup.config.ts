@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
@@ -15,4 +16,9 @@ export default defineConfig({
   sourcemap: true,
   platform: 'node',
   target: 'esnext',
+  // `currents skill` reads the skill from dist/skills. The repository keeps the
+  // only copy in skills/ at its root, where `npx skills add` finds it.
+  onSuccess: async () => {
+    fs.cpSync('../../skills', 'dist/skills', { recursive: true });
+  },
 });
