@@ -55,10 +55,15 @@ function findOption(command: Command, flag: string) {
 function checkCommand(program: Command, line: string) {
   let command: Command = program;
   const args = words(line);
+  const problems: string[] = [];
   let i = 0;
   while (i < args.length) {
     const sub = command.commands.find((c) => c.name() === args[i]);
     if (!sub) break;
+    // Hidden commands are the old paths of moved commands.
+    if (!command.createHelp().visibleCommands(command).includes(sub)) {
+      problems.push(`"${line}": "${args[i]}" is hidden from the help`);
+    }
     command = sub as Command;
     i++;
   }
@@ -66,7 +71,6 @@ function checkCommand(program: Command, line: string) {
   if (command.commands.length > 0) {
     return [`"${line}": "${args[i]}" is not a command of ${path}`];
   }
-  const problems: string[] = [];
   for (const word of args.slice(i)) {
     if (!word.startsWith('-')) continue;
     const flag = word.split('=')[0];
@@ -102,6 +106,17 @@ describe('commands in the currents-cli skill', () => {
     expect(checkCommand(program, 'run attach --test-name x a.png')).toEqual([
       '"run attach --test-name x a.png": --test-name is not an option of attach',
     ]);
-    expect(checkCommand(program, 'upload --key=x')).toEqual([]);
+    expect(checkCommand(program, 'run upload --key=x')).toEqual([]);
+  });
+
+  it('reports a hidden legacy command', () => {
+    expect(checkCommand(program, 'upload --key=x')).toEqual([
+      '"upload --key=x": "upload" is hidden from the help',
+    ]);
+    expect(checkCommand(program, 'api get-run --api-key x')).toEqual([
+      '"api get-run --api-key x": "api" is hidden from the help',
+    ]);
+    expect(checkCommand(program, 'cancel')).not.toEqual([]);
+    expect(checkCommand(program, 'convert')).not.toEqual([]);
   });
 });
