@@ -1,26 +1,24 @@
-type Payload = Record<string, unknown> | null;
+import _ from 'lodash';
 
-export function maskSensitiveFields(
-  payload: Payload,
-  fields: string[]
-): Payload {
-  if (!payload) return payload;
+const KEY_FIELDS = ['apiKey', 'recordKey', 'key'];
 
-  const maskedPayload = { ...payload };
+/**
+ * A copy of the payload with the fields replaced by '*****', in nested
+ * objects too: the run creation payload holds the record key in
+ * `config.currents.recordKey`. Arrays are left as they are, so that a debug
+ * line does not copy every instance of a run.
+ */
+export function maskSensitiveFields<T>(payload: T, fields: string[]): T {
+  if (!_.isPlainObject(payload)) return payload;
 
-  fields.forEach((secret) => {
-    if (maskedPayload.hasOwnProperty(secret)) {
-      maskedPayload[secret] = '*****';
-    }
-  });
-
-  return maskedPayload;
+  return _.mapValues(payload as Record<string, unknown>, (value, name) =>
+    fields.includes(name) && value !== undefined
+      ? '*****'
+      : maskSensitiveFields(value, fields)
+  ) as T;
 }
 
-export function maskApiKey(payload: Payload): Payload {
-  return maskSensitiveFields(payload, ['apiKey']);
-}
-
-export function maskRecordKey(payload: Payload): Payload {
-  return maskSensitiveFields(payload, ['recordKey', 'key']);
+/** Use it on every config, options object or request that a debug line prints. */
+export function maskKeys<T>(payload: T): T {
+  return maskSensitiveFields(payload, KEY_FIELDS);
 }

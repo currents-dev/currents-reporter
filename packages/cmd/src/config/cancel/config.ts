@@ -1,6 +1,6 @@
 import { debug as _debug } from '@debug';
 
-import { maskRecordKey } from '@lib';
+import { maskKeys } from '@lib';
 import { ValidationError } from '@lib/error';
 import { dim, error } from '@logger';
 import {
@@ -82,7 +82,7 @@ export function setCancelCommandConfig(options?: Partial<CancelCommandConfig>) {
     options,
     requireRunIdentifier
   );
-  debug('Resolved config: %o', maskRecordKey(_config));
+  debug('Resolved config: %o', maskKeys(_config));
 }
 
 export function getCancelCommandConfig() {

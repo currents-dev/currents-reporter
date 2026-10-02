@@ -3,7 +3,7 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
-import { maskRecordKey, nanoid, readJsonFile, writeFileAsync } from '@lib';
+import { maskKeys, nanoid, readJsonFile, writeFileAsync } from '@lib';
 import { info, warn } from '@logger';
 import axios from 'axios';
 import fs from 'fs-extra';
@@ -296,7 +296,7 @@ async function createRun({
     previousCiBuildId: process.env.CURRENTS_PREVIOUS_CI_BUILD_ID,
   };
 
-  debug('Creating run: %o', maskRecordKey(payload));
+  debug('Creating run: %o', maskKeys(payload));
 
   return createRunApi(payload);
 }

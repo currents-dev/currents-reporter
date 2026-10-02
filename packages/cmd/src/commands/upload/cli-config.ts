@@ -5,7 +5,7 @@ import {
   cliOptionsToConfig,
   CurrentsConfig,
 } from '../../config/upload';
-import { maskRecordKey } from '../../lib';
+import { maskKeys } from '../../lib';
 import { createTempFile } from './tmp-file';
 
 const debug = _debug.extend('cli');
@@ -17,13 +17,10 @@ export class CLIManager {
 
   constructor(opts: CLIOptions) {
     this.cliOptions = opts;
-    debug('CLI options: %o', maskRecordKey(this.cliOptions));
+    debug('CLI options: %o', maskKeys(this.cliOptions));
 
     this.parsedConfig = cliOptionsToConfig(this.cliOptions);
-    debug(
-      'Parsed config from CLI options: %o',
-      maskRecordKey(this.parsedConfig)
-    );
+    debug('Parsed config from CLI options: %o', maskKeys(this.parsedConfig));
   }
 
   async getConfigFilePath() {

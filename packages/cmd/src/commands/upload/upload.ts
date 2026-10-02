@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { getUploadCommand } from '.';
 
 import { getCurrentsConfig, setCurrentsConfig } from '../../config/upload';
-import { maskRecordKey } from '../../lib';
+import { maskKeys } from '../../lib';
 import { handleCurrentsReport } from '../../services';
 import { convertReports } from '../convert/convert';
 import { commandHandler } from '../utils';
@@ -23,7 +23,7 @@ export async function uploadHandler(options: UploadCommandOpts) {
     setCurrentsConfig(cliManager.parsedConfig);
     const config = getCurrentsConfig();
 
-    info('Currents config: %o', maskRecordKey(config));
+    info('Currents config: %o', maskKeys(config));
 
     await handleCurrentsReport();
   }, options);

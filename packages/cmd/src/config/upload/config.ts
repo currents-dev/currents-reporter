@@ -1,4 +1,5 @@
 import { debug as _debug } from '@debug';
+import { maskKeys } from '@lib';
 
 import { getValidatedConfig } from '../utils';
 import { configKeys } from './env';
@@ -67,7 +68,7 @@ export function setCurrentsConfig(reporterOptions?: Partial<CurrentsConfig>) {
     mandatoryConfigKeys,
     reporterOptions
   );
-  debug('Resolved Currents config: %o', _config);
+  debug('Resolved Currents config: %o', maskKeys(_config));
 }
 
 export function getCurrentsConfig() {

@@ -1,7 +1,7 @@
 import { debug as _debug } from '../debug';
 import { makeRequest } from '../http';
 import { ClientType } from '../http/client';
-import { maskRecordKey } from '../lib';
+import { maskKeys } from '../lib';
 
 const debug = _debug.extend('api');
 
@@ -32,7 +32,7 @@ export type CancelRunResponse = {
 };
 
 export async function cancelRun(params: CancelRunParams) {
-  debug('Cancel params: %o', maskRecordKey(params));
+  debug('Cancel params: %o', maskKeys(params));
 
   // No catch: an AxiosError carries the request config, so logging it would put
   // the record key in the debug output. makeRequest already logs the status,

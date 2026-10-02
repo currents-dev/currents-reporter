@@ -84,7 +84,7 @@ When a command fails:
 
 1. Read the message. For a missing value it names the option and the environment variable to set.
 2. A 401 or 403 from the API usually means the wrong key: a record key where an API key is needed, an API key without write access, or a key of another organization.
-3. Run the command again with `--debug` to see the requests and the resolved configuration. The debug output of `cache get` includes the record key, so do not share debug output without removing keys from it.
+3. Run the command again with `--debug` to see the requests and the resolved configuration. Keys are replaced with `*****` in it.
 4. `run attach` and `session attach` print `Attached <file>` for each file that arrived and `Failed <file>` for each that did not. Attach only the failed files again.
 5. Do not retry a failed command in a loop. Report the error and what you tried.
 

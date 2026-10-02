@@ -1,6 +1,6 @@
 import { debug as _debug } from '@debug';
 
-import { maskApiKey, ValidationError } from '@lib';
+import { maskKeys, ValidationError } from '@lib';
 import { error } from '@logger';
 import { getValidatedConfig } from '../utils';
 import { configKeys } from './env';
@@ -94,7 +94,7 @@ export function setAPIGetRunCommandConfig(
     options,
     apiGetRunCustomValidation
   );
-  debug('Resolved config: %o', maskApiKey(_config));
+  debug('Resolved config: %o', maskKeys(_config));
 }
 
 export function getAPIGetRunCommandConfig() {

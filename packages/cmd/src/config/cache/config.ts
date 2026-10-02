@@ -1,6 +1,6 @@
 import { debug as _debug } from '@debug';
 
-import { maskRecordKey } from '../../lib';
+import { maskKeys } from '../../lib';
 import { getValidatedConfig } from '../utils';
 import { configKeys } from './env';
 
@@ -62,7 +62,7 @@ export function setCacheSetCommandConfig(
   };
   debug('Resolved config: %o', {
     ..._config,
-    values: maskRecordKey(_config.values),
+    values: maskKeys(_config.values),
   });
 }
 
@@ -75,7 +75,7 @@ export function setCacheGetCommandConfig(
   };
   debug('Resolved config: %o', {
     ..._config,
-    values: maskRecordKey(_config.values),
+    values: maskKeys(_config.values),
   });
 }
 
