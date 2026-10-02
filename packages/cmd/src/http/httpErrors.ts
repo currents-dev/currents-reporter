@@ -57,7 +57,7 @@ function handle4xx<T, D>(
   match(status)
     .with(401, () => {
       log.warn(
-        `[currents] ${error.response?.config.method} ${error.response?.config.url}} - 401 Unauthorized Request from cloud service`
+        `[currents] ${error.response?.config.method} ${error.response?.config.url} - 401 Unauthorized Request from cloud service`
       );
     })
     .with(400, () => {
