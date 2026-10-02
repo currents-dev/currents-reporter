@@ -297,6 +297,25 @@ describe('session and run attach commands', () => {
     );
   });
 
+  it('attaches files to the whole run without --machine-id', async () => {
+    await fs.outputFile('logs.zip', 'zip');
+    await run(getRunFilesCommand('currents') as never, [
+      'attach',
+      '--key',
+      'rk',
+      '-p',
+      'proj',
+      '--ci-build-id',
+      'build-1',
+      'logs.zip',
+    ]);
+    const [, , target] = vi.mocked(createAttachments).mock.calls[0];
+    expect(target).toEqual(expect.objectContaining({ machineId: undefined }));
+    expect(target).not.toEqual(
+      expect.objectContaining({ spec: expect.anything() })
+    );
+  });
+
   it('sends the CI environment when no CI build ID is given', async () => {
     await fs.outputFile('logs.zip', 'zip');
     await run(getRunFilesCommand('currents') as never, [
@@ -405,22 +424,6 @@ describe('session and run attach commands', () => {
       expect(process.exit).toHaveBeenCalledWith(1);
     }
   );
-
-  it('needs a machine ID or a spec for run attach', async () => {
-    await fs.outputFile('a.txt', 'a');
-    await run(getRunFilesCommand('currents') as never, [
-      'attach',
-      '--key',
-      'rk',
-      '-p',
-      'proj',
-      '--ci-build-id',
-      'b',
-      'a.txt',
-    ]);
-    expect(createAttachments).not.toHaveBeenCalled();
-    expect(process.exit).toHaveBeenCalledWith(1);
-  });
 });
 
 describe('parsePr', () => {
