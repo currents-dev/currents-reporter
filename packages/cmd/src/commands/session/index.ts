@@ -61,9 +61,9 @@ const getStartCommand = (name: string) =>
   new Command()
     .name('start')
     .addHelpText('after', formatExamples(getSessionExamples(name).start))
-    .summary('Create a session and save its ID')
+    .summary('Create a session for one bug or fix check')
     .description(
-      'Create a session and save its ID to .currents-session/session.json for "attach" and "share"'
+      'Create a session, the page that holds the evidence of one bug or fix check, and save its ID to .currents-session/session.json, where "attach" and "share" read it'
     )
     .addOption(apiKeyOption)
     .addOption(projectOption)
@@ -87,7 +87,7 @@ const getStartCommand = (name: string) =>
 const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
-    .summary('Upload files and folders to the session')
+    .summary('Upload screenshots, traces and other files')
     .addHelpText('after', formatExamples(getSessionExamples(name).attach))
     .description(
       'Upload files, folders or a Playwright MCP trace folder to the session'
@@ -129,9 +129,9 @@ const getShareCommand = (name: string) =>
 export const getSessionCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .summary('Create a session, attach files, print a share link')
+    .summary('Share evidence of a bug or fix checked outside CI')
     .description(
-      'Create a session, attach screenshots, traces and other files to it, and print a link to share it'
+      'A session is a page with the screenshots, traces, videos and other files from a check done outside a CI run, by a person or an AI agent, for example to show a bug or that a fix works. Create a session, attach files to it, and print a link to share it.'
     )
     .addHelpText('after', formatExamples(getSessionExamples(name).session))
     .showHelpAfterError('(add --help for additional information)')
