@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cancelRun } from '../../../api';
+import { getProgram } from '../../../bin/program';
 import { getCancelCommand } from '../index';
 
 vi.mock('../../../api', () => ({
@@ -55,6 +56,59 @@ describe('cancel command', () => {
       recordKey: 'env-key',
       projectId: 'proj',
       ciBuildId: 'build-1',
+    });
+  });
+
+  describe('through the program', () => {
+    const DEPRECATION_WARNING =
+      "'currents cancel' is deprecated and will be removed in the next major version. Use 'currents run cancel'.\n";
+    const args = ['--key', 'k', '--project-id', 'proj', '--ci-build-id', 'b1'];
+    let stderr: string;
+
+    beforeEach(() => {
+      stderr = '';
+      vi.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
+        stderr += String(chunk);
+        return true;
+      });
+    });
+
+    it('cancels with currents run cancel without a warning', async () => {
+      await getProgram().parseAsync(['run', 'cancel', ...args], {
+        from: 'user',
+      });
+
+      expect(mockCancelRun).toHaveBeenCalledWith({
+        recordKey: 'k',
+        projectId: 'proj',
+        ciBuildId: 'b1',
+      });
+      expect(process.exit).toHaveBeenCalledWith(0);
+      expect(stderr).not.toContain('deprecated');
+    });
+
+    it('cancels with currents cancel and warns on stderr', async () => {
+      await getProgram().parseAsync(['cancel', ...args], { from: 'user' });
+
+      expect(mockCancelRun).toHaveBeenCalledWith({
+        recordKey: 'k',
+        projectId: 'proj',
+        ciBuildId: 'b1',
+      });
+      expect(process.exit).toHaveBeenCalledWith(0);
+      expect(stderr.startsWith(DEPRECATION_WARNING)).toBe(true);
+    });
+
+    it('exits with 1 on a failure, as run cancel does', async () => {
+      mockCancelRun.mockRejectedValue(new Error('boom'));
+
+      await getProgram().parseAsync(['cancel', ...args], { from: 'user' });
+      expect(process.exit).toHaveBeenLastCalledWith(1);
+
+      await getProgram().parseAsync(['run', 'cancel', ...args], {
+        from: 'user',
+      });
+      expect(process.exit).toHaveBeenLastCalledWith(1);
     });
   });
 });

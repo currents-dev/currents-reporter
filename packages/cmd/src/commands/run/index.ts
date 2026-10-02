@@ -1,6 +1,7 @@
 import { Command } from '@commander-js/extra-typings';
 import { getRunAttachConfig } from '../../config/session';
 import { handleRunAttach } from '../../services/session';
+import { getCancelCommand } from '../cancel';
 import { formatExamples, HelpExample } from '../help';
 import { commandHandler } from '../utils';
 import {
@@ -71,4 +72,5 @@ export const getRunFilesCommand = (name: string) =>
     .description('Work with runs recorded in CI')
     .addHelpText('after', formatExamples(getRunExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
-    .addCommand(getAttachCommand(name));
+    .addCommand(getAttachCommand(name))
+    .addCommand(getCancelCommand(name));

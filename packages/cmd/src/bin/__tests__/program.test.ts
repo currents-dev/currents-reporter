@@ -89,11 +89,33 @@ describe('currents program', () => {
       'currents upload --key',
       'currents convert --input-format',
       'currents cache set --key',
-      'currents cancel --key',
+      'currents run cancel --key',
       'currents run attach --key',
       'currents session start --api-key',
     ]) {
       expect(stdout).toContain(command);
     }
+  });
+
+  it('does not list the deprecated cancel command in the root help', async () => {
+    expect(await run(['--help'])).toBe(0);
+
+    expect(stdout).not.toMatch(/^\s+cancel\b/m);
+    expect(stdout).not.toContain('currents cancel');
+  });
+
+  it('lists attach and cancel in the help of run', async () => {
+    expect(await run(['run', '--help'])).toBe(0);
+
+    expect(stdout).toMatch(/^\s+attach\b/m);
+    expect(stdout).toMatch(/^\s+cancel\b/m);
+  });
+
+  it('prints the examples of run cancel with the full command path', async () => {
+    expect(await run(['run', 'cancel', '--help'])).toBe(0);
+
+    expect(stdout).toContain('Usage: currents run cancel [options]');
+    expect(stdout).toContain('run: npx currents run cancel');
+    expect(stdout).not.toContain('currents cancel');
   });
 });

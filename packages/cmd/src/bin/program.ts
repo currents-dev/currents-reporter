@@ -23,7 +23,7 @@ export const getProgram = () => {
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
     .addCommand(getUploadCommand(NAME))
     .addCommand(getConvertCommand(NAME))
-    .addCommand(getCancelCommand(NAME))
+    .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
     .addCommand(getRunFilesCommand(NAME))
     .addCommand(getSessionCommand(NAME))
     .addCommand(getCacheCommand(NAME))

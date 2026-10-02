@@ -10,27 +10,34 @@ import {
 } from './options';
 
 const COMMAND_NAME = 'cancel';
+const PARENT_NAME = 'run';
 export const getCancelExamples = (name: string): HelpExample[] => [
   {
     comment: 'Cancel the run recorded under a CI build ID',
     commands: [
-      `${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id>`,
     ],
   },
   {
     comment: 'Cancel a run by its ID, as reported when the run was created',
     commands: [
-      `${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --run-id <run-id>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --run-id <run-id>`,
     ],
   },
   {
     comment:
       'Cancel the run when a GitHub Actions workflow is cancelled (workflow step)',
-    commands: [`- if: \${{ cancelled() }}\n  run: npx ${name} ${COMMAND_NAME}`],
+    commands: [
+      `- if: \${{ cancelled() }}\n  run: npx ${name} ${PARENT_NAME} ${COMMAND_NAME}`,
+    ],
   },
 ];
 
-export const getCancelCommand = (name: string) => {
+// Remove the deprecated root-level command in the next major version.
+export const getCancelCommand = (
+  name: string,
+  { deprecated = false }: { deprecated?: boolean } = {}
+) => {
   const command = new Command()
     .name(COMMAND_NAME)
     .summary('Cancel a run in progress')
@@ -45,6 +52,14 @@ export const getCancelCommand = (name: string) => {
     .addOption(runIdOption)
     .addOption(debugOption)
     .action(cancelHandler);
+
+  if (deprecated) {
+    command.hook('preAction', () => {
+      process.stderr.write(
+        `'${name} ${COMMAND_NAME}' is deprecated and will be removed in the next major version. Use '${name} ${PARENT_NAME} ${COMMAND_NAME}'.\n`
+      );
+    });
+  }
 
   return command;
 };
