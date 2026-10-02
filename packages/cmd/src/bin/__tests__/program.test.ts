@@ -82,5 +82,10 @@ describe('currents program', () => {
     expect(await run(['--help'])).toBe(0);
 
     expect(stdout).toContain('Usage: currents [options] [command]');
+    expect(stdout).toContain(
+      "Run 'currents <command> --help' for the options and examples of a command."
+    );
+    // Examples of commands other than upload are only in their own help.
+    expect(stdout).not.toContain('cache set --key');
   });
 });

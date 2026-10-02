@@ -1,6 +1,4 @@
 import { Command } from '@commander-js/extra-typings';
-import { dim } from '@logger';
-import chalk from 'chalk';
 import {
   getSessionAttachConfig,
   getSessionShareConfig,
@@ -11,6 +9,7 @@ import {
   handleSessionShare,
   handleSessionStart,
 } from '../../services/session';
+import { formatExamples, HelpExample } from '../help';
 import { commandHandler } from '../utils';
 import {
   apiKeyOption,
@@ -31,20 +30,38 @@ import {
 
 const COMMAND_NAME = 'session';
 
-const getExample = (name: string) => `
+const getExamples = (name: string) => {
+  const start = `${name} ${COMMAND_NAME} start --api-key <api-key> --project-id <id> --title "Checkout fails on empty cart" --status failed`;
+  const attach = `${name} ${COMMAND_NAME} attach before.png .playwright-mcp/traces`;
+  const share = `${name} ${COMMAND_NAME} share --expires-in-days 7`;
+  return {
+    session: [
+      {
+        comment:
+          'Start a session, attach what you captured and get a link to share',
+        commands: [start, attach, share],
+      },
+    ],
+    start: [
+      { comment: 'Start a session for a failed check', commands: [start] },
+    ],
+    attach: [
+      {
+        comment: 'Attach a screenshot and a Playwright MCP trace folder',
+        commands: [attach],
+      },
+    ],
+    share: [
+      { comment: 'Print a link that expires in 7 days', commands: [share] },
+    ],
+  } satisfies Record<string, HelpExample[]>;
+};
 
-${chalk.bold('Examples')}
-
-Start a session, attach what you captured and get a link to share:
-${dim(`${name} ${COMMAND_NAME} start --api-key <api-key> --project-id <id> --title "Checkout fails on empty cart" --status failed`)}
-${dim(`${name} ${COMMAND_NAME} attach before.png .playwright-mcp/traces`)}
-${dim(`${name} ${COMMAND_NAME} share --expires-in-days 7`)}
-
-`;
-
-const getStartCommand = () =>
+const getStartCommand = (name: string) =>
   new Command()
     .name('start')
+    .addHelpText('after', formatExamples(getExamples(name).start))
+    .summary('Create a session and save its ID')
     .description(
       'Create a session and save its ID to .currents-session/session.json for "attach" and "share"'
     )
@@ -67,9 +84,11 @@ const getStartCommand = () =>
       }, options);
     });
 
-const getAttachCommand = () =>
+const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
+    .summary('Upload files and folders to the session')
+    .addHelpText('after', formatExamples(getExamples(name).attach))
     .description(
       'Upload files, folders or a Playwright MCP trace folder to the session'
     )
@@ -86,9 +105,10 @@ const getAttachCommand = () =>
       }, options);
     });
 
-const getShareCommand = () =>
+const getShareCommand = (name: string) =>
   new Command()
     .name('share')
+    .addHelpText('after', formatExamples(getExamples(name).share))
     .description('Print a public link to the session page')
     .addOption(apiKeyOption)
     .addOption(sessionIdOption)
@@ -103,8 +123,9 @@ const getShareCommand = () =>
 export const getSessionCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .description(`Record a browser session and share it ${getExample(name)}`)
+    .description('Record a browser session and share it')
+    .addHelpText('after', formatExamples(getExamples(name).session))
     .showHelpAfterError('(add --help for additional information)')
-    .addCommand(getStartCommand())
-    .addCommand(getAttachCommand())
-    .addCommand(getShareCommand());
+    .addCommand(getStartCommand(name))
+    .addCommand(getAttachCommand(name))
+    .addCommand(getShareCommand(name));

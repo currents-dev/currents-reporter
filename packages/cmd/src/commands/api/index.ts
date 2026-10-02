@@ -1,6 +1,5 @@
 import { Command } from '@commander-js/extra-typings';
-import { dim } from '@logger';
-import chalk from 'chalk';
+import { formatExamples, HelpExample } from '../help';
 import { getRunHandler } from './get-run';
 import {
   apiKeyOption,
@@ -14,25 +13,34 @@ import {
 } from './options';
 
 const COMMAND_NAME = 'api';
-const getExample = (name: string) => `
-
-${chalk.bold('Examples')}
-
-Obtain run data by --ci-build-id:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`)}
-
-Obtain the most recent run data by filters:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`)}
-
-Obtain run data by --ci-build-id, save the failed test in a format compatible with Playwright --last-failed:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`)}
-
-`;
+const getExamples = (name: string): HelpExample[] => [
+  {
+    comment: 'Get the data of the run recorded under a CI build ID',
+    commands: [
+      `${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`,
+    ],
+  },
+  {
+    comment: 'Get the data of the most recent run that matches the filters',
+    commands: [
+      `${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`,
+    ],
+  },
+  {
+    comment:
+      'Get the data of a run and save its failed tests for Playwright --last-failed',
+    commands: [
+      `${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`,
+    ],
+  },
+];
 
 export const getApiCommand = (name: string) => {
   const command = new Command()
     .command(COMMAND_NAME)
-    .description(`Interact with the Currents API`)
+    .summary('Get data from the Currents API')
+    .description('Get data from the Currents API')
+    .addHelpText('after', formatExamples(getExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
     .addCommand(getRunCommand(name));
@@ -43,7 +51,8 @@ export const getApiCommand = (name: string) => {
 export const getRunCommand = (name: string) => {
   const command = new Command()
     .name('get-run')
-    .description(`Retrieve run data from Currents API ${getExample(name)}`)
+    .description('Get the data of a run from the Currents API')
+    .addHelpText('after', formatExamples(getExamples(name)))
     .allowUnknownOption()
     .addOption(apiKeyOption)
     .addOption(debugOption)
