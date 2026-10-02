@@ -1,4 +1,11 @@
 import { Command } from '@commander-js/extra-typings';
+import {
+  frameworkOption,
+  frameworkVersionOption,
+  inputFileOption,
+  inputFormatOption,
+  outputDirOption,
+} from '../convert/options';
 import { formatExamples, HelpExample } from '../help';
 import {
   ciBuildIdOption,
@@ -25,6 +32,13 @@ export const getUploadExamples = (name: string): HelpExample[] => [
   },
   {
     comment:
+      'Convert JUnit XML reports to the Currents format, then upload them',
+    commands: [
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --input-format junit --input-file "./*.xml" --framework postman`,
+    ],
+  },
+  {
+    comment:
       'Upload test results and add the tags "tagA" and "tagB" to the run',
     commands: [
       `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --tag tagA --tag tagB`,
@@ -46,7 +60,11 @@ export const getUploadCommand = (name: string) => {
     .allowUnknownOption()
     .summary('Upload test results created by Currents reporters')
     .description(
-      'Upload test results created by Currents reporters to https://currents.dev'
+      `Upload test results created by Currents reporters to https://currents.dev
+
+With --input-format, first convert the reports in --input-file to the Currents
+format, then upload the converted reports. They are saved to --output-dir, or
+--report-dir, or a new folder in .currents.`
     )
     .addHelpText('after', formatExamples(getUploadExamples(name)))
     .addOption(ciBuildIdOption)
@@ -58,6 +76,11 @@ export const getUploadCommand = (name: string) => {
     .addOption(machineIdOption)
     .addOption(debugOption)
     .addOption(reportDirOption)
+    .addOption(inputFormatOption)
+    .addOption(inputFileOption)
+    .addOption(frameworkOption)
+    .addOption(frameworkVersionOption)
+    .addOption(outputDirOption)
     .action((options) => uploadHandler(options));
 
   return command;

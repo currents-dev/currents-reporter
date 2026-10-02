@@ -94,7 +94,7 @@ describe('currents program', () => {
     );
     for (const command of [
       'currents run upload --key',
-      'currents convert --input-format',
+      '--input-format junit --input-file "./*.xml"',
       'currents cache set --key',
       'currents run cancel --key',
       'currents run attach --key',
@@ -113,7 +113,7 @@ describe('currents program', () => {
     );
   });
 
-  it.each(['cancel', 'upload'])(
+  it.each(['cancel', 'upload', 'convert'])(
     'does not list the legacy %s command in the root help',
     async (command) => {
       expect(await run(['--help'])).toBe(0);

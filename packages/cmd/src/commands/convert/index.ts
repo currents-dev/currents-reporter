@@ -14,9 +14,10 @@ const COMMAND_NAME = 'convert';
 
 export const getConvertExamples = (name: string): HelpExample[] => [
   {
-    comment: 'Convert JUnit test reports to the Currents format',
+    comment:
+      'Convert JUnit test reports to the Currents format, to check the result before an upload',
     commands: [
-      `${name} ${COMMAND_NAME} --input-format junit --input-file ./*.xml --framework postman`,
+      `${name} ${COMMAND_NAME} --input-format junit --input-file "./*.xml" --framework postman`,
     ],
   },
 ];

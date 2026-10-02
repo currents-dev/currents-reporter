@@ -7,7 +7,7 @@ import {
   getCacheSetExamples,
 } from '../commands/cache';
 import { getCancelCommand, getCancelExamples } from '../commands/cancel';
-import { getConvertCommand, getConvertExamples } from '../commands/convert';
+import { getConvertCommand } from '../commands/convert';
 import { formatExamples } from '../commands/help';
 import { getRunExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
@@ -23,7 +23,7 @@ export const getProgram = () => {
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
     .addCommand(getUploadCommand(NAME), { hidden: true })
-    .addCommand(getConvertCommand(NAME))
+    .addCommand(getConvertCommand(NAME), { hidden: true })
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
     .addCommand(getRunFilesCommand(NAME))
     .addCommand(getSessionCommand(NAME))
@@ -34,7 +34,7 @@ export const getProgram = () => {
       'after',
       `${formatExamples([
         getUploadExamples(NAME)[0],
-        getConvertExamples(NAME)[0],
+        getUploadExamples(NAME)[1],
         getCacheSetExamples(NAME)[1],
         getCacheGetExamples(NAME)[1],
         getCancelExamples(NAME)[0],
