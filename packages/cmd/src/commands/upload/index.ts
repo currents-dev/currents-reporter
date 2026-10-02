@@ -58,7 +58,7 @@ export const getUploadCommand = (name: string) => {
     .command(COMMAND_NAME)
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
-    .summary('Upload test results created by Currents reporters')
+    .summary('Upload test results of Currents reporters or JUnit')
     .description(
       `Upload test results created by Currents reporters to https://currents.dev
 

@@ -9,7 +9,7 @@ import {
 import { getCancelCommand, getCancelExamples } from '../commands/cancel';
 import { getConvertCommand } from '../commands/convert';
 import { formatExamples } from '../commands/help';
-import { getRunExamples, getRunFilesCommand } from '../commands/run';
+import { getRunAttachExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
 import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
@@ -38,7 +38,7 @@ export const getProgram = () => {
         getCacheSetExamples(NAME)[1],
         getCacheGetExamples(NAME)[1],
         getCancelExamples(NAME)[0],
-        getRunExamples(NAME)[0],
+        getRunAttachExamples(NAME)[0],
         ...getSessionExamples(NAME).session,
       ])}
 Run '${NAME} <command> --help' for the options and examples of a command.

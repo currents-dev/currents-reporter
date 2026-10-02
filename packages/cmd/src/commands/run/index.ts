@@ -1,8 +1,8 @@
 import { Command } from '@commander-js/extra-typings';
 import { getRunAttachConfig } from '../../config/session';
 import { handleRunAttach } from '../../services/session';
-import { getRunGetCommand } from '../api';
-import { getCancelCommand } from '../cancel';
+import { getRunGetCommand, getRunGetExamples } from '../api';
+import { getCancelCommand, getCancelExamples } from '../cancel';
 import { formatExamples, HelpExample } from '../help';
 import { commandHandler } from '../utils';
 import {
@@ -20,11 +20,11 @@ import {
   testTitleOption,
   typeOption,
 } from '../session/options';
-import { getUploadCommand } from '../upload';
+import { getUploadCommand, getUploadExamples } from '../upload';
 
 const COMMAND_NAME = 'run';
 
-export const getRunExamples = (name: string): HelpExample[] => [
+export const getRunAttachExamples = (name: string): HelpExample[] => [
   {
     comment:
       'Attach the Docker logs of a CI machine to the run, after the tests finished',
@@ -43,7 +43,7 @@ export const getRunExamples = (name: string): HelpExample[] => [
 const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
-    .addHelpText('after', formatExamples(getRunExamples(name)))
+    .addHelpText('after', formatExamples(getRunAttachExamples(name)))
     .description('Upload files to a run recorded in CI')
     .argument('<paths...>', 'files or folders to attach')
     .addOption(recordKeyOption)
@@ -71,8 +71,16 @@ const getAttachCommand = (name: string) =>
 export const getRunFilesCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .description('Work with runs recorded in CI')
-    .addHelpText('after', formatExamples(getRunExamples(name)))
+    .description('Upload test results and work with runs recorded in CI')
+    .addHelpText(
+      'after',
+      formatExamples([
+        ...getUploadExamples(name).slice(0, 2),
+        getRunAttachExamples(name)[0],
+        getRunGetExamples(name)[0],
+        getCancelExamples(name)[0],
+      ])
+    )
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getUploadCommand(name))
     .addCommand(getAttachCommand(name))
