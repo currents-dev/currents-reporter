@@ -61,9 +61,9 @@ const getStartCommand = (name: string) =>
   new Command()
     .name('start')
     .addHelpText('after', formatExamples(getSessionExamples(name).start))
-    .summary('Create a session for one bug or fix check')
+    .summary('Create a session')
     .description(
-      'Create a session, the page that holds the evidence of one bug or fix check, and save its ID to .currents-session/session.json, where "attach" and "share" read it'
+      'Create a session and save its ID to .currents-session/session.json, where "attach" and "share" read it'
     )
     .addOption(apiKeyOption)
     .addOption(projectOption)
@@ -129,9 +129,9 @@ const getShareCommand = (name: string) =>
 export const getSessionCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .summary('Share evidence of a bug or fix checked outside CI')
+    .summary('Capture agent or browser sessions as evidence')
     .description(
-      'A session is a page with the screenshots, traces, videos and other files from a check done outside a CI run, by a person or an AI agent, for example to show a bug or that a fix works. Create a session, attach files to it, and print a link to share it.'
+      'Capture ad-hoc, one-off agent or browser sessions as evidence: a bug before and after a fix, or proof that something works. Create a session, attach screenshots, traces, videos and other files to it, and print a link to share it.'
     )
     .addHelpText('after', formatExamples(getSessionExamples(name).session))
     .showHelpAfterError('(add --help for additional information)')

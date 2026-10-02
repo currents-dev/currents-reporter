@@ -1,6 +1,6 @@
 # Sessions
 
-A session holds files you captured outside a CI run, such as screenshots, a Playwright MCP trace and logs, and gives a link to share them. Use it to show a bug or a fix that no test covers.
+A session holds the files of an ad-hoc, one-off agent or browser session, such as screenshots, a Playwright MCP trace and logs, and gives a link to share them. Use it as evidence: a bug before and after a fix, or proof that something works.
 
 The session commands need an API key with write access, in `CURRENTS_API_KEY` or `--api-key`.
 
