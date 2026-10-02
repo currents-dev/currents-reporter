@@ -1,5 +1,3 @@
-import { CacheCommandConfig } from './config';
-
 const cacheCommandConfigKeys = {
   recordKey: {
     name: 'Record Key',
@@ -80,15 +78,3 @@ export const configKeys = {
   ...cacheSetCommandConfigKeys,
   ...cacheGetCommandConfigKeys,
 } as const;
-
-export function getEnvVariables(): Partial<
-  Record<
-    keyof CacheCommandConfig,
-    string | string[] | boolean | number | undefined
-  >
-> {
-  return {
-    recordKey: process.env[configKeys.recordKey.env],
-    debug: process.env[configKeys.debug.env],
-  };
-}

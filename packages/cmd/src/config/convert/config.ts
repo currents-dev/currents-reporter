@@ -4,7 +4,7 @@ import {
   REPORT_INPUT_FORMATS,
 } from '../../commands/convert/options';
 import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -59,7 +59,6 @@ export function setConvertCommandConfig(
   _config = getValidatedConfig(
     configKeys,
     mandatoryConfigKeys,
-    getEnvVariables,
     reporterOptions
   );
   debug('Resolved config: %o', _config);

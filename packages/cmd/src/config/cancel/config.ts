@@ -9,7 +9,7 @@ import {
   getEnvironmentVariableName,
   getValidatedConfig,
 } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -79,7 +79,6 @@ export function setCancelCommandConfig(options?: Partial<CancelCommandConfig>) {
   _config = getValidatedConfig(
     configKeys,
     mandatoryConfigKeys,
-    getEnvVariables,
     options,
     requireRunIdentifier
   );

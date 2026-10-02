@@ -1,5 +1,3 @@
-import { APICommandConfig } from './config';
-
 const apiCommandConfigKeys = {
   apiKey: {
     name: 'Api Key',
@@ -25,6 +23,7 @@ const apiGetRunCommandConfigKeys = {
   },
   ciBuildId: {
     name: 'CI Build ID',
+    env: 'CURRENTS_CI_BUILD_ID',
     cli: '--ci-build-id',
   },
   projectId: {
@@ -42,15 +41,3 @@ export const configKeys = {
   ...apiCommandConfigKeys,
   ...apiGetRunCommandConfigKeys,
 } as const;
-
-export function getEnvVariables(): Partial<
-  Record<
-    keyof APICommandConfig,
-    string | string[] | boolean | number | undefined
-  >
-> {
-  return {
-    apiKey: process.env[configKeys.apiKey.env],
-    debug: !!process.env[configKeys.debug.env],
-  };
-}

@@ -39,9 +39,3 @@ export const configKeys = {
     cli: '--debug',
   },
 } as const;
-
-/**
- * Commander applies the environment variables when it parses the options, so
- * the command line wins over the environment. Nothing is read again here.
- */
-export const getEnvVariables = () => ({});

@@ -1,5 +1,9 @@
-import { CommanderError } from '@commander-js/extra-typings';
+import {
+  CommanderError,
+  CommandUnknownOpts,
+} from '@commander-js/extra-typings';
 import { error } from '@logger';
+import { parseBooleanEnv } from '../config/utils';
 import { enableDebug } from '../debug';
 
 export function parseCommaSeparatedList(
@@ -10,6 +14,31 @@ export function parseCommaSeparatedList(
     return previous.concat(value.split(',').map((t) => t.trim()));
   }
   return previous;
+}
+
+/**
+ * Commander sets a flag that has an environment variable to true when the
+ * variable holds any value, so `CURRENTS_DEBUG=false` would turn debug on.
+ * Reads those values again with parseBooleanEnv. A flag given on the command
+ * line keeps its value.
+ */
+export function parseFlagsFromEnv(command: CommandUnknownOpts) {
+  for (const option of command.options) {
+    const name = option.attributeName();
+    if (
+      !option.envVar ||
+      !option.isBoolean() ||
+      command.getOptionValueSource(name) !== 'env'
+    ) {
+      continue;
+    }
+    const value = parseBooleanEnv(process.env[option.envVar]);
+    command.setOptionValueWithSource(
+      name,
+      value ?? option.defaultValue,
+      value === undefined ? 'default' : 'env'
+    );
+  }
 }
 
 export async function commandHandler<T extends Record<string, unknown>>(

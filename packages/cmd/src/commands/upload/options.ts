@@ -21,18 +21,24 @@ export const projectOption = new Option(
 
 export const tagOption = new Option(
   '-t, --tag <tag>',
-  'comma-separated tags to add to the run; also read from CURRENTS_TAG'
-).argParser(parseCommaSeparatedList);
+  'comma-separated tags to add to the run'
+)
+  .env(getEnvironmentVariableName(configKeys, 'tag'))
+  .argParser(parseCommaSeparatedList);
 
 export const removeTagOption = new Option(
   '--remove-title-tags',
-  'remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard; also read from CURRENTS_REMOVE_TITLE_TAGS'
-).default(false);
+  'remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard'
+)
+  .env(getEnvironmentVariableName(configKeys, 'removeTitleTags'))
+  .default(false);
 
 export const disableTitleTagsOption = new Option(
   '--disable-title-tags',
-  'disable parsing tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke` in the dashboard; also read from CURRENTS_DISABLE_TITLE_TAGS'
-).default(false);
+  'disable parsing tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke` in the dashboard'
+)
+  .env(getEnvironmentVariableName(configKeys, 'disableTitleTags'))
+  .default(false);
 
 export const machineIdOption = new Option(
   '--machine-id <string>',

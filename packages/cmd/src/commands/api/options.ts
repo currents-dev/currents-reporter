@@ -16,7 +16,7 @@ export const outputOption = new Option(
 export const ciBuildIdOption = new Option(
   '--ci-build-id <id>',
   'the CI build ID the run was recorded with; cannot be combined with --branch or --tag'
-);
+).env(getEnvironmentVariableName(configKeys, 'ciBuildId'));
 
 export const projectOption = new Option(
   '-p, --project-id <project>',

@@ -1,5 +1,3 @@
-import { CurrentsConfig } from './config';
-
 export const configKeys = {
   debug: {
     name: 'Debug',
@@ -47,24 +45,3 @@ export const configKeys = {
     cli: '--report-dir',
   },
 } as const;
-
-/**
- * Converts Environment variables to Currents config.
- * @returns
- */
-export function getEnvVariables(): Partial<
-  Record<keyof CurrentsConfig, string | string[] | boolean | number | undefined>
-> {
-  return {
-    projectId: process.env[configKeys.projectId.env],
-    recordKey: process.env[configKeys.recordKey.env],
-    ciBuildId: process.env[configKeys.ciBuildId.env],
-    tag: process.env[configKeys.tag.env]
-      ? process.env[configKeys.tag.env]?.split(',').map((i) => i.trim())
-      : undefined,
-    disableTitleTags: process.env[configKeys.disableTitleTags.env],
-    removeTitleTags: process.env[configKeys.removeTitleTags.env],
-    debug: process.env[configKeys.debug.env],
-    machineId: process.env[configKeys.machineId.env],
-  };
-}

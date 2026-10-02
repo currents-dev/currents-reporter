@@ -1,5 +1,3 @@
-import { ConvertCommandConfig } from './config';
-
 export const configKeys = {
   debug: {
     name: 'Debug',
@@ -27,11 +25,3 @@ export const configKeys = {
     cli: '--framework-version',
   },
 } as const;
-
-export function getEnvVariables(): Partial<
-  Record<keyof ConvertCommandConfig, string | string[] | boolean | undefined>
-> {
-  return {
-    debug: process.env[configKeys.debug.env],
-  };
-}

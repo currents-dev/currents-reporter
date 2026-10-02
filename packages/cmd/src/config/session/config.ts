@@ -1,7 +1,7 @@
 import { debug as _debug } from '@debug';
 import { maskApiKey, ValidationError } from '@lib';
 import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -58,7 +58,6 @@ export function getSessionStartConfig(options?: Partial<SessionStartConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionStartConfig>(
     configKeys,
     ['apiKey', 'projectId', 'title'],
-    getEnvVariables,
     options
   );
   debug('Resolved config: %o', maskApiKey(config));
@@ -69,7 +68,6 @@ export function getSessionAttachConfig(options?: Partial<SessionAttachConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionAttachConfig>(
     configKeys,
     ['apiKey'],
-    getEnvVariables,
     options
   );
   debug('Resolved config: %o', maskApiKey(config));
@@ -80,7 +78,6 @@ export function getSessionShareConfig(options?: Partial<SessionShareConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionShareConfig>(
     configKeys,
     ['apiKey'],
-    getEnvVariables,
     options
   );
   debug('Resolved config: %o', maskApiKey(config));
@@ -91,7 +88,6 @@ export function getRunAttachConfig(options?: Partial<RunAttachConfig>) {
   const config = getValidatedConfig<typeof configKeys, RunAttachConfig>(
     configKeys,
     ['projectId'],
-    getEnvVariables,
     options,
     requireCredentials
   );

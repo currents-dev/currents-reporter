@@ -3,7 +3,7 @@ import { debug as _debug } from '@debug';
 import { maskApiKey, ValidationError } from '@lib';
 import { error } from '@logger';
 import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -91,7 +91,6 @@ export function setAPIGetRunCommandConfig(
   _config = getValidatedConfig(
     configKeys,
     mandatoryConfigKeys,
-    getEnvVariables,
     options,
     apiGetRunCustomValidation
   );

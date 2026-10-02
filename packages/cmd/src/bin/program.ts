@@ -13,6 +13,7 @@ import { getRunAttachExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
 import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
+import { parseFlagsFromEnv } from '../commands/utils';
 
 const NAME = 'currents';
 export const getProgram = () => {
@@ -22,6 +23,9 @@ export const getProgram = () => {
       'Currents CLI: upload test results and files to Currents, get and cancel runs, capture agent or browser sessions as evidence, and cache files between CI jobs'
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
+    .hook('preAction', (_program, actionCommand) =>
+      parseFlagsFromEnv(actionCommand)
+    )
     .addCommand(getUploadCommand(NAME), { hidden: true })
     .addCommand(getConvertCommand(NAME), { hidden: true })
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
