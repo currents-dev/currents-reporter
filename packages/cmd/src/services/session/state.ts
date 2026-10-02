@@ -8,8 +8,8 @@ export type SessionState = {
 };
 
 /**
- * Not `.currents`: that folder belongs to the reporters, and `currents upload`
- * reads the newest folder in it as its report.
+ * Not `.currents`: that folder belongs to the reporters, and
+ * `currents run upload` reads the newest folder in it as its report.
  */
 export const SESSION_FOLDER = '.currents-session';
 

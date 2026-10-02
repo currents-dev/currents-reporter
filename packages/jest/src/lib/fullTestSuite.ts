@@ -22,8 +22,8 @@ export type FullSuiteProject = {
 export type FullTestSuite = FullSuiteProject[];
 
 /**
- * `currents upload` otherwise discovers the test suite by running Jest a second
- * time, which under Detox boots a device and needs a resolvable Detox
+ * `currents run upload` otherwise discovers the test suite by running Jest a
+ * second time, which under Detox boots a device and needs a resolvable Detox
  * configuration. The reporter already saw every test, so it writes the file
  * itself - unless Jest ran a subset, where what it saw is not the full suite.
  */

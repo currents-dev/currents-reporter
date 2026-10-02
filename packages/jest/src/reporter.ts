@@ -407,8 +407,8 @@ export default class CustomReporter implements Reporter {
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
     if (this.detoxSession) {
-      // Without this file `currents upload` lists the tests with a second Jest
-      // run, which for Detox boots a device and installs the app again.
+      // Without this file `currents run upload` lists the tests with a second
+      // Jest run, which for Detox boots a device and installs the app again.
       if (isPartialRun(this.globalConfig)) {
         debug('Partial run - not writing the full test suite');
       } else {
@@ -509,8 +509,8 @@ function getTestCaseKey(projectId: string, specName: string, testId: string) {
 
 /**
  * Detox names an artifact directory after the test's full name, its status and
- * its invocation count, so those are recorded per attempt for `currents upload`
- * to resolve the directories once Detox has closed the files.
+ * its invocation count, so those are recorded per attempt for
+ * `currents run upload` to resolve the directories once Detox has closed the files.
  */
 function getDetoxManifestTest(
   testCase: TestCase,
