@@ -14,25 +14,26 @@ import {
 import { uploadHandler } from './upload';
 
 const COMMAND_NAME = 'upload';
+const PARENT_NAME = 'run';
 
 export const getUploadExamples = (name: string): HelpExample[] => [
   {
     comment: 'Upload test results to Currents',
     commands: [
-      `${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id>`,
     ],
   },
   {
     comment:
       'Upload test results and add the tags "tagA" and "tagB" to the run',
     commands: [
-      `${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --tag tagA --tag tagB`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --tag tagA --tag tagB`,
     ],
   },
   {
     comment: 'Upload test results from a custom reports directory',
     commands: [
-      `${name} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --report-dir <report-dir>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --report-dir <report-dir>`,
     ],
   },
 ];

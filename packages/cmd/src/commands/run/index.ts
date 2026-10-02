@@ -19,6 +19,7 @@ import {
   testTitleOption,
   typeOption,
 } from '../session/options';
+import { getUploadCommand } from '../upload';
 
 const COMMAND_NAME = 'run';
 
@@ -72,5 +73,6 @@ export const getRunFilesCommand = (name: string) =>
     .description('Work with runs recorded in CI')
     .addHelpText('after', formatExamples(getRunExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
+    .addCommand(getUploadCommand(name))
     .addCommand(getAttachCommand(name))
     .addCommand(getCancelCommand(name));

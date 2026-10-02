@@ -56,7 +56,7 @@ describe('currents program', () => {
     expect(await run([])).toBe(1);
 
     expect(stderr).toContain('Usage: currents [options] [command]');
-    expect(stderr).toContain('upload [options]');
+    expect(stderr).toMatch(/^\s+run\b/m);
     expect(handleCurrentsReport).not.toHaveBeenCalled();
     expect(getCurrentsConfig).not.toHaveBeenCalled();
   });
@@ -65,17 +65,24 @@ describe('currents program', () => {
     expect(await run(['--key', 'x', '--project-id', 'y'])).toBe(1);
 
     expect(stderr).toContain('upload is no longer the default command');
-    expect(stderr).toContain("currents upload ...'");
+    expect(stderr).toContain("currents run upload ...'");
     expect(stderr).toContain("run 'currents --help' for usage");
     expect(handleCurrentsReport).not.toHaveBeenCalled();
     expect(getCurrentsConfig).not.toHaveBeenCalled();
   });
 
   it('prints the help of the upload command', async () => {
+    expect(await run(['run', 'upload', '--help'])).toBe(0);
+
+    expect(stdout).toContain('Usage: currents run upload [options]');
+    expect(stdout).not.toMatch(/currents upload/);
+    expect(handleCurrentsReport).not.toHaveBeenCalled();
+  });
+
+  it('prints the help of the hidden upload command', async () => {
     expect(await run(['upload', '--help'])).toBe(0);
 
     expect(stdout).toContain('Usage: currents upload [options]');
-    expect(handleCurrentsReport).not.toHaveBeenCalled();
   });
 
   it('prints the help with --help', async () => {
@@ -86,7 +93,7 @@ describe('currents program', () => {
       "Run 'currents <command> --help' for the options and examples of a command."
     );
     for (const command of [
-      'currents upload --key',
+      'currents run upload --key',
       'currents convert --input-format',
       'currents cache set --key',
       'currents run cancel --key',
@@ -106,18 +113,22 @@ describe('currents program', () => {
     );
   });
 
-  it('does not list the deprecated cancel command in the root help', async () => {
-    expect(await run(['--help'])).toBe(0);
+  it.each(['cancel', 'upload'])(
+    'does not list the legacy %s command in the root help',
+    async (command) => {
+      expect(await run(['--help'])).toBe(0);
 
-    expect(stdout).not.toMatch(/^\s+cancel\b/m);
-    expect(stdout).not.toContain('currents cancel');
-  });
+      expect(stdout).not.toMatch(new RegExp(`^\\s+${command}\\b`, 'm'));
+      expect(stdout).not.toContain(`currents ${command}`);
+    }
+  );
 
-  it('lists attach and cancel in the help of run', async () => {
+  it('lists its commands in the help of run', async () => {
     expect(await run(['run', '--help'])).toBe(0);
 
-    expect(stdout).toMatch(/^\s+attach\b/m);
-    expect(stdout).toMatch(/^\s+cancel\b/m);
+    for (const command of ['upload', 'attach', 'cancel']) {
+      expect(stdout).toMatch(new RegExp(`^\\s+${command}\\b`, 'm'));
+    }
   });
 
   it('prints the examples of run cancel with the full command path', async () => {

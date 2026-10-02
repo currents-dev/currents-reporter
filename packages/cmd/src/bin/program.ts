@@ -22,7 +22,7 @@ export const getProgram = () => {
       'Currents CLI: report test results and attach files to Currents'
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
-    .addCommand(getUploadCommand(NAME))
+    .addCommand(getUploadCommand(NAME), { hidden: true })
     .addCommand(getConvertCommand(NAME))
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
     .addCommand(getRunFilesCommand(NAME))
@@ -53,7 +53,7 @@ Support:       support@currents.dev
   // used to select the upload command, so point users to it.
   (program as unknown as { unknownOption: () => void }).unknownOption = () =>
     program.error(
-      `upload is no longer the default command. Run '${NAME} upload ...' instead.`
+      `upload is no longer the default command. Run '${NAME} run upload ...' instead.`
     );
 
   return program;
