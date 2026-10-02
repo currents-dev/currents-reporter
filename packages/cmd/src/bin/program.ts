@@ -16,14 +16,25 @@ const example = `
 `;
 
 const NAME = 'currents';
-export const getProgram = () =>
-  new Command(NAME)
+export const getProgram = () => {
+  const program = new Command(NAME)
     .version(reporterVersion)
     .description(`Currents CLI ${example}`)
-    .addCommand(getUploadCommand(NAME), { isDefault: true })
+    .showHelpAfterError(`(run '${NAME} --help' for usage)`)
+    .addCommand(getUploadCommand(NAME))
     .addCommand(getCacheCommand(NAME))
     .addCommand(getApiCommand(NAME))
     .addCommand(getCancelCommand(NAME))
     .addCommand(getConvertCommand(NAME))
     .addCommand(getSessionCommand(NAME))
     .addCommand(getRunFilesCommand(NAME));
+
+  // Commander has no public hook for unknown options. Options such as --key
+  // used to select the upload command, so point users to it.
+  (program as unknown as { unknownOption: () => void }).unknownOption = () =>
+    program.error(
+      `upload is no longer the default command. Run '${NAME} upload ...' instead.`
+    );
+
+  return program;
+};
