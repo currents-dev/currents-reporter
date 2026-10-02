@@ -1,13 +1,17 @@
 import { Command } from '@commander-js/extra-typings';
 import { reporterVersion } from '@env/versions';
 import { getApiCommand } from '../commands/api';
-import { getCacheCommand } from '../commands/cache';
-import { getCancelCommand } from '../commands/cancel';
-import { getConvertCommand } from '../commands/convert';
+import {
+  getCacheCommand,
+  getCacheGetExamples,
+  getCacheSetExamples,
+} from '../commands/cache';
+import { getCancelCommand, getCancelExamples } from '../commands/cancel';
+import { getConvertCommand, getConvertExamples } from '../commands/convert';
 import { formatExamples } from '../commands/help';
-import { getRunFilesCommand } from '../commands/run';
-import { getSessionCommand } from '../commands/session';
-import { getUploadCommand } from '../commands/upload';
+import { getRunExamples, getRunFilesCommand } from '../commands/run';
+import { getSessionCommand, getSessionExamples } from '../commands/session';
+import { getUploadCommand, getUploadExamples } from '../commands/upload';
 
 const NAME = 'currents';
 export const getProgram = () => {
@@ -27,12 +31,13 @@ export const getProgram = () => {
     .addHelpText(
       'after',
       `${formatExamples([
-        {
-          comment: 'Upload test results to Currents',
-          commands: [
-            `${NAME} upload --key <record-key> --project-id <id> --ci-build-id <build-id>`,
-          ],
-        },
+        getUploadExamples(NAME)[0],
+        getConvertExamples(NAME)[0],
+        getCacheSetExamples(NAME)[1],
+        getCacheGetExamples(NAME)[1],
+        getCancelExamples(NAME)[0],
+        getRunExamples(NAME)[0],
+        ...getSessionExamples(NAME).session,
       ])}
 Run '${NAME} <command> --help' for the options and examples of a command.
 

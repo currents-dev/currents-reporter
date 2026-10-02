@@ -15,7 +15,7 @@ import { uploadHandler } from './upload';
 
 const COMMAND_NAME = 'upload';
 
-const getExamples = (name: string): HelpExample[] => [
+export const getUploadExamples = (name: string): HelpExample[] => [
   {
     comment: 'Upload test results to Currents',
     commands: [
@@ -47,7 +47,7 @@ export const getUploadCommand = (name: string) => {
     .description(
       'Upload test results created by Currents reporters to https://currents.dev'
     )
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getUploadExamples(name)))
     .addOption(ciBuildIdOption)
     .addOption(recordKeyOption)
     .addOption(projectOption)

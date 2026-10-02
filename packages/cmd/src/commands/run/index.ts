@@ -21,7 +21,7 @@ import {
 
 const COMMAND_NAME = 'run';
 
-const getExamples = (name: string): HelpExample[] => [
+export const getRunExamples = (name: string): HelpExample[] => [
   {
     comment:
       'Attach the Docker logs of a CI machine to the run, after the tests finished',
@@ -40,7 +40,7 @@ const getExamples = (name: string): HelpExample[] => [
 const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getRunExamples(name)))
     .description('Upload files to a run recorded in CI')
     .argument('<paths...>', 'files or folders to attach')
     .addOption(recordKeyOption)
@@ -68,8 +68,7 @@ const getAttachCommand = (name: string) =>
 export const getRunFilesCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .summary('Attach files to a run recorded in CI')
     .description('Work with runs recorded in CI')
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getRunExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getAttachCommand(name));

@@ -12,7 +12,7 @@ import {
 
 const COMMAND_NAME = 'convert';
 
-const getExamples = (name: string): HelpExample[] => [
+export const getConvertExamples = (name: string): HelpExample[] => [
   {
     comment: 'Convert JUnit test reports to the Currents format',
     commands: [
@@ -31,7 +31,7 @@ export const getConvertCommand = (name: string) => {
     .description(
       'Convert reports from various testing frameworks to the Currents format'
     )
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getConvertExamples(name)))
     .addOption(debugOption)
     .addOption(inputFormatOption)
     .addOption(inputFileOption)

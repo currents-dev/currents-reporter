@@ -18,7 +18,7 @@ import {
 import { getCacheSetHandler } from './set';
 
 const COMMAND_NAME = 'cache';
-const getSetExamples = (name: string): HelpExample[] => [
+export const getCacheSetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Save files to the cache under an ID',
     commands: [
@@ -33,7 +33,7 @@ const getSetExamples = (name: string): HelpExample[] => [
   },
 ];
 
-const getGetExamples = (name: string): HelpExample[] => [
+export const getCacheGetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Restore the files saved in the cache under an ID',
     commands: [`${name} ${COMMAND_NAME} get --key <record-key> --id <id>`],
@@ -61,7 +61,10 @@ export const getCacheCommand = (name: string) => {
     )
     .addHelpText(
       'after',
-      formatExamples([...getSetExamples(name), ...getGetExamples(name)])
+      formatExamples([
+        ...getCacheSetExamples(name),
+        ...getCacheGetExamples(name),
+      ])
     )
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
@@ -75,7 +78,7 @@ export const getCacheSetCommand = (name: string) => {
   const command = new Command()
     .name('set')
     .description('Save files to the cache')
-    .addHelpText('after', formatExamples(getSetExamples(name)))
+    .addHelpText('after', formatExamples(getCacheSetExamples(name)))
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
@@ -95,7 +98,7 @@ export const getCacheGetCommand = (name: string) => {
   const command = new Command()
     .name('get')
     .description('Restore files from the cache')
-    .addHelpText('after', formatExamples(getGetExamples(name)))
+    .addHelpText('after', formatExamples(getCacheGetExamples(name)))
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)

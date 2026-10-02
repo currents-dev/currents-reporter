@@ -85,7 +85,15 @@ describe('currents program', () => {
     expect(stdout).toContain(
       "Run 'currents <command> --help' for the options and examples of a command."
     );
-    // Examples of commands other than upload are only in their own help.
-    expect(stdout).not.toContain('cache set --key');
+    for (const command of [
+      'currents upload --key',
+      'currents convert --input-format',
+      'currents cache set --key',
+      'currents cancel --key',
+      'currents run attach --key',
+      'currents session start --api-key',
+    ]) {
+      expect(stdout).toContain(command);
+    }
   });
 });

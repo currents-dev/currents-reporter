@@ -10,7 +10,7 @@ import {
 } from './options';
 
 const COMMAND_NAME = 'cancel';
-const getExamples = (name: string): HelpExample[] => [
+export const getCancelExamples = (name: string): HelpExample[] => [
   {
     comment: 'Cancel the run recorded under a CI build ID',
     commands: [
@@ -37,7 +37,7 @@ export const getCancelCommand = (name: string) => {
     .description(
       'Cancel a run in progress, e.g. when the CI job it belongs to is cancelled'
     )
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getCancelExamples(name)))
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(projectOption)

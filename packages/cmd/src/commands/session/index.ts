@@ -30,7 +30,7 @@ import {
 
 const COMMAND_NAME = 'session';
 
-const getExamples = (name: string) => {
+export const getSessionExamples = (name: string) => {
   const start = `${name} ${COMMAND_NAME} start --api-key <api-key> --project-id <id> --title "Checkout fails on empty cart" --status failed`;
   const attach = `${name} ${COMMAND_NAME} attach before.png .playwright-mcp/traces`;
   const share = `${name} ${COMMAND_NAME} share --expires-in-days 7`;
@@ -60,7 +60,7 @@ const getExamples = (name: string) => {
 const getStartCommand = (name: string) =>
   new Command()
     .name('start')
-    .addHelpText('after', formatExamples(getExamples(name).start))
+    .addHelpText('after', formatExamples(getSessionExamples(name).start))
     .summary('Create a session and save its ID')
     .description(
       'Create a session and save its ID to .currents-session/session.json for "attach" and "share"'
@@ -88,7 +88,7 @@ const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
     .summary('Upload files and folders to the session')
-    .addHelpText('after', formatExamples(getExamples(name).attach))
+    .addHelpText('after', formatExamples(getSessionExamples(name).attach))
     .description(
       'Upload files, folders or a Playwright MCP trace folder to the session'
     )
@@ -108,7 +108,7 @@ const getAttachCommand = (name: string) =>
 const getShareCommand = (name: string) =>
   new Command()
     .name('share')
-    .addHelpText('after', formatExamples(getExamples(name).share))
+    .addHelpText('after', formatExamples(getSessionExamples(name).share))
     .description('Print a public link to the session page')
     .addOption(apiKeyOption)
     .addOption(sessionIdOption)
@@ -124,7 +124,7 @@ export const getSessionCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
     .description('Record a browser session and share it')
-    .addHelpText('after', formatExamples(getExamples(name).session))
+    .addHelpText('after', formatExamples(getSessionExamples(name).session))
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getStartCommand(name))
     .addCommand(getAttachCommand(name))
