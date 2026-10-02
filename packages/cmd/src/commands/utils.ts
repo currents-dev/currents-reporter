@@ -41,6 +41,15 @@ export function parseFlagsFromEnv(command: CommandUnknownOpts) {
   }
 }
 
+/**
+ * The logger prints to stdout. A command that prints JSON on stdout calls this
+ * first, so that warnings such as a retried request go to stderr and the JSON
+ * can be piped.
+ */
+export function printLogsToStderr() {
+  console.log = (...args: unknown[]) => console.error(...args);
+}
+
 export async function commandHandler<T extends Record<string, unknown>>(
   action: (options: T) => Promise<void>,
   commandOptions: T

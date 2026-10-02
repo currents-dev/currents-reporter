@@ -10,7 +10,7 @@ import {
   handleSessionStart,
 } from '../../services/session';
 import { formatExamples, HelpExample } from '../help';
-import { commandHandler } from '../utils';
+import { commandHandler, printLogsToStderr } from '../utils';
 import {
   apiKeyOption,
   captionOption,
@@ -77,8 +77,7 @@ const getStartCommand = (name: string) =>
     .action(async (options) => {
       await commandHandler(async (opts) => {
         if (opts.json) {
-          // The logger prints to stdout; with --json only the JSON may be there.
-          console.log = (...args: unknown[]) => console.error(...args);
+          printLogsToStderr();
         }
         await handleSessionStart(getSessionStartConfig(opts));
       }, options);

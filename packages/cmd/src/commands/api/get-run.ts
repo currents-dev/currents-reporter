@@ -6,7 +6,7 @@ import {
 } from '../../config/api';
 import { maskKeys } from '../../lib';
 import { handleGetRun } from '../../services';
-import { commandHandler } from '../utils';
+import { commandHandler, printLogsToStderr } from '../utils';
 
 const debug = _debug.extend('cli');
 
@@ -17,6 +17,9 @@ export async function getRunHandler(
   command: RunGetCommand
 ) {
   await commandHandler(async (opts) => {
+    if (!opts.output) {
+      printLogsToStderr();
+    }
     // CURRENTS_CI_BUILD_ID is often set for a whole CI job. It must not turn
     // `run get --branch main` into an error for combining the two.
     const ciBuildIdFromEnv =

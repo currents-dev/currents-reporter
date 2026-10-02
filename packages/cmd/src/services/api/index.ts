@@ -30,10 +30,15 @@ export async function handleGetRun() {
         };
 
     const result = await getRun(config.apiKey, params);
+    if (config.pwLastRun && !result.data.pwLastRun) {
+      // Printing the whole run instead would give Playwright a .last-run.json
+      // it cannot read.
+      throw new Error(
+        'The API answered without the status and failed tests of the run (pwLastRun). Nothing was written.'
+      );
+    }
     await handleOutput(
-      config.pwLastRun && result.data.pwLastRun
-        ? result.data.pwLastRun
-        : result.data,
+      config.pwLastRun ? result.data.pwLastRun : result.data,
       config
     );
   } catch (e) {
@@ -53,6 +58,6 @@ async function handleOutput(
     await writeFile(config.output, data, 'utf-8');
     info(`Successfully written to ${config.output}`);
   } else {
-    info(data);
+    process.stdout.write(data + '\n');
   }
 }
