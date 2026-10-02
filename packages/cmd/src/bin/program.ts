@@ -31,11 +31,16 @@ export const getProgram = () => {
     .addCommand(uploadCommand, { hidden: true })
     .addCommand(getConvertCommand(NAME), { hidden: true })
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
+    .commandsGroup('Test runs:')
     .addCommand(getRunFilesCommand(NAME))
+    .commandsGroup('Evidence:')
     .addCommand(getSessionCommand(NAME))
+    .commandsGroup('CI utilities:')
     .addCommand(getCacheCommand(NAME))
+    .commandsGroup('Other:')
     .addCommand(getApiCommand(NAME), { hidden: true })
     .addCommand(getSkillCommand(NAME))
+    .helpCommand(true)
     .addHelpText(
       'after',
       `${formatExamples([
