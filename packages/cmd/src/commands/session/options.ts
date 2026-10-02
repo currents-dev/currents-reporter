@@ -1,4 +1,4 @@
-import { Option } from '@commander-js/extra-typings';
+import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
 import { configKeys } from '../../config/session';
 import { getEnvironmentVariableName } from '../../config/utils';
 import { recordedCiBuildIdOption, tagOption } from '../options';
@@ -110,10 +110,20 @@ export const metaOption = new Option(
   'a label for each file; repeat for more'
 ).argParser(collectMeta);
 
+const EXPIRES_IN_DAYS = ['1', '3', '7'];
+
+// .argParser replaces the check of .choices, so the parser checks the value.
 export const expiresInDaysOption = new Option(
   '--expires-in-days <days>',
   'the number of days the link works'
 )
-  .choices(['1', '3', '7'] as const)
+  .choices(EXPIRES_IN_DAYS)
   .default(7)
-  .argParser((value) => Number(value));
+  .argParser((value) => {
+    if (!EXPIRES_IN_DAYS.includes(value)) {
+      throw new InvalidArgumentError(
+        `Allowed choices are ${EXPIRES_IN_DAYS.join(', ')}.`
+      );
+    }
+    return Number(value);
+  });

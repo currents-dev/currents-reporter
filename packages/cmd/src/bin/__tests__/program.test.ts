@@ -104,6 +104,12 @@ describe('currents program', () => {
     }
   );
 
+  it('refuses a number of days a share link cannot have', async () => {
+    expect(await run(['session', 'share', '--expires-in-days', '5'])).toBe(1);
+
+    expect(stderr).toContain("argument '5' is invalid");
+  });
+
   it('fails with the usual error for another unknown option', async () => {
     expect(await run(['--nope'])).toBe(1);
 
