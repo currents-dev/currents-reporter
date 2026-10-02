@@ -42,13 +42,9 @@ import {
 } from 'lodash';
 import { debug as _debug } from '../debug';
 import { removeAuthFromUrl } from '../lib/url';
-import { CiProvider, CiProviderData } from './types';
+import { CiProvider } from './types';
 
 const debug = _debug.extend('ci');
-
-const join = (char: string, ...pieces: (string | undefined)[]) => {
-  return chain(pieces).compact().join(char).value();
-};
 
 const toCamelObject = (obj: any, key: string) => {
   return set(obj, camelCase(key), process.env[key]);
@@ -657,174 +653,13 @@ const _providerCiParams = (): ProviderCiParamsRes => {
   };
 };
 
-// tries to grab commit information from CI environment variables
-// very useful to fill missing information when Git cannot grab correct values
-const _providerCommitParams = (): ProviderCommitParamsRes => {
-  const { env } = process;
-
-  return {
-    appveyor: {
-      sha: env.APPVEYOR_REPO_COMMIT,
-      // since APPVEYOR_REPO_BRANCH will be the target branch on a PR
-      // we need to use PULL_REQUEST_HEAD_REPO_BRANCH if it exists.
-      // e.g. if you have a PR: develop <- my-feature-branch
-      // my-feature-branch is APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH
-      // develop           is APPVEYOR_REPO_BRANCH
-      branch:
-        env.APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH || env.APPVEYOR_REPO_BRANCH,
-      message: join(
-        '\n',
-        env.APPVEYOR_REPO_COMMIT_MESSAGE,
-        env.APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED
-      ),
-      authorName: env.APPVEYOR_REPO_COMMIT_AUTHOR,
-      authorEmail: env.APPVEYOR_REPO_COMMIT_AUTHOR_EMAIL,
-      // remoteOrigin: ???
-      // defaultBranch: ???
-    },
-    awsCodeBuild: {
-      sha: env.CODEBUILD_RESOLVED_SOURCE_VERSION,
-      // branch: ???,
-      // message: ???
-      // authorName: ???
-      // authorEmail: ???
-      remoteOrigin: env.CODEBUILD_SOURCE_REPO_URL,
-      // defaultBranch: ???
-    },
-    azure: {
-      sha: env.BUILD_SOURCEVERSION,
-      branch: env.BUILD_SOURCEBRANCHNAME,
-      message: env.BUILD_SOURCEVERSIONMESSAGE,
-      authorName: env.BUILD_SOURCEVERSIONAUTHOR,
-      authorEmail: env.BUILD_REQUESTEDFOREMAIL,
-    },
-    bamboo: {
-      sha: env.bamboo_planRepository_revision,
-      branch: env.bamboo_planRepository_branch,
-      // message: ???
-      authorName: env.bamboo_planRepository_username,
-      // authorEmail: ???
-      remoteOrigin: env.bamboo_planRepository_repositoryURL,
-      // defaultBranch: ???
-    },
-    bitbucket: {
-      sha: env.BITBUCKET_COMMIT,
-      branch: env.BITBUCKET_BRANCH,
-      // message: ???
-      // authorName: ???
-      // authorEmail: ???
-      // remoteOrigin: ???
-      // defaultBranch: ???
-    },
-    buildkite: {
-      sha: env.BUILDKITE_COMMIT,
-      branch: env.BUILDKITE_BRANCH,
-      message: env.BUILDKITE_MESSAGE,
-      authorName: env.BUILDKITE_BUILD_CREATOR,
-      authorEmail: env.BUILDKITE_BUILD_CREATOR_EMAIL,
-      remoteOrigin: env.BUILDKITE_REPO,
-      defaultBranch: env.BUILDKITE_PIPELINE_DEFAULT_BRANCH,
-    },
-    circle: {
-      sha: env.CIRCLE_SHA1,
-      branch: env.CIRCLE_BRANCH,
-      // message: ???
-      authorName: env.CIRCLE_USERNAME,
-      // authorEmail: ???
-      remoteOrigin: env.CIRCLE_REPOSITORY_URL,
-      // defaultBranch: ???
-    },
-    codeFresh: {
-      sha: env.CF_REVISION,
-      branch: env.CF_BRANCH,
-      message: env.CF_COMMIT_MESSAGE,
-      authorName: env.CF_COMMIT_AUTHOR,
-    },
-    drone: {
-      sha: env.DRONE_COMMIT_SHA,
-      // https://docs.drone.io/pipeline/environment/reference/drone-source-branch/
-      branch: env.DRONE_SOURCE_BRANCH,
-      message: env.DRONE_COMMIT_MESSAGE,
-      authorName: env.DRONE_COMMIT_AUTHOR,
-      authorEmail: env.DRONE_COMMIT_AUTHOR_EMAIL,
-      remoteOrigin: env.DRONE_GIT_HTTP_URL,
-      defaultBranch: env.DRONE_REPO_BRANCH,
-    },
-    githubActions: {
-      sha: env.GITHUB_SHA,
-      branch: env.GH_BRANCH || env.GITHUB_REF,
-      defaultBranch: env.GITHUB_BASE_REF,
-      remoteBranch: env.GITHUB_HEAD_REF,
-      runAttempt: env.GITHUB_RUN_ATTEMPT,
-    },
-    gitlab: {
-      sha: env.CI_COMMIT_SHA,
-      branch: env.CI_COMMIT_REF_NAME,
-      message: env.CI_COMMIT_MESSAGE,
-      authorName: env.GITLAB_USER_NAME,
-      authorEmail: env.GITLAB_USER_EMAIL,
-      remoteOrigin: env.CI_REPOSITORY_URL,
-      defaultBranch: env.CI_DEFAULT_BRANCH,
-    },
-    googleCloud: {
-      sha: env.COMMIT_SHA,
-      branch: env.BRANCH_NAME,
-      // message: ??
-      // authorName: ??
-      // authorEmail: ??
-      // remoteOrigin: ???
-      // defaultBranch: ??
-    },
-    jenkins: {
-      sha: env.GIT_COMMIT,
-      branch: env.GIT_BRANCH,
-      // message: ???
-      // authorName: ???
-      // authorEmail: ???
-      // remoteOrigin: ???
-      // defaultBranch: ???
-    },
-    // Only from forks? https://semaphoreci.com/docs/available-environment-variables.html
-    semaphore: {
-      sha: env.SEMAPHORE_GIT_SHA,
-      branch: env.SEMAPHORE_GIT_BRANCH,
-      // message: ???
-      // authorName: ???
-      // authorEmail: ???
-      remoteOrigin: env.SEMAPHORE_GIT_REPO_SLUG,
-      // defaultBranch: ???
-    },
-    snap: null,
-    teamcity: null,
-    travis: {
-      sha: env.TRAVIS_PULL_REQUEST_SHA || env.TRAVIS_COMMIT,
-      // for PRs, TRAVIS_BRANCH is the base branch being merged into
-      branch: env.TRAVIS_PULL_REQUEST_BRANCH || env.TRAVIS_BRANCH,
-      // authorName: ???
-      // authorEmail: ???
-      message: env.TRAVIS_COMMIT_MESSAGE,
-      // remoteOrigin: ???
-      // defaultBranch: ???
-    },
-    netlify: {
-      sha: env.COMMIT_REF,
-      branch: env.BRANCH,
-      remoteOrigin: env.REPOSITORY_URL,
-    },
-  };
-};
-
-interface ProviderCommitParamsRes {
-  [key: string]: CiProviderData | null;
-}
-
 interface ProviderCiParamsRes {
   [key: string]: {
     [key: string]: string | undefined;
   } | null;
 }
 
-const _get = (fn: () => ProviderCommitParamsRes | ProviderCiParamsRes) => {
+const _get = (fn: () => ProviderCiParamsRes) => {
   const providerName = getCiProvider();
   if (!providerName) return {};
 
@@ -857,10 +692,6 @@ function getCiParams() {
   return mapValues(params, (value) =>
     isString(value) ? removeAuthFromUrl(value) : value
   ) as typeof params;
-}
-
-export function getCommitParams() {
-  return _get(_providerCommitParams);
 }
 
 export function getCI(explicitCiBuildId?: string | undefined) {

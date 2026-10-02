@@ -1,4 +1,4 @@
-import { GhaEventData } from './gitInfo';
+import type { GhaEventData } from '@currents/commit-info';
 export type CiProvider = string | null;
 
 export type CiProviderData = {
