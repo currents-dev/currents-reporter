@@ -18,20 +18,21 @@ export const getRunGetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Get the data of the run recorded under a CI build ID',
     commands: [
-      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --ci-build-id <ci-build-id>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --ci-build-id <ci-build-id>`,
     ],
   },
   {
-    comment: 'Get the data of the most recent run that matches the filters',
+    comment:
+      'Get the data of the last run of a branch with the tags tagA and tagB',
     commands: [
       `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`,
     ],
   },
   {
     comment:
-      'Get the data of a run and save its failed tests for Playwright --last-failed',
+      'Save the failed tests of a run as a Playwright .last-run.json file, for --last-failed',
     commands: [
-      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --ci-build-id <ci-build-id> --pw-last-run --output .last-run.json`,
     ],
   },
 ];
@@ -53,7 +54,10 @@ export const getApiCommand = (name: string) => {
 export const getRunGetCommand = (name: string) => {
   const command = new Command()
     .name(COMMAND_NAME)
-    .description('Get the data of a run from the Currents API')
+    .summary('Get the data of a run from the Currents API')
+    .description(
+      'Get the data of a run from the Currents API and print it as JSON, or write it to --output. Find the run by --ci-build-id, or the last run by --branch, --tag or both'
+    )
     .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .allowUnknownOption()
     .addOption(apiKeyOption)

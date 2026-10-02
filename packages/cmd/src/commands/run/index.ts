@@ -45,7 +45,10 @@ const getAttachCommand = (name: string) =>
     .name('attach')
     .addHelpText('after', formatExamples(getRunAttachExamples(name)))
     .description('Upload files to a run recorded in CI')
-    .argument('<paths...>', 'files or folders to attach')
+    .argument(
+      '<paths...>',
+      'files or folders to attach; a folder adds the files directly in it, without hidden files, links and subfolders'
+    )
     .addOption(recordKeyOption)
     .addOption(apiKeyOption)
     .addOption(projectOption)
@@ -71,7 +74,10 @@ const getAttachCommand = (name: string) =>
 export const getRunFilesCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .description('Upload test results and work with runs recorded in CI')
+    .summary('Upload test results, attach files, get or cancel a run')
+    .description(
+      'Upload test results to a run, attach files to it, get its data or cancel it'
+    )
     .addHelpText(
       'after',
       formatExamples([

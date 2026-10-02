@@ -10,12 +10,12 @@ export const apiKeyOption = new Option(
 
 export const outputOption = new Option(
   '-o, --output <path>',
-  'Path to the file where output will be written'
+  'write the JSON to this file instead of stdout'
 ).env(getEnvironmentVariableName(configKeys, 'output'));
 
 export const ciBuildIdOption = new Option(
   '--ci-build-id <id>',
-  'Unique identifier for the run'
+  'the CI build ID the run was recorded with; cannot be combined with --branch or --tag'
 );
 
 export const projectOption = new Option(
@@ -25,7 +25,7 @@ export const projectOption = new Option(
 
 export const tagOption = new Option(
   '-t, --tag <tag>',
-  'Filter by comma-separated list of tags'
+  'find the last run with these tags, comma-separated'
 ).argParser(parseCommaSeparatedList);
 
 export const debugOption = new Option('--debug', 'Enable debug logging')
@@ -34,10 +34,10 @@ export const debugOption = new Option('--debug', 'Enable debug logging')
 
 export const branchOption = new Option(
   '-b, --branch <branch>',
-  'Filter by git branch name'
+  'find the last run of this git branch'
 );
 
 export const pwLastRunOption = new Option(
   '--pw-last-run',
-  'Create Playwright ".last-run.json" file with the failed test(s) from the run'
+  "output only the status and the failed tests of the run, in the format of Playwright's .last-run.json"
 );

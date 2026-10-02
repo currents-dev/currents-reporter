@@ -19,7 +19,7 @@ export const getProgram = () => {
   const program = new Command(NAME)
     .version(reporterVersion)
     .description(
-      'Currents CLI: report test results and attach files to Currents'
+      'Currents CLI: upload test results and files to Currents, get and cancel runs, share browser sessions, and cache files between CI jobs'
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
     .addCommand(getUploadCommand(NAME), { hidden: true })

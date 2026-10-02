@@ -92,7 +92,10 @@ const getAttachCommand = (name: string) =>
     .description(
       'Upload files, folders or a Playwright MCP trace folder to the session'
     )
-    .argument('<paths...>', 'files or folders to attach')
+    .argument(
+      '<paths...>',
+      'files or folders to attach; a folder adds the files directly in it, without hidden files, links and subfolders'
+    )
     .addOption(apiKeyOption)
     .addOption(sessionIdOption)
     .addOption(typeOption)
@@ -109,7 +112,10 @@ const getShareCommand = (name: string) =>
   new Command()
     .name('share')
     .addHelpText('after', formatExamples(getSessionExamples(name).share))
-    .description('Print a public link to the session page')
+    .summary('Print a public link to the session page')
+    .description(
+      'Create a public link to the session page and print it, followed by the link to the page as Markdown'
+    )
     .addOption(apiKeyOption)
     .addOption(sessionIdOption)
     .addOption(expiresInDaysOption)
@@ -123,7 +129,10 @@ const getShareCommand = (name: string) =>
 export const getSessionCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .description('Record a browser session and share it')
+    .summary('Create a session, attach files, print a share link')
+    .description(
+      'Create a session, attach screenshots, traces and other files to it, and print a link to share it'
+    )
     .addHelpText('after', formatExamples(getSessionExamples(name).session))
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getStartCommand(name))

@@ -44,7 +44,7 @@ currents run attach --key <record-key> --project-id <id> --ci-build-id <build-id
 currents run cancel --key <record-key> --project-id <id> --ci-build-id <build-id>
 currents cache set --key <record-key> --preset last-run
 currents cache get --key <record-key> --preset last-run
-currents run get --api-key <api-key> --ci-build-id <ci-build-id>
+currents run get --api-key <api-key> --project-id <project-id> --ci-build-id <ci-build-id>
 ```
 
 - With `--input-format`, `run upload` converts the reports to the Currents format first, then uploads them. Put quotes around the `--input-file` pattern so that the CLI expands it, not the shell: the shell passes only the first file.
