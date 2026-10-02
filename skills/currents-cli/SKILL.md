@@ -1,6 +1,6 @@
 ---
 name: currents-cli
-description: Run the Currents CLI (the `currents` command of the npm package @currents/cmd). Use when asked to upload test results to Currents, convert JUnit or other test reports to the Currents format, attach files or logs to a CI run, cancel a Currents run when CI is cancelled, record a browser session and share it as evidence, or cache the last run so a CI rerun runs only the failed tests. Also use when adding these steps to GitHub Actions or GitLab CI.
+description: Run the Currents CLI (the `currents` command of the npm package @currents/cmd). Use when asked to upload test results to Currents, convert JUnit or other test reports to the Currents format, attach files or logs to a CI run, cancel a Currents run when CI is cancelled, record a browser session and share it as evidence, cache the last run so a CI rerun runs only the failed tests, or call a Currents REST API route from the command line. Also use when adding these steps to GitHub Actions or GitLab CI.
 ---
 
 # Currents CLI
@@ -27,6 +27,7 @@ In the project, run it as `npx currents`. Outside a project, use `npx --package 
 | Save the last run so that a CI rerun runs only the failed Playwright tests   | `currents cache set` and `cache get` with `--preset last-run` |
 | Save files in one CI job and restore them in another                         | `currents cache set` and `cache get` with `--id`              |
 | Get the data of a run                                                        | `currents run get`                                            |
+| Call any other REST API route, such as listing runs or cancelling a run      | `currents api <path>`                                         |
 
 `@currents/playwright` and the Cypress integration send results themselves. Do not add `currents run upload` after them.
 
@@ -51,6 +52,20 @@ currents run get --api-key <api-key> --project-id <project-id> --ci-build-id <ci
 - Without `--id`, `cache set` and `cache get` use an ID made from the CI job. When they warn `No CI job detected`, pass the same `--id` to both.
 - Without `--spec`, `run attach` attaches the files to the whole run. `--machine-id` names the CI machine the files come from; run-level files are listed by machine when it is set. `--spec`, `--test-title` and `--attempt` attach to a spec file, a test or one attempt of a test (the first attempt is `0`).
 
+## Call the REST API
+
+`currents api <path>` sends a request to any route of the Currents REST API with the API key and prints the response body. Use it when no other command does the task. The routes are in the REST API docs: https://docs.currents.dev/resources/api/api-resources
+
+```bash
+currents api /v1/runs/<run-id>
+currents api /v1/projects/<project-id>/runs -X GET -f "branches[]=main" -f status=FAILED
+currents api /v1/runs/<run-id>/cancel -X PUT
+```
+
+- The path can start with `/v1/`, `v1/` or the route name.
+- `-f key=value` adds a field. A GET sends the fields in the query string, so pass `-X GET` with fields: without `-X`, fields make the request a POST with a JSON body. `--input <file>` sends the file as the body.
+- A response that is not 2xx prints its body on stderr and exits with `1`.
+
 ## Credentials
 
 Each command takes one kind of key. Both come from the Currents dashboard.
@@ -60,7 +75,7 @@ Each command takes one kind of key. Both come from the Currents dashboard.
 | `run upload`, `run cancel`, `cache set`, `cache get` | record key                                          | `--key`              | `CURRENTS_RECORD_KEY`                     |
 | `run attach`                                         | record key, or an API key when no record key is set | `--key`, `--api-key` | `CURRENTS_RECORD_KEY`, `CURRENTS_API_KEY` |
 | `session start`, `session attach`, `session share`   | API key with write access                           | `--api-key`          | `CURRENTS_API_KEY`                        |
-| `run get`                                            | API key                                             | `--api-key`          | `CURRENTS_API_KEY`                        |
+| `run get`, `api`                                     | API key                                             | `--api-key`          | `CURRENTS_API_KEY`                        |
 
 Other environment variables the commands read:
 
@@ -75,7 +90,7 @@ Other environment variables the commands read:
 - `CURRENTS_PREVIOUS_CI_BUILD_ID`: `run upload`, the CI build ID of the earlier attempt of this CI build, sent with the run
 - `CURRENTS_OUTPUT`: `run get`, same as `--output`
 - `CURRENTS_DEBUG`: all commands, same as `--debug`
-- `CURRENTS_API_URL`: the Currents API address for `run upload`, `run cancel` and `cache`. `CURRENTS_REST_API_URL`: the REST API address for `run attach`, `run get` and `session`. Set them only to reach a server other than Currents, such as a local test server
+- `CURRENTS_API_URL`: the Currents API address for `run upload`, `run cancel` and `cache`. `CURRENTS_REST_API_URL`: the REST API address for `run attach`, `run get`, `session` and `api`. Set them only to reach a server other than Currents, such as a local test server
 
 An option on the command line wins over its environment variable, and the environment variable wins over the default. For a flag such as `CURRENTS_DEBUG`, `false`, `0`, `no` and `off` turn it off, and any other value turns it on.
 
@@ -86,7 +101,7 @@ Set keys as environment variables or CI secrets, not as options, so that they st
 - `0`: the command finished. It is also `0` when `run cancel` finds no run to cancel, when `cache get --continue` finds no cache, and when `cache set --continue` finds no files to save.
 - `1`: anything else. For example a missing option, an option value the command does not take, an API error, or a file that could not be uploaded. `currents` without a command prints the help and exits with `1`.
 
-Errors go to stderr, prefixed with `ERROR`. Other output goes to stdout, except for `run get` without `--output` and `session start --json`: they print only JSON on stdout, and everything else on stderr.
+Errors go to stderr, prefixed with `ERROR`. Other output goes to stdout, except for `run get` without `--output`, `session start --json` and `api`: they print only the response or JSON on stdout, and everything else on stderr.
 
 When a command fails:
 
