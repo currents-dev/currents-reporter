@@ -7,6 +7,7 @@ import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
 import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { unzipBuffer } from './fs';
+import { warnIfCacheIdIsRandom } from './id';
 import { RefMetaFile } from './lib';
 import { download } from '../../http/storage';
 import { handlePostLastRunPreset, handlePreLastRunPreset } from './presets';
@@ -28,6 +29,7 @@ export async function handleGetCache() {
   const outputDir = config.values.outputDir;
 
   const ci = getCI();
+  warnIfCacheIdIsRandom(ci, id);
 
   if (preset === PRESETS.lastRun) {
     await handlePreLastRunPreset(config.values, ci);

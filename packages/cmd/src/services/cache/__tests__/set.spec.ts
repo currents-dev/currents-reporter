@@ -7,7 +7,7 @@ import {
   getCacheCommandConfig,
 } from '../../../config/cache';
 import { getCI } from '../../../env/ciProvider';
-import { success, warnWithNoTrace } from '../../../logger';
+import { success, warnOnStderr, warnWithNoTrace } from '../../../logger';
 import { zipFilesToBuffer } from '../fs';
 import { createMeta } from '../lib';
 import { sendBuffer } from '../../../http/storage';
@@ -64,6 +64,8 @@ describe('handleSetCache', () => {
     vi.mocked(zipFilesToBuffer).mockResolvedValue(Buffer.from('zip archive'));
     vi.mocked(createMeta).mockReturnValue(Buffer.from('meta data'));
     vi.mocked(getLastRunFilePaths).mockResolvedValue(['.last-run.json']);
+    // A new array for each call: handleSetCache adds the last-run files to it.
+    vi.mocked(getUploadPaths).mockImplementation(async () => []);
   });
 
   it('should throw an error if config type is not SET_COMMAND_CONFIG', async () => {
@@ -116,6 +118,22 @@ describe('handleSetCache', () => {
 
   it('should warn and continue if no paths available to upload and continueOnNoPaths is true', async () => {
     await testCacheNoPathsError(true);
+  });
+
+  it('does not warn about the cache ID with --id', async () => {
+    await handleSetCache();
+    expect(warnOnStderr).not.toHaveBeenCalled();
+  });
+
+  it('warns that the cache ID is random without --id on an unknown CI', async () => {
+    vi.mocked(getCacheCommandConfig).mockReturnValue({
+      ...mockConfig,
+      values: { ...mockConfig.values, id: undefined },
+    });
+    await handleSetCache();
+    expect(warnOnStderr).toHaveBeenCalledWith(
+      expect.stringContaining('Pass --id')
+    );
   });
 
   it('should call filterPaths and zipFilesToBuffer', async () => {

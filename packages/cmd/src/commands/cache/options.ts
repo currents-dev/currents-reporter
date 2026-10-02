@@ -2,7 +2,7 @@ import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
 import { parseCommaSeparatedList } from '../utils';
 
 const DEFAULT_ID =
-  'Without it the ID comes from the CI run: on GitHub Actions the repository, the run ID and --matrix-index; on GitLab the pipeline ID and the job name. On other CI, pass --id';
+  'Without it the ID comes from the CI job: on GitHub Actions the repository, the run ID and --matrix-index; on GitLab the pipeline ID and the job name; on other CI the variables that identify the pipeline and the job, and --matrix-index. When no CI job is detected the ID is random, so pass --id';
 
 export const idSetOption = new Option(
   '--id <id>',
@@ -51,14 +51,14 @@ export const presetOutputOption = new Option(
 
 export const matrixIndexOption = new Option(
   '--matrix-index <number>',
-  'GitHub Actions only: the index of this job in the matrix, from 1; each job has its own cache'
+  'the index of this job among parallel jobs, from 1; each job has its own cache. Pass it when the CI does not tell the jobs apart, as in a GitHub Actions matrix'
 )
   .default(1)
   .argParser(validatePositiveInteger);
 
 export const matrixTotalOption = new Option(
   '--matrix-total <number>',
-  'GitHub Actions only: the number of jobs in the matrix'
+  'GitHub Actions only: the number of jobs in the matrix, for the shards that the last-run preset writes'
 )
   .default(1)
   .argParser(validatePositiveInteger);

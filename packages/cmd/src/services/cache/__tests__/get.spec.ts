@@ -9,7 +9,7 @@ import {
   getCacheCommandConfig,
 } from '../../../config/cache';
 import { getCI } from '../../../env/ciProvider';
-import { success, warnWithNoTrace } from '../../../logger';
+import { success, warnOnStderr, warnWithNoTrace } from '../../../logger';
 import { unzipBuffer } from '../fs';
 import { handleGetCache } from '../get';
 import { download } from '../../../http/storage';
@@ -120,6 +120,22 @@ describe('handleGetCache', () => {
     expect(handlePreLastRunPreset).toHaveBeenCalledWith(
       mockConfig.values,
       mockCI
+    );
+  });
+
+  it('does not warn about the cache ID with --id', async () => {
+    await handleGetCache();
+    expect(warnOnStderr).not.toHaveBeenCalled();
+  });
+
+  it('warns that the cache ID is random without --id on an unknown CI', async () => {
+    vi.mocked(getCacheCommandConfig).mockReturnValue({
+      ...mockConfig,
+      values: { ...mockConfig.values!, id: undefined },
+    });
+    await handleGetCache();
+    expect(warnOnStderr).toHaveBeenCalledWith(
+      expect.stringContaining('Pass --id')
     );
   });
 

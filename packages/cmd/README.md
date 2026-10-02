@@ -81,7 +81,7 @@ For more examples and usage options, run `npx currents run get --help`.
 
 ## Cache test artifacts
 
-The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually or it can be generated based on CI environment variables (only GitHub Actions and GitLab are supported).
+The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually, or it is made from the variables of the CI job. When no CI job is detected the ID is random, and the command warns: pass `--id` to save and restore the same cache.
 
 To cache files, use the following command:
 

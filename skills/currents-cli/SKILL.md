@@ -48,6 +48,7 @@ currents run get --api-key <api-key> --project-id <project-id> --ci-build-id <ci
 ```
 
 - With `--input-format`, `run upload` converts the reports to the Currents format first, then uploads them. Put quotes around the `--input-file` pattern so that the CLI expands it, not the shell: the shell passes only the first file.
+- Without `--id`, `cache set` and `cache get` use an ID made from the CI job. When they warn `No CI job detected`, pass the same `--id` to both.
 - Without `--spec`, `run attach` attaches the files to the whole run. `--machine-id` names the CI machine the files come from; run-level files are listed by machine when it is set. `--spec`, `--test-title` and `--attempt` attach to a spec file, a test or one attempt of a test (the first attempt is `0`).
 
 ## Credentials
