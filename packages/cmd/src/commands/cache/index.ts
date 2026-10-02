@@ -4,8 +4,8 @@ import { getCacheGetHandler } from './get';
 import {
   continueGetOption,
   continueSetOption,
-  debugOption,
-  idOption,
+  idGetOption,
+  idSetOption,
   matrixIndexOption,
   matrixTotalOption,
   outputDirOption,
@@ -14,8 +14,8 @@ import {
   presetSetOption,
   presetOutputOption,
   pwOutputDirOption,
-  recordKeyOption,
 } from './options';
+import { debugOption, recordKeyOption } from '../options';
 import { getCacheSetHandler } from './set';
 
 const COMMAND_NAME = 'cache';
@@ -82,11 +82,11 @@ export const getCacheSetCommand = (name: string) => {
     .description('Save files to the cache')
     .addHelpText('after', formatExamples(getCacheSetExamples(name)))
     .allowUnknownOption()
-    .addOption(recordKeyOption)
-    .addOption(idOption)
+    .addOption(recordKeyOption())
+    .addOption(idSetOption)
     .addOption(presetSetOption)
     .addOption(pathOption)
-    .addOption(debugOption)
+    .addOption(debugOption())
     .addOption(pwOutputDirOption)
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
@@ -102,12 +102,12 @@ export const getCacheGetCommand = (name: string) => {
     .description('Restore files from the cache')
     .addHelpText('after', formatExamples(getCacheGetExamples(name)))
     .allowUnknownOption()
-    .addOption(recordKeyOption)
-    .addOption(idOption)
+    .addOption(recordKeyOption())
+    .addOption(idGetOption)
     .addOption(presetGetOption)
     .addOption(outputDirOption)
     .addOption(presetOutputOption)
-    .addOption(debugOption)
+    .addOption(debugOption())
     .addOption(matrixIndexOption)
     .addOption(matrixTotalOption)
     .addOption(continueGetOption)

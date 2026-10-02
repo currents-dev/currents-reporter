@@ -40,7 +40,7 @@ These are the examples from `--help`:
 currents run upload --key <record-key> --project-id <id> --ci-build-id <build-id>
 currents run upload --key <record-key> --project-id <id> --ci-build-id <build-id> --input-format junit --input-file "./*.xml" --framework postman
 currents run attach --key <record-key> --project-id <id> --ci-build-id <build-id> --machine-id shard-1 docker-logs.zip
-currents run attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" screenshot.png
+currents run attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" --attempt 0 screenshot.png
 currents run cancel --key <record-key> --project-id <id> --ci-build-id <build-id>
 currents cache set --key <record-key> --preset last-run
 currents cache get --key <record-key> --preset last-run
@@ -48,7 +48,7 @@ currents run get --api-key <api-key> --project-id <project-id> --ci-build-id <ci
 ```
 
 - With `--input-format`, `run upload` converts the reports to the Currents format first, then uploads them. Put quotes around the `--input-file` pattern so that the CLI expands it, not the shell: the shell passes only the first file.
-- `run attach` needs `--machine-id` for files of the whole run, or `--spec` (and `--test-title`) for files of a spec file or a test.
+- Without `--spec`, `run attach` attaches the files to the whole run. `--machine-id` names the CI machine the files come from; run-level files are listed by machine when it is set. `--spec`, `--test-title` and `--attempt` attach to a spec file, a test or one attempt of a test (the first attempt is `0`).
 
 ## Credentials
 
@@ -64,12 +64,19 @@ Each command takes one kind of key. Both come from the Currents dashboard.
 Other environment variables the commands read:
 
 - `CURRENTS_PROJECT_ID`: `run upload`, `run attach`, `run cancel`, `session start`, `run get`
-- `CURRENTS_CI_BUILD_ID`: `run upload`, `run attach`, `run cancel`. `run get` takes `--ci-build-id` only as an option
+- `CURRENTS_CI_BUILD_ID`: `run upload`, `run attach`, `run cancel`, `run get`. `run get` ignores it when `--branch` or `--tag` is set
 - `CURRENTS_RUN_ID`: `run cancel`
 - `CURRENTS_MACHINE_ID`: `run upload`, `run attach`
 - `CURRENTS_SESSION_ID`: `session attach`, `session share`
 - `CURRENTS_REPORT_DIR`: `run upload`
+- `CURRENTS_TAG`: `run upload`, comma-separated tags for the run
+- `CURRENTS_REMOVE_TITLE_TAGS`, `CURRENTS_DISABLE_TITLE_TAGS`: `run upload`, same as `--remove-title-tags` and `--disable-title-tags`
+- `CURRENTS_PREVIOUS_CI_BUILD_ID`: `run upload`, the CI build ID of the earlier attempt of this CI build, sent with the run
+- `CURRENTS_OUTPUT`: `run get`, same as `--output`
 - `CURRENTS_DEBUG`: all commands, same as `--debug`
+- `CURRENTS_API_URL`: the Currents API address for `run upload`, `run cancel` and `cache`. `CURRENTS_REST_API_URL`: the REST API address for `run attach`, `run get` and `session`. Set them only to reach a server other than Currents, such as a local test server
+
+An option on the command line wins over its environment variable, and the environment variable wins over the default. For a flag such as `CURRENTS_DEBUG`, `false`, `0`, `no` and `off` turn it off, and any other value turns it on.
 
 Set keys as environment variables or CI secrets, not as options, so that they stay out of shell history and CI logs. In CI, set `CURRENTS_CI_BUILD_ID` once for the job, so that the reporter, `run attach` and `run cancel` find the same run. `run cancel` does not find the CI build ID by itself: it needs `--ci-build-id` or `--run-id`.
 
@@ -78,7 +85,7 @@ Set keys as environment variables or CI secrets, not as options, so that they st
 - `0`: the command finished. It is also `0` when `run cancel` finds no run to cancel, when `cache get --continue` finds no cache, and when `cache set --continue` finds no files to save.
 - `1`: anything else. For example a missing option, an option value the command does not take, an API error, or a file that could not be uploaded. `currents` without a command prints the help and exits with `1`.
 
-Errors go to stderr, prefixed with `ERROR`. Other output goes to stdout.
+Errors go to stderr, prefixed with `ERROR`. Other output goes to stdout, except for `run get` without `--output` and `session start --json`: they print only JSON on stdout, and everything else on stderr.
 
 When a command fails:
 

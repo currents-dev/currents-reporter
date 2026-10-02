@@ -76,9 +76,7 @@ export const apiGetRunCustomValidation = (
   const count = [ciBuildId, tag, branch].filter(Boolean).length;
   const isValid = count === 1 || (tag && branch && !ciBuildId);
   if (!isValid) {
-    error(
-      '"ciBuildId", "tag", "branch" or a combination of "tag" and "branch" are expected to be provided'
-    );
+    error('Pass --ci-build-id, or --branch, --tag or both');
     throw new ValidationError('Missing or invalid parameters');
   }
 };

@@ -7,18 +7,21 @@ import { formatExamples, HelpExample } from '../help';
 import { commandHandler } from '../utils';
 import {
   apiKeyOption,
+  debugOption,
+  projectOption,
+  recordKeyOption,
+} from '../options';
+import {
   attemptOption,
   captionOption,
   ciBuildIdOption,
-  debugOption,
   groupOption,
   machineIdOption,
   metaOption,
-  projectOption,
-  recordKeyOption,
+  PATHS_DESCRIPTION,
+  runTypeOption,
   specOption,
   testTitleOption,
-  typeOption,
 } from '../session/options';
 import { getUploadCommand, getUploadExamples } from '../upload';
 
@@ -33,9 +36,9 @@ export const getRunAttachExamples = (name: string): HelpExample[] => [
     ],
   },
   {
-    comment: 'Attach a screenshot to a test of a spec file',
+    comment: 'Attach a screenshot to the first attempt of a test',
     commands: [
-      `${name} ${COMMAND_NAME} attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" screenshot.png`,
+      `${name} ${COMMAND_NAME} attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" --attempt 0 screenshot.png`,
     ],
   },
 ];
@@ -45,23 +48,20 @@ const getAttachCommand = (name: string) =>
     .name('attach')
     .addHelpText('after', formatExamples(getRunAttachExamples(name)))
     .description('Upload files to a run recorded in CI')
-    .argument(
-      '<paths...>',
-      'files or folders to attach; a folder adds the files directly in it, without hidden files, links and subfolders'
-    )
-    .addOption(recordKeyOption)
-    .addOption(apiKeyOption)
-    .addOption(projectOption)
+    .argument('<paths...>', PATHS_DESCRIPTION)
+    .addOption(recordKeyOption('(required unless --api-key is set)'))
+    .addOption(apiKeyOption('(used when --key is not set; needs write access)'))
+    .addOption(projectOption())
     .addOption(ciBuildIdOption)
     .addOption(machineIdOption)
     .addOption(specOption)
     .addOption(groupOption)
     .addOption(testTitleOption)
     .addOption(attemptOption)
-    .addOption(typeOption)
+    .addOption(runTypeOption)
     .addOption(captionOption)
     .addOption(metaOption)
-    .addOption(debugOption)
+    .addOption(debugOption())
     .action(async (paths, options) => {
       await commandHandler(async ({ key, ...opts }) => {
         await handleRunAttach(

@@ -1,14 +1,8 @@
+import { sharedConfigKeys } from '../keys';
+
 const cacheCommandConfigKeys = {
-  recordKey: {
-    name: 'Record Key',
-    env: 'CURRENTS_RECORD_KEY',
-    cli: '--key',
-  },
-  debug: {
-    name: 'Debug',
-    env: 'CURRENTS_DEBUG',
-    cli: '--debug',
-  },
+  recordKey: sharedConfigKeys.recordKey,
+  debug: sharedConfigKeys.debug,
 } as const;
 
 const cacheSetCommandConfigKeys = {
@@ -21,7 +15,7 @@ const cacheSetCommandConfigKeys = {
     cli: '--preset',
   },
   pwOutputDir: {
-    name: 'Playwright output directory',
+    name: 'Playwright output folder',
     cli: '--pw-output-dir',
   },
   presetOutput: {
@@ -56,7 +50,7 @@ const cacheGetCommandConfigKeys = {
     cli: '--preset',
   },
   outputDir: {
-    name: 'Custom directory to write output',
+    name: 'Output folder',
     cli: '--output-dir',
   },
   matrixIndex: {

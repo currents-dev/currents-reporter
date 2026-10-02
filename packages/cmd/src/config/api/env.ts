@@ -1,43 +1,20 @@
-const apiCommandConfigKeys = {
-  apiKey: {
-    name: 'Api Key',
-    env: 'CURRENTS_API_KEY',
-    cli: '--api-key',
-  },
-  debug: {
-    name: 'Debug',
-    env: 'CURRENTS_DEBUG',
-    cli: '--debug',
-  },
-} as const;
+import { sharedConfigKeys } from '../keys';
 
-const apiGetRunCommandConfigKeys = {
+const { apiKey, debug, ciBuildId, projectId, tag } = sharedConfigKeys;
+
+export const configKeys = {
+  apiKey,
+  debug,
+  ciBuildId,
+  projectId,
+  tag,
   branch: {
-    name: 'Run Branch',
+    name: 'Branch',
     cli: '--branch',
   },
   output: {
-    name: 'Output Path',
+    name: 'Output file',
     env: 'CURRENTS_OUTPUT',
     cli: '--output',
   },
-  ciBuildId: {
-    name: 'CI Build ID',
-    env: 'CURRENTS_CI_BUILD_ID',
-    cli: '--ci-build-id',
-  },
-  projectId: {
-    name: 'Project ID',
-    env: 'CURRENTS_PROJECT_ID',
-    cli: '--project-id',
-  },
-  tag: {
-    name: 'Run Tag',
-    cli: '--tag',
-  },
-} as const;
-
-export const configKeys = {
-  ...apiCommandConfigKeys,
-  ...apiGetRunCommandConfigKeys,
 } as const;

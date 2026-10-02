@@ -61,7 +61,7 @@ describe('apiGetRunCustomValidation', () => {
       })
     ).toThrow(ValidationError);
     expect(error).toHaveBeenCalledWith(
-      '"ciBuildId", "tag", "branch" or a combination of "tag" and "branch" are expected to be provided'
+      'Pass --ci-build-id, or --branch, --tag or both'
     );
   });
 

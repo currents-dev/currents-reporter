@@ -1,19 +1,17 @@
+import { sharedConfigKeys } from '../keys';
+
 export const configKeys = {
-  debug: {
-    name: 'Debug',
-    env: 'CURRENTS_DEBUG',
-    cli: '--debug',
-  },
+  debug: sharedConfigKeys.debug,
   inputFormat: {
-    name: 'Input Format',
+    name: 'Input format',
     cli: '--input-format',
   },
   inputFiles: {
-    name: 'Input File',
+    name: 'Input file',
     cli: '--input-file',
   },
   outputDir: {
-    name: 'Output Dir',
+    name: 'Output folder',
     cli: '--output-dir',
   },
   framework: {
@@ -21,7 +19,7 @@ export const configKeys = {
     cli: '--framework',
   },
   frameworkVersion: {
-    name: 'Framework Version',
+    name: 'Framework version',
     cli: '--framework-version',
   },
 } as const;

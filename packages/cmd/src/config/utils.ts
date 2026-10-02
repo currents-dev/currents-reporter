@@ -72,13 +72,12 @@ export function getValidatedConfig<T extends ConfigKeys, R>(
 
   mandatoryKeys.forEach((i) => {
     if (!result[i]) {
+      const key = i as string;
+      const env = getEnvironmentVariableName(configKeys, key);
       error(
-        `${getConfigName(
-          configKeys,
-          i as string
-        )} is required for Currents Reporter. Use the following methods to set the value:
-- as environment variable: ${dim(getEnvironmentVariableName(configKeys, i as string))}
-- as CLI flag of the command: ${dim(getCLIOptionName(configKeys, i as string))}`
+        `${getConfigName(configKeys, key)} is required: pass ${dim(
+          getCLIOptionName(configKeys, key)
+        )}${env ? ` or set ${dim(env)}` : ''}`
       );
       throw new ValidationError('Missing required config variable');
     }

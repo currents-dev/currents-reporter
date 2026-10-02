@@ -51,7 +51,7 @@ For JUnit XML, `run upload` converts the reports first:
 
 ### Attach files to the run
 
-After the tests, attach logs to the run. `--machine-id` names the CI machine the files come from, and files of the whole run are listed under it:
+After the tests, attach logs to the run. `--machine-id` names the CI machine the files come from; run-level files are listed by machine when it is set:
 
 ```yaml
 - if: ${{ !cancelled() }}
@@ -60,7 +60,7 @@ After the tests, attach logs to the run. `--machine-id` names the CI machine the
     npx currents run attach --machine-id shard-${{ matrix.shard }} docker-logs.txt
 ```
 
-To attach a file to one test, pass `--spec` and `--test-title` in place of `--machine-id`. See `currents run attach --help`.
+To attach a file to a test, pass `--spec` and `--test-title`. See `currents run attach --help`.
 
 ### Cancel the run when the workflow is cancelled
 
@@ -131,8 +131,10 @@ test:
     - export CURRENTS_CI_BUILD_ID="$CI_PIPELINE_ID-$RUN_ATTEMPT"
     - npx playwright test $EXTRA_PW_FLAGS
   after_script:
-    - npx currents cache set --preset last-run
+    - . ./.currents_env && export RUN_ATTEMPT && npx currents cache set --preset last-run
 ```
+
+`after_script` runs in a new shell, so it sources `.currents_env` again. `cache set` saves `RUN_ATTEMPT` with the cache, and the next retry counts on from it.
 
 On GitLab, `.currents_env` sets three variables:
 

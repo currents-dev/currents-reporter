@@ -1,29 +1,14 @@
+import { sharedConfigKeys } from '../keys';
+
+const { apiKey, recordKey, projectId, ciBuildId, machineId, debug } =
+  sharedConfigKeys;
+
 export const configKeys = {
-  apiKey: {
-    name: 'Api Key',
-    env: 'CURRENTS_API_KEY',
-    cli: '--api-key',
-  },
-  recordKey: {
-    name: 'Record Key',
-    env: 'CURRENTS_RECORD_KEY',
-    cli: '--key',
-  },
-  projectId: {
-    name: 'Project ID',
-    env: 'CURRENTS_PROJECT_ID',
-    cli: '--project-id',
-  },
-  ciBuildId: {
-    name: 'CI Build ID',
-    env: 'CURRENTS_CI_BUILD_ID',
-    cli: '--ci-build-id',
-  },
-  machineId: {
-    name: 'Machine ID',
-    env: 'CURRENTS_MACHINE_ID',
-    cli: '--machine-id',
-  },
+  apiKey,
+  recordKey,
+  projectId,
+  ciBuildId,
+  machineId,
   sessionId: {
     name: 'Session ID',
     env: 'CURRENTS_SESSION_ID',
@@ -33,9 +18,5 @@ export const configKeys = {
     name: 'Title',
     cli: '--title',
   },
-  debug: {
-    name: 'Debug',
-    env: 'CURRENTS_DEBUG',
-    cli: '--debug',
-  },
+  debug,
 } as const;

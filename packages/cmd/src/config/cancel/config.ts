@@ -62,13 +62,11 @@ function requireRunIdentifier(config: CancelCommandConfig) {
     `${getConfigName(configKeys, 'runId')} or ${getConfigName(
       configKeys,
       'ciBuildId'
-    )} is required for Currents Reporter. Use the following methods to set the value:
-- as environment variable: ${dim(
-      getEnvironmentVariableName(configKeys, 'runId')
-    )} or ${dim(getEnvironmentVariableName(configKeys, 'ciBuildId'))}
-- as CLI flag of the command: ${dim(
-      getCLIOptionName(configKeys, 'runId')
-    )} or ${dim(getCLIOptionName(configKeys, 'ciBuildId'))}`
+    )} is required: pass ${dim(getCLIOptionName(configKeys, 'runId'))} or ${dim(
+      getCLIOptionName(configKeys, 'ciBuildId')
+    )}, or set ${dim(getEnvironmentVariableName(configKeys, 'runId'))} or ${dim(
+      getEnvironmentVariableName(configKeys, 'ciBuildId')
+    )}`
   );
   throw new ValidationError('Missing required config variable');
 }

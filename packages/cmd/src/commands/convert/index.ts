@@ -1,8 +1,8 @@
 import { Command } from '@commander-js/extra-typings';
 import { formatExamples, HelpExample } from '../help';
 import { convertHandler } from './convert';
+import { debugOption } from '../options';
 import {
-  debugOption,
   frameworkOption,
   frameworkVersionOption,
   inputFileOption,
@@ -33,11 +33,11 @@ export const getConvertCommand = (name: string) => {
       'Convert JUnit XML reports to the Currents format, without uploading them. The converted reports are saved to --output-dir or a new folder in .currents'
     )
     .addHelpText('after', formatExamples(getConvertExamples(name)))
-    .addOption(debugOption)
-    .addOption(inputFormatOption)
-    .addOption(inputFileOption)
+    .addOption(debugOption())
+    .addOption(inputFormatOption('(required)'))
+    .addOption(inputFileOption('(required)'))
     .addOption(outputDirOption)
-    .addOption(frameworkOption)
+    .addOption(frameworkOption('(required)'))
     .addOption(frameworkVersionOption)
     .action((options) => convertHandler(options));
 

@@ -1,46 +1,29 @@
+import { sharedConfigKeys } from '../keys';
+
+const { debug, ciBuildId, recordKey, projectId, machineId } = sharedConfigKeys;
+
 export const configKeys = {
-  debug: {
-    name: 'Debug',
-    env: 'CURRENTS_DEBUG',
-    cli: '--debug',
-  },
-  ciBuildId: {
-    name: 'CI Build ID',
-    env: 'CURRENTS_CI_BUILD_ID',
-    cli: '--ci-build-id',
-  },
-  recordKey: {
-    name: 'Record Key',
-    env: 'CURRENTS_RECORD_KEY',
-    cli: '--key',
-  },
-  projectId: {
-    name: 'Project ID',
-    env: 'CURRENTS_PROJECT_ID',
-    cli: '--project-id',
-  },
+  debug,
+  ciBuildId,
+  recordKey,
+  projectId,
+  machineId,
   tag: {
-    name: 'Currents Tag',
+    ...sharedConfigKeys.tag,
     env: 'CURRENTS_TAG',
-    cli: '--tag',
   },
   disableTitleTags: {
-    name: 'Disable Title Tags',
+    name: 'Disable title tags',
     env: 'CURRENTS_DISABLE_TITLE_TAGS',
     cli: '--disable-title-tags',
   },
   removeTitleTags: {
-    name: 'Remove Title Tags',
+    name: 'Remove title tags',
     env: 'CURRENTS_REMOVE_TITLE_TAGS',
     cli: '--remove-title-tags',
   },
-  machineId: {
-    name: 'Machine ID',
-    env: 'CURRENTS_MACHINE_ID',
-    cli: '--machine-id',
-  },
   reportDir: {
-    name: 'Report Directory',
+    name: 'Report folder',
     env: 'CURRENTS_REPORT_DIR',
     cli: '--report-dir',
   },

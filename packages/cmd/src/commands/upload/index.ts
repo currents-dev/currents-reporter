@@ -7,20 +7,19 @@ import {
   outputDirOption,
 } from '../convert/options';
 import { formatExamples, HelpExample } from '../help';
+import { debugOption, projectOption, recordKeyOption } from '../options';
 import {
   ciBuildIdOption,
-  debugOption,
   disableTitleTagsOption,
   machineIdOption,
-  projectOption,
-  recordKeyOption,
   removeTagOption,
   reportDirOption,
-  tagOption,
+  runTagOption,
 } from './options';
 import { uploadHandler } from './upload';
 
 const COMMAND_NAME = 'upload';
+const REQUIRED_WITH_INPUT_FORMAT = '(required with --input-format)';
 const PARENT_NAME = 'run';
 
 export const getUploadExamples = (name: string): HelpExample[] => [
@@ -45,7 +44,7 @@ export const getUploadExamples = (name: string): HelpExample[] => [
     ],
   },
   {
-    comment: 'Upload test results from a custom reports directory',
+    comment: 'Upload test results from another folder',
     commands: [
       `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --report-dir <report-dir>`,
     ],
@@ -64,21 +63,22 @@ export const getUploadCommand = (name: string) => {
 
 With --input-format, first convert the reports in --input-file to the Currents
 format, then upload the converted reports. They are saved to --output-dir, or
---report-dir, or a new folder in .currents.`
+--report-dir, or a new folder in .currents. A folder you name must be empty or
+not exist.`
     )
     .addHelpText('after', formatExamples(getUploadExamples(name)))
     .addOption(ciBuildIdOption)
-    .addOption(recordKeyOption)
-    .addOption(projectOption)
-    .addOption(tagOption)
+    .addOption(recordKeyOption())
+    .addOption(projectOption())
+    .addOption(runTagOption)
     .addOption(removeTagOption)
     .addOption(disableTitleTagsOption)
     .addOption(machineIdOption)
-    .addOption(debugOption)
+    .addOption(debugOption())
     .addOption(reportDirOption)
-    .addOption(inputFormatOption)
-    .addOption(inputFileOption)
-    .addOption(frameworkOption)
+    .addOption(inputFormatOption())
+    .addOption(inputFileOption(REQUIRED_WITH_INPUT_FORMAT))
+    .addOption(frameworkOption(REQUIRED_WITH_INPUT_FORMAT))
     .addOption(frameworkVersionOption)
     .addOption(outputDirOption)
     .action((options) => uploadHandler(options));
