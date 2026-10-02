@@ -79,6 +79,15 @@ An option on the command line wins over its environment variable. The configurat
 
 For more examples and usage options, run `npx currents run get --help`.
 
+To call any other REST API route, use `currents api` with the route path. It reads the API key from `--api-key` or `CURRENTS_API_KEY`:
+
+```sh
+npx currents api /v1/runs/<run-id>
+npx currents api /v1/runs/<run-id>/cancel -X PUT
+```
+
+For the options, run `npx currents api --help`.
+
 ## Cache test artifacts
 
 The `currents cache` command allows you to archive files from specified locations and save them under an ID in Currents storage. It also stores a meta file with configuration data. You can provide the ID manually, or it is made from the variables of the CI job. When no CI job is detected the ID is random, and the command warns: pass `--id` to save and restore the same cache.

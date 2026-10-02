@@ -170,6 +170,9 @@ describe('currents program', () => {
     expect(stdout).toMatch(
       /Test runs:\n\s+run\b[^\n]*\n\nEvidence:\n\s+session\b[^\n]*\n\nCI utilities:\n\s+cache\b[^\n]*\n\nOther:\n/
     );
+    expect(stdout).toMatch(
+      /Other:\n\s+api \[options\] <path>\s+Make an authenticated request to the Currents REST API\n/
+    );
     expect(stdout).toMatch(/Other:\n(\s+\S.*\n)*\s+help \[command\]/);
   });
 
@@ -182,7 +185,7 @@ describe('currents program', () => {
     );
   });
 
-  it.each(['cancel', 'upload', 'convert', 'api'])(
+  it.each(['cancel', 'upload', 'convert'])(
     'does not list the legacy %s command in the root help',
     async (command) => {
       expect(await run(['--help'])).toBe(0);
