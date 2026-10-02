@@ -1,10 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getAPIGetRunCommandConfig } from '../../config/api';
+import { getCancelCommandConfig } from '../../config/cancel';
 import { getCurrentsConfig } from '../../config/upload';
-import { handleCurrentsReport } from '../../services';
+import {
+  handleCancelRun,
+  handleCurrentsReport,
+  handleGetRun,
+} from '../../services';
 import { getProgram } from '../program';
 
 vi.mock('../../services', () => ({
   handleCurrentsReport: vi.fn(),
+  handleGetRun: vi.fn(),
+  handleCancelRun: vi.fn(),
 }));
 
 // Each row runs the same options under the hidden root-level path and under
@@ -19,10 +27,28 @@ const rows = [
     readConfig: getCurrentsConfig,
     deprecationWarning: false,
   },
+  {
+    legacy: ['api', 'get-run'],
+    current: ['run', 'get'],
+    handler: vi.mocked(handleGetRun),
+    args: ['--api-key', 'a', '--project-id', 'p', '--ci-build-id', 'b'],
+    env: { CURRENTS_OUTPUT: 'env-out.json' },
+    readConfig: getAPIGetRunCommandConfig,
+    deprecationWarning: false,
+  },
+  {
+    legacy: ['cancel'],
+    current: ['run', 'cancel'],
+    handler: vi.mocked(handleCancelRun),
+    args: ['--key', 'k', '--project-id', 'p', '--ci-build-id', 'b'],
+    env: { CURRENTS_RUN_ID: 'env-run-id' },
+    readConfig: getCancelCommandConfig,
+    deprecationWarning: true,
+  },
 ];
 
 describe.each(rows)(
-  'currents $legacy.0 and currents $current.0 $current.1',
+  'currents $legacy and currents $current',
   ({ legacy, current, handler, args, env, readConfig, deprecationWarning }) => {
     let stderr: string;
 

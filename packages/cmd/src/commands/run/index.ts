@@ -1,6 +1,7 @@
 import { Command } from '@commander-js/extra-typings';
 import { getRunAttachConfig } from '../../config/session';
 import { handleRunAttach } from '../../services/session';
+import { getRunGetCommand } from '../api';
 import { getCancelCommand } from '../cancel';
 import { formatExamples, HelpExample } from '../help';
 import { commandHandler } from '../utils';
@@ -75,4 +76,5 @@ export const getRunFilesCommand = (name: string) =>
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getUploadCommand(name))
     .addCommand(getAttachCommand(name))
+    .addCommand(getRunGetCommand(name))
     .addCommand(getCancelCommand(name));

@@ -28,7 +28,7 @@ export const getProgram = () => {
     .addCommand(getRunFilesCommand(NAME))
     .addCommand(getSessionCommand(NAME))
     .addCommand(getCacheCommand(NAME))
-    .addCommand(getApiCommand(NAME))
+    .addCommand(getApiCommand(NAME), { hidden: true })
     .addCommand(getSkillCommand(NAME))
     .addHelpText(
       'after',

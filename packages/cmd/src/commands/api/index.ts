@@ -12,47 +12,49 @@ import {
   tagOption,
 } from './options';
 
-const COMMAND_NAME = 'api';
-const getExamples = (name: string): HelpExample[] => [
+const COMMAND_NAME = 'get';
+const PARENT_NAME = 'run';
+export const getRunGetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Get the data of the run recorded under a CI build ID',
     commands: [
-      `${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --ci-build-id <ci-build-id>`,
     ],
   },
   {
     comment: 'Get the data of the most recent run that matches the filters',
     commands: [
-      `${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`,
     ],
   },
   {
     comment:
       'Get the data of a run and save its failed tests for Playwright --last-failed',
     commands: [
-      `${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`,
     ],
   },
 ];
 
+// `currents api get-run` is the hidden path of `currents run get`.
 export const getApiCommand = (name: string) => {
   const command = new Command()
-    .command(COMMAND_NAME)
+    .command('api')
     .summary('Get data from the Currents API')
     .description('Get data from the Currents API')
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
-    .addCommand(getRunCommand(name));
+    .addCommand(getRunGetCommand(name).name('get-run'));
 
   return command;
 };
 
-export const getRunCommand = (name: string) => {
+export const getRunGetCommand = (name: string) => {
   const command = new Command()
-    .name('get-run')
+    .name(COMMAND_NAME)
     .description('Get the data of a run from the Currents API')
-    .addHelpText('after', formatExamples(getExamples(name)))
+    .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .allowUnknownOption()
     .addOption(apiKeyOption)
     .addOption(debugOption)
