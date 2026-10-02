@@ -23,7 +23,7 @@ For JUnit XML reports, `run upload` converts them to the Currents format first, 
 npx currents run upload --project-id=xxx --key=yyy --input-format junit --input-file "reports/*.xml" --framework postman
 ```
 
-`--framework` takes `postman`, `node`, `vitest` or `wdio`. The converted reports are saved to `--output-dir`, or `--report-dir`, or a new folder in `.currents`.
+`--framework` takes `postman`, `node`, `vitest` or `wdio`. The converted reports are saved to `--output-dir`, or `--report-dir`, or a new folder in `.currents`. A folder you name must be empty or not exist yet.
 
 ℹ️ Get familiar with [CI Build ID 📖](https://docs.currents.dev/guides/ci-build-id) before using `currents` in CI. It is **important** to set the `CI Build ID` explicitly using `--ci-build-id` option, if you are using CI sharding or multiple CI machines to parallelize your tests. If not set explicitly, the `CI Build ID` will be set to a random value.
 

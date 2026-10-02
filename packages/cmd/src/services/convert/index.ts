@@ -6,6 +6,7 @@ import {
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
+import fs from 'fs-extra';
 import { join } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { Artifact, InstanceReport } from '../../types';
@@ -23,6 +24,9 @@ export async function handleConvert() {
       throw new Error('Config is missing!');
     }
 
+    if (config.outputDir) {
+      await assertFolderEmpty(config.outputDir);
+    }
     const reportDir = config.outputDir
       ? await createFolder(config.outputDir)
       : await createUniqueFolder(process.cwd(), '.currents');
@@ -126,5 +130,19 @@ export async function handleConvert() {
   } catch (e) {
     debug('Failed to convert: %o', e);
     throw e;
+  }
+}
+
+/**
+ * The conversion keeps the files it finds in the folder, and the upload reads
+ * every report in it, so reports of an earlier conversion would be uploaded
+ * again with the new ones.
+ */
+async function assertFolderEmpty(folder: string) {
+  const entries = (await fs.pathExists(folder)) ? await fs.readdir(folder) : [];
+  if (entries.length > 0) {
+    throw new Error(
+      `The folder "${folder}" is not empty. The converted reports are saved to an empty or new folder: reports already in it would be uploaded with them.`
+    );
   }
 }

@@ -106,6 +106,31 @@ describe('currents run upload --input-format', () => {
     expect(resolve(reportDirAtUpload!)).toBe(join(workDir, 'out'));
   });
 
+  it.each(['--output-dir', '--report-dir'])(
+    'fails without uploading when %s is not empty',
+    async (option) => {
+      await fs.outputFile(join(workDir, 'out/instances/old.json'), '{}');
+
+      await upload(option, 'out');
+
+      expect(process.exit).toHaveBeenCalledWith(1);
+      expect(stderr).toContain('The folder "out" is not empty');
+      expect(handleCurrentsReport).not.toHaveBeenCalled();
+      expect(await fs.readdir(join(workDir, 'out/instances'))).toEqual([
+        'old.json',
+      ]);
+    }
+  );
+
+  it('converts into an empty --output-dir', async () => {
+    await fs.ensureDir(join(workDir, 'out'));
+
+    await upload('--output-dir', 'out');
+
+    expect(process.exit).toHaveBeenCalledWith(0);
+    expect(handleCurrentsReport).toHaveBeenCalledTimes(1);
+  });
+
   it('fails without converting when --output-dir and --report-dir differ', async () => {
     await upload('--output-dir', 'out', '--report-dir', 'other');
 

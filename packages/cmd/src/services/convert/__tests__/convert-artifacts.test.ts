@@ -100,17 +100,18 @@ describe('handleConvert artifacts', () => {
 
     mockedInstanceMap = new Map([['k', instance]]);
 
+    const reportDir = join(baseDir, 'report');
     setConvertCommandConfig({
       inputFormat: 'junit' as any,
       inputFiles: ['dummy.xml'],
-      outputDir: baseDir,
+      outputDir: reportDir,
       framework: 'vitest' as any,
     });
 
     await handleConvert();
 
-    const artifactsDir = join(baseDir, 'artifacts');
-    const instancesDir = join(baseDir, 'instances');
+    const artifactsDir = join(reportDir, 'artifacts');
+    const instancesDir = join(reportDir, 'instances');
 
     const instanceFiles = await fs.readdir(instancesDir);
     expect(instanceFiles.length).toBe(1);
@@ -134,7 +135,7 @@ describe('handleConvert artifacts', () => {
     expect(attachmentArtifact?.contentType).toBe('image/bmp');
 
     if (attachmentArtifact) {
-      const p = join(baseDir, attachmentArtifact.path);
+      const p = join(reportDir, attachmentArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
     }
 
@@ -183,17 +184,18 @@ describe('handleConvert artifacts', () => {
 
     mockedInstanceMap = new Map([['k', instance]]);
 
+    const reportDir = join(baseDir, 'report');
     setConvertCommandConfig({
       inputFormat: 'junit' as any,
       inputFiles: ['dummy.xml'],
-      outputDir: baseDir,
+      outputDir: reportDir,
       framework: 'vitest' as any,
     });
 
     await handleConvert();
 
-    const artifactsDir = join(baseDir, 'artifacts');
-    const instancesDir = join(baseDir, 'instances');
+    const artifactsDir = join(reportDir, 'artifacts');
+    const instancesDir = join(reportDir, 'instances');
 
     const instanceFiles = await fs.readdir(instancesDir);
     expect(instanceFiles.length).toBe(1);
@@ -211,7 +213,7 @@ describe('handleConvert artifacts', () => {
     expect(specArtifact?.path).toContain('artifacts/');
 
     if (specArtifact) {
-      const p = join(baseDir, specArtifact.path);
+      const p = join(reportDir, specArtifact.path);
       expect(await fs.pathExists(p)).toBe(true);
       const content = await fs.readFile(p, 'utf8');
       expect(content).toBe('spec-artifact-content');
