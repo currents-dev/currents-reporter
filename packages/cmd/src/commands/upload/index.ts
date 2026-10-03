@@ -63,8 +63,8 @@ export const getUploadCommand = (name: string) => {
 
 With --input-format, first convert the reports in --input-file to the Currents
 format, then upload the converted reports. They are saved to --output-dir, or
---report-dir, or a new folder in .currents. A folder you name must be empty or
-not exist.`
+--report-dir, or a new folder in .currents. A folder you name may hold only the
+reports being converted.`
     )
     .addHelpText('after', formatExamples(getUploadExamples(name)))
     .addOption(ciBuildIdOption)

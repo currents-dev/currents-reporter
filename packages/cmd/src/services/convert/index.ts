@@ -156,21 +156,29 @@ async function assertFolderEmpty(folder: string, inputFiles: string[]) {
       `The report "${inGeneratedPath}" is where the conversion writes its own files. Move the reports out of "${folder}", or leave out --output-dir to convert into a new folder in .currents.`
     );
   }
-  const files = (await fs.pathExists(root)) ? await listFiles(root) : [];
-  if (files.some((file) => !inputs.has(file))) {
+  const other = (await fs.pathExists(root))
+    ? await findOtherFile(root, inputs)
+    : undefined;
+  if (other) {
     throw new Error(
       `The folder "${folder}" is not empty. Reports already in it would be uploaded with the converted ones. Remove the folder, or leave out --output-dir to convert into a new folder in .currents.`
     );
   }
 }
 
-async function listFiles(folder: string): Promise<string[]> {
-  const entries = await fs.readdir(folder, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries.map((entry) => {
-      const path = join(folder, entry.name);
-      return entry.isDirectory() ? listFiles(path) : [path];
-    })
-  );
-  return nested.flat();
+/** The first file under the folder that is not one of the inputs. */
+async function findOtherFile(
+  folder: string,
+  inputs: Set<string>
+): Promise<string | undefined> {
+  for (const entry of await fs.readdir(folder, { withFileTypes: true })) {
+    const path = join(folder, entry.name);
+    const other = entry.isDirectory()
+      ? await findOtherFile(path, inputs)
+      : inputs.has(path)
+        ? undefined
+        : path;
+    if (other) return other;
+  }
+  return undefined;
 }
