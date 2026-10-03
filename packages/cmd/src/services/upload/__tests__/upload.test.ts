@@ -32,7 +32,7 @@ type RunRequest = {
   }[];
 };
 
-describe('currents upload', () => {
+describe('currents run upload', () => {
   let server: http.Server;
   let apiUrl: string;
   let runRequests: RunRequest[];
@@ -121,6 +121,7 @@ describe('currents upload', () => {
       process.execPath,
       [
         cliPath,
+        'run',
         'upload',
         '--report-dir',
         reportDir,

@@ -1,0 +1,669 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`command surface of the built CLI > prints the help of api 1`] = `
+"Usage: currents api <path> [options]
+
+Make an authenticated request to the Currents REST API and print the response
+body. The path is a REST API route, such as /v1/runs/<run-id>; v1/runs/<run-id>
+and runs/<run-id> are the same route. A response that is not 2xx prints its body
+on stderr and exits with 1.
+
+The REST API routes: https://docs.currents.dev/resources/api/api-resources
+
+Arguments:
+  path                         the REST API route, such as /v1/runs/<run-id>
+
+Options:
+  --api-key <api-key>          an API key from the Currents dashboard (required)
+                               (env: CURRENTS_API_KEY)
+  -X, --method <method>        the HTTP method; GET by default, POST when
+                               --field, --raw-field or --input is given
+  -f, --field <key=value>      a request parameter; repeat for more. Sent in the
+                               query string of a GET and in the JSON body
+                               otherwise. true, false, null and numbers are sent
+                               as JSON values; in a JSON body, key[]=value adds
+                               the value to an array
+  -F, --raw-field <key=value>  like --field, but the value is always a string
+  --input <file>               send the JSON in this file as the body, or the
+                               JSON from stdin with "-"; fields then go to the
+                               query string
+  -H, --header <key:value>     an HTTP header to send; repeat for more
+  -i, --include                print the HTTP status line and the response
+                               headers before the body
+  --debug                      print debug logs; keys are hidden in them
+                               (default: false, env: CURRENTS_DEBUG)
+  -h, --help                   display help for command
+
+Examples:
+  # Get a run, with the API key in CURRENTS_API_KEY
+  currents api /v1/runs/<run-id>
+
+  # List the failed runs of the main branch of a project
+  currents api /v1/projects/<project-id>/runs -X GET -f "branches[]=main" \\
+      -f status=FAILED -f limit=20
+
+  # Cancel a run
+  currents api /v1/runs/<run-id>/cancel -X PUT
+
+  # Create a webhook from the JSON in webhook.json
+  currents api /v1/webhooks -X POST -F projectId=<project-id> \\
+      --input webhook.json
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of api get-run 1`] = `
+"Usage: currents api get-run [options]
+
+Get the data of a run from the Currents API and print it as JSON, or write it to
+--output. Find the run by --ci-build-id, or the last run by --branch, --tag or
+both
+
+Options:
+  --api-key <api-key>    an API key from the Currents dashboard (required) (env:
+                         CURRENTS_API_KEY)
+  --debug                print debug logs; keys are hidden in them (default:
+                         false, env: CURRENTS_DEBUG)
+  --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
+                         combined with --branch or --tag. The environment
+                         variable is ignored when --branch or --tag is set (env:
+                         CURRENTS_CI_BUILD_ID)
+  -p, --project-id <id>  the project ID from the Currents dashboard (required)
+                         (env: CURRENTS_PROJECT_ID)
+  -b, --branch <branch>  find the last run of this git branch
+  -t, --tag <tag>        find the last run with these tags; comma-separated or
+                         repeated
+  -o, --output <path>    write the JSON to this file instead of stdout (env:
+                         CURRENTS_OUTPUT)
+  --pw-last-run          print only the status and the failed tests of the run,
+                         in the format of Playwright's .last-run.json
+  -h, --help             display help for command
+
+Examples:
+  # Get the data of the run recorded under a CI build ID
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --ci-build-id <ci-build-id>
+
+  # Get the data of the last run of a branch with the tags tagA and tagB
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --branch <branch> --tag tagA,tagB
+
+  # Save the failed tests of a run where Playwright reads them, for "playwright
+  # test --last-failed"
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --ci-build-id <ci-build-id> --pw-last-run \\
+      --output test-results/.last-run.json
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of cache 1`] = `
+"Usage: currents cache [options] [command]
+
+Save files to the Currents cache and restore them, e.g. in another CI job
+
+Options:
+  -h, --help      display help for command
+
+Commands:
+  set [options]   Save files to the cache
+  get [options]   Restore files from the cache
+  help [command]  display help for command
+
+Examples:
+  # Save files to the cache under an ID
+  currents cache set --key <record-key> --id <id> \\
+      --path <path-1,path-2,...path-n>
+
+  # Save Playwright's .last-run.json to the cache
+  currents cache set --key <record-key> --preset last-run
+
+  # Restore the files saved in the cache under an ID
+  currents cache get --key <record-key> --id <id>
+
+  # Restore Playwright's .last-run.json from the cache, to rerun only the failed
+  # tests
+  currents cache get --key <record-key> --preset last-run
+
+  # Restore Playwright's .last-run.json to another folder
+  currents cache get --key <record-key> --preset last-run \\
+      --output-dir <output-dir>
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of cache get 1`] = `
+"Usage: currents cache get [options]
+
+Restore files from the cache
+
+Options:
+  -k, --key <record-key>   the record key from the Currents dashboard (required)
+                           (env: CURRENTS_RECORD_KEY)
+  --id <id>                the ID the files were saved under. Without it the ID
+                           comes from the CI job: on GitHub Actions the
+                           repository, the run ID and --matrix-index; on GitLab
+                           the pipeline ID and the job name; on other CI the
+                           variables that identify the pipeline and the job, and
+                           --matrix-index. When no CI job is detected the ID is
+                           random, so pass --id
+  --preset <preset-name>   "last-run" restores the saved .last-run.json files
+                           and writes the Playwright options for the rerun to
+                           --preset-output (choices: "last-run")
+  --output-dir <folder>    the folder to restore the files to; by default the
+                           current folder
+  --preset-output <path>   the file the "last-run" preset writes, relative to
+                           the current folder. On GitHub Actions and CircleCI it
+                           holds options for "playwright test"; on GitLab the
+                           shell variables EXTRA_PW_FLAGS, EXTRA_PWCP_FLAGS and
+                           RUN_ATTEMPT, to source. Nothing is written on other
+                           CI (default: ".currents_env")
+  --debug                  print debug logs; keys are hidden in them (default:
+                           false, env: CURRENTS_DEBUG)
+  --matrix-index <number>  the index of this job among parallel jobs, from 1;
+                           each job has its own cache. Pass it when the CI does
+                           not tell the jobs apart, as in a GitHub Actions
+                           matrix (default: 1)
+  --matrix-total <number>  GitHub Actions only: the number of jobs in the
+                           matrix, for the shards that the last-run preset
+                           writes (default: 1)
+  --continue               exit with 0 when the cache is not found (default:
+                           false)
+  -h, --help               display help for command
+
+Examples:
+  # Restore the files saved in the cache under an ID
+  currents cache get --key <record-key> --id <id>
+
+  # Restore Playwright's .last-run.json from the cache, to rerun only the failed
+  # tests
+  currents cache get --key <record-key> --preset last-run
+
+  # Restore Playwright's .last-run.json to another folder
+  currents cache get --key <record-key> --preset last-run \\
+      --output-dir <output-dir>
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of cache set 1`] = `
+"Usage: currents cache set [options]
+
+Save files to the cache
+
+Options:
+  -k, --key <record-key>    the record key from the Currents dashboard
+                            (required) (env: CURRENTS_RECORD_KEY)
+  --id <id>                 the ID to save the files under. Without it the ID
+                            comes from the CI job: on GitHub Actions the
+                            repository, the run ID and --matrix-index; on GitLab
+                            the pipeline ID and the job name; on other CI the
+                            variables that identify the pipeline and the job,
+                            and --matrix-index. When no CI job is detected the
+                            ID is random, so pass --id
+  --preset <preset-name>    "last-run" saves the Playwright .last-run.json files
+                            of --pw-output-dir, to rerun only the failed tests
+                            (choices: "last-run")
+  --path <path>             comma-separated paths or glob patterns of the files
+                            to save, inside the current folder; quote globs,
+                            e.g. "dist/**/*". At most 50 MB zipped
+  --debug                   print debug logs; keys are hidden in them (default:
+                            false, env: CURRENTS_DEBUG)
+  --pw-output-dir <folder>  the Playwright output folder that holds
+                            .last-run.json (default: "test-results")
+  --matrix-index <number>   the index of this job among parallel jobs, from 1;
+                            each job has its own cache. Pass it when the CI does
+                            not tell the jobs apart, as in a GitHub Actions
+                            matrix (default: 1)
+  --matrix-total <number>   GitHub Actions only: the number of jobs in the
+                            matrix, for the shards that the last-run preset
+                            writes (default: 1)
+  --continue                exit with 0 when no files are found, and save the
+                            cache without files (default: false)
+  -h, --help                display help for command
+
+Examples:
+  # Save files to the cache under an ID
+  currents cache set --key <record-key> --id <id> \\
+      --path <path-1,path-2,...path-n>
+
+  # Save Playwright's .last-run.json to the cache
+  currents cache set --key <record-key> --preset last-run
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of cancel 1`] = `
+"Usage: currents cancel [options]
+
+Cancel a run in progress, e.g. when the CI job it belongs to is cancelled
+
+Options:
+  -k, --key <record-key>  the record key from the Currents dashboard (required)
+                          (env: CURRENTS_RECORD_KEY)
+  -p, --project-id <id>   the project ID from the Currents dashboard (required)
+                          (env: CURRENTS_PROJECT_ID)
+  --ci-build-id <id>      the CI build ID the run was recorded with (required
+                          unless --run-id is set) (env: CURRENTS_CI_BUILD_ID)
+  --run-id <id>           the ID of the run to cancel, as printed when the run
+                          was created; wins over --ci-build-id (env:
+                          CURRENTS_RUN_ID)
+  --debug                 print debug logs; keys are hidden in them (default:
+                          false, env: CURRENTS_DEBUG)
+  -h, --help              display help for command
+
+Examples:
+  # Cancel the run recorded under a CI build ID
+  currents run cancel --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id>
+
+  # Cancel a run by its ID, as printed when the run was created
+  currents run cancel --key <record-key> --project-id <id> --run-id <run-id>
+
+  # Cancel the run when a GitHub Actions workflow is cancelled (workflow step).
+  # It reads CURRENTS_RECORD_KEY, CURRENTS_PROJECT_ID and CURRENTS_CI_BUILD_ID
+  # from the environment
+  - if: \${{ cancelled() }}
+    run: npx currents run cancel
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of convert 1`] = `
+"Usage: currents convert [options]
+
+Convert JUnit XML reports to the Currents format, without uploading them. The
+converted reports are saved to --output-dir or a new folder in .currents
+
+Options:
+  --debug                        print debug logs; keys are hidden in them
+                                 (default: false, env: CURRENTS_DEBUG)
+  --input-format <format>        the format of the reports to convert (required)
+                                 (choices: "junit")
+  --input-file <patterns>        comma-separated glob patterns of the report
+                                 files, e.g. "reports/*.xml,other.xml"; quote
+                                 them so that the shell does not expand them
+                                 (required)
+  -o, --output-dir <folder>      the folder to save the converted reports to; it
+                                 must be empty, not exist, or hold only the
+                                 reports being converted
+  --framework <framework>        the test framework that wrote the reports
+                                 (required) (choices: "postman", "node",
+                                 "vitest", "wdio")
+  --framework-version <version>  the version of the test framework that wrote
+                                 the reports
+  -h, --help                     display help for command
+
+Examples:
+  # Convert JUnit test reports to the Currents format, to check the result
+  # before an upload
+  currents convert --input-format junit --input-file "./*.xml" \\
+      --framework postman
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of run 1`] = `
+"Usage: currents run [options] [command]
+
+Upload test results to a run, attach files to it, get its data or cancel it
+
+Options:
+  -h, --help                   display help for command
+
+Commands:
+  upload [options]             Upload test results of Currents reporters or
+                               JUnit
+  attach [options] <paths...>  Upload files to a run recorded in CI
+  get [options]                Get the data of a run from the Currents API
+  cancel [options]             Cancel a run in progress
+  help [command]               display help for command
+
+Examples:
+  # Upload test results to Currents
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id>
+
+  # Convert JUnit XML reports to the Currents format, then upload them
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --input-format junit --input-file "./*.xml" \\
+      --framework postman
+
+  # Attach the Docker logs of a CI machine to the run, after the tests finished
+  currents run attach --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --machine-id shard-1 docker-logs.zip
+
+  # Get the data of the run recorded under a CI build ID
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --ci-build-id <ci-build-id>
+
+  # Cancel the run recorded under a CI build ID
+  currents run cancel --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id>
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of run attach 1`] = `
+"Usage: currents run attach [options] <paths...>
+
+Upload files to a run recorded in CI
+
+Arguments:
+  paths                   files or folders to attach. A folder adds the files
+                          directly in it; hidden files, links, subfolders and
+                          empty files in it are skipped. A folder of Playwright
+                          MCP trace-*.trace files is packed into one trace and
+                          nothing else in it is attached; a folder with such a
+                          traces/ subfolder adds the packed trace and its own
+                          files. Files named .env or .env.* are refused, and
+                          each file can be at most 1 GiB
+
+Options:
+  -k, --key <record-key>  the record key from the Currents dashboard (required
+                          unless --api-key is set) (env: CURRENTS_RECORD_KEY)
+  --api-key <api-key>     an API key from the Currents dashboard (used when
+                          --key is not set; needs write access) (env:
+                          CURRENTS_API_KEY)
+  -p, --project-id <id>   the project ID from the Currents dashboard (required)
+                          (env: CURRENTS_PROJECT_ID)
+  --ci-build-id <id>      the CI build ID the run was recorded with. Leave it
+                          out only if the run was recorded without one, on a CI
+                          the reporters recognize (env: CURRENTS_CI_BUILD_ID)
+  --machine-id <id>       the CI machine the files come from; run-level files
+                          are listed by machine when it is set (env:
+                          CURRENTS_MACHINE_ID)
+  --spec <spec>           attach to this spec file of the run
+  --group <id>            the group of the spec file; a spec that runs once per
+                          Playwright project matches more than once without it
+  --test-title <title>    attach to this test of --spec: the full title joined
+                          with " > ", or its last part
+  --attempt <n>           attach to this attempt of the test; the first attempt
+                          is 0
+  --type <type>           the type of every file; by default taken from the
+                          file: a .zip holding trace.trace is a trace; .png,
+                          .jpg, .jpeg, .webp and .gif are screenshots; .webm and
+                          .mp4 are videos; anything else is an attachment. The
+                          whole run and a test take attachments only, a spec
+                          file also takes screenshots and videos, and an attempt
+                          (--attempt) takes all four types, including traces. A
+                          file of a type its target does not take is attached as
+                          an attachment, and a --type the target does not take
+                          is an error (choices: "trace", "screenshot", "video",
+                          "attachment")
+  --caption <text>        a short description shown with each file
+  --meta <key=value>      a label for each file; repeat for more
+  --debug                 print debug logs; keys are hidden in them (default:
+                          false, env: CURRENTS_DEBUG)
+  -h, --help              display help for command
+
+Examples:
+  # Attach the Docker logs of a CI machine to the run, after the tests finished
+  currents run attach --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --machine-id shard-1 docker-logs.zip
+
+  # Attach a screenshot to the first attempt of a test
+  currents run attach --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --spec tests/cart.spec.ts \\
+      --test-title "adds an item" --attempt 0 screenshot.png
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of run cancel 1`] = `
+"Usage: currents run cancel [options]
+
+Cancel a run in progress, e.g. when the CI job it belongs to is cancelled
+
+Options:
+  -k, --key <record-key>  the record key from the Currents dashboard (required)
+                          (env: CURRENTS_RECORD_KEY)
+  -p, --project-id <id>   the project ID from the Currents dashboard (required)
+                          (env: CURRENTS_PROJECT_ID)
+  --ci-build-id <id>      the CI build ID the run was recorded with (required
+                          unless --run-id is set) (env: CURRENTS_CI_BUILD_ID)
+  --run-id <id>           the ID of the run to cancel, as printed when the run
+                          was created; wins over --ci-build-id (env:
+                          CURRENTS_RUN_ID)
+  --debug                 print debug logs; keys are hidden in them (default:
+                          false, env: CURRENTS_DEBUG)
+  -h, --help              display help for command
+
+Examples:
+  # Cancel the run recorded under a CI build ID
+  currents run cancel --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id>
+
+  # Cancel a run by its ID, as printed when the run was created
+  currents run cancel --key <record-key> --project-id <id> --run-id <run-id>
+
+  # Cancel the run when a GitHub Actions workflow is cancelled (workflow step).
+  # It reads CURRENTS_RECORD_KEY, CURRENTS_PROJECT_ID and CURRENTS_CI_BUILD_ID
+  # from the environment
+  - if: \${{ cancelled() }}
+    run: npx currents run cancel
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of run get 1`] = `
+"Usage: currents run get [options]
+
+Get the data of a run from the Currents API and print it as JSON, or write it to
+--output. Find the run by --ci-build-id, or the last run by --branch, --tag or
+both
+
+Options:
+  --api-key <api-key>    an API key from the Currents dashboard (required) (env:
+                         CURRENTS_API_KEY)
+  --debug                print debug logs; keys are hidden in them (default:
+                         false, env: CURRENTS_DEBUG)
+  --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
+                         combined with --branch or --tag. The environment
+                         variable is ignored when --branch or --tag is set (env:
+                         CURRENTS_CI_BUILD_ID)
+  -p, --project-id <id>  the project ID from the Currents dashboard (required)
+                         (env: CURRENTS_PROJECT_ID)
+  -b, --branch <branch>  find the last run of this git branch
+  -t, --tag <tag>        find the last run with these tags; comma-separated or
+                         repeated
+  -o, --output <path>    write the JSON to this file instead of stdout (env:
+                         CURRENTS_OUTPUT)
+  --pw-last-run          print only the status and the failed tests of the run,
+                         in the format of Playwright's .last-run.json
+  -h, --help             display help for command
+
+Examples:
+  # Get the data of the run recorded under a CI build ID
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --ci-build-id <ci-build-id>
+
+  # Get the data of the last run of a branch with the tags tagA and tagB
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --branch <branch> --tag tagA,tagB
+
+  # Save the failed tests of a run where Playwright reads them, for "playwright
+  # test --last-failed"
+  currents run get --api-key <api-key> --project-id <project-id> \\
+      --ci-build-id <ci-build-id> --pw-last-run \\
+      --output test-results/.last-run.json
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of run upload 1`] = `
+"Usage: currents run upload [options]
+
+Upload test results created by Currents reporters to https://currents.dev
+
+With --input-format, first convert the reports in --input-file to the Currents
+format, then upload the converted reports. They are saved to --output-dir, or
+--report-dir, or a new folder in .currents. A folder you name must be empty or
+not exist.
+
+Options:
+  --ci-build-id <id>             the CI build ID to record the run with; by
+                                 default taken from the CI environment, or a
+                                 random value (env: CURRENTS_CI_BUILD_ID)
+  -k, --key <record-key>         the record key from the Currents dashboard
+                                 (required) (env: CURRENTS_RECORD_KEY)
+  -p, --project-id <id>          the project ID from the Currents dashboard
+                                 (required) (env: CURRENTS_PROJECT_ID)
+  -t, --tag <tag>                tags to add to the run; comma-separated or
+                                 repeated (env: CURRENTS_TAG)
+  --remove-title-tags            remove tags from test names in Currents, e.g.
+                                 \`Test name @smoke\` becomes \`Test name\` in the
+                                 dashboard (default: false, env:
+                                 CURRENTS_REMOVE_TITLE_TAGS)
+  --disable-title-tags           do not read tags from test names, e.g. \`Test
+                                 name @smoke\` is not tagged with \`smoke\` in the
+                                 dashboard (default: false, env:
+                                 CURRENTS_DISABLE_TITLE_TAGS)
+  --machine-id <id>              the ID of the machine that ran the tests; by
+                                 default a random value (env:
+                                 CURRENTS_MACHINE_ID)
+  --debug                        print debug logs; keys are hidden in them
+                                 (default: false, env: CURRENTS_DEBUG)
+  --report-dir <folder>          the folder of the reports to upload; by default
+                                 the newest folder in .currents (env:
+                                 CURRENTS_REPORT_DIR)
+  --input-format <format>        the format of the reports to convert (choices:
+                                 "junit")
+  --input-file <patterns>        comma-separated glob patterns of the report
+                                 files, e.g. "reports/*.xml,other.xml"; quote
+                                 them so that the shell does not expand them
+                                 (required with --input-format)
+  --framework <framework>        the test framework that wrote the reports
+                                 (required with --input-format) (choices:
+                                 "postman", "node", "vitest", "wdio")
+  --framework-version <version>  the version of the test framework that wrote
+                                 the reports
+  -o, --output-dir <folder>      the folder to save the converted reports to; it
+                                 must be empty, not exist, or hold only the
+                                 reports being converted
+  -h, --help                     display help for command
+
+Examples:
+  # Upload test results to Currents
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id>
+
+  # Convert JUnit XML reports to the Currents format, then upload them
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --input-format junit --input-file "./*.xml" \\
+      --framework postman
+
+  # Upload test results and add the tags "tagA" and "tagB" to the run
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --tag tagA --tag tagB
+
+  # Upload test results from another folder
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --report-dir <report-dir>
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of skill 1`] = `
+"Usage: currents skill [options]
+
+Print SKILL.md of the currents-cli skill, which tells coding agents how to use
+this CLI, or install the skill in the project. Install it to get the reference
+files too.
+
+Agents read project skills from these folders:
+  Codex, Cursor   .agents/skills
+  Claude Code     .claude/skills
+
+Options:
+  --install     write the skill folder to <dir>/currents-cli
+  --dir <path>  the skills folder to install to (default: ".agents/skills")
+  --force       replace an installed copy of the skill that differs from this
+                version
+  -h, --help    display help for command
+
+Examples:
+  # Print the skill
+  currents skill
+
+  # Add the skill to the project, in .agents/skills/currents-cli
+  currents skill --install
+
+  # Add the skill for Claude Code
+  currents skill --install --dir .claude/skills
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of upload 1`] = `
+"Usage: currents upload [options]
+
+Upload test results created by Currents reporters to https://currents.dev
+
+With --input-format, first convert the reports in --input-file to the Currents
+format, then upload the converted reports. They are saved to --output-dir, or
+--report-dir, or a new folder in .currents. A folder you name must be empty or
+not exist.
+
+Options:
+  --ci-build-id <id>             the CI build ID to record the run with; by
+                                 default taken from the CI environment, or a
+                                 random value (env: CURRENTS_CI_BUILD_ID)
+  -k, --key <record-key>         the record key from the Currents dashboard
+                                 (required) (env: CURRENTS_RECORD_KEY)
+  -p, --project-id <id>          the project ID from the Currents dashboard
+                                 (required) (env: CURRENTS_PROJECT_ID)
+  -t, --tag <tag>                tags to add to the run; comma-separated or
+                                 repeated (env: CURRENTS_TAG)
+  --remove-title-tags            remove tags from test names in Currents, e.g.
+                                 \`Test name @smoke\` becomes \`Test name\` in the
+                                 dashboard (default: false, env:
+                                 CURRENTS_REMOVE_TITLE_TAGS)
+  --disable-title-tags           do not read tags from test names, e.g. \`Test
+                                 name @smoke\` is not tagged with \`smoke\` in the
+                                 dashboard (default: false, env:
+                                 CURRENTS_DISABLE_TITLE_TAGS)
+  --machine-id <id>              the ID of the machine that ran the tests; by
+                                 default a random value (env:
+                                 CURRENTS_MACHINE_ID)
+  --debug                        print debug logs; keys are hidden in them
+                                 (default: false, env: CURRENTS_DEBUG)
+  --report-dir <folder>          the folder of the reports to upload; by default
+                                 the newest folder in .currents (env:
+                                 CURRENTS_REPORT_DIR)
+  --input-format <format>        the format of the reports to convert (choices:
+                                 "junit")
+  --input-file <patterns>        comma-separated glob patterns of the report
+                                 files, e.g. "reports/*.xml,other.xml"; quote
+                                 them so that the shell does not expand them
+                                 (required with --input-format)
+  --framework <framework>        the test framework that wrote the reports
+                                 (required with --input-format) (choices:
+                                 "postman", "node", "vitest", "wdio")
+  --framework-version <version>  the version of the test framework that wrote
+                                 the reports
+  -o, --output-dir <folder>      the folder to save the converted reports to; it
+                                 must be empty, not exist, or hold only the
+                                 reports being converted
+  -h, --help                     display help for command
+
+Examples:
+  # Upload test results to Currents
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id>
+
+  # Convert JUnit XML reports to the Currents format, then upload them
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --input-format junit --input-file "./*.xml" \\
+      --framework postman
+
+  # Upload test results and add the tags "tagA" and "tagB" to the run
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --tag tagA --tag tagB
+
+  # Upload test results from another folder
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --report-dir <report-dir>
+
+"
+`;

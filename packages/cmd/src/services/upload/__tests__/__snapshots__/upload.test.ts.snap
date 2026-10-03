@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`currents upload > sends the results and uploads their artifacts 1`] = `
+exports[`currents run upload > sends the results and uploads their artifacts 1`] = `
 {
   "runRequests": [
     {
