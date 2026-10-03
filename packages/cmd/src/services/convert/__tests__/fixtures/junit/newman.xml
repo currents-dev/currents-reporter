@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Shop API" tests="3" time="1.2">
+  <testsuite name="List products" id="0" timestamp="2025-01-11T09:30:00.000Z" tests="2" failures="0" errors="0" skipped="0" time="0.4">
+    <testcase name="Status code is 200" time="0.1" classname="Shop API"></testcase>
+    <testcase name="Response has items" time="0.3" classname="Shop API"></testcase>
+  </testsuite>
+  <testsuite name="Create order" id="1" timestamp="2025-01-11T09:30:01.000Z" tests="1" failures="1" errors="0" skipped="0" time="0.8">
+    <testcase name="Status code is 201" time="0.8" classname="Shop API">
+      <failure type="AssertionFailure" message="expected response to have status code 201 but got 500"><![CDATA[expected response to have status code 201 but got 500]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

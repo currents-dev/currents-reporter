@@ -1,0 +1,971 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`currents run upload --input-format, with the built CLI > node > sends the converted results to the API 1`] = `
+[
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "node",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [
+        {
+          "name": "node tests",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "test/parser.test.js",
+              "tags": [],
+              "testId": "33b733eac101cdb5",
+              "title": [
+                "test/parser.test.js",
+                "parses a number",
+              ],
+            },
+            {
+              "spec": "test/parser.test.js",
+              "tags": [],
+              "testId": "ca15e11c511425ae",
+              "title": [
+                "test/parser.test.js",
+                "parses a string",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "node tests",
+      "instances": [],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "node",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [],
+      "group": "node tests",
+      "instances": [
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "node tests",
+          "results": {
+            "stats": {
+              "failures": 0,
+              "flaky": 0,
+              "passes": 2,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 2,
+              "wallClockDuration": 50,
+              "wallClockEndedAt": "2025-01-12T08:00:00.050Z",
+              "wallClockStartedAt": "2025-01-12T08:00:00.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736668800000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 10,
+                    "errors": [],
+                    "startTime": "2025-01-12T08:00:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "test/parser.test.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "33b733eac101cdb5",
+                "timeout": 0,
+                "title": [
+                  "test/parser.test.js",
+                  "parses a number",
+                ],
+              },
+              {
+                "_t": 1736668800000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 20,
+                    "errors": [],
+                    "startTime": "2025-01-12T08:00:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "test/parser.test.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "ca15e11c511425ae",
+                "timeout": 0,
+                "title": [
+                  "test/parser.test.js",
+                  "parses a string",
+                ],
+              },
+            ],
+          },
+          "spec": "test/parser.test.js",
+          "startTime": "2025-01-12T08:00:00.000Z",
+        },
+      ],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+]
+`;
+
+exports[`currents run upload --input-format, with the built CLI > postman > sends the converted results to the API 1`] = `
+[
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "postman",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [
+        {
+          "name": "Shop API",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "List products",
+              "tags": [],
+              "testId": "346eaec1ecfde6a1",
+              "title": [
+                "List products",
+                "Status code is 200",
+              ],
+            },
+            {
+              "spec": "List products",
+              "tags": [],
+              "testId": "30fd3532fd0253f1",
+              "title": [
+                "List products",
+                "Response has items",
+              ],
+            },
+            {
+              "spec": "Create order",
+              "tags": [],
+              "testId": "dfc775a3c25a91a0",
+              "title": [
+                "Create order",
+                "Status code is 201",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "Shop API",
+      "instances": [],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "postman",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [],
+      "group": "Shop API",
+      "instances": [
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "Shop API",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 0,
+              "passes": 0,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 1,
+              "wallClockDuration": 800,
+              "wallClockEndedAt": "2025-01-11T09:30:01.800Z",
+              "wallClockStartedAt": "2025-01-11T09:30:01.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736587801000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 800,
+                    "error": {
+                      "message": "expected response to have status code 201 but got 500",
+                      "stack": "expected response to have status code 201 but got 500",
+                      "value": "AssertionFailure",
+                    },
+                    "errors": [
+                      {
+                        "message": "expected response to have status code 201 but got 500",
+                        "stack": "expected response to have status code 201 but got 500",
+                        "value": "AssertionFailure",
+                      },
+                    ],
+                    "startTime": "2025-01-11T09:30:01.800Z",
+                    "status": "failed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "failed",
+                "testId": "dfc775a3c25a91a0",
+                "timeout": 0,
+                "title": [
+                  "Create order",
+                  "Status code is 201",
+                ],
+              },
+            ],
+          },
+          "spec": "Create order",
+          "startTime": "2025-01-11T09:30:01.000Z",
+        },
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "Shop API",
+          "results": {
+            "stats": {
+              "failures": 0,
+              "flaky": 0,
+              "passes": 2,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 2,
+              "wallClockDuration": 400,
+              "wallClockEndedAt": "2025-01-11T09:30:00.400Z",
+              "wallClockStartedAt": "2025-01-11T09:30:00.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736587800000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 100,
+                    "errors": [],
+                    "startTime": "2025-01-11T09:30:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "346eaec1ecfde6a1",
+                "timeout": 0,
+                "title": [
+                  "List products",
+                  "Status code is 200",
+                ],
+              },
+              {
+                "_t": 1736587800000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 300,
+                    "errors": [],
+                    "startTime": "2025-01-11T09:30:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "30fd3532fd0253f1",
+                "timeout": 0,
+                "title": [
+                  "List products",
+                  "Response has items",
+                ],
+              },
+            ],
+          },
+          "spec": "List products",
+          "startTime": "2025-01-11T09:30:00.000Z",
+        },
+      ],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+]
+`;
+
+exports[`currents run upload --input-format, with the built CLI > vitest > sends the converted results to the API 1`] = `
+[
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "vitest",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [
+        {
+          "name": "vitest tests",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "src/math.test.ts",
+              "tags": [],
+              "testId": "eec66cc66d7640ed",
+              "title": [
+                "src/math.test.ts",
+                "adds numbers",
+              ],
+            },
+            {
+              "spec": "src/math.test.ts",
+              "tags": [],
+              "testId": "e051301313509854",
+              "title": [
+                "src/math.test.ts",
+                "subtracts numbers",
+              ],
+            },
+            {
+              "spec": "src/math.test.ts",
+              "tags": [],
+              "testId": "fa17423d2a9e8c62",
+              "title": [
+                "src/math.test.ts",
+                "multiplies numbers",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "vitest tests",
+      "instances": [],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "vitest",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [],
+      "group": "vitest tests",
+      "instances": [
+        {
+          "artifacts": [
+            {
+              "contentType": "text/plain",
+              "level": "spec",
+              "path": "artifacts/1qCvSOFS.stdout.txt",
+              "type": "stdout",
+            },
+          ],
+          "groupId": "vitest tests",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 0,
+              "passes": 1,
+              "pending": 1,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 3,
+              "wallClockDuration": 12,
+              "wallClockEndedAt": "2025-01-10T10:00:00.012Z",
+              "wallClockStartedAt": "2025-01-10T10:00:00.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736503200000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 2,
+                    "errors": [],
+                    "startTime": "2025-01-10T10:00:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "eec66cc66d7640ed",
+                "timeout": 0,
+                "title": [
+                  "src/math.test.ts",
+                  "adds numbers",
+                ],
+              },
+              {
+                "_t": 1736503200000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 3,
+                    "error": {
+                      "message": "expected 1 to be 2",
+                      "stack": "AssertionError: expected 1 to be 2
+ ❯ src/math.test.ts:9:17",
+                      "value": "AssertionError",
+                    },
+                    "errors": [
+                      {
+                        "message": "expected 1 to be 2",
+                        "stack": "AssertionError: expected 1 to be 2
+ ❯ src/math.test.ts:9:17",
+                        "value": "AssertionError",
+                      },
+                    ],
+                    "startTime": "2025-01-10T10:00:00.004Z",
+                    "status": "failed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "failed",
+                "testId": "e051301313509854",
+                "timeout": 0,
+                "title": [
+                  "src/math.test.ts",
+                  "subtracts numbers",
+                ],
+              },
+              {
+                "_t": 1736503200000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "pending",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2025-01-10T10:00:00.000Z",
+                    "status": "skipped",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "pending",
+                "testId": "fa17423d2a9e8c62",
+                "timeout": 0,
+                "title": [
+                  "src/math.test.ts",
+                  "multiplies numbers",
+                ],
+              },
+            ],
+          },
+          "spec": "src/math.test.ts",
+          "startTime": "2025-01-10T10:00:00.000Z",
+        },
+      ],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+]
+`;
+
+exports[`currents run upload --input-format, with the built CLI > wdio > sends the converted results to the API 1`] = `
+[
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "wdio",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [
+        {
+          "name": "wdio",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "test/specs/login.e2e.js",
+              "tags": [],
+              "testId": "143036f9fc4d1380",
+              "title": [
+                "test/specs/login.e2e.js",
+                "shows the form",
+              ],
+            },
+            {
+              "spec": "test/specs/login.e2e.js",
+              "tags": [],
+              "testId": "ff4e70563184408d",
+              "title": [
+                "test/specs/login.e2e.js",
+                "rejects a wrong password",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "wdio",
+      "instances": [],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "wdio",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [],
+      "group": "wdio",
+      "instances": [
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "wdio",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 0,
+              "passes": 1,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 2,
+              "wallClockDuration": 3500,
+              "wallClockEndedAt": "2025-01-13T07:15:03.500Z",
+              "wallClockStartedAt": "2025-01-13T07:15:00.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736752500000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 1500,
+                    "errors": [],
+                    "startTime": "2025-01-13T07:15:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "test/specs/login.e2e.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "143036f9fc4d1380",
+                "timeout": 0,
+                "title": [
+                  "test/specs/login.e2e.js",
+                  "shows the form",
+                ],
+              },
+              {
+                "_t": 1736752500000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 2000,
+                    "error": {
+                      "message": "Expect $(\`.error\`) to be displayed",
+                      "stack": "Error: Expect $(\`.error\`) to be displayed
+    at test/specs/login.e2e.js:12:30",
+                      "value": "Error",
+                    },
+                    "errors": [
+                      {
+                        "message": "Expect $(\`.error\`) to be displayed",
+                        "stack": "Error: Expect $(\`.error\`) to be displayed
+    at test/specs/login.e2e.js:12:30",
+                        "value": "Error",
+                      },
+                    ],
+                    "startTime": "2025-01-13T07:15:03.000Z",
+                    "status": "failed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "test/specs/login.e2e.js",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "failed",
+                "testId": "ff4e70563184408d",
+                "timeout": 0,
+                "title": [
+                  "test/specs/login.e2e.js",
+                  "rejects a wrong password",
+                ],
+              },
+            ],
+          },
+          "spec": "test/specs/login.e2e.js",
+          "startTime": "2025-01-13T07:15:00.000Z",
+        },
+      ],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+]
+`;

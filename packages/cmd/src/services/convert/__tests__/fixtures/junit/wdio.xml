@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="wdio" tests="2" failures="1" errors="0" time="3.5">
+  <testsuite name="Login page" timestamp="2025-01-13T07:15:00.000Z" tests="2" failures="1" errors="0" skipped="0" time="3.5" file="test/specs/login.e2e.js">
+    <testcase name="shows the form" time="1.5" classname="Login page"></testcase>
+    <testcase name="rejects a wrong password" time="2" classname="Login page">
+      <failure message="Expect $(`.error`) to be displayed" type="Error">Error: Expect $(`.error`) to be displayed
+    at test/specs/login.e2e.js:12:30</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

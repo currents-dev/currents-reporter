@@ -54,6 +54,7 @@ screenshots
 artifacts
 
 *.xml
+!packages/cmd/src/**/fixtures/**/*.xml
 
 # Allow artifacts and xml in examples/junit
 !examples/junit/artifacts/
