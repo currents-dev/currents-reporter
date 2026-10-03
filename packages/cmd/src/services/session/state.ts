@@ -3,7 +3,8 @@ import path from 'path';
 
 export type SessionState = {
   sessionId: string;
-  projectId: string;
+  /** Absent in a file saved before sessions had their own ID. */
+  projectId?: string;
 };
 
 /**
@@ -39,7 +40,9 @@ export async function readSessionState(): Promise<SessionState | null> {
   // run ID is the session ID.
   const sessionId = saved?.sessionId || saved?.runId;
   if (typeof sessionId !== 'string' || !sessionId.trim()) return null;
-  return { ...saved, sessionId };
+  const projectId =
+    typeof saved.projectId === 'string' ? saved.projectId : undefined;
+  return { sessionId, projectId };
 }
 
 /**
