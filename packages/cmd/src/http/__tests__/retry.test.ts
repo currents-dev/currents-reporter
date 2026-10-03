@@ -74,7 +74,7 @@ describe('retries of requests to the API', () => {
     expect(api.requests).toHaveLength(4);
   });
 
-  it.each([429, 502, 504])('retries an answer with %d', async (status) => {
+  it.each([408, 429, 502, 504])('retries an answer with %d', async (status) => {
     answers.push({ status }, { status: 200 });
 
     await request('GET');
@@ -113,15 +113,6 @@ describe('retries of requests to the API', () => {
       expect(api.requests).toHaveLength(1);
     }
   );
-
-  // isRetriableError lists 429, 502, 503 and 504 and leaves 408 out.
-  it.fails('retries an answer with 408', async () => {
-    answers.push({ status: 408 }, { status: 200 });
-
-    await request('GET');
-
-    expect(api.requests).toHaveLength(2);
-  });
 });
 
 describe('retry settings', () => {
