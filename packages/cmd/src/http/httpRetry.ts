@@ -24,8 +24,17 @@ export function getRetryAfterMs(err?: AxiosError, now = Date.now()) {
   return Number.isNaN(date) ? undefined : Math.max(0, date - now);
 }
 
-export const getDelay = (i: number, err?: AxiosError) =>
-  getRetryAfterMs(err) ?? DEFAULT_DELAYS[i - 1];
+/**
+ * The default delay, or the server's `Retry-After` when it is longer, up to
+ * `MAX_RETRY_AFTER_MS`. A proxy that answers `Retry-After: 3600` must not hold
+ * a CI job for hours, and `Retry-After: 0` must not retry at once.
+ */
+export const getDelay = (i: number, err?: AxiosError) => {
+  const defaultDelay = DEFAULT_DELAYS[Math.min(i, DEFAULT_DELAYS.length) - 1];
+  const retryAfter = getRetryAfterMs(err);
+  if (retryAfter === undefined) return defaultDelay;
+  return Math.min(Math.max(retryAfter, defaultDelay), MAX_RETRY_AFTER_MS);
+};
 
 export const isRetriableError = (err: AxiosError | Error): boolean => {
   debug('isRetriableError: %o', {

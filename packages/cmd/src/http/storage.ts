@@ -53,21 +53,42 @@ export type FileUpload = {
   headers?: Record<string, string>;
 };
 
+/** Slowest upload speed a file upload waits for before it is retried. */
+const MIN_UPLOAD_BYTES_PER_SECOND = 256 * 1024;
+const UPLOAD_TIMEOUT_BASE_MS = 2 * 60 * 1000;
+
 /**
  * Streams a file from disk. The size is sent as Content-Length, as signed URLs
- * that pin it require, and a retry opens the file again.
+ * that pin it require, and a retry opens the file again. Exactly `sizeBytes`
+ * are read, so a log that grows or shrinks during the upload cannot make the
+ * body disagree with Content-Length.
  */
 export async function sendFile(upload: FileUpload) {
   debug('Uploading file %s', upload.name, { bytes: upload.sizeBytes });
   return send(
-    () => fs.createReadStream(upload.path),
+    () =>
+      upload.sizeBytes > 0
+        ? fs.createReadStream(upload.path, { end: upload.sizeBytes - 1 })
+        : Readable.from([]),
     upload.uploadUrl,
     upload.contentType,
     undefined,
     {
       ...(upload.headers ?? { 'Content-Type': upload.contentType }),
       'Content-Length': String(upload.sizeBytes),
-    }
+    },
+    getUploadTimeoutMs(upload.sizeBytes)
+  );
+}
+
+/**
+ * For a streamed body axios times out the whole request, not only an idle
+ * socket, so the limit grows with the file.
+ */
+export function getUploadTimeoutMs(sizeBytes: number) {
+  return (
+    UPLOAD_TIMEOUT_BASE_MS +
+    Math.ceil(sizeBytes / MIN_UPLOAD_BYTES_PER_SECOND) * 1000
   );
 }
 
@@ -76,11 +97,13 @@ async function _send(
   url: string,
   contentType: string,
   onUploadProgress: RawAxiosRequestConfig['onUploadProgress'],
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
+  timeout?: number
 ) {
   return getAxios().request({
     method: 'put',
     url,
+    timeout,
     data: typeof body === 'function' ? body() : body,
     // The redirect handler keeps a copy of the whole body in memory. A signed
     // upload URL does not redirect.
@@ -112,31 +135,44 @@ export async function download(
   }
 }
 
+/** S3 error codes that a 4xx answers with but that pass on a new attempt. */
+const TRANSIENT_STORAGE_CODES = [
+  'RequestTimeout',
+  'OperationAborted',
+  'SlowDown',
+];
+
 /**
- * A 4xx from storage is final: an expired or refused signed URL answers the
- * same on every attempt. 408 and 429 are the ones worth repeating.
+ * The code and message of an S3 compatible XML error document, for example
+ * `AccessDenied` and `Request has expired`.
  */
-export function isFinalUploadError(e: unknown) {
-  const status = isAxiosError(e) ? e.response?.status : undefined;
-  return (
-    status !== undefined &&
-    status >= 400 &&
-    status < 500 &&
-    status !== 408 &&
-    status !== 429
-  );
+function readStorageError(e: unknown) {
+  const data = isAxiosError(e) ? e.response?.data : undefined;
+  const body = typeof data === 'string' ? data : '';
+  return {
+    code: body.match(/<Code>([^<]*)<\/Code>/)?.[1],
+    message: body.match(/<Message>([^<]*)<\/Message>/)?.[1],
+  };
 }
 
 /**
- * What storage said, for example `403 AccessDenied: Request has expired`. S3
- * compatible storage answers with an XML error document.
+ * A 4xx from storage is final: an expired or refused signed URL answers the
+ * same on every attempt. 408, 429 and the S3 codes in
+ * `TRANSIENT_STORAGE_CODES` are worth repeating.
  */
+export function isFinalUploadError(e: unknown) {
+  const status = isAxiosError(e) ? e.response?.status : undefined;
+  if (status === undefined || status < 400 || status >= 500) return false;
+  if (status === 408 || status === 429) return false;
+  const { code } = readStorageError(e);
+  return !(code && TRANSIENT_STORAGE_CODES.includes(code));
+}
+
+/** What storage said, for example `403 AccessDenied: Request has expired`. */
 export function describeUploadError(e: unknown) {
   if (!isAxiosError(e) || !e.response)
     return e instanceof Error ? e : new Error(String(e));
-  const body = typeof e.response.data === 'string' ? e.response.data : '';
-  const code = body.match(/<Code>([^<]*)<\/Code>/)?.[1];
-  const message = body.match(/<Message>([^<]*)<\/Message>/)?.[1];
+  const { code, message } = readStorageError(e);
   const detail = [code, message].filter(Boolean).join(': ');
   return new Error(
     `storage answered ${e.response.status}${detail ? ` ${detail}` : ''}`

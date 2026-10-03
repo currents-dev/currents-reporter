@@ -11,6 +11,8 @@ describe('removeAuthFromUrl', () => {
     ['ssh://git@github.com/o/r.git', 'ssh://github.com/o/r.git'],
     ['https://github.com/o/r.git', 'https://github.com/o/r.git'],
     ['git@github.com:o/r.git', 'git@github.com:o/r.git'],
+    ['https://me@corp.com:tok@gitlab.com/r', 'https://gitlab.com/r'],
+    ['https://github.com/o/r@v1', 'https://github.com/o/r@v1'],
   ])('%s', (input, expected) => {
     expect(removeAuthFromUrl(input)).toBe(expected);
   });

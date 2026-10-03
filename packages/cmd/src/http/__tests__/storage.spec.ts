@@ -4,7 +4,7 @@ import { AddressInfo } from 'net';
 import os from 'os';
 import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { sendFile } from '../storage';
+import { getUploadTimeoutMs, sendFile } from '../storage';
 
 let server: http.Server;
 let origin: string;
@@ -61,5 +61,30 @@ describe('sendFile', () => {
     answers.push({ status: 500 });
     await sendFile(await upload('hello'));
     expect(received.map((b) => b.toString())).toEqual(['hello', 'hello']);
+  });
+
+  it('retries a 400 with a transient S3 code', async () => {
+    received.length = 0;
+    answers.push({
+      status: 400,
+      body: '<Error><Code>RequestTimeout</Code><Message>Socket was not read from</Message></Error>',
+    });
+    await sendFile(await upload('hello'));
+    expect(received).toHaveLength(2);
+  });
+
+  it('sends the size it declared when the file grew after it was measured', async () => {
+    received.length = 0;
+    const file = await upload('hello');
+    await fs.appendFile(file.path, ' and more');
+    await sendFile(file);
+    expect(received.map((b) => b.toString())).toEqual(['hello']);
+  });
+});
+
+describe('getUploadTimeoutMs', () => {
+  it('allows more time for a bigger file', () => {
+    expect(getUploadTimeoutMs(0)).toBe(120000);
+    expect(getUploadTimeoutMs(1024 * 1024 * 1024)).toBe(120000 + 4096 * 1000);
   });
 });

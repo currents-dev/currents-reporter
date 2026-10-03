@@ -80,4 +80,16 @@ describe('Retry-After', () => {
     );
     expect(getDelay(2)).toBe(15000);
   });
+
+  it('keeps Retry-After between the default delay and a minute', () => {
+    expect(
+      getDelay(1, error('post', { status: 503, retryAfter: '3600' }))
+    ).toBe(60000);
+    expect(getDelay(1, error('post', { status: 503, retryAfter: '0' }))).toBe(
+      3000
+    );
+    expect(getDelay(2, error('post', { status: 503, retryAfter: '5' }))).toBe(
+      15000
+    );
+  });
 });
