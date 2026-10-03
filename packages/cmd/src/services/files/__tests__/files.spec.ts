@@ -8,6 +8,7 @@ import { collectFiles } from '../collect';
 import { ALLOWED_TYPES, getFileLevel } from '../levels';
 import { assertTypeMatchesFile, getContentType, getFileType } from '../detect';
 import { keepNetworkLine, mergeNetworkFiles } from '../packTrace';
+import { chunkFiles, parseMeta } from '../attach';
 
 describe('getFileType', () => {
   it('picks the type from the extension', () => {
@@ -47,6 +48,18 @@ describe('getContentType', () => {
     ]) {
       expect(getContentType(name)).toMatch(/^[\w.+-]+\/[\w.+-]+$/);
     }
+  });
+});
+
+describe('parseMeta', () => {
+  it('splits on the first equals sign', () => {
+    expect(parseMeta(['a=1', 'url=http://x?y=1'])).toEqual({
+      a: '1',
+      url: 'http://x?y=1',
+    });
+    expect(parseMeta([])).toBeUndefined();
+    expect(() => parseMeta(['novalue'])).toThrow(/key=value/);
+    expect(() => parseMeta(['a b=1'])).toThrow(/letters, digits/);
   });
 });
 
@@ -287,5 +300,27 @@ describe('getFileLevel', () => {
     expect(ALLOWED_TYPES.instance).toContain('screenshot');
     expect(ALLOWED_TYPES.test).toEqual(['attachment']);
     expect(ALLOWED_TYPES.instance).not.toContain('trace');
+  });
+});
+
+describe('chunkFiles', () => {
+  const file = (sizeBytes: number) =>
+    ({
+      sizeBytes,
+      name: 'f',
+      path: 'f',
+      type: 'attachment',
+      contentType: 'x',
+    }) as never;
+
+  it('splits by count and by bytes', () => {
+    const files = Array.from({ length: 5 }, () => file(10));
+    expect(
+      chunkFiles(files, { count: 2, bytes: 1000 }).map((c) => c.length)
+    ).toEqual([2, 2, 1]);
+    expect(
+      chunkFiles(files, { count: 50, bytes: 25 }).map((c) => c.length)
+    ).toEqual([2, 2, 1]);
+    expect(chunkFiles([file(500)], { count: 50, bytes: 100 })).toHaveLength(1);
   });
 });
