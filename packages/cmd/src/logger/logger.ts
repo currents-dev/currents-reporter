@@ -31,6 +31,10 @@ export const warnWithNoTrace = (...args: unknown[]) => {
   return log(chalk.bgYellow.black(' WARNING '), msg);
 };
 
+/** A warning on stderr, for commands whose stdout other tools read. */
+export const warnOnStderr = (...args: unknown[]) =>
+  _error(chalk.bgYellow.black(' WARNING '), util.format(...args));
+
 export const success = (...args: unknown[]) =>
   log(chalk.green.bold(util.format(...args)));
 

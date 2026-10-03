@@ -1,9 +1,9 @@
 import { debug as _debug } from '@debug';
 
-import { maskApiKey, ValidationError } from '@lib';
+import { maskKeys, ValidationError } from '@lib';
 import { error } from '@logger';
 import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -76,9 +76,7 @@ export const apiGetRunCustomValidation = (
   const count = [ciBuildId, tag, branch].filter(Boolean).length;
   const isValid = count === 1 || (tag && branch && !ciBuildId);
   if (!isValid) {
-    error(
-      '"ciBuildId", "tag", "branch" or a combination of "tag" and "branch" are expected to be provided'
-    );
+    error('Pass --ci-build-id, or --branch, --tag or both');
     throw new ValidationError('Missing or invalid parameters');
   }
 };
@@ -91,11 +89,10 @@ export function setAPIGetRunCommandConfig(
   _config = getValidatedConfig(
     configKeys,
     mandatoryConfigKeys,
-    getEnvVariables,
     options,
     apiGetRunCustomValidation
   );
-  debug('Resolved config: %o', maskApiKey(_config));
+  debug('Resolved config: %o', maskKeys(_config));
 }
 
 export function getAPIGetRunCommandConfig() {

@@ -1,15 +1,13 @@
 import { Command } from '@commander-js/extra-typings';
 import { formatExamples, HelpExample } from '../help';
 import { getRunHandler } from './get-run';
+import { apiKeyOption, debugOption, projectOption } from '../options';
 import {
-  apiKeyOption,
   branchOption,
   ciBuildIdOption,
-  debugOption,
   outputOption,
-  projectOption,
   pwLastRunOption,
-  tagOption,
+  runTagOption,
 } from './options';
 
 const COMMAND_NAME = 'get';
@@ -30,9 +28,9 @@ export const getRunGetExamples = (name: string): HelpExample[] => [
   },
   {
     comment:
-      'Save the failed tests of a run as a Playwright .last-run.json file, for --last-failed',
+      'Save the failed tests of a run where Playwright reads them, for "playwright test --last-failed"',
     commands: [
-      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --ci-build-id <ci-build-id> --pw-last-run --output .last-run.json`,
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --ci-build-id <ci-build-id> --pw-last-run --output test-results/.last-run.json`,
     ],
   },
 ];
@@ -60,12 +58,12 @@ export const getRunGetCommand = (name: string) => {
     )
     .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .allowUnknownOption()
-    .addOption(apiKeyOption)
-    .addOption(debugOption)
+    .addOption(apiKeyOption())
+    .addOption(debugOption())
     .addOption(ciBuildIdOption)
-    .addOption(projectOption)
+    .addOption(projectOption())
     .addOption(branchOption)
-    .addOption(tagOption)
+    .addOption(runTagOption)
     .addOption(outputOption)
     .addOption(pwLastRunOption)
     .action(getRunHandler);

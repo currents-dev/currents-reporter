@@ -6,7 +6,8 @@ import {
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
-import { join } from 'path';
+import fs from 'fs-extra';
+import { join, resolve, sep } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { Artifact, InstanceReport } from '../../types';
 import { getFullTestSuiteFilePath } from '../upload/path';
@@ -23,6 +24,9 @@ export async function handleConvert() {
       throw new Error('Config is missing!');
     }
 
+    if (config.outputDir) {
+      await assertFolderEmpty(config.outputDir, config.inputFiles);
+    }
     const reportDir = config.outputDir
       ? await createFolder(config.outputDir)
       : await createUniqueFolder(process.cwd(), '.currents');
@@ -127,4 +131,54 @@ export async function handleConvert() {
     debug('Failed to convert: %o', e);
     throw e;
   }
+}
+
+/**
+ * The conversion keeps the files it finds in the folder, and the upload reads
+ * every report in it, so reports of an earlier conversion would be uploaded
+ * again with the new ones. The JUnit files being converted may sit in the
+ * folder, but not where the conversion writes its own files.
+ */
+async function assertFolderEmpty(folder: string, inputFiles: string[]) {
+  const root = resolve(folder);
+  const inputs = new Set(inputFiles.map((file) => resolve(file)));
+  const generated = [
+    join(root, 'config.json'),
+    getFullTestSuiteFilePath(root),
+    join(root, 'instances'),
+    join(root, 'artifacts'),
+  ];
+  const inGeneratedPath = [...inputs].find((input) =>
+    generated.some((path) => input === path || input.startsWith(path + sep))
+  );
+  if (inGeneratedPath) {
+    throw new Error(
+      `The report "${inGeneratedPath}" is where the conversion writes its own files. Move the reports out of "${folder}", or leave out --output-dir to convert into a new folder in .currents.`
+    );
+  }
+  const other = (await fs.pathExists(root))
+    ? await findOtherFile(root, inputs)
+    : undefined;
+  if (other) {
+    throw new Error(
+      `The folder "${folder}" is not empty. Reports already in it would be uploaded with the converted ones. Remove the folder, or leave out --output-dir to convert into a new folder in .currents.`
+    );
+  }
+}
+
+/** The first file under the folder that is not one of the inputs. */
+async function findOtherFile(
+  folder: string,
+  inputs: Set<string>
+): Promise<string | undefined> {
+  for (const entry of await fs.readdir(folder, { withFileTypes: true })) {
+    const path = join(folder, entry.name);
+    const other = entry.isDirectory()
+      ? await findOtherFile(path, inputs)
+      : inputs.has(path)
+        ? undefined
+        : path;
+    if (other) return other;
+  }
+  return undefined;
 }

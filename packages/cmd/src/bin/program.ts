@@ -13,16 +13,22 @@ import { getRunAttachExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
 import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
+import { parseFlagsFromEnv, warnOnOverriddenEnv } from '../commands/utils';
 
 const NAME = 'currents';
 export const getProgram = () => {
+  const uploadCommand = getUploadCommand(NAME);
   const program = new Command(NAME)
     .version(reporterVersion)
     .description(
       'Currents CLI: upload test results and files to Currents, get and cancel runs, capture agent or browser sessions as evidence, and cache files between CI jobs'
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
-    .addCommand(getUploadCommand(NAME), { hidden: true })
+    .hook('preAction', (_program, actionCommand) => {
+      parseFlagsFromEnv(actionCommand);
+      warnOnOverriddenEnv(actionCommand);
+    })
+    .addCommand(uploadCommand, { hidden: true })
     .addCommand(getConvertCommand(NAME), { hidden: true })
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
     .addCommand(getRunFilesCommand(NAME))
@@ -53,8 +59,17 @@ Support:       support@currents.dev
 
   // Commander has no public hook for unknown options. Options such as --key
   // used to select the upload command, so point users to it.
-  (program as unknown as { unknownOption: () => void }).unknownOption = () =>
+  const uploadFlags = uploadCommand.options.flatMap((o) => [o.long, o.short]);
+  const withUnknownOption = program as unknown as {
+    unknownOption: (flag: string) => void;
+  };
+  const unknownOption = withUnknownOption.unknownOption.bind(program);
+  withUnknownOption.unknownOption = (flag) => {
+    if (!uploadFlags.includes(flag.split('=')[0])) {
+      return unknownOption(flag);
+    }
     program.error(uploadHint);
+  };
 
   // A bare `currents` used to upload with the key and project from the
   // environment. Commander prints the help as an error when no command is

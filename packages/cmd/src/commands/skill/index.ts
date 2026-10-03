@@ -30,7 +30,7 @@ export const getSkillCommand = (name: string) =>
     .name(COMMAND_NAME)
     .summary('Print or install the agent skill for this CLI')
     .description(
-      `Print the ${SKILL_NAME} agent skill, which tells coding agents how to use this CLI, or install it in the project.
+      `Print SKILL.md of the ${SKILL_NAME} skill, which tells coding agents how to use this CLI, or install the skill in the project. Install it to get the reference files too.
 
 Agents read project skills from these folders:
   Codex, Cursor   ${DEFAULT_SKILLS_DIR}

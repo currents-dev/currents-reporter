@@ -8,10 +8,6 @@ export async function resolveReportOptions(
 ): Promise<Required<ReportOptions>> {
   const reportDir = await findReportDir(options?.reportDir);
 
-  if (!reportDir) {
-    throw new Error('Failed to find the report dir');
-  }
-
   return {
     reportDir,
     configFilePath:
@@ -19,13 +15,26 @@ export async function resolveReportOptions(
   };
 }
 
-async function findReportDir(reportDir?: string): Promise<string | null> {
+async function findReportDir(reportDir?: string): Promise<string> {
   if (reportDir) {
-    await checkPathExists(reportDir);
+    if (!(await fs.pathExists(reportDir))) {
+      throw new Error(
+        `No reports found: the folder "${reportDir}" does not exist.`
+      );
+    }
     return reportDir;
   }
 
-  return getLastCreatedDirectory(join(process.cwd(), '.currents'));
+  const defaultDir = join(process.cwd(), '.currents');
+  const latestDir = (await fs.pathExists(defaultDir))
+    ? await getLastCreatedDirectory(defaultDir)
+    : null;
+  if (!latestDir) {
+    throw new Error(
+      `No reports found: there is no report folder in "${defaultDir}". Run the tests with a Currents reporter first, or pass --report-dir with the folder of the reports.`
+    );
+  }
+  return latestDir;
 }
 
 async function getLastCreatedDirectory(dir: string): Promise<string | null> {

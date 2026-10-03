@@ -4,7 +4,7 @@ import {
   getCancelCommandConfig,
   setCancelCommandConfig,
 } from '../../config/cancel';
-import { maskRecordKey } from '../../lib';
+import { maskKeys } from '../../lib';
 import { handleCancelRun } from '../../services';
 import { commandHandler } from '../utils';
 
@@ -20,7 +20,7 @@ export async function cancelHandler(
     setCancelCommandConfig({ ...opts, recordKey: key });
     const config = getCancelCommandConfig();
 
-    debug('Config: %o', maskRecordKey(config ?? {}));
+    debug('Config: %o', maskKeys(config ?? {}));
     await handleCancelRun();
   }, options);
 }

@@ -24,9 +24,9 @@ export function removeUndefined<T extends {}>(obj?: T): T {
 }
 
 /**
- * `CURRENTS_DEBUG=false` should turn debug off rather than on, and an unset
- * variable has to stay `undefined` so that `getValidatedConfig` does not
- * overwrite a `--debug` flag with it.
+ * Commander sets a flag to true when its environment variable is set to any
+ * value. `CURRENTS_DEBUG=false` has to turn debug off, and an empty value
+ * counts as unset.
  */
 export function parseBooleanEnv(value?: string): boolean | undefined {
   if (value === undefined || value.trim() === '') {
@@ -58,29 +58,26 @@ export function getConfigName<T extends ConfigKeys>(
   return configKeys[variable].name;
 }
 
+/**
+ * The options already hold the environment variables: commander reads them
+ * for every option declared with `.env()`, and a command-line value wins.
+ */
 export function getValidatedConfig<T extends ConfigKeys, R>(
   configKeys: T,
   mandatoryKeys: (keyof R)[],
-  getEnvVariables: () => Partial<
-    Record<keyof R, string | string[] | boolean | number | undefined>
-  >,
   options?: Partial<R>,
   customValidation?: (config: R) => void
 ) {
-  const result = {
-    ...removeUndefined(options),
-    ...removeUndefined(getEnvVariables()),
-  };
+  const result = removeUndefined(options) as Partial<R>;
 
   mandatoryKeys.forEach((i) => {
     if (!result[i]) {
+      const key = i as string;
+      const env = getEnvironmentVariableName(configKeys, key);
       error(
-        `${getConfigName(
-          configKeys,
-          i as string
-        )} is required for Currents Reporter. Use the following methods to set the value:
-- as environment variable: ${dim(getEnvironmentVariableName(configKeys, i as string))}
-- as CLI flag of the command: ${dim(getCLIOptionName(configKeys, i as string))}`
+        `${getConfigName(configKeys, key)} is required: pass ${dim(
+          getCLIOptionName(configKeys, key)
+        )}${env ? ` or set ${dim(env)}` : ''}`
       );
       throw new ValidationError('Missing required config variable');
     }

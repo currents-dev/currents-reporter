@@ -1,8 +1,8 @@
 import { debug as _debug } from '@debug';
 
-import { maskRecordKey } from '../../lib';
+import { maskKeys } from '../../lib';
 import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -58,16 +58,11 @@ export function setCacheSetCommandConfig(
 ) {
   _config = {
     type: 'SET_COMMAND_CONFIG',
-    values: getValidatedConfig(
-      configKeys,
-      mandatoryConfigKeys,
-      getEnvVariables,
-      options
-    ),
+    values: getValidatedConfig(configKeys, mandatoryConfigKeys, options),
   };
   debug('Resolved config: %o', {
     ..._config,
-    values: maskRecordKey(_config.values),
+    values: maskKeys(_config.values),
   });
 }
 
@@ -76,16 +71,11 @@ export function setCacheGetCommandConfig(
 ) {
   _config = {
     type: 'GET_COMMAND_CONFIG',
-    values: getValidatedConfig(
-      configKeys,
-      mandatoryConfigKeys,
-      getEnvVariables,
-      options
-    ),
+    values: getValidatedConfig(configKeys, mandatoryConfigKeys, options),
   };
   debug('Resolved config: %o', {
     ..._config,
-    values: maskRecordKey(_config.values),
+    values: maskKeys(_config.values),
   });
 }
 

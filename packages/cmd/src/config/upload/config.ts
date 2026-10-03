@@ -1,7 +1,8 @@
 import { debug as _debug } from '@debug';
+import { maskKeys } from '@lib';
 
 import { getValidatedConfig } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -61,18 +62,13 @@ const mandatoryConfigKeys: MandatoryCurrentsConfigKeys[] = [
 
 let _config: CurrentsConfig | null = null;
 
-/**
- * Precendence: env > reporter config
- * @param reporterOptions reporter config
- */
 export function setCurrentsConfig(reporterOptions?: Partial<CurrentsConfig>) {
   _config = getValidatedConfig(
     configKeys,
     mandatoryConfigKeys,
-    getEnvVariables,
     reporterOptions
   );
-  debug('Resolved Currents config: %o', _config);
+  debug('Resolved Currents config: %o', maskKeys(_config));
 }
 
 export function getCurrentsConfig() {

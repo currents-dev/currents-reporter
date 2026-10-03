@@ -7,6 +7,7 @@ import { getCacheCommandConfig } from '../../config/cache';
 import { getCI } from '../../env/ciProvider';
 import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { zipFilesToBuffer } from './fs';
+import { warnIfCacheIdIsRandom } from './id';
 import { createMeta } from './lib';
 import {
   ContentType,
@@ -34,6 +35,7 @@ export async function handleSetCache() {
   const uploadPaths = await getUploadPaths(config.values.path);
   const configUploadPaths: (string | undefined)[] = config.values.path || [];
   const ci = getCI();
+  warnIfCacheIdIsRandom(ci, id);
 
   if (preset === PRESETS.lastRun) {
     configUploadPaths.push(pwOutputDir);

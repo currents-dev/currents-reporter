@@ -1,13 +1,8 @@
 import { Command } from '@commander-js/extra-typings';
 import { formatExamples, HelpExample } from '../help';
 import { cancelHandler } from './cancel';
-import {
-  ciBuildIdOption,
-  debugOption,
-  projectOption,
-  recordKeyOption,
-  runIdOption,
-} from './options';
+import { debugOption, projectOption, recordKeyOption } from '../options';
+import { ciBuildIdOption, runIdOption } from './options';
 
 const COMMAND_NAME = 'cancel';
 const PARENT_NAME = 'run';
@@ -19,14 +14,14 @@ export const getCancelExamples = (name: string): HelpExample[] => [
     ],
   },
   {
-    comment: 'Cancel a run by its ID, as reported when the run was created',
+    comment: 'Cancel a run by its ID, as printed when the run was created',
     commands: [
       `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --run-id <run-id>`,
     ],
   },
   {
     comment:
-      'Cancel the run when a GitHub Actions workflow is cancelled (workflow step)',
+      'Cancel the run when a GitHub Actions workflow is cancelled (workflow step). It reads CURRENTS_RECORD_KEY, CURRENTS_PROJECT_ID and CURRENTS_CI_BUILD_ID from the environment',
     commands: [
       `- if: \${{ cancelled() }}\n  run: npx ${name} ${PARENT_NAME} ${COMMAND_NAME}`,
     ],
@@ -46,11 +41,11 @@ export const getCancelCommand = (
     )
     .addHelpText('after', formatExamples(getCancelExamples(name)))
     .allowUnknownOption()
-    .addOption(recordKeyOption)
-    .addOption(projectOption)
+    .addOption(recordKeyOption())
+    .addOption(projectOption())
     .addOption(ciBuildIdOption)
     .addOption(runIdOption)
-    .addOption(debugOption)
+    .addOption(debugOption())
     .action(cancelHandler);
 
   if (deprecated) {

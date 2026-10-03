@@ -1,28 +1,24 @@
 import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
 import * as globby from 'globby';
-import { configKeys } from '../../config/convert';
-import { getEnvironmentVariableName } from '../../config/utils';
-
-export const debugOption = new Option('--debug', 'Enable debug logging')
-  .env(getEnvironmentVariableName(configKeys, 'debug'))
-  .default(false);
 
 export enum REPORT_INPUT_FORMATS {
   junit = 'junit',
 }
-export const inputFormatOption = new Option(
-  '--input-format <string>',
-  'the format of the input test reports'
-).choices(Object.values(REPORT_INPUT_FORMATS));
+export const inputFormatOption = (note?: string) =>
+  new Option(
+    '--input-format <format>',
+    ['the format of the reports to convert', note].filter(Boolean).join(' ')
+  ).choices(Object.values(REPORT_INPUT_FORMATS));
 
-export const inputFileOption = new Option(
-  '--input-file <patterns>',
-  'comma-separated glob patterns of the report files, e.g. "reports/*.xml,other.xml"; quote them so that the shell does not expand them'
-).argParser(validateGlobPattern);
+export const inputFileOption = (note: string) =>
+  new Option(
+    '--input-file <patterns>',
+    `comma-separated glob patterns of the report files, e.g. "reports/*.xml,other.xml"; quote them so that the shell does not expand them ${note}`
+  ).argParser(validateGlobPattern);
 
 export const outputDirOption = new Option(
-  '-o, --output-dir <string>',
-  'the directory to save the converted test reports'
+  '-o, --output-dir <folder>',
+  'the folder to save the converted reports to; it must be empty, not exist, or hold only the reports being converted'
 );
 
 export enum REPORT_FRAMEWORKS {
@@ -31,14 +27,15 @@ export enum REPORT_FRAMEWORKS {
   vitest = 'vitest',
   wdio = 'wdio',
 }
-export const frameworkOption = new Option(
-  '--framework <string>',
-  'the testing framework used to generate the test reports'
-).choices(Object.values(REPORT_FRAMEWORKS));
+export const frameworkOption = (note: string) =>
+  new Option(
+    '--framework <framework>',
+    `the test framework that wrote the reports ${note}`
+  ).choices(Object.values(REPORT_FRAMEWORKS));
 
 export const frameworkVersionOption = new Option(
-  '--framework-version <string>',
-  'the version of the testing framework used to generate the test reports'
+  '--framework-version <version>',
+  'the version of the test framework that wrote the reports'
 );
 
 function validateGlobPattern(value: string) {

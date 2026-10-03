@@ -120,10 +120,8 @@ export async function handleRunAttach(
   if (config.attempt !== undefined && !config.testTitle) {
     throw new Error('--attempt needs --test-title');
   }
-  if (!config.spec && !config.machineId) {
-    throw new Error(
-      'Files for the whole run are listed by machine: pass --machine-id, or --spec to attach to a spec file'
-    );
+  if (config.group && !config.spec) {
+    throw new Error('--group needs --spec: it picks the spec file of a group');
   }
   if (!config.ciBuildId) assertCIBuildIdDetectable();
   return attachFiles({
@@ -136,7 +134,7 @@ export async function handleRunAttach(
       testTitle: config.testTitle,
       groupId: config.group,
       attempt: config.attempt,
-      // The API takes a machine ID for run-level files only.
+      // A file of a spec file or test has the machine of its instance.
       machineId: config.spec ? undefined : config.machineId,
     },
     paths,

@@ -1,6 +1,6 @@
 import { debug as _debug } from '@debug';
 
-import { maskRecordKey } from '@lib';
+import { maskKeys } from '@lib';
 import { ValidationError } from '@lib/error';
 import { dim, error } from '@logger';
 import {
@@ -9,7 +9,7 @@ import {
   getEnvironmentVariableName,
   getValidatedConfig,
 } from '../utils';
-import { configKeys, getEnvVariables } from './env';
+import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
@@ -62,13 +62,11 @@ function requireRunIdentifier(config: CancelCommandConfig) {
     `${getConfigName(configKeys, 'runId')} or ${getConfigName(
       configKeys,
       'ciBuildId'
-    )} is required for Currents Reporter. Use the following methods to set the value:
-- as environment variable: ${dim(
-      getEnvironmentVariableName(configKeys, 'runId')
-    )} or ${dim(getEnvironmentVariableName(configKeys, 'ciBuildId'))}
-- as CLI flag of the command: ${dim(
-      getCLIOptionName(configKeys, 'runId')
-    )} or ${dim(getCLIOptionName(configKeys, 'ciBuildId'))}`
+    )} is required: pass ${dim(getCLIOptionName(configKeys, 'runId'))} or ${dim(
+      getCLIOptionName(configKeys, 'ciBuildId')
+    )}, or set ${dim(getEnvironmentVariableName(configKeys, 'runId'))} or ${dim(
+      getEnvironmentVariableName(configKeys, 'ciBuildId')
+    )}`
   );
   throw new ValidationError('Missing required config variable');
 }
@@ -79,11 +77,10 @@ export function setCancelCommandConfig(options?: Partial<CancelCommandConfig>) {
   _config = getValidatedConfig(
     configKeys,
     mandatoryConfigKeys,
-    getEnvVariables,
     options,
     requireRunIdentifier
   );
-  debug('Resolved config: %o', maskRecordKey(_config));
+  debug('Resolved config: %o', maskKeys(_config));
 }
 
 export function getCancelCommandConfig() {

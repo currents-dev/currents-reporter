@@ -95,6 +95,28 @@ describe('currents program', () => {
     expect(getCurrentsConfig).not.toHaveBeenCalled();
   });
 
+  it.each([['--key=x'], ['-p', 'y'], ['--report-dir', 'r']])(
+    'points to run upload for the upload option %s',
+    async (...args) => {
+      expect(await run(args)).toBe(1);
+
+      expect(stderr).toContain('upload is no longer the default command');
+    }
+  );
+
+  it('refuses a number of days a share link cannot have', async () => {
+    expect(await run(['session', 'share', '--expires-in-days', '5'])).toBe(1);
+
+    expect(stderr).toContain("argument '5' is invalid");
+  });
+
+  it('fails with the usual error for another unknown option', async () => {
+    expect(await run(['--nope'])).toBe(1);
+
+    expect(stderr).toContain("error: unknown option '--nope'");
+    expect(stderr).not.toContain('upload is no longer the default command');
+  });
+
   it('prints the help of the upload command', async () => {
     expect(await run(['run', 'upload', '--help'])).toBe(0);
 

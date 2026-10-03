@@ -1,7 +1,7 @@
 import { debug as _debug } from '../debug';
 import { makeRequest } from '../http';
 import { ClientType } from '../http/client';
-import { maskRecordKey } from '../lib';
+import { maskKeys } from '../lib';
 
 const debug = _debug.extend('api');
 
@@ -47,7 +47,7 @@ export type CacheRetrievalResponse = {
 
 export async function createCache(params: CacheRequestParams) {
   try {
-    debug('Request params: %o', maskRecordKey(params));
+    debug('Request params: %o', maskKeys(params));
 
     return makeRequest<CacheCreationResponse, CacheRequestParams>(
       ClientType.API,
@@ -65,7 +65,7 @@ export async function createCache(params: CacheRequestParams) {
 
 export async function retrieveCache(params: CacheRetrievalParams) {
   try {
-    debug('Request params: %o', params);
+    debug('Request params: %o', maskKeys(params));
 
     return makeRequest<CacheRetrievalResponse, CacheRetrievalParams>(
       ClientType.API,
@@ -83,7 +83,7 @@ export async function retrieveCache(params: CacheRetrievalParams) {
 
 export async function getRefCacheMeta(params: CacheRequestParams) {
   try {
-    debug('Request params: %o', params);
+    debug('Request params: %o', maskKeys(params));
 
     return makeRequest<CacheMetaResponse, CacheRequestParams>(ClientType.API, {
       url: 'cache/meta',

@@ -1,34 +1,20 @@
-import { Option } from '@commander-js/extra-typings';
+import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
 import { configKeys } from '../../config/session';
 import { getEnvironmentVariableName } from '../../config/utils';
-import { parseCommaSeparatedList } from '../utils';
+import { recordedCiBuildIdOption, tagOption } from '../options';
 
 const env = (key: keyof typeof configKeys) =>
   getEnvironmentVariableName(configKeys, key);
 
-export const apiKeyOption = new Option(
-  '--api-key <api-key>',
-  'API key with write access, from the Currents dashboard'
-).env(env('apiKey'));
+export const WRITE_ACCESS = '(required; needs write access)';
 
-export const recordKeyOption = new Option(
-  '-k, --key <record-key>',
-  'your secret Record Key obtained from Currents; used instead of --api-key when both are set'
-).env(env('recordKey'));
-
-export const projectOption = new Option(
-  '-p, --project-id <project>',
-  'the project ID (required)'
-).env(env('projectId'));
-
-export const ciBuildIdOption = new Option(
-  '--ci-build-id <id>',
-  'the CI build ID the run was recorded with; on a CI provider that reporters detect it can be left out'
-).env(env('ciBuildId'));
+export const ciBuildIdOption = recordedCiBuildIdOption(
+  '. Leave it out only if the run was recorded without one, on a CI the reporters recognize'
+);
 
 export const machineIdOption = new Option(
   '--machine-id <id>',
-  'identifies the CI machine the files come from; run-level files are listed by it'
+  'the CI machine the files come from; run-level files are listed by machine when it is set'
 ).env(env('machineId'));
 
 export const sessionIdOption = new Option(
@@ -53,10 +39,7 @@ export const errorOption = new Option(
   'what went wrong, for a failed session'
 );
 
-export const tagOption = new Option(
-  '-t, --tag <tag>',
-  'tag the session; comma-separated or repeated'
-).argParser(parseCommaSeparatedList);
+export const sessionTagOption = tagOption('tags to add to the session');
 
 export const prOption = new Option(
   '--pr <url|number>',
@@ -85,7 +68,7 @@ export const groupOption = new Option(
 
 export const attemptOption = new Option(
   '--attempt <n>',
-  'attach to this attempt of the test (starts at 0)'
+  'attach to this attempt of the test; the first attempt is 0'
 ).argParser((value) => {
   const attempt = Number(value);
   if (!Number.isInteger(attempt) || attempt < 0) {
@@ -94,10 +77,23 @@ export const attemptOption = new Option(
   return attempt;
 });
 
-export const typeOption = new Option(
+const FILE_TYPES = ['trace', 'screenshot', 'video', 'attachment'] as const;
+
+const TYPE_FROM_FILE =
+  'by default taken from the file: a .zip holding trace.trace is a trace; .png, .jpg, .jpeg, .webp and .gif are screenshots; .webm and .mp4 are videos; anything else is an attachment';
+
+export const sessionTypeOption = new Option(
   '--type <type>',
-  'file type; by default picked from the file: a .zip holding trace.trace is a trace, and a folder with trace-*.trace files (or a traces/ subfolder) is packed into one; .png .jpg .webp .gif are screenshots, .webm and .mp4 are videos. Anything else, or a type the target does not take, is an attachment'
-).choices(['trace', 'screenshot', 'video', 'attachment'] as const);
+  `the type of every file; ${TYPE_FROM_FILE}`
+).choices(FILE_TYPES);
+
+export const runTypeOption = new Option(
+  '--type <type>',
+  `the type of every file; ${TYPE_FROM_FILE}. The whole run and a test take attachments only, a spec file also takes screenshots and videos, and an attempt (--attempt) takes all four types, including traces. A file of a type its target does not take is attached as an attachment, and a --type the target does not take is an error`
+).choices(FILE_TYPES);
+
+export const PATHS_DESCRIPTION =
+  'files or folders to attach. A folder adds the files directly in it; hidden files, links, subfolders and empty files in it are skipped. A folder of Playwright MCP trace-*.trace files is packed into one trace and nothing else in it is attached; a folder with such a traces/ subfolder adds the packed trace and its own files. Files named .env or .env.* are refused, and each file can be at most 1 GiB';
 
 export const captionOption = new Option(
   '--caption <text>',
@@ -114,13 +110,20 @@ export const metaOption = new Option(
   'a label for each file; repeat for more'
 ).argParser(collectMeta);
 
+const EXPIRES_IN_DAYS = ['1', '3', '7'];
+
+// .argParser replaces the check of .choices, so the parser checks the value.
 export const expiresInDaysOption = new Option(
   '--expires-in-days <days>',
   'the number of days the link works'
 )
-  .choices(['1', '3', '7'] as const)
-  .argParser((value) => Number(value));
-
-export const debugOption = new Option('--debug', 'enable debug logs')
-  .env(env('debug'))
-  .default(false);
+  .choices(EXPIRES_IN_DAYS)
+  .default(7)
+  .argParser((value) => {
+    if (!EXPIRES_IN_DAYS.includes(value)) {
+      throw new InvalidArgumentError(
+        `Allowed choices are ${EXPIRES_IN_DAYS.join(', ')}.`
+      );
+    }
+    return Number(value);
+  });

@@ -14,25 +14,24 @@ export const getLastRunFilePaths = async (outputPath?: string) => {
 };
 
 export const getUploadPaths = async (pathPatterns: string[] = []) => {
-  const filteredPaths = filterPaths(pathPatterns);
-
-  const uploadPaths: string[] = [];
-
-  if (filteredPaths.length > 0) {
-    uploadPaths.push(
-      ...globby.sync(pathPatterns.map((p) => p.replace(/\\/g, '/')))
-    );
+  const insidePaths = filterPaths(pathPatterns);
+  if (insidePaths.length === 0) {
+    return [];
   }
-  return uploadPaths;
+  return globby.sync(insidePaths.map((p) => p.replace(/\\/g, '/')));
 };
 
+/** Keeps the paths inside the current folder, with a warning for the others. */
 export function filterPaths(filePaths: string[]) {
   const baseDir = process.cwd();
   return filePaths.filter((filePath) => {
-    const absolutePath = path.resolve(filePath);
-    const relativePath = path.relative(baseDir, absolutePath);
+    const relativePath = path.relative(baseDir, path.resolve(filePath));
+    const isOutside =
+      relativePath === '..' ||
+      relativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relativePath);
 
-    if (filePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    if (isOutside) {
       warn(
         null,
         `Invalid path: "${filePath}". Path traversal detected. The path was skipped.`
