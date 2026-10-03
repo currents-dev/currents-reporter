@@ -1,6 +1,7 @@
 import { debug as _debug } from '../debug';
 import { makeRequest } from '../http';
 import { ClientType } from '../http/client';
+import { getAuthHeaders } from './auth';
 
 const debug = _debug.extend('api');
 
@@ -31,7 +32,7 @@ export async function getRun(apiKey: string, params: GetRunParams) {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        ...getAuthHeaders({ apiKey }),
       },
     }).then((res) => res.data);
   } catch (err) {

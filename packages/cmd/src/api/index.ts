@@ -1,3 +1,4 @@
+export * from './auth';
 export * from './cache';
 export * from './cancel-run';
 export * from './create-run';

@@ -1,5 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import { ClientType, getClient } from '../http/client';
+import { getAuthHeaders } from './auth';
 
 /**
  * A request to any path of the REST API, for `currents api`. The body of the
@@ -16,7 +17,7 @@ export function requestRestApi(
   return getClient(ClientType.REST_API).request<string>({
     ...config,
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      ...getAuthHeaders({ apiKey }),
       ...config.headers,
     },
     responseType: 'text',
