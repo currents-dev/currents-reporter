@@ -131,6 +131,13 @@ function getPayloadDebugData(data: any) {
     });
   }
   // Request bodies that carry a record key - cancel, cache - would otherwise
-  // print it in full whenever debug is on.
+  // print it in full whenever debug is on. `currents api` sends JSON as text.
+  if (typeof data === 'string') {
+    try {
+      return maskKeys(JSON.parse(data));
+    } catch {
+      return data;
+    }
+  }
   return _.isPlainObject(data) ? maskKeys(data) : data;
 }

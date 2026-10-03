@@ -63,7 +63,9 @@ currents api /v1/runs/<run-id>/cancel -X PUT
 ```
 
 - The path can start with `/v1/`, `v1/` or the route name.
-- `-f key=value` adds a field. A GET sends the fields in the query string, so pass `-X GET` with fields: without `-X`, fields make the request a POST with a JSON body. `--input <file>` sends the file as the body.
+- `-f key=value` adds a field; `true`, `false`, `null` and numbers are sent as JSON values. `-F key=value` adds a field that is always a string.
+- Without `-X`, fields make the request a POST with the fields in a JSON body. A GET sends them in the query string, so pass `-X GET` with fields.
+- `--input <file>` sends the file as the body; the fields then go in the query string, whatever the method.
 - A response that is not 2xx prints its body on stderr and exits with `1`.
 
 ## Credentials

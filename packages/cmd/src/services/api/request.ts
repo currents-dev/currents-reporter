@@ -35,13 +35,9 @@ export function restApiPath(path: string) {
     );
   }
   const relative = path.replace(/^\/+/, '');
-  // `../health` would leave /v1 once the URL is resolved.
-  if (
-    relative
-      .split(/[?#]/)[0]
-      .split('/')
-      .some((s) => s === '.' || s === '..')
-  ) {
+  // `../health` and `%2e%2e/health` would leave /v1 once the URL is resolved.
+  const isDotSegment = (segment: string) => /^(\.|%2e){1,2}$/i.test(segment);
+  if (relative.split(/[?#]/)[0].split('/').some(isDotSegment)) {
     throw new Error(`The path cannot hold "." or ".." segments: ${path}`);
   }
   return /^v1(\/|\?|$)/.test(relative) ? relative : `v1/${relative}`;
@@ -155,7 +151,17 @@ export async function handleApiRequest(
     typeof sharedConfigKeys,
     ApiRequestOptions
   >(sharedConfigKeys, ['apiKey'], options);
-  debug('Options: %o', maskKeys(options));
+  // Field and header values can hold keys; their names are enough to debug.
+  const names = (pairs?: [string, unknown][]) => pairs?.map(([name]) => name);
+  debug(
+    'Options: %o',
+    maskKeys({
+      ...options,
+      field: names(options.field),
+      rawField: names(options.rawField),
+      header: names(options.header),
+    })
+  );
 
   const request = await buildRequest(path, options);
   try {
@@ -174,7 +180,7 @@ export async function handleApiRequest(
     const body = formatBody(response, !!process.stderr.isTTY);
     if (body) process.stderr.write(body.endsWith('\n') ? body : `${body}\n`);
     throw new Error(
-      `${request.method} ${request.url} failed: the REST API answered ${response.status} ${response.statusText}`
+      `${request.method} ${request.url.split('?')[0]} failed: the REST API answered ${response.status} ${response.statusText}`
     );
   }
 }

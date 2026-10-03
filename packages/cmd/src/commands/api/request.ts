@@ -8,13 +8,15 @@ import { commandHandler, printLogsToStderr } from '../utils';
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
 
+/** A header value is trimmed; a field value is sent as written. */
 function splitPair(value: string, separator: string): Field {
   const index = value.indexOf(separator);
   const key = index < 0 ? '' : value.slice(0, index).trim();
   if (!key) {
     throw new InvalidArgumentError(`Expected key${separator}value.`);
   }
-  return [key, value.slice(index + 1).trim()];
+  const rest = value.slice(index + 1);
+  return [key, separator === ':' ? rest.trim() : rest];
 }
 
 /** A number only when JSON keeps it as written; 9007199254740993 stays a string. */

@@ -137,15 +137,18 @@ describe('currents api', () => {
     }
   );
 
-  it.each(['../health', 'v1/../health', 'runs/./r1'])(
-    'refuses the dot segments in %s',
-    async (route) => {
-      expect(await api(route)).toBe(1);
+  it.each([
+    '../health',
+    'v1/../health',
+    'runs/./r1',
+    '%2e%2e/health',
+    'v1/%2E/x',
+  ])('refuses the dot segments in %s', async (route) => {
+    expect(await api(route)).toBe(1);
 
-      expect(received).toEqual([]);
-      expect(stderr).toContain('cannot hold "." or ".." segments');
-    }
-  );
+    expect(received).toEqual([]);
+    expect(stderr).toContain('cannot hold "." or ".." segments');
+  });
 
   it('refuses a full URL', async () => {
     expect(await api('https://example.com/v1/runs/r1')).toBe(1);
@@ -274,6 +277,15 @@ describe('currents api', () => {
       expect(stderr).toContain('Expected key=value');
     }
   );
+
+  it('sends a field value as written and trims a header value', async () => {
+    expect(
+      await api('/v1/webhooks', '-F', 'name= padded ', '-H', 'x-a:  b ')
+    ).toBe(0);
+
+    expect(JSON.parse(received[0].body)).toEqual({ name: ' padded ' });
+    expect(received[0].headers['x-a']).toBe('b');
+  });
 
   it('keeps __proto__ as a field of the JSON body', async () => {
     expect(
