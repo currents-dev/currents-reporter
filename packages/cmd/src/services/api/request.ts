@@ -35,6 +35,15 @@ export function restApiPath(path: string) {
     );
   }
   const relative = path.replace(/^\/+/, '');
+  // `../health` would leave /v1 once the URL is resolved.
+  if (
+    relative
+      .split(/[?#]/)[0]
+      .split('/')
+      .some((s) => s === '.' || s === '..')
+  ) {
+    throw new Error(`The path cannot hold "." or ".." segments: ${path}`);
+  }
   return /^v1(\/|\?|$)/.test(relative) ? relative : `v1/${relative}`;
 }
 
@@ -127,9 +136,9 @@ function statusAndHeaders(response: AxiosResponse) {
 // sent, unchanged.
 function formatBody(response: AxiosResponse<string>, isTTY: boolean) {
   const body = response.data ?? '';
-  const isJSON = String(response.headers['content-type'] ?? '').includes(
-    'json'
-  );
+  const isJSON = String(response.headers['content-type'] ?? '')
+    .toLowerCase()
+    .includes('json');
   if (!isTTY || !isJSON || !body) return body;
   try {
     return JSON.stringify(JSON.parse(body), null, 2) + '\n';

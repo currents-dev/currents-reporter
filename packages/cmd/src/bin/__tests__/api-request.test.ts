@@ -137,6 +137,16 @@ describe('currents api', () => {
     }
   );
 
+  it.each(['../health', 'v1/../health', 'runs/./r1'])(
+    'refuses the dot segments in %s',
+    async (route) => {
+      expect(await api(route)).toBe(1);
+
+      expect(received).toEqual([]);
+      expect(stderr).toContain('cannot hold "." or ".." segments');
+    }
+  );
+
   it('refuses a full URL', async () => {
     expect(await api('https://example.com/v1/runs/r1')).toBe(1);
 
