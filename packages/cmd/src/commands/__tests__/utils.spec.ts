@@ -1,12 +1,17 @@
-import { CommanderError } from '@commander-js/extra-typings';
-import { error } from '@logger';
+import { Command, CommanderError, Option } from '@commander-js/extra-typings';
+import { error, warnOnStderr } from '@logger';
 import { beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
 import { enableDebug } from '../../debug';
-import { commandHandler, parseCommaSeparatedList } from '../utils';
+import {
+  commandHandler,
+  parseCommaSeparatedList,
+  warnOnOverriddenEnv,
+} from '../utils';
 
 vi.mock('@logger', () => ({
   error: vi.fn(),
   warnWithNoTrace: vi.fn(),
+  warnOnStderr: vi.fn(),
 }));
 
 vi.mock('../../debug', () => ({
@@ -91,5 +96,38 @@ describe('commandHandler', () => {
     await commandHandler(mockAction, mockOptions);
     expect(error).toHaveBeenCalledWith('Commander Error');
     expect(exitSpy).toHaveBeenCalledWith(2);
+  });
+});
+
+describe('warnOnOverriddenEnv', () => {
+  const parse = (args: string[]) => {
+    const command = new Command()
+      .exitOverride()
+      .addOption(new Option('-p, --project-id <id>').env('CURRENTS_PROJECT_ID'))
+      .action(() => undefined);
+    command.parse(args, { from: 'user' });
+    return command;
+  };
+
+  beforeEach(() => {
+    vi.mocked(warnOnStderr).mockClear();
+    vi.unstubAllEnvs();
+  });
+
+  it('warns when the option and its variable differ', () => {
+    vi.stubEnv('CURRENTS_PROJECT_ID', 'from-env');
+    warnOnOverriddenEnv(parse(['--project-id', 'from-cli']) as never);
+    expect(warnOnStderr).toHaveBeenCalledWith(
+      '--project-id and CURRENTS_PROJECT_ID are set to different values; using --project-id'
+    );
+  });
+
+  it('does not warn when they agree or only one is set', () => {
+    vi.stubEnv('CURRENTS_PROJECT_ID', 'same');
+    warnOnOverriddenEnv(parse(['--project-id', 'same']) as never);
+    warnOnOverriddenEnv(parse([]) as never);
+    vi.stubEnv('CURRENTS_PROJECT_ID', '');
+    warnOnOverriddenEnv(parse(['--project-id', 'x']) as never);
+    expect(warnOnStderr).not.toHaveBeenCalled();
   });
 });

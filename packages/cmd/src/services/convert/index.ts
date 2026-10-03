@@ -7,7 +7,7 @@ import {
 } from '@lib';
 import { info } from '@logger';
 import fs from 'fs-extra';
-import { join } from 'path';
+import { join, resolve, sep } from 'path';
 import { getConvertCommandConfig } from '../../config/convert';
 import { Artifact, InstanceReport } from '../../types';
 import { getFullTestSuiteFilePath } from '../upload/path';
@@ -25,7 +25,7 @@ export async function handleConvert() {
     }
 
     if (config.outputDir) {
-      await assertFolderEmpty(config.outputDir);
+      await assertFolderEmpty(config.outputDir, config.inputFiles);
     }
     const reportDir = config.outputDir
       ? await createFolder(config.outputDir)
@@ -136,13 +136,22 @@ export async function handleConvert() {
 /**
  * The conversion keeps the files it finds in the folder, and the upload reads
  * every report in it, so reports of an earlier conversion would be uploaded
- * again with the new ones.
+ * again with the new ones. The JUnit files being converted may sit in the
+ * folder: the upload does not read them.
  */
-async function assertFolderEmpty(folder: string) {
+async function assertFolderEmpty(folder: string, inputFiles: string[]) {
   const entries = (await fs.pathExists(folder)) ? await fs.readdir(folder) : [];
-  if (entries.length > 0) {
+  const inputs = inputFiles.map((file) => resolve(file));
+  const holdsInput = (entry: string) => {
+    const entryPath = resolve(folder, entry);
+    return inputs.some(
+      (input) => input === entryPath || input.startsWith(entryPath + sep)
+    );
+  };
+  const others = entries.filter((entry) => !holdsInput(entry));
+  if (others.length > 0) {
     throw new Error(
-      `The folder "${folder}" is not empty. The converted reports are saved to an empty or new folder: reports already in it would be uploaded with them.`
+      `The folder "${folder}" is not empty. Reports already in it would be uploaded with the converted ones. Remove the folder, or leave out --output-dir to convert into a new folder in .currents.`
     );
   }
 }

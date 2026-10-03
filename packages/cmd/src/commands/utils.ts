@@ -2,7 +2,7 @@ import {
   CommanderError,
   CommandUnknownOpts,
 } from '@commander-js/extra-typings';
-import { error } from '@logger';
+import { error, warnOnStderr } from '@logger';
 import { parseBooleanEnv } from '../config/utils';
 import { enableDebug } from '../debug';
 
@@ -37,6 +37,32 @@ export function parseFlagsFromEnv(command: CommandUnknownOpts) {
       name,
       value ?? option.defaultValue,
       value === undefined ? 'default' : 'env'
+    );
+  }
+}
+
+/**
+ * Up to 1.x an environment variable won over its command-line option; now the
+ * option wins. When both are set to different values, say which one is used,
+ * so a script that hard-codes `--project-id` and sets `CURRENTS_PROJECT_ID`
+ * does not report to the other project without notice. Values are not
+ * printed: one of them can be a key.
+ */
+export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
+  for (const option of command.options) {
+    const name = option.attributeName();
+    const envValue = option.envVar ? process.env[option.envVar] : undefined;
+    const value = command.getOptionValue(name);
+    if (
+      !envValue ||
+      option.isBoolean() ||
+      command.getOptionValueSource(name) !== 'cli' ||
+      String(value) === envValue
+    ) {
+      continue;
+    }
+    warnOnStderr(
+      `${option.long} and ${option.envVar} are set to different values; using ${option.long}`
     );
   }
 }

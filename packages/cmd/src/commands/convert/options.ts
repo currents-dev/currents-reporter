@@ -18,7 +18,7 @@ export const inputFileOption = (note: string) =>
 
 export const outputDirOption = new Option(
   '-o, --output-dir <folder>',
-  'the folder to save the converted reports to; it must be empty or not exist'
+  'the folder to save the converted reports to; it must be empty, not exist, or hold only the reports being converted'
 );
 
 export enum REPORT_FRAMEWORKS {

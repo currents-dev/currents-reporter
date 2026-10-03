@@ -122,6 +122,13 @@ describe('currents run upload --input-format', () => {
     }
   );
 
+  it('converts into --output-dir when it holds only the reports being converted', async () => {
+    await upload('--output-dir', 'reports');
+
+    expect(process.exit).toHaveBeenCalledWith(0);
+    expect(handleCurrentsReport).toHaveBeenCalledTimes(1);
+  });
+
   it('converts into an empty --output-dir', async () => {
     await fs.ensureDir(join(workDir, 'out'));
 
