@@ -14,11 +14,17 @@ import { UploadOutcome, uploadFiles } from './upload';
 
 const debug = _debug.extend('files');
 
-export type AttachParams = {
+type SessionOwner = Extract<AttachmentOwner, { sessionId: string }>;
+
+export type AttachParams = (
+  | { owner: SessionOwner; target?: never }
+  | {
+      owner: Exclude<AttachmentOwner, SessionOwner>;
+      /** Where the attachments go on the run. */
+      target?: RunAttachmentTarget;
+    }
+) & {
   credentials: ApiCredentials;
-  owner: AttachmentOwner;
-  /** Where the attachments go on a CI run; a session has none. */
-  target?: RunAttachmentTarget;
   paths: string[];
   type?: string;
   caption?: string;
@@ -27,7 +33,8 @@ export type AttachParams = {
 
 /** `--meta k=v`, repeated. */
 export function parseMeta(entries: string[] = []) {
-  const meta: Record<string, string> = {};
+  // A Map, so that a key such as `__proto__` stays an ordinary key.
+  const meta = new Map<string, string>();
   for (const entry of entries) {
     const at = entry.indexOf('=');
     if (at < 1) {
@@ -43,9 +50,9 @@ export function parseMeta(entries: string[] = []) {
     if (value.length > 256) {
       throw new Error(`--meta value of "${key}" is longer than 256 characters`);
     }
-    meta[key] = value;
+    meta.set(key, value);
   }
-  return Object.keys(meta).length > 0 ? meta : undefined;
+  return meta.size > 0 ? Object.fromEntries(meta) : undefined;
 }
 
 export function parseFileType(type?: string): FileType | undefined {
@@ -100,6 +107,9 @@ export function chunkFiles(
  * is declared, and says for every file whether it arrived.
  */
 export async function attachFiles(params: AttachParams) {
+  if (!params.credentials.apiKey && !params.credentials.recordKey) {
+    throw new Error('Pass an API key or a record key');
+  }
   const type = parseFileType(params.type);
   const meta = parseMeta(params.meta);
   const target = params.target ?? {};

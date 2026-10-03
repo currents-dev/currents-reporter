@@ -8,7 +8,12 @@ import { collectFiles } from '../collect';
 import { ALLOWED_TYPES, getFileLevel } from '../levels';
 import { assertTypeMatchesFile, getContentType, getFileType } from '../detect';
 import { keepNetworkLine, mergeNetworkFiles } from '../packTrace';
-import { chunkFiles, MAX_BYTES_PER_REQUEST, parseMeta } from '../attach';
+import {
+  attachFiles,
+  chunkFiles,
+  MAX_BYTES_PER_REQUEST,
+  parseMeta,
+} from '../attach';
 
 describe('getFileType', () => {
   it('picks the type from the extension', () => {
@@ -60,6 +65,12 @@ describe('parseMeta', () => {
     expect(parseMeta([])).toBeUndefined();
     expect(() => parseMeta(['novalue'])).toThrow(/key=value/);
     expect(() => parseMeta(['a b=1'])).toThrow(/letters, digits/);
+  });
+
+  it('keeps __proto__ as an ordinary key', () => {
+    const meta = parseMeta(['__proto__=x']);
+    expect(Object.keys(meta ?? {})).toEqual(['__proto__']);
+    expect(JSON.stringify(meta)).toBe('{"__proto__":"x"}');
   });
 });
 
@@ -300,6 +311,14 @@ describe('getFileLevel', () => {
     expect(ALLOWED_TYPES.instance).toContain('screenshot');
     expect(ALLOWED_TYPES.test).toEqual(['attachment']);
     expect(ALLOWED_TYPES.instance).not.toContain('trace');
+  });
+});
+
+describe('attachFiles', () => {
+  it('refuses to send a request without an API key or a record key', async () => {
+    await expect(
+      attachFiles({ credentials: {}, owner: { sessionId: 's' }, paths: [] })
+    ).rejects.toThrow('Pass an API key or a record key');
   });
 });
 
