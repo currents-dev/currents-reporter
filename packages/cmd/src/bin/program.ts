@@ -3,6 +3,8 @@ import { reporterVersion } from '@env/versions';
 import { getApiCommand } from '../commands/api';
 import { getCacheCommand } from '../commands/cache';
 import { getCancelCommand } from '../commands/cancel';
+import { getRunFilesCommand } from '../commands/run';
+import { getSessionCommand } from '../commands/session';
 import { getUploadCommand } from '../commands/upload';
 import { getConvertCommand } from '../commands/convert';
 
@@ -22,4 +24,6 @@ export const getProgram = () =>
     .addCommand(getCacheCommand(NAME))
     .addCommand(getApiCommand(NAME))
     .addCommand(getCancelCommand(NAME))
-    .addCommand(getConvertCommand(NAME));
+    .addCommand(getConvertCommand(NAME))
+    .addCommand(getSessionCommand(NAME))
+    .addCommand(getRunFilesCommand(NAME));
