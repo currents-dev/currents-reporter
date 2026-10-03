@@ -147,6 +147,18 @@ const TRANSIENT_STORAGE_CODES = [
 ];
 
 /**
+ * Storage text for the terminal: no control characters, no signed query
+ * strings, at most 200 characters.
+ */
+function cleanStorageText(text?: string) {
+  if (!text) return undefined;
+  return text
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, '')
+    .replace(/\b[a-z][a-z0-9+.-]*:\/\/\S+/gi, (url) => urlForLog(url))
+    .slice(0, 200);
+}
+
+/**
  * The code and message of an S3 compatible XML error document, for example
  * `AccessDenied` and `Request has expired`.
  */
@@ -155,7 +167,7 @@ function readStorageError(e: unknown) {
   const body = typeof data === 'string' ? data : '';
   return {
     code: body.match(/<Code>([^<]*)<\/Code>/)?.[1],
-    message: body.match(/<Message>([^<]*)<\/Message>/)?.[1],
+    message: cleanStorageText(body.match(/<Message>([^<]*)<\/Message>/)?.[1]),
   };
 }
 
@@ -177,7 +189,7 @@ export function describeUploadError(e: unknown) {
   if (!isAxiosError(e) || !e.response)
     return e instanceof Error ? e : new Error(String(e));
   const { code, message } = readStorageError(e);
-  const detail = [code, message].filter(Boolean).join(': ');
+  const detail = [cleanStorageText(code), message].filter(Boolean).join(': ');
   return new Error(
     `storage answered ${e.response.status}${detail ? ` ${detail}` : ''}`
   );

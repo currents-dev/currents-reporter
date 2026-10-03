@@ -56,6 +56,17 @@ describe('sendFile', () => {
     expect(received).toHaveLength(1);
   });
 
+  it('drops control characters and signed queries from the storage message', async () => {
+    received.length = 0;
+    answers.push({
+      status: 403,
+      body: '<Error><Code>AccessDenied</Code><Message>\u001b[31mDenied https://b.example/k?X-Amz-Signature=s</Message></Error>',
+    });
+    await expect(sendFile(await upload('hello'))).rejects.toThrow(
+      'storage answered 403 AccessDenied: [31mDenied https://b.example/k'
+    );
+  });
+
   it('opens the file again when it retries a 500', async () => {
     received.length = 0;
     answers.push({ status: 500 });
