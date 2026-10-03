@@ -35,11 +35,13 @@ import {
   isFunction,
   isNull,
   isString,
+  mapValues,
   set,
   some,
   transform,
 } from 'lodash';
 import { debug as _debug } from '../debug';
+import { removeAuthFromUrl } from '../lib/url';
 import { CiProvider, CiProviderData } from './types';
 
 const debug = _debug.extend('ci');
@@ -848,8 +850,13 @@ function getCiProvider(): CiProvider {
   return providerName || null;
 }
 
+// A CI variable can hold a URL with a token in it, as GitLab's
+// CI_REPOSITORY_URL does. The params go to the API and the debug output.
 function getCiParams() {
-  return _get(_providerCiParams);
+  const params = _get(_providerCiParams);
+  return mapValues(params, (value) =>
+    isString(value) ? removeAuthFromUrl(value) : value
+  ) as typeof params;
 }
 
 export function getCommitParams() {

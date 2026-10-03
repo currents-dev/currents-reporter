@@ -12,7 +12,7 @@ import {
   ContentType,
   getDefautUploadProgressHandler,
   sendBuffer,
-} from './network';
+} from '../../http/storage';
 import { getLastRunFilePaths, getUploadPaths } from './path';
 
 export async function handleSetCache() {

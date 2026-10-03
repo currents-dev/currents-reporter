@@ -50,3 +50,18 @@ it('should return server-detectable ci build id', () => {
     provider: 'githubActions',
   });
 });
+
+it('removes credentials from the URLs in the CI params', () => {
+  vi.stubEnv('GITHUB_ACTIONS', '');
+  vi.stubEnv('GITLAB_CI', 'true');
+  vi.stubEnv(
+    'CI_REPOSITORY_URL',
+    'https://gitlab-ci-token:job-token@gitlab.com/org/repo.git'
+  );
+  vi.stubEnv('CI_PROJECT_URL', 'https://gitlab.com/org/repo');
+
+  expect(getCI(undefined).params).toMatchObject({
+    ciRepositoryUrl: 'https://gitlab.com/org/repo.git',
+    ciProjectUrl: 'https://gitlab.com/org/repo',
+  });
+});

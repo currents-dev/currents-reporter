@@ -6,7 +6,26 @@ import { debug as _debug } from '../debug';
 
 const debug = _debug.extend('http');
 
-export const getDelay = (i: number) => [3 * 1000, 15 * 1000, 30 * 1000][i - 1];
+const DEFAULT_DELAYS = [3 * 1000, 15 * 1000, 30 * 1000];
+
+/** The longest `Retry-After` the CLI waits for. */
+export const MAX_RETRY_AFTER_MS = 60 * 1000;
+
+/**
+ * `Retry-After` as milliseconds, from seconds or an HTTP date. Undefined when
+ * the header is absent or unreadable.
+ */
+export function getRetryAfterMs(err?: AxiosError, now = Date.now()) {
+  const value = err?.response?.headers?.['retry-after'];
+  if (value === undefined || value === null || value === '') return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(String(value));
+  return Number.isNaN(date) ? undefined : Math.max(0, date - now);
+}
+
+export const getDelay = (i: number, err?: AxiosError) =>
+  getRetryAfterMs(err) ?? DEFAULT_DELAYS[i - 1];
 
 export const isRetriableError = (err: AxiosError | Error): boolean => {
   debug('isRetriableError: %o', {
@@ -40,6 +59,27 @@ export const isRetriableError = (err: AxiosError | Error): boolean => {
   return [429, 502, 503, 504].includes(err.response?.status ?? 0);
 };
 
+/**
+ * For the REST API. A POST that creates something is not repeated once the
+ * server may have handled it: after a 502, 503 or 504, or a dropped
+ * connection, the first request can still have succeeded. It is repeated when
+ * the server refused it (429) or never saw it (connection refused). A
+ * `Retry-After` longer than a minute stops the retries; the error says how long.
+ */
+export const isRetriableRestError = (err: AxiosError | Error): boolean => {
+  if (!isAxiosError(err)) return false;
+  const status = err.response?.status;
+
+  if (status === 429) {
+    const wait = getRetryAfterMs(err);
+    return wait === undefined || wait <= MAX_RETRY_AFTER_MS;
+  }
+  if (err.config?.method?.toLowerCase() !== 'post') {
+    return isRetriableError(err);
+  }
+  return err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND';
+};
+
 export const getMaxRetries = () => 3;
 
 export function onRetry(
@@ -51,7 +91,7 @@ export function onRetry(
     "Network request '%s' failed: '%s'. Next attempt is in %s (%d/%d).",
     `${_config.method?.toUpperCase()} ${_config.url}`,
     err.message,
-    prettyMilliseconds(getDelay(retryCount)),
+    prettyMilliseconds(getDelay(retryCount, err) ?? 0),
     retryCount,
     getMaxRetries()
   );
@@ -59,7 +99,7 @@ export function onRetry(
     "Network request '%s' failed: '%s'. Next attempt is in %s (%d/%d).",
     `${_config.method?.toUpperCase()} ${_config.url}`,
     err.message,
-    prettyMilliseconds(getDelay(retryCount)),
+    prettyMilliseconds(getDelay(retryCount, err) ?? 0),
     retryCount,
     getMaxRetries()
   );

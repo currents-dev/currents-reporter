@@ -12,7 +12,7 @@ import { getCI } from '../../../env/ciProvider';
 import { success, warnWithNoTrace } from '../../../logger';
 import { unzipBuffer } from '../fs';
 import { handleGetCache } from '../get';
-import { download } from '../network';
+import { download } from '../../../http/storage';
 import { handlePostLastRunPreset, handlePreLastRunPreset } from '../presets';
 
 const mockConfig: {
@@ -61,7 +61,7 @@ const mockedCacheRetrievelResponse = {
 vi.mock('../../../config/cache');
 vi.mock('../../../env/ciProvider');
 vi.mock('../../../api');
-vi.mock('../network');
+vi.mock('../../../http/storage');
 vi.mock('../fs');
 vi.mock('../presets');
 vi.mock('axios');

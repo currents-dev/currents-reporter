@@ -402,3 +402,16 @@ describe('readDetoxManifest', () => {
     expect(await readDetoxManifest(reportDir)).toBeUndefined();
   });
 });
+
+describe('Detox extensions', () => {
+  it('stay the set Detox has always uploaded, and the shared map types each', async () => {
+    const { DETOX_EXTENSIONS } = await import('../collect');
+    const { ARTIFACT_BY_EXTENSION } = await import('@lib/artifactTypes');
+    expect([...DETOX_EXTENSIONS].sort()).toEqual(
+      ['.json', '.jpg', '.log', '.mp4', '.png', '.txt', '.viewhierarchy'].sort()
+    );
+    for (const extension of DETOX_EXTENSIONS) {
+      expect(ARTIFACT_BY_EXTENSION[extension]).toBeDefined();
+    }
+  });
+});

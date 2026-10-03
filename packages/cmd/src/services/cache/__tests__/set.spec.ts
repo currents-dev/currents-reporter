@@ -10,7 +10,7 @@ import { getCI } from '../../../env/ciProvider';
 import { success, warnWithNoTrace } from '../../../logger';
 import { zipFilesToBuffer } from '../fs';
 import { createMeta } from '../lib';
-import { sendBuffer } from '../network';
+import { sendBuffer } from '../../../http/storage';
 import { getLastRunFilePaths, getUploadPaths } from '../path';
 import { handleSetCache } from '../set';
 
@@ -20,7 +20,7 @@ vi.mock('../../../api');
 vi.mock('../../../logger');
 vi.mock('../fs');
 vi.mock('../lib');
-vi.mock('../network');
+vi.mock('../../../http/storage');
 vi.mock('../path');
 
 describe('handleSetCache', () => {

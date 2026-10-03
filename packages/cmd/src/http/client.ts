@@ -10,6 +10,7 @@ import {
   getDelay,
   getMaxRetries,
   isRetriableError,
+  isRetriableRestError,
   onRetry,
 } from './httpRetry';
 
@@ -78,8 +79,9 @@ export function createClient(type: ClientType) {
 
   axiosRetry(client, {
     retries: getMaxRetries(),
-    retryCondition: isRetriableError,
-    retryDelay: getDelay,
+    retryCondition:
+      type === ClientType.REST_API ? isRetriableRestError : isRetriableError,
+    retryDelay: (count, err) => getDelay(count, err),
     shouldResetTimeout: true,
     onRetry,
   });
