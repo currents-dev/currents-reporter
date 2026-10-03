@@ -41,7 +41,8 @@ export function restApiPath(path: string) {
 // A field whose key ends with "[]" adds its value to an array, the way the
 // REST API reads repeated query parameters such as "branches[]".
 function toBody(fields: Field[]) {
-  const body: Record<string, unknown> = {};
+  // No prototype, so that a key such as `__proto__` is kept as a field.
+  const body: Record<string, unknown> = Object.create(null);
   for (const [key, value] of fields) {
     if (key.endsWith('[]')) {
       const name = key.slice(0, -2);
@@ -98,10 +99,12 @@ export async function buildRequest(path: string, options: ApiRequestOptions) {
     url: restApiPath(path),
     params:
       fieldsInQuery && fields.length > 0 ? toSearchParams(fields) : undefined,
+    // Sent as text: axios copies an object body key by key, which drops a
+    // `__proto__` key.
     data: hasInput
-      ? await readInput(options.input as string)
+      ? JSON.stringify(await readInput(options.input as string))
       : !fieldsInQuery && fields.length > 0
-        ? toBody(fields)
+        ? JSON.stringify(toBody(fields))
         : undefined,
     headers: Object.fromEntries(options.header ?? []) as Record<string, string>,
   };

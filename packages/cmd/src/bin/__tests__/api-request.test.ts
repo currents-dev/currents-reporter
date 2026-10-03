@@ -265,6 +265,14 @@ describe('currents api', () => {
     }
   );
 
+  it('keeps __proto__ as a field of the JSON body', async () => {
+    expect(
+      await api('/v1/webhooks', '-f', '__proto__=x', '-f', 'list[]=a')
+    ).toBe(0);
+
+    expect(received[0].body).toBe('{"__proto__":"x","list":["a"]}');
+  });
+
   it('keeps an integer JSON cannot hold exactly as a string', async () => {
     expect(
       await api('/v1/webhooks', '-f', 'big=9007199254740993', '-f', 'n=1.5')
