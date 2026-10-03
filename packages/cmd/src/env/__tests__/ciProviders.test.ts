@@ -1,5 +1,7 @@
+import { getCiCommitInfo } from '@currents/commit-info';
+import { isNil, omitBy } from 'lodash';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getCI, getCommitParams } from '../ciProvider';
+import { getCI } from '../ciProvider';
 
 type Commit = {
   sha?: string;
@@ -8,7 +10,6 @@ type Commit = {
   authorName?: string;
   authorEmail?: string;
   remoteOrigin?: string;
-  defaultBranch?: string;
 };
 
 type ProviderCase = {
@@ -22,7 +23,7 @@ type ProviderCase = {
 };
 
 // Expected values come from each provider's documentation, not from the
-// mapping in ciProvider.ts. A provider without commit variables has none.
+// mapping in commit-info. A provider without commit variables has none.
 const cases: ProviderCase[] = [
   {
     provider: 'appveyor',
@@ -121,7 +122,6 @@ const cases: ProviderCase[] = [
       authorName: 'Ann',
       authorEmail: 'ann@example.com',
       remoteOrigin: 'git@example.com:org/repo.git',
-      defaultBranch: 'trunk',
     },
     param: ['BUILDKITE_BUILD_ID', 'buildkiteBuildId'],
   },
@@ -186,7 +186,6 @@ const cases: ProviderCase[] = [
       authorName: 'ann',
       authorEmail: 'ann@example.com',
       remoteOrigin: 'https://example.com/org/repo.git',
-      defaultBranch: 'main',
     },
     param: ['DRONE_BUILD_NUMBER', 'droneBuildNumber'],
   },
@@ -200,9 +199,7 @@ const cases: ProviderCase[] = [
       GITHUB_REF_NAME: 'main',
       GITHUB_RUN_ATTEMPT: '2',
     },
-    // GITHUB_REF_NAME is the short branch name; GITHUB_REF is
-    // refs/heads/main. The mapping reads GITHUB_REF, see the test below.
-    commit: { sha: 'sha-gha' },
+    commit: { sha: 'sha-gha', branch: 'main' },
     param: ['GITHUB_RUN_ID', 'githubRunId'],
   },
   {
@@ -225,7 +222,6 @@ const cases: ProviderCase[] = [
       authorName: 'Ann',
       authorEmail: 'ann@example.com',
       remoteOrigin: 'https://example.com/org/repo.git',
-      defaultBranch: 'main',
     },
     param: ['CI_PIPELINE_ID', 'ciPipelineId'],
   },
@@ -311,6 +307,23 @@ function useEnv(env: Record<string, string>) {
   Object.entries(env).forEach(([name, value]) => vi.stubEnv(name, value));
 }
 
+// What fills the commit fields git cannot read, under the field names gitInfo.ts
+// sends to the API.
+function commitFromCi(): Commit {
+  const { sha, branch, message, author, email, remote } = getCiCommitInfo();
+  return omitBy(
+    {
+      sha,
+      branch,
+      message,
+      authorName: author,
+      authorEmail: email,
+      remoteOrigin: remote,
+    },
+    isNil
+  );
+}
+
 describe('CI providers', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -326,11 +339,7 @@ describe('CI providers', () => {
     });
 
     it('reads the commit from its variables', () => {
-      if (commit === undefined) {
-        expect(getCommitParams() ?? null).toBeNull();
-      } else {
-        expect(getCommitParams()).toMatchObject(commit);
-      }
+      expect(commitFromCi()).toMatchObject(commit ?? {});
     });
 
     if (param) {
@@ -361,7 +370,7 @@ describe('CI providers', () => {
     useEnv({});
 
     expect(getCI().provider).toBeNull();
-    expect(getCommitParams()).toEqual({});
+    expect(commitFromCi()).toEqual({});
   });
 
   it('uses the head branch of a pull request on AppVeyor', () => {
@@ -371,7 +380,7 @@ describe('CI providers', () => {
       APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH: 'feature',
     });
 
-    expect(getCommitParams()).toMatchObject({ branch: 'feature' });
+    expect(commitFromCi()).toMatchObject({ branch: 'feature' });
   });
 
   it('uses the head commit and branch of a pull request on Travis', () => {
@@ -383,60 +392,58 @@ describe('CI providers', () => {
       TRAVIS_PULL_REQUEST_BRANCH: 'feature',
     });
 
-    expect(getCommitParams()).toMatchObject({
+    expect(commitFromCi()).toMatchObject({
       sha: 'head-commit',
       branch: 'feature',
     });
   });
 
-  it('reads the head branch and run attempt of a pull request on GitHub Actions', () => {
+  it('uses the head branch of a pull request on GitHub Actions', () => {
     useEnv({
       GITHUB_ACTIONS: 'true',
+      GITHUB_REF: 'refs/pull/7/merge',
+      GITHUB_REF_NAME: '7/merge',
       GITHUB_HEAD_REF: 'feature',
-      GITHUB_RUN_ATTEMPT: '3',
     });
 
-    expect(getCommitParams()).toMatchObject({
-      remoteBranch: 'feature',
-      runAttempt: '3',
-    });
+    expect(commitFromCi()).toMatchObject({ branch: 'feature' });
   });
 
   // GitHub documents GITHUB_REF as the full ref, refs/heads/main. The short
   // name is GITHUB_REF_NAME.
-  it.fails('reads the short branch name on GitHub Actions', () => {
+  it('reads the short branch name on GitHub Actions', () => {
     useEnv({
       GITHUB_ACTIONS: 'true',
       GITHUB_REF: 'refs/heads/main',
       GITHUB_REF_NAME: 'main',
     });
 
-    expect(getCommitParams()).toMatchObject({ branch: 'main' });
+    expect(commitFromCi()).toMatchObject({ branch: 'main' });
   });
 
-  // Bamboo documents bamboo_planRepository_repositoryUrl. The commit mapping
-  // reads bamboo_planRepository_repositoryURL, which is a different name.
-  it.fails('reads the repository URL on Bamboo', () => {
+  // Bamboo documents bamboo_planRepository_repositoryUrl, not
+  // bamboo_planRepository_repositoryURL.
+  it('reads the repository URL on Bamboo', () => {
     useEnv({
       bamboo_buildNumber: '5',
       bamboo_planRepository_repositoryUrl: 'https://example.com/repo.git',
     });
 
-    expect(getCommitParams()).toMatchObject({
+    expect(commitFromCi()).toMatchObject({
       remoteOrigin: 'https://example.com/repo.git',
     });
   });
 
   // Semaphore documents SEMAPHORE_GIT_URL as the clone URL.
   // SEMAPHORE_GIT_REPO_SLUG is "owner/repo".
-  it.fails('reads the clone URL on Semaphore', () => {
+  it('reads the clone URL on Semaphore', () => {
     useEnv({
       SEMAPHORE: 'true',
       SEMAPHORE_GIT_URL: 'git@example.com:org/repo.git',
       SEMAPHORE_GIT_REPO_SLUG: 'org/repo',
     });
 
-    expect(getCommitParams()).toMatchObject({
+    expect(commitFromCi()).toMatchObject({
       remoteOrigin: 'git@example.com:org/repo.git',
     });
   });

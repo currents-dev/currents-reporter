@@ -1,29 +1,34 @@
-import { describe, expect, it } from 'vitest';
-import { mergeGitCommit } from '../git-ci-provider';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-describe('git-info', () => {
-  it('should merge the git info for teamcity', () => {
-    const expected = {
-      branch: 'main',
-      remoteOrigin: 'origin',
-      ghaEventData: null,
-    };
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
-    process.env.TEAMCITY_VERSION = '1';
-    const result = mergeGitCommit({
-      branch: 'main',
-      remoteOrigin: 'origin',
-      ghaEventData: null,
-    });
-    expect(result).toMatchObject(expected);
+const commitInfo = vi.hoisted(() => vi.fn());
+vi.mock('@currents/commit-info', () => ({ commitInfo }));
+
+import { getGitInfo } from '../gitInfo';
+
+describe('getGitInfo', () => {
+  afterEach(() => {
+    getGitInfo.cache.clear?.();
   });
 
-  it('removes a token from the remote, in the result and in the debug output', () => {
-    const result = mergeGitCommit({
-      branch: 'main',
-      remoteOrigin: 'https://oauth2:secret-token@gitlab.com/o/r.git',
+  it('sends the commit commit-info returns, with the field names of the API', async () => {
+    commitInfo.mockResolvedValue({
+      branch: 'feature/x',
+      message: 'feat: x',
+      email: 'jane@example.com',
+      author: 'Jane',
+      sha: 'abc',
+      timestamp: '1700000000',
+      remote: 'https://gitlab.com/o/r.git',
+    });
+
+    expect(await getGitInfo()).toEqual({
+      branch: 'feature/x',
+      message: 'feat: x',
+      authorEmail: 'jane@example.com',
+      authorName: 'Jane',
+      sha: 'abc',
+      remoteOrigin: 'https://gitlab.com/o/r.git',
       ghaEventData: null,
     });
-    expect(result.remoteOrigin).toBe('https://gitlab.com/o/r.git');
   });
 });

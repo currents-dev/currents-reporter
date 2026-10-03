@@ -1,30 +1,10 @@
-// @ts-ignore
-import { commitInfo } from '@currents/commit-info';
+import { commitInfo, type GhaEventData } from '@currents/commit-info';
 import { memoize } from 'lodash';
-import { mergeGitCommit } from './git-ci-provider';
+import { debug as _debug } from '../debug';
 
-export type GhaEventData = {
-  headRef: string;
-  headSha: string;
-  baseRef: string;
-  baseSha: string;
-  issueUrl: string;
-  htmlUrl: string;
-  prTitle: string;
-  senderAvatarUrl: string;
-  senderHtmlUrl: string;
-};
+const debug = _debug.extend('git');
 
-type DefaultFormat = {
-  branch: string;
-  message: string;
-  email: string;
-  author: string;
-  sha: string;
-  timestamp: string;
-  remote: string;
-  ghaEventData?: GhaEventData;
-};
+export type { GhaEventData };
 
 export type Commit = {
   sha: string;
@@ -38,18 +18,23 @@ export type Commit = {
   ghaEventData?: GhaEventData;
 };
 
+/**
+ * The commit from git, with the COMMIT_INFO_* and CI provider variables
+ * filling what git could not read. The remote has no credentials.
+ */
 const _getGitInfo = async (): Promise<Commit> => {
-  const commit: DefaultFormat = await commitInfo();
+  const commit = await commitInfo();
+  debug('commit: %O', commit);
 
-  return mergeGitCommit({
+  return {
     branch: commit.branch,
     remoteOrigin: commit.remote,
     authorEmail: commit.email,
     authorName: commit.author,
     message: commit.message,
     sha: commit.sha,
-    ghaEventData: commit.ghaEventData,
-  }) as unknown as Commit;
+    ghaEventData: commit.ghaEventData ?? null,
+  } as unknown as Commit;
 };
 
 export const getGitInfo = memoize(_getGitInfo);
