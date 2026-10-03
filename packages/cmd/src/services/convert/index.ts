@@ -137,21 +137,40 @@ export async function handleConvert() {
  * The conversion keeps the files it finds in the folder, and the upload reads
  * every report in it, so reports of an earlier conversion would be uploaded
  * again with the new ones. The JUnit files being converted may sit in the
- * folder: the upload does not read them.
+ * folder, but not where the conversion writes its own files.
  */
 async function assertFolderEmpty(folder: string, inputFiles: string[]) {
-  const entries = (await fs.pathExists(folder)) ? await fs.readdir(folder) : [];
-  const inputs = inputFiles.map((file) => resolve(file));
-  const holdsInput = (entry: string) => {
-    const entryPath = resolve(folder, entry);
-    return inputs.some(
-      (input) => input === entryPath || input.startsWith(entryPath + sep)
+  const root = resolve(folder);
+  const inputs = new Set(inputFiles.map((file) => resolve(file)));
+  const generated = [
+    join(root, 'config.json'),
+    getFullTestSuiteFilePath(root),
+    join(root, 'instances'),
+    join(root, 'artifacts'),
+  ];
+  const inGeneratedPath = [...inputs].find((input) =>
+    generated.some((path) => input === path || input.startsWith(path + sep))
+  );
+  if (inGeneratedPath) {
+    throw new Error(
+      `The report "${inGeneratedPath}" is where the conversion writes its own files. Move the reports out of "${folder}", or leave out --output-dir to convert into a new folder in .currents.`
     );
-  };
-  const others = entries.filter((entry) => !holdsInput(entry));
-  if (others.length > 0) {
+  }
+  const files = (await fs.pathExists(root)) ? await listFiles(root) : [];
+  if (files.some((file) => !inputs.has(file))) {
     throw new Error(
       `The folder "${folder}" is not empty. Reports already in it would be uploaded with the converted ones. Remove the folder, or leave out --output-dir to convert into a new folder in .currents.`
     );
   }
+}
+
+async function listFiles(folder: string): Promise<string[]> {
+  const entries = await fs.readdir(folder, { withFileTypes: true });
+  const nested = await Promise.all(
+    entries.map((entry) => {
+      const path = join(folder, entry.name);
+      return entry.isDirectory() ? listFiles(path) : [path];
+    })
+  );
+  return nested.flat();
 }

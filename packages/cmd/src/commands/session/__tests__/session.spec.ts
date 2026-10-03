@@ -405,8 +405,12 @@ describe('session and run attach commands', () => {
     expect(process.exit).toHaveBeenCalledWith(1);
   });
 
-  it.each([[['--test-title', 't']], [['--spec', 's.ts', '--attempt', '1']]])(
-    'refuses a test title without a spec, or an attempt without a test: %s',
+  it.each([
+    [['--test-title', 't']],
+    [['--spec', 's.ts', '--attempt', '1']],
+    [['--group', 'g']],
+  ])(
+    'refuses a test title or group without a spec, or an attempt without a test: %s',
     async (args) => {
       await fs.outputFile('a.txt', 'a');
       await run(getRunFilesCommand('currents') as never, [

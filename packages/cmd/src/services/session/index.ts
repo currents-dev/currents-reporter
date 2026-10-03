@@ -120,6 +120,9 @@ export async function handleRunAttach(
   if (config.attempt !== undefined && !config.testTitle) {
     throw new Error('--attempt needs --test-title');
   }
+  if (config.group && !config.spec) {
+    throw new Error('--group needs --spec: it picks the spec file of a group');
+  }
   if (!config.ciBuildId) assertCIBuildIdDetectable();
   return attachFiles({
     credentials: { apiKey: config.apiKey, recordKey: config.recordKey },

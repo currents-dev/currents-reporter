@@ -130,4 +130,19 @@ describe('warnOnOverriddenEnv', () => {
     warnOnOverriddenEnv(parse(['--project-id', 'x']) as never);
     expect(warnOnStderr).not.toHaveBeenCalled();
   });
+
+  it('compares a repeated or comma-separated option as a list', () => {
+    const command = new Command()
+      .exitOverride()
+      .addOption(
+        new Option('--tag <tag>')
+          .env('CURRENTS_TAG')
+          .argParser(parseCommaSeparatedList)
+      )
+      .action(() => undefined);
+    vi.stubEnv('CURRENTS_TAG', 'tagA, tagB');
+    command.parse(['--tag', 'tagA', '--tag', 'tagB'], { from: 'user' });
+    warnOnOverriddenEnv(command as never);
+    expect(warnOnStderr).not.toHaveBeenCalled();
+  });
 });

@@ -48,6 +48,18 @@ export function parseFlagsFromEnv(command: CommandUnknownOpts) {
  * does not report to the other project without notice. Values are not
  * printed: one of them can be a key.
  */
+/** `--tag a --tag b` and `CURRENTS_TAG=a, b` hold the same tags. */
+function sameListOrValue(value: unknown, envValue: string) {
+  const items = (text: string) =>
+    text
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(',');
+  const cliValue = Array.isArray(value) ? value.join(',') : String(value);
+  return items(cliValue) === items(envValue);
+}
+
 export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
   for (const option of command.options) {
     const name = option.attributeName();
@@ -57,7 +69,7 @@ export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
       !envValue ||
       option.isBoolean() ||
       command.getOptionValueSource(name) !== 'cli' ||
-      String(value) === envValue
+      sameListOrValue(value, envValue)
     ) {
       continue;
     }
