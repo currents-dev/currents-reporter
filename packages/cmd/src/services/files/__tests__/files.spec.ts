@@ -179,13 +179,38 @@ describe('collectFiles', () => {
     expect(files.map((f) => f.name)).toEqual(['a.log']);
   });
 
-  it('refuses an .env file even when it is named', async () => {
-    await fs.outputFile(path.join(dir, '.env.local'), 'SECRET=1');
+  it.each([
+    '.env.local',
+    '.envrc',
+    '.env-production',
+    '.env_local',
+    'prod.env',
+  ])('refuses the environment file %s even when it is named', async (name) => {
+    await fs.outputFile(path.join(dir, name), 'SECRET=1');
     await expect(
-      collectFiles([path.join(dir, '.env.local')], {
+      collectFiles([path.join(dir, name)], {
         allowedTypes: ALLOWED_TYPES.run,
       })
     ).rejects.toThrow(/environment file/);
+  });
+
+  it('leaves out keys and environment files of a folder', async () => {
+    const out = path.join(dir, 'out');
+    await fs.outputFile(path.join(out, 'a.log'), 'a');
+    for (const name of [
+      'server.pem',
+      'tls.key',
+      'id_rsa',
+      'id_ed25519.pub',
+      'prod.env',
+    ]) {
+      await fs.outputFile(path.join(out, name), 'secret');
+    }
+    const { files, cleanup } = await collectFiles([out], {
+      allowedTypes: ALLOWED_TYPES.run,
+    });
+    await cleanup();
+    expect(files.map((f) => f.name)).toEqual(['a.log']);
   });
 
   it('packs the traces folder of a Playwright MCP output folder and attaches the rest', async () => {

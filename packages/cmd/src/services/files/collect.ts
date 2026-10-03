@@ -28,11 +28,17 @@ export type CollectedFiles = {
 };
 
 /**
- * A `.env` file holds secrets, and what is attached ends up on a page anyone
- * with the link can open.
+ * Environment files hold secrets, and what is attached ends up on a page
+ * anyone with the link can open: `.env`, `.env.local`, `.env-prod`,
+ * `.env_local`, `.envrc`, `prod.env`.
  */
+const ENV_FILE = /^\.env($|[._-])|^\.envrc$|\.env$/i;
+
+/** Keys and certificates, left out when they only sit in a folder passed in. */
+const KEY_FILE = /\.(pem|key)$|^id_(rsa|ed25519|ecdsa|dsa)/i;
+
 function assertNotSecretsFile(name: string) {
-  if (/^\.env($|\.)/i.test(name)) {
+  if (ENV_FILE.test(name)) {
     throw new Error(
       `"${name}" looks like an environment file with secrets and is not attached`
     );
@@ -69,8 +75,8 @@ async function toLocalFile(
 }
 
 /**
- * The files directly in a folder. Hidden files and links are left out, with a
- * warning: a folder passed on purpose is not a reason to publish what happens
+ * The files directly in a folder. Hidden files, links, and key and secrets
+ * files are left out, with a warning: a folder passed on purpose is not a reason to publish what happens
  * to sit in it.
  */
 async function toLocalFilesInFolder(
@@ -83,6 +89,8 @@ async function toLocalFilesInFolder(
     const entryPath = path.join(folder, entry.name);
     if (entry.name.startsWith('.')) {
       warn(`Skipping the hidden file "${entryPath}"`);
+    } else if (KEY_FILE.test(entry.name) || ENV_FILE.test(entry.name)) {
+      warn(`Skipping "${entryPath}", which looks like a key or secrets file`);
     } else if (entry.isSymbolicLink()) {
       warn(`Skipping the link "${entryPath}"`);
     } else if (entry.isDirectory()) {
