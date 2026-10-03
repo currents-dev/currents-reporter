@@ -37,19 +37,17 @@ jobs:
 ```yaml
 - run: npx jest --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 - if: ${{ !cancelled() }}
-  run: npx currents upload
+  run: npx currents run upload
 ```
 
-For JUnit XML, convert the reports first:
+For JUnit XML, `run upload` converts the reports first:
 
 ```yaml
 - if: ${{ !cancelled() }}
-  run: |
-    npx currents convert --input-format junit --input-file "reports/*.xml" --framework postman
-    npx currents upload
+  run: npx currents run upload --input-format junit --input-file "reports/*.xml" --framework postman
 ```
 
-`--framework` takes `postman`, `node`, `vitest` or `wdio`. See `currents convert --help`.
+`--framework` takes `postman`, `node`, `vitest` or `wdio`. See `currents run upload --help`.
 
 ### Attach files to the run
 
@@ -104,10 +102,10 @@ test:
     - npm ci
     - npx jest
   after_script:
-    - npx currents upload
+    - npx currents run upload
 ```
 
-`after_script` runs when the tests fail too. For JUnit XML, run `npx currents convert` before the upload, as in the GitHub Actions example.
+`after_script` runs when the tests fail too. For JUnit XML, add the `--input-format` options to `run upload`, as in the GitHub Actions example.
 
 ### Attach files and cancel the run
 

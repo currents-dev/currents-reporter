@@ -18,8 +18,8 @@ export function getReportConfig(
       options: omit(argv, '_', '$0'),
       args: argv._ as string[],
     },
-    // originFramework is read by `currents upload` and shown as the framework
-    // of the run, the same way junit reports carry postman or vitest.
+    // originFramework is read by `currents run upload` and shown as the
+    // framework of the run, the same way junit reports carry postman or vitest.
     frameworkConfig: detox
       ? {
           ...config,

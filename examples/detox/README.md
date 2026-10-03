@@ -1,7 +1,7 @@
 # Detox + Currents
 
 Shows Detox results reaching Currents through `@currents/jest` and
-`currents upload`: screen recordings, screenshots and device logs per test
+`currents run upload`: screen recordings, screenshots and device logs per test
 attempt, the element actions of the Detox trace as steps, and the attempts of
 `detox test --retries` merged into one test history.
 
@@ -11,7 +11,7 @@ What a Detox project adds is the reporter line in `jest.config.js`:
 reporters: ['detox/runners/jest/reporter', '@currents/jest'],
 ```
 
-Then `detox test` followed by `currents upload`.
+Then `detox test` followed by `currents run upload`.
 
 ## How the pieces fit
 
@@ -21,13 +21,13 @@ Then `detox test` followed by `currents upload`.
   Detox in `config.json`.
 - The report goes to `.currents/<session>`, named like the Detox artifacts root,
   unless `reportDir` is set. Every Jest process of one `detox test` writes
-  there, and `currents upload` picks the newest directory in `.currents`.
+  there, and `currents run upload` picks the newest directory in `.currents`.
 - A rerun of `detox test --retries` starts Jest again for the failed spec files
   only, and Jest numbers its attempts from 0 again. The reporter merges the new
   attempts into the instance report the earlier run wrote instead of replacing
   it, so a test that passes on the second device run shows both attempts and
   reads as flaky.
-- `currents upload` resolves the artifact directory of each attempt - through
+- `currents run upload` resolves the artifact directory of each attempt - through
   Detox's own path builder when detox is installed - copies the files into the
   report and uploads them. It runs after `detox test` has exited, because Detox
   closes the video and log files only then.

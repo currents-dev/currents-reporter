@@ -61,9 +61,9 @@ const getStartCommand = (name: string) =>
   new Command()
     .name('start')
     .addHelpText('after', formatExamples(getSessionExamples(name).start))
-    .summary('Create a session and save its ID')
+    .summary('Create a session')
     .description(
-      'Create a session and save its ID to .currents-session/session.json for "attach" and "share"'
+      'Create a session and save its ID to .currents-session/session.json, where "attach" and "share" read it'
     )
     .addOption(apiKeyOption)
     .addOption(projectOption)
@@ -87,12 +87,15 @@ const getStartCommand = (name: string) =>
 const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
-    .summary('Upload files and folders to the session')
+    .summary('Upload screenshots, traces and other files')
     .addHelpText('after', formatExamples(getSessionExamples(name).attach))
     .description(
       'Upload files, folders or a Playwright MCP trace folder to the session'
     )
-    .argument('<paths...>', 'files or folders to attach')
+    .argument(
+      '<paths...>',
+      'files or folders to attach; a folder adds the files directly in it, without hidden files, links and subfolders'
+    )
     .addOption(apiKeyOption)
     .addOption(sessionIdOption)
     .addOption(typeOption)
@@ -109,7 +112,10 @@ const getShareCommand = (name: string) =>
   new Command()
     .name('share')
     .addHelpText('after', formatExamples(getSessionExamples(name).share))
-    .description('Print a public link to the session page')
+    .summary('Print a public link to the session page')
+    .description(
+      'Create a public link to the session page and print it, followed by the link to the page as Markdown'
+    )
     .addOption(apiKeyOption)
     .addOption(sessionIdOption)
     .addOption(expiresInDaysOption)
@@ -123,7 +129,10 @@ const getShareCommand = (name: string) =>
 export const getSessionCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .description('Record a browser session and share it')
+    .summary('Capture agent or browser sessions as evidence')
+    .description(
+      'Capture ad-hoc, one-off agent or browser sessions as evidence: a bug before and after a fix, or proof that something works. Create a session, attach screenshots, traces, videos and other files to it, and print a link to share it.'
+    )
     .addHelpText('after', formatExamples(getSessionExamples(name).session))
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getStartCommand(name))

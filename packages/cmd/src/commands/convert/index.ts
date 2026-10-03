@@ -28,9 +28,9 @@ export const getConvertCommand = (name: string) => {
     .command(COMMAND_NAME)
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
-    .summary('Convert test reports, e.g. JUnit, to the Currents format')
+    .summary('Convert JUnit XML reports to the Currents format')
     .description(
-      'Convert reports from various testing frameworks to the Currents format'
+      'Convert JUnit XML reports to the Currents format, without uploading them. The converted reports are saved to --output-dir or a new folder in .currents'
     )
     .addHelpText('after', formatExamples(getConvertExamples(name)))
     .addOption(debugOption)

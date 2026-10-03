@@ -17,7 +17,7 @@ export const inputFormatOption = new Option(
 
 export const inputFileOption = new Option(
   '--input-file <patterns>',
-  'comma-separated glob patterns to match report file paths (e.g., "report1.xml,report2.xml")'
+  'comma-separated glob patterns of the report files, e.g. "reports/*.xml,other.xml"; quote them so that the shell does not expand them'
 ).argParser(validateGlobPattern);
 
 export const outputDirOption = new Option(

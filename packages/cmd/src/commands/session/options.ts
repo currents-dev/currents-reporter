@@ -65,7 +65,7 @@ export const prOption = new Option(
 
 export const jsonOption = new Option(
   '--json',
-  'print the run, instance and test IDs and the run URL as JSON on stdout'
+  'print the session ID as JSON on stdout, e.g. {"sessionId": "..."}'
 );
 
 export const specOption = new Option(
@@ -116,7 +116,7 @@ export const metaOption = new Option(
 
 export const expiresInDaysOption = new Option(
   '--expires-in-days <days>',
-  'how long the link works'
+  'the number of days the link works'
 )
   .choices(['1', '3', '7'] as const)
   .argParser((value) => Number(value));

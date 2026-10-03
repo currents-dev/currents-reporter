@@ -6,7 +6,7 @@ import { parseCommaSeparatedList } from '../utils';
 
 export const ciBuildIdOption = new Option(
   '--ci-build-id <id>',
-  'the unique identifier for the recorded build (run)'
+  'the CI build ID to record the run under; by default taken from the CI environment, or a random value'
 ).env(getEnvironmentVariableName(configKeys, 'ciBuildId'));
 
 export const recordKeyOption = new Option(
@@ -21,17 +21,17 @@ export const projectOption = new Option(
 
 export const tagOption = new Option(
   '-t, --tag <tag>',
-  'comma-separated tag(s) for recorded runs in Currents'
+  'comma-separated tags to add to the run; also read from CURRENTS_TAG'
 ).argParser(parseCommaSeparatedList);
 
 export const removeTagOption = new Option(
   '--remove-title-tags',
-  'remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard'
+  'remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard; also read from CURRENTS_REMOVE_TITLE_TAGS'
 ).default(false);
 
 export const disableTitleTagsOption = new Option(
   '--disable-title-tags',
-  'disable parsing tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke` in the dashboard'
+  'disable parsing tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke` in the dashboard; also read from CURRENTS_DISABLE_TITLE_TAGS'
 ).default(false);
 
 export const machineIdOption = new Option(
@@ -41,7 +41,7 @@ export const machineIdOption = new Option(
 
 export const reportDirOption = new Option(
   '--report-dir <string>',
-  'explicit path to the report directory'
+  'the folder of the reports to upload; by default the newest folder in .currents'
 ).env(getEnvironmentVariableName(configKeys, 'reportDir'));
 
 export const debugOption = new Option('--debug', 'enable debug logs')

@@ -19,44 +19,49 @@ export const idOption = new Option(
 
 export const pathOption = new Option(
   '--path <path>',
-  'Comma-separated list of paths to cache, enquote for globs e.g. "dist/**/*"'
+  'comma-separated paths or glob patterns of the files to save; quote globs, e.g. "dist/**/*"'
 ).argParser(parseCommaSeparatedList);
 
 export enum PRESETS {
   lastRun = 'last-run',
 }
 
-export const presetOption = new Option(
+export const presetSetOption = new Option(
   '--preset <preset-name>',
-  'A set of predefined options. Use "last-run" to get the last run data'
+  '"last-run" saves the Playwright .last-run.json files of --pw-output-dir, to rerun only the failed tests'
+).choices(Object.values(PRESETS));
+
+export const presetGetOption = new Option(
+  '--preset <preset-name>',
+  '"last-run" restores the saved .last-run.json files and writes the Playwright options for the rerun to --preset-output (GitHub Actions, GitLab and CircleCI)'
 ).choices(Object.values(PRESETS));
 
 export const outputDirOption = new Option(
   '--output-dir <dir>',
-  'Path to the directory where output will be written'
+  'the folder to restore the files to; by default the current folder'
 );
 
 export const pwOutputDirOption = new Option(
   '--pw-output-dir <dir>',
-  'Directory for artifacts produced by Playwright tests'
+  'the Playwright output folder that holds .last-run.json'
 ).default('test-results');
 
 export const PRESET_OUTPUT_PATH = '.currents_env';
 export const presetOutputOption = new Option(
   '--preset-output <path>',
-  'Path to the file containing the preset output'
+  'the file the "last-run" preset writes the Playwright options to'
 ).default(PRESET_OUTPUT_PATH);
 
 export const matrixIndexOption = new Option(
   '--matrix-index <number>',
-  'The index of the matrix to use'
+  'the index of this CI job in the matrix, from 1; each job has its own cache'
 )
   .default(1)
   .argParser(validatePositiveInteger);
 
 export const matrixTotalOption = new Option(
   '--matrix-total <number>',
-  'The total number of matrices available'
+  'the number of CI jobs in the matrix'
 )
   .default(1)
   .argParser(validatePositiveInteger);
@@ -75,10 +80,10 @@ function validatePositiveInteger(value: string) {
 
 export const continueGetOption = new Option(
   '--continue',
-  'Continue the script execution if the cache is not found'
+  'exit with 0 when the cache is not found'
 ).default(false);
 
 export const continueSetOption = new Option(
   '--continue',
-  'Continue the script execution if upload paths are not found'
+  'exit with 0 when no files are found, and save the cache without files'
 ).default(false);

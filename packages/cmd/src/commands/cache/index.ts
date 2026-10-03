@@ -10,7 +10,8 @@ import {
   matrixTotalOption,
   outputDirOption,
   pathOption,
-  presetOption,
+  presetGetOption,
+  presetSetOption,
   presetOutputOption,
   pwOutputDirOption,
   recordKeyOption,
@@ -26,7 +27,7 @@ export const getCacheSetExamples = (name: string): HelpExample[] => [
     ],
   },
   {
-    comment: 'Save the data of the last run to the cache',
+    comment: "Save Playwright's .last-run.json to the cache",
     commands: [
       `${name} ${COMMAND_NAME} set --key <record-key> --preset last-run`,
     ],
@@ -39,13 +40,14 @@ export const getCacheGetExamples = (name: string): HelpExample[] => [
     commands: [`${name} ${COMMAND_NAME} get --key <record-key> --id <id>`],
   },
   {
-    comment: 'Restore the data of the last run from the cache',
+    comment:
+      "Restore Playwright's .last-run.json from the cache, to rerun only the failed tests",
     commands: [
       `${name} ${COMMAND_NAME} get --key <record-key> --preset last-run`,
     ],
   },
   {
-    comment: 'Restore the data of the last run to a custom directory',
+    comment: "Restore Playwright's .last-run.json to another folder",
     commands: [
       `${name} ${COMMAND_NAME} get --key <record-key> --preset last-run --output-dir <output-dir>`,
     ],
@@ -82,7 +84,7 @@ export const getCacheSetCommand = (name: string) => {
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
-    .addOption(presetOption)
+    .addOption(presetSetOption)
     .addOption(pathOption)
     .addOption(debugOption)
     .addOption(pwOutputDirOption)
@@ -102,7 +104,7 @@ export const getCacheGetCommand = (name: string) => {
     .allowUnknownOption()
     .addOption(recordKeyOption)
     .addOption(idOption)
-    .addOption(presetOption)
+    .addOption(presetGetOption)
     .addOption(outputDirOption)
     .addOption(presetOutputOption)
     .addOption(debugOption)

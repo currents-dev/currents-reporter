@@ -51,9 +51,9 @@ For a custom path for the report directory, set an absolute path to the `reportD
 
 ### Uploading the results
 
-Set the `projectId`, `recordKey` and optionally the `ciBuildId`. Run `npx currents upload --help` for details.
+Set the `projectId`, `recordKey` and optionally the `ciBuildId`. Run `npx currents run upload --help` for details.
 
-Run `npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents upload`
+Run `npm run report` or `CURRENTS_API_URL=http://localhost:1234 CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=yyy npx currents run upload`
 
 To enable the debug mode, prefix the command with `DEBUG=currents,currents:*` or use the `--debug` option.
 
@@ -61,11 +61,9 @@ To provide a custom report dir path, use `CURRENTS_REPORT_DIR` env variable or `
 
 ### Obtaining run information
 
-Run `CURRENTS_REST_API_URL=http://localhost:4000 CURRENTS_PROJECT_ID=xxx npx currents api get-run --api-key <api-key> --ci-build-id <ci-build-id> --output run.json`
+Run `CURRENTS_REST_API_URL=http://localhost:4000 CURRENTS_PROJECT_ID=xxx npx currents run get --api-key <api-key> --ci-build-id <ci-build-id> --output run.json`
 
-Run `npx currents api --help` to see all available api commands.
-
-To explore additional examples and filtering options for receiving runs, you can utilize the `npx currents api get-run --help` command.
+Run `npx currents run --help` to see all the run commands, and `npx currents run get --help` for the filtering options and examples of `run get`.
 
 ### Caching artifacts
 

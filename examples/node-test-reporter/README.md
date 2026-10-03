@@ -10,11 +10,7 @@ This folder contains a suite of tests designed to validate the functionality of 
    ```bash
    npm run test
    ```
-3. Convert the report to Currents format:
-   ```bash
-   npm run convert
-   ```
-4. Report the results to the Currents API:
+3. Convert the report to the Currents format and upload it:
    ```bash
    CURRENTS_PROJECT_ID=xxx CURRENTS_RECORD_KEY=xxx npm run report
    ```
