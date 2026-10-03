@@ -68,12 +68,15 @@ export const isRetriableError = (err: AxiosError | Error): boolean => {
   return [429, 502, 503, 504].includes(err.response?.status ?? 0);
 };
 
+/** Methods that give the same result when repeated (RFC 9110, section 9.2.2). */
+const IDEMPOTENT_METHODS = ['get', 'head', 'options', 'put', 'delete'];
+
 /**
- * For the REST API. A POST that creates something is not repeated once the
- * server may have handled it: after a 502, 503 or 504, or a dropped
- * connection, the first request can still have succeeded. It is repeated when
- * the server refused it (429) or never saw it (connection refused). A
- * `Retry-After` longer than a minute stops the retries; the error says how long.
+ * For the REST API. A POST or PATCH is not repeated once the server may have
+ * handled it: after a 502, 503 or 504, or a dropped connection, the first
+ * request can still have succeeded. It is repeated when the server refused it
+ * (429) or never saw it (connection refused). A `Retry-After` longer than a
+ * minute stops the retries; the error says how long.
  */
 export const isRetriableRestError = (err: AxiosError | Error): boolean => {
   if (!isAxiosError(err)) return false;
@@ -83,7 +86,7 @@ export const isRetriableRestError = (err: AxiosError | Error): boolean => {
     const wait = getRetryAfterMs(err);
     return wait === undefined || wait <= MAX_RETRY_AFTER_MS;
   }
-  if (err.config?.method?.toLowerCase() !== 'post') {
+  if (IDEMPOTENT_METHODS.includes(err.config?.method?.toLowerCase() ?? 'get')) {
     return isRetriableError(err);
   }
   return err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND';

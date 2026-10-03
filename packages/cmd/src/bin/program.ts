@@ -24,6 +24,9 @@ export const getProgram = () => {
       'Currents CLI: upload test results and files to Currents, get and cancel runs, capture agent or browser sessions as evidence, and cache files between CI jobs'
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
+    // Without it, the options after "api get-run" go to api, which has the
+    // same --api-key option, and get-run never sees them.
+    .enablePositionalOptions()
     .hook('preAction', (_program, actionCommand) => {
       parseFlagsFromEnv(actionCommand);
       warnOnOverriddenEnv(actionCommand);
@@ -31,11 +34,16 @@ export const getProgram = () => {
     .addCommand(uploadCommand, { hidden: true })
     .addCommand(getConvertCommand(NAME), { hidden: true })
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
+    .commandsGroup('Test runs:')
     .addCommand(getRunFilesCommand(NAME))
+    .commandsGroup('Evidence:')
     .addCommand(getSessionCommand(NAME))
+    .commandsGroup('CI utilities:')
     .addCommand(getCacheCommand(NAME))
-    .addCommand(getApiCommand(NAME), { hidden: true })
+    .commandsGroup('Other:')
+    .addCommand(getApiCommand(NAME))
     .addCommand(getSkillCommand(NAME))
+    .helpCommand(true)
     .addHelpText(
       'after',
       `${formatExamples([

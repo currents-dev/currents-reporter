@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 import { describe, expect, it } from 'vitest';
-import { getAuthHeaders, toApiError } from '../session';
+import { getAuthHeaders } from '../auth';
+import { toApiError } from '../session';
 
 const axiosError = (status: number, data: unknown) =>
   new AxiosError('failed', 'ERR', undefined, undefined, {

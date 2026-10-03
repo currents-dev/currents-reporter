@@ -44,6 +44,12 @@ describe('isRetriableRestError', () => {
 
   it('keeps retrying a GET on gateway errors', () => {
     expect(isRetriableRestError(error('get', { status: 502 }))).toBe(true);
+    expect(isRetriableRestError(error('put', { status: 503 }))).toBe(true);
+    expect(isRetriableRestError(error('delete', { status: 504 }))).toBe(true);
+    expect(isRetriableRestError(error('patch', { status: 502 }))).toBe(false);
+    expect(isRetriableRestError(error('patch', { code: 'ECONNRESET' }))).toBe(
+      false
+    );
   });
 
   it('stops when Retry-After is longer than a minute', () => {

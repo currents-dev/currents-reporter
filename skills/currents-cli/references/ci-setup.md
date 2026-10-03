@@ -26,6 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # the CLI needs Node 20 or later
       - run: npm ci
       # Steps from the sections below go here.
 ```
@@ -95,6 +97,7 @@ Set `CURRENTS_RECORD_KEY` as a masked CI/CD variable in the project settings.
 
 ```yaml
 test:
+  image: node:22 # the CLI needs Node 20 or later
   variables:
     CURRENTS_PROJECT_ID: <project-id>
     CURRENTS_CI_BUILD_ID: $CI_PIPELINE_ID
@@ -121,6 +124,7 @@ after_script:
 
 ```yaml
 test:
+  image: node:22
   parallel: 2
   variables:
     CURRENTS_PROJECT_ID: <project-id>

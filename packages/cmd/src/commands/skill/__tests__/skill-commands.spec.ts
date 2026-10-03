@@ -68,7 +68,8 @@ function checkCommand(program: Command, line: string) {
     i++;
   }
   const path = command === program ? 'currents' : command.name();
-  if (command.commands.length > 0) {
+  // `currents api <path>` has a hidden subcommand and takes a path.
+  if (command.commands.length > 0 && command.registeredArguments.length === 0) {
     return [`"${line}": "${args[i]}" is not a command of ${path}`];
   }
   for (const word of args.slice(i)) {
@@ -107,6 +108,10 @@ describe('commands in the currents-cli skill', () => {
       '"run attach --test-name x a.png": --test-name is not an option of attach',
     ]);
     expect(checkCommand(program, 'run upload --key=x')).toEqual([]);
+    expect(checkCommand(program, 'api /v1/runs/<run-id> -X PUT')).toEqual([]);
+    expect(checkCommand(program, 'api /v1/runs/<run-id> --branch x')).toEqual([
+      '"api /v1/runs/<run-id> --branch x": --branch is not an option of api',
+    ]);
   });
 
   it('reports a hidden legacy command', () => {
@@ -114,7 +119,7 @@ describe('commands in the currents-cli skill', () => {
       '"upload --key=x": "upload" is hidden from the help',
     ]);
     expect(checkCommand(program, 'api get-run --api-key x')).toEqual([
-      '"api get-run --api-key x": "api" is hidden from the help',
+      '"api get-run --api-key x": "get-run" is hidden from the help',
     ]);
     expect(checkCommand(program, 'cancel')).not.toEqual([]);
     expect(checkCommand(program, 'convert')).not.toEqual([]);
