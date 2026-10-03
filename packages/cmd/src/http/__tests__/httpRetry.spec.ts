@@ -36,6 +36,7 @@ describe('isRetriableRestError', () => {
   });
 
   it('repeats a POST the server refused or never received', () => {
+    expect(isRetriableRestError(error('post', { status: 408 }))).toBe(true);
     expect(isRetriableRestError(error('post', { status: 429 }))).toBe(true);
     expect(isRetriableRestError(error('post', { code: 'ECONNREFUSED' }))).toBe(
       true
