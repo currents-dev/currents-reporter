@@ -197,5 +197,12 @@ export async function attachFiles(params: AttachParams) {
       `${failed.length} of ${files.length} files could not be uploaded`
     );
   }
-  return { files: attached };
+  // Without the local path: a packed trace's temporary zip is gone by now.
+  return {
+    files: attached.map(({ name, type, sizeBytes }) => ({
+      name,
+      type,
+      sizeBytes,
+    })),
+  };
 }
