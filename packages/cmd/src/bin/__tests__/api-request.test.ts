@@ -255,6 +255,34 @@ describe('currents api', () => {
     expect(received[0].headers.a).toBe('b');
   });
 
+  it.each([' =v', '=v'])(
+    'refuses a field without a name: %s',
+    async (field) => {
+      expect(await api('/v1/runs/r1', '-f', field)).toBe(1);
+
+      expect(received).toEqual([]);
+      expect(stderr).toContain('Expected key=value');
+    }
+  );
+
+  it('keeps an integer JSON cannot hold exactly as a string', async () => {
+    expect(
+      await api('/v1/webhooks', '-f', 'big=9007199254740993', '-f', 'n=1.5')
+    ).toBe(0);
+
+    expect(JSON.parse(received[0].body)).toEqual({
+      big: '9007199254740993',
+      n: 1.5,
+    });
+  });
+
+  it('prints the help for api help instead of requesting /v1/help', async () => {
+    vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    expect(await api('help')).toBe(0);
+
+    expect(received).toEqual([]);
+  });
+
   it('refuses a header without a colon', async () => {
     expect(await api('/v1/runs/r1', '-H', 'x-currents-tz')).toBe(1);
 

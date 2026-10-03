@@ -10,17 +10,25 @@ const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
 
 function splitPair(value: string, separator: string): Field {
   const index = value.indexOf(separator);
-  if (index <= 0) {
+  const key = index < 0 ? '' : value.slice(0, index).trim();
+  if (!key) {
     throw new InvalidArgumentError(`Expected key${separator}value.`);
   }
-  return [value.slice(0, index).trim(), value.slice(index + 1).trim()];
+  return [key, value.slice(index + 1).trim()];
 }
 
+/** A number only when JSON keeps it as written; 9007199254740993 stays a string. */
 function typedValue(value: string) {
   if (value === 'true') return true;
   if (value === 'false') return false;
   if (value === 'null') return null;
-  if (/^-?\d+(\.\d+)?$/.test(value)) return Number(value);
+  if (/^-?\d+(\.\d+)?$/.test(value)) {
+    const number = Number(value);
+    const exact = value.includes('.')
+      ? Number.isFinite(number)
+      : Number.isSafeInteger(number);
+    if (exact) return number;
+  }
   return value;
 }
 

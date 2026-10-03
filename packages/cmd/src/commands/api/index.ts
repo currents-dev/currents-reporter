@@ -94,7 +94,11 @@ The REST API routes: https://docs.currents.dev/resources/api/api-resources`
     .addHelpText('after', formatExamples(getApiExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
     .addCommand(getRunGetCommand(name).name('get-run'), { hidden: true })
-    .action(apiRequestHandler);
+    // The implicit help command is off, so it is not listed next to the
+    // hidden get-run; `api help` still prints the help instead of a request.
+    .action((path, options, command) =>
+      path === 'help' ? command.help() : apiRequestHandler(path, options)
+    );
 
   return command;
 };

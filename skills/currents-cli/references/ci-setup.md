@@ -26,6 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # the CLI needs Node 20 or later
       - run: npm ci
       # Steps from the sections below go here.
 ```
