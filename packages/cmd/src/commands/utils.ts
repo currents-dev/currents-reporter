@@ -50,14 +50,13 @@ export function parseFlagsFromEnv(command: CommandUnknownOpts) {
  */
 /** `--tag a --tag b` and `CURRENTS_TAG=a, b` hold the same tags. */
 function sameListOrValue(value: unknown, envValue: string) {
-  const items = (text: string) =>
-    text
-      .split(',')
+  if (!Array.isArray(value)) return String(value) === envValue;
+  const items = (list: string[]) =>
+    list
       .map((item) => item.trim())
       .filter(Boolean)
       .join(',');
-  const cliValue = Array.isArray(value) ? value.join(',') : String(value);
-  return items(cliValue) === items(envValue);
+  return items(value.map(String)) === items(envValue.split(','));
 }
 
 export function warnOnOverriddenEnv(command: CommandUnknownOpts) {

@@ -131,6 +131,12 @@ describe('warnOnOverriddenEnv', () => {
     expect(warnOnStderr).not.toHaveBeenCalled();
   });
 
+  it('compares a single value exactly', () => {
+    vi.stubEnv('CURRENTS_PROJECT_ID', 'a, b');
+    warnOnOverriddenEnv(parse(['--project-id', 'a,b']) as never);
+    expect(warnOnStderr).toHaveBeenCalledTimes(1);
+  });
+
   it('compares a repeated or comma-separated option as a list', () => {
     const command = new Command()
       .exitOverride()
