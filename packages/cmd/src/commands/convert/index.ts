@@ -1,6 +1,5 @@
 import { Command } from '@commander-js/extra-typings';
-import { dim } from '@logger';
-import chalk from 'chalk';
+import { formatExamples, HelpExample } from '../help';
 import { convertHandler } from './convert';
 import {
   debugOption,
@@ -13,13 +12,15 @@ import {
 
 const COMMAND_NAME = 'convert';
 
-const getExample = (name: string) => `
-
-${chalk.bold('Examples')}
-
-Convert JUnit test reports to Currents format:
-${dim(`${name} ${COMMAND_NAME} --input-format junit --input-file ./*.xml --framework postman`)}
-`;
+export const getConvertExamples = (name: string): HelpExample[] => [
+  {
+    comment:
+      'Convert JUnit test reports to the Currents format, to check the result before an upload',
+    commands: [
+      `${name} ${COMMAND_NAME} --input-format junit --input-file "./*.xml" --framework postman`,
+    ],
+  },
+];
 
 export const getConvertCommand = (name: string) => {
   const command = new Command()
@@ -27,10 +28,11 @@ export const getConvertCommand = (name: string) => {
     .command(COMMAND_NAME)
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
+    .summary('Convert test reports, e.g. JUnit, to the Currents format')
     .description(
-      `Convert reports from various testing frameworks to Currents format
-${getExample(name)}`
+      'Convert reports from various testing frameworks to the Currents format'
     )
+    .addHelpText('after', formatExamples(getConvertExamples(name)))
     .addOption(debugOption)
     .addOption(inputFormatOption)
     .addOption(inputFileOption)

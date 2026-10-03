@@ -122,6 +122,7 @@ export async function handleConvert() {
     );
 
     info('[currents] Conversion completed, report saved to: %s', reportDir);
+    return reportDir;
   } catch (e) {
     debug('Failed to convert: %o', e);
     throw e;

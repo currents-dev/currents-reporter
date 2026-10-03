@@ -1,6 +1,5 @@
 import { Command } from '@commander-js/extra-typings';
-import { dim } from '@logger';
-import chalk from 'chalk';
+import { formatExamples, HelpExample } from '../help';
 import { getRunHandler } from './get-run';
 import {
   apiKeyOption,
@@ -13,37 +12,49 @@ import {
   tagOption,
 } from './options';
 
-const COMMAND_NAME = 'api';
-const getExample = (name: string) => `
+const COMMAND_NAME = 'get';
+const PARENT_NAME = 'run';
+export const getRunGetExamples = (name: string): HelpExample[] => [
+  {
+    comment: 'Get the data of the run recorded under a CI build ID',
+    commands: [
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --ci-build-id <ci-build-id>`,
+    ],
+  },
+  {
+    comment: 'Get the data of the most recent run that matches the filters',
+    commands: [
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`,
+    ],
+  },
+  {
+    comment:
+      'Get the data of a run and save its failed tests for Playwright --last-failed',
+    commands: [
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`,
+    ],
+  },
+];
 
-${chalk.bold('Examples')}
-
-Obtain run data by --ci-build-id:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id>`)}
-
-Obtain the most recent run data by filters:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --project-id <project-id> --branch <branch> --tag tagA,tagB`)}
-
-Obtain run data by --ci-build-id, save the failed test in a format compatible with Playwright --last-failed:
-${dim(`${name} ${COMMAND_NAME} get-run --api-key <api-key> --ci-build-id <ci-build-id> --pw-last-run --output <output-path>`)}
-
-`;
-
+// `currents api get-run` is the hidden path of `currents run get`.
 export const getApiCommand = (name: string) => {
   const command = new Command()
-    .command(COMMAND_NAME)
-    .description(`Interact with the Currents API`)
+    .command('api')
+    .summary('Get data from the Currents API')
+    .description('Get data from the Currents API')
+    .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .showHelpAfterError('(add --help for additional information)')
     .allowUnknownOption()
-    .addCommand(getRunCommand(name));
+    .addCommand(getRunGetCommand(name).name('get-run'));
 
   return command;
 };
 
-export const getRunCommand = (name: string) => {
+export const getRunGetCommand = (name: string) => {
   const command = new Command()
-    .name('get-run')
-    .description(`Retrieve run data from Currents API ${getExample(name)}`)
+    .name(COMMAND_NAME)
+    .description('Get the data of a run from the Currents API')
+    .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .allowUnknownOption()
     .addOption(apiKeyOption)
     .addOption(debugOption)

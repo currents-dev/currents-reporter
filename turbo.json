@@ -3,9 +3,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
       "outputs": ["dist/**"],
       "env": [
         "CURRENTS_MACHINE_ID",
+        "CURRENTS_RECORD_KEY",
+        "CURRENTS_PROJECT_ID",
         "CURRENTS_REPORTER_CONFIG_PATH",
         "_CURRENTS_E2E_TESTS",
         "CURRENTS_DEBUG",

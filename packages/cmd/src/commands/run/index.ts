@@ -1,8 +1,9 @@
 import { Command } from '@commander-js/extra-typings';
-import { dim } from '@logger';
-import chalk from 'chalk';
 import { getRunAttachConfig } from '../../config/session';
 import { handleRunAttach } from '../../services/session';
+import { getRunGetCommand, getRunGetExamples } from '../api';
+import { getCancelCommand, getCancelExamples } from '../cancel';
+import { formatExamples, HelpExample } from '../help';
 import { commandHandler } from '../utils';
 import {
   apiKeyOption,
@@ -19,24 +20,30 @@ import {
   testTitleOption,
   typeOption,
 } from '../session/options';
+import { getUploadCommand, getUploadExamples } from '../upload';
 
 const COMMAND_NAME = 'run';
 
-const getExample = (name: string) => `
+export const getRunAttachExamples = (name: string): HelpExample[] => [
+  {
+    comment:
+      'Attach the Docker logs of a CI machine to the run, after the tests finished',
+    commands: [
+      `${name} ${COMMAND_NAME} attach --key <record-key> --project-id <id> --ci-build-id <build-id> --machine-id shard-1 docker-logs.zip`,
+    ],
+  },
+  {
+    comment: 'Attach a screenshot to a test of a spec file',
+    commands: [
+      `${name} ${COMMAND_NAME} attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" screenshot.png`,
+    ],
+  },
+];
 
-${chalk.bold('Examples')}
-
-Attach the Docker logs of a CI machine to the run, after the tests finished:
-${dim(`${name} ${COMMAND_NAME} attach --key <record-key> --project-id <id> --ci-build-id <build-id> --machine-id shard-1 docker-logs.zip`)}
-
-Attach a screenshot to a test of a spec file:
-${dim(`${name} ${COMMAND_NAME} attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" screenshot.png`)}
-
-`;
-
-const getAttachCommand = () =>
+const getAttachCommand = (name: string) =>
   new Command()
     .name('attach')
+    .addHelpText('after', formatExamples(getRunAttachExamples(name)))
     .description('Upload files to a run recorded in CI')
     .argument('<paths...>', 'files or folders to attach')
     .addOption(recordKeyOption)
@@ -64,6 +71,18 @@ const getAttachCommand = () =>
 export const getRunFilesCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .description(`Work with runs recorded in CI ${getExample(name)}`)
+    .description('Upload test results and work with runs recorded in CI')
+    .addHelpText(
+      'after',
+      formatExamples([
+        ...getUploadExamples(name).slice(0, 2),
+        getRunAttachExamples(name)[0],
+        getRunGetExamples(name)[0],
+        getCancelExamples(name)[0],
+      ])
+    )
     .showHelpAfterError('(add --help for additional information)')
-    .addCommand(getAttachCommand());
+    .addCommand(getUploadCommand(name))
+    .addCommand(getAttachCommand(name))
+    .addCommand(getRunGetCommand(name))
+    .addCommand(getCancelCommand(name));

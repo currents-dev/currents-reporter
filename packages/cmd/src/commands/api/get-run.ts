@@ -1,5 +1,5 @@
 import { debug as _debug } from '@debug';
-import { getRunCommand } from '.';
+import { getRunGetCommand } from '.';
 import {
   getAPIGetRunCommandConfig,
   setAPIGetRunCommandConfig,
@@ -11,7 +11,7 @@ import { commandHandler } from '../utils';
 const debug = _debug.extend('cli');
 
 export async function getRunHandler(
-  options: ReturnType<ReturnType<typeof getRunCommand>['opts']>
+  options: ReturnType<ReturnType<typeof getRunGetCommand>['opts']>
 ) {
   await commandHandler(async (opts) => {
     setAPIGetRunCommandConfig(opts);
