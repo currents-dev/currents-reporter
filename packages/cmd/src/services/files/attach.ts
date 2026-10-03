@@ -62,10 +62,12 @@ export function parseFileType(type?: string): FileType | undefined {
 const MAX_FILES_PER_REQUEST = 50;
 
 /**
- * Signed upload URLs last 10 minutes, so a request declares only as many bytes
- * as can be sent well inside that.
+ * Signed upload URLs last 10 minutes, and storage checks that when a PUT
+ * starts. Files of one request are uploaded after it, so a request declares
+ * only what a slow runner (256 KiB/s) sends in about 7 minutes. A larger file
+ * gets a request of its own and starts at once.
  */
-const MAX_BYTES_PER_REQUEST = 1024 ** 3;
+export const MAX_BYTES_PER_REQUEST = 100 * 1024 ** 2;
 
 /** The most files an instance takes through the API. */
 const MAX_FILES_PER_INSTANCE = 200;
@@ -174,7 +176,10 @@ export async function attachFiles(params: AttachParams) {
       }
     }
   } finally {
-    await cleanup();
+    // Temporary trace zips; failing to remove them must not hide the result.
+    await cleanup().catch((e: Error) =>
+      warn('Could not remove temporary files: %s', e.message)
+    );
   }
 
   if (failed.length > 0) {

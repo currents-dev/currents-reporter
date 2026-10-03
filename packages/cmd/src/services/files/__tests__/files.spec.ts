@@ -8,7 +8,7 @@ import { collectFiles } from '../collect';
 import { ALLOWED_TYPES, getFileLevel } from '../levels';
 import { assertTypeMatchesFile, getContentType, getFileType } from '../detect';
 import { keepNetworkLine, mergeNetworkFiles } from '../packTrace';
-import { chunkFiles, parseMeta } from '../attach';
+import { chunkFiles, MAX_BYTES_PER_REQUEST, parseMeta } from '../attach';
 
 describe('getFileType', () => {
   it('picks the type from the extension', () => {
@@ -322,5 +322,12 @@ describe('chunkFiles', () => {
       chunkFiles(files, { count: 50, bytes: 25 }).map((c) => c.length)
     ).toEqual([2, 2, 1]);
     expect(chunkFiles([file(500)], { count: 50, bytes: 100 })).toHaveLength(1);
+  });
+
+  it('declares no more than a slow runner uploads before the URLs expire', () => {
+    const tenMinutesAt256KiBs = 10 * 60 * 256 * 1024;
+    expect(MAX_BYTES_PER_REQUEST).toBeLessThan(tenMinutesAt256KiBs);
+    const files = [file(60 * 1024 ** 2), file(60 * 1024 ** 2)];
+    expect(chunkFiles(files).map((c) => c.length)).toEqual([1, 1]);
   });
 });
