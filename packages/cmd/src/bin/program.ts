@@ -49,12 +49,22 @@ Support:       support@currents.dev
 `
     );
 
+  const uploadHint = `upload is no longer the default command. Run '${NAME} run upload ...' instead.`;
+
   // Commander has no public hook for unknown options. Options such as --key
   // used to select the upload command, so point users to it.
   (program as unknown as { unknownOption: () => void }).unknownOption = () =>
-    program.error(
-      `upload is no longer the default command. Run '${NAME} run upload ...' instead.`
-    );
+    program.error(uploadHint);
+
+  // A bare `currents` used to upload with the key and project from the
+  // environment. Commander prints the help as an error when no command is
+  // given; say why when those variables are set.
+  program.addHelpText('before', ({ error }) =>
+    error &&
+    (process.env.CURRENTS_RECORD_KEY || process.env.CURRENTS_PROJECT_ID)
+      ? `error: ${uploadHint}\n`
+      : ''
+  );
 
   return program;
 };

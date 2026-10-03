@@ -33,7 +33,7 @@ export const getCancelExamples = (name: string): HelpExample[] => [
   },
 ];
 
-// Remove the deprecated root-level command in the next major version.
+// The root-level command is deprecated; remove it in a later major version.
 export const getCancelCommand = (
   name: string,
   { deprecated = false }: { deprecated?: boolean } = {}
@@ -56,7 +56,7 @@ export const getCancelCommand = (
   if (deprecated) {
     command.hook('preAction', () => {
       process.stderr.write(
-        `'${name} ${COMMAND_NAME}' is deprecated and will be removed in the next major version. Use '${name} ${PARENT_NAME} ${COMMAND_NAME}'.\n`
+        `'${name} ${COMMAND_NAME}' is deprecated and will be removed in a future version. Use '${name} ${PARENT_NAME} ${COMMAND_NAME}'.\n`
       );
     });
   }

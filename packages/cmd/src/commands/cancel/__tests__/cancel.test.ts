@@ -61,7 +61,7 @@ describe('cancel command', () => {
 
   describe('through the program', () => {
     const DEPRECATION_WARNING =
-      "'currents cancel' is deprecated and will be removed in the next major version. Use 'currents run cancel'.\n";
+      "'currents cancel' is deprecated and will be removed in a future version. Use 'currents run cancel'.\n";
     const args = ['--key', 'k', '--project-id', 'proj', '--ci-build-id', 'b1'];
     let stderr: string;
 

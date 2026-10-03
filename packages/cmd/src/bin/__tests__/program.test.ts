@@ -61,6 +61,30 @@ describe('currents program', () => {
     expect(getCurrentsConfig).not.toHaveBeenCalled();
   });
 
+  it('says upload is no longer the default when the upload variables are set', async () => {
+    vi.stubEnv('CURRENTS_RECORD_KEY', 'k');
+    vi.stubEnv('CURRENTS_PROJECT_ID', 'p');
+    try {
+      expect(await run([])).toBe(1);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+
+    expect(stderr).toContain('upload is no longer the default command');
+    expect(stderr).toContain('Usage: currents [options] [command]');
+    expect(handleCurrentsReport).not.toHaveBeenCalled();
+  });
+
+  it('prints only the help for --help when the upload variables are set', async () => {
+    vi.stubEnv('CURRENTS_RECORD_KEY', 'k');
+    try {
+      expect(await run(['--help'])).toBe(0);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+    expect(stdout).not.toContain('upload is no longer the default command');
+  });
+
   it('fails without uploading when options are given without a command', async () => {
     expect(await run(['--key', 'x', '--project-id', 'y'])).toBe(1);
 
