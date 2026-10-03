@@ -5,12 +5,15 @@ import path from 'path';
 const junitFile = process.env.CURRENTS_JUNIT_FILE;
 
 const config = {
-  test: junitFile
-    ? {
-        reporters: ['default', ['junit', { suiteName: 'cmd' }]],
-        outputFile: { junit: junitFile },
-      }
-    : {},
+  test: {
+    globalSetup: ['./vitest.global-setup.ts'],
+    ...(junitFile
+      ? {
+          reporters: ['default', ['junit', { suiteName: 'cmd' }]],
+          outputFile: { junit: junitFile },
+        }
+      : {}),
+  },
   resolve: {
     alias: {
       '@debug': path.resolve(__dirname, './src/debug'),
