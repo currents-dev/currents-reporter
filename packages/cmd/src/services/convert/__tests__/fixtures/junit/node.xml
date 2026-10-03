@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites name="node tests" tests="2" failures="0" errors="0" skipped="0" time="0.1">
+  <testsuite name="parser" timestamp="2025-01-12T08:00:00.000Z" hostname="ci" tests="2" failures="0" errors="0" skipped="0" time="0.05" file="test/parser.test.js">
+    <testcase name="parses a number" time="0.01" classname="test" file="test/parser.test.js" line="3" column="1"/>
+    <testcase name="parses a string" time="0.02" classname="test" file="test/parser.test.js" line="8" column="1"/>
+  </testsuite>
+</testsuites>
