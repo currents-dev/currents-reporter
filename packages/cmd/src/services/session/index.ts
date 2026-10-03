@@ -114,7 +114,13 @@ export async function handleRunAttach(
   config: RunAttachConfig,
   paths: string[]
 ) {
-  if (!config.spec && !config.testTitle && !config.machineId) {
+  if (config.testTitle && !config.spec) {
+    throw new Error('--test-title needs --spec, the spec file of the test');
+  }
+  if (config.attempt !== undefined && !config.testTitle) {
+    throw new Error('--attempt needs --test-title');
+  }
+  if (!config.spec && !config.machineId) {
     throw new Error(
       'Files for the whole run are listed by machine: pass --machine-id, or --spec to attach to a spec file'
     );
@@ -131,7 +137,7 @@ export async function handleRunAttach(
       groupId: config.group,
       attempt: config.attempt,
       // The API takes a machine ID for run-level files only.
-      machineId: config.spec || config.testTitle ? undefined : config.machineId,
+      machineId: config.spec ? undefined : config.machineId,
     },
     paths,
     type: config.type,

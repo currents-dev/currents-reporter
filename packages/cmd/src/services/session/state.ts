@@ -37,7 +37,9 @@ export async function readSessionState(): Promise<SessionState | null> {
   const saved = await fs.readJson(file);
   // A session saved before sessions had their own ID kept its run ID, and that
   // run ID is the session ID.
-  return { ...saved, sessionId: saved.sessionId ?? saved.runId };
+  const sessionId = saved?.sessionId || saved?.runId;
+  if (typeof sessionId !== 'string' || !sessionId.trim()) return null;
+  return { ...saved, sessionId };
 }
 
 /**

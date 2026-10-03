@@ -373,6 +373,39 @@ describe('session and run attach commands', () => {
     expect(createAttachments).not.toHaveBeenCalled();
   });
 
+  it('treats a saved session without an ID as no session', async () => {
+    await fs.outputJson('.currents-session/session.json', { sessionId: ' ' });
+    await fs.outputFile('a.txt', 'a');
+    await run(getSessionCommand('currents'), [
+      'attach',
+      '--api-key',
+      'k',
+      'a.txt',
+    ]);
+    expect(createAttachments).not.toHaveBeenCalled();
+    expect(process.exit).toHaveBeenCalledWith(1);
+  });
+
+  it.each([[['--test-title', 't']], [['--spec', 's.ts', '--attempt', '1']]])(
+    'refuses a test title without a spec, or an attempt without a test: %s',
+    async (args) => {
+      await fs.outputFile('a.txt', 'a');
+      await run(getRunFilesCommand('currents') as never, [
+        'attach',
+        '--key',
+        'rk',
+        '-p',
+        'proj',
+        '--ci-build-id',
+        'b',
+        ...args,
+        'a.txt',
+      ]);
+      expect(createAttachments).not.toHaveBeenCalled();
+      expect(process.exit).toHaveBeenCalledWith(1);
+    }
+  );
+
   it('needs a machine ID or a spec for run attach', async () => {
     await fs.outputFile('a.txt', 'a');
     await run(getRunFilesCommand('currents') as never, [
