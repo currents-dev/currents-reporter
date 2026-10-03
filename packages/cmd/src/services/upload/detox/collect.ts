@@ -2,6 +2,7 @@ import { debug as _debug } from '@debug';
 import { copyFileAsync, createFolder, generateShortHash } from '@lib';
 import fs from 'fs-extra';
 import { extname, join } from 'path';
+import { ARTIFACT_BY_EXTENSION } from '@lib/artifactTypes';
 import { Artifact, InstanceReport, InstanceReportTest } from '../../../types';
 import { DetoxManifest, DetoxManifestTest, inExecutionOrder } from './manifest';
 import { MAX_INVOCATION_PROBE, getTestArtifactsDir } from './paths';
@@ -11,17 +12,25 @@ const debug = _debug.extend('detox');
 
 const ARTIFACTS_DIR = 'artifacts';
 
-const ARTIFACT_BY_EXTENSION: Record<
-  string,
-  Pick<Artifact, 'type' | 'contentType'>
-> = {
-  '.mp4': { type: 'video', contentType: 'video/mp4' },
-  '.png': { type: 'screenshot', contentType: 'image/png' },
-  '.jpg': { type: 'screenshot', contentType: 'image/jpeg' },
-  '.log': { type: 'attachment', contentType: 'text/plain' },
-  '.txt': { type: 'attachment', contentType: 'text/plain' },
-  '.json': { type: 'attachment', contentType: 'application/json' },
-  '.viewhierarchy': { type: 'attachment', contentType: 'application/xml' },
+/**
+ * The files Detox uploads, matched on the extension as written. The shared map
+ * knows more extensions than this; adding one here changes what Detox sends.
+ */
+export const DETOX_EXTENSIONS = [
+  '.mp4',
+  '.png',
+  '.jpg',
+  '.log',
+  '.txt',
+  '.json',
+  '.viewhierarchy',
+];
+
+const getDetoxArtifactType = (fileName: string) => {
+  const extension = extname(fileName);
+  return DETOX_EXTENSIONS.includes(extension)
+    ? ARTIFACT_BY_EXTENSION[extension]
+    : undefined;
 };
 
 type AttachParams = {
@@ -255,7 +264,7 @@ async function copyArtifacts(
   const artifacts: Artifact[] = [];
 
   for (const fileName of fileNames) {
-    const artifactType = ARTIFACT_BY_EXTENSION[extname(fileName)];
+    const artifactType = getDetoxArtifactType(fileName);
 
     if (!artifactType) {
       debug('Skipping unsupported Detox artifact %s', fileName);

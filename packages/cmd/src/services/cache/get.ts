@@ -8,7 +8,7 @@ import { getCI } from '../../env/ciProvider';
 import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { unzipBuffer } from './fs';
 import { RefMetaFile } from './lib';
-import { download } from './network';
+import { download } from '../../http/storage';
 import { handlePostLastRunPreset, handlePreLastRunPreset } from './presets';
 
 export async function handleGetCache() {
