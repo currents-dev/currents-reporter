@@ -5,6 +5,7 @@ import { AxiosProgressEvent, isAxiosError, RawAxiosRequestConfig } from 'axios';
 import { debug as _debug } from '../debug';
 import { getAxios } from './axios';
 import { error, warn } from '../logger';
+import { urlForLog } from '../lib/url';
 
 const debug = _debug.extend('upload');
 
@@ -40,7 +41,8 @@ export async function sendBuffer(
     upload.uploadUrl,
     contentType,
     onUploadProgress,
-    upload.headers
+    upload.headers,
+    getUploadTimeoutMs(Buffer.byteLength(upload.buffer))
   );
 }
 
@@ -126,10 +128,12 @@ export async function download(
       onDownloadProgress,
     });
 
-    return Buffer.from(response.data);
+    return Buffer.isBuffer(response.data)
+      ? response.data
+      : Buffer.from(response.data);
   } catch (error) {
     if (isAxiosError(error)) {
-      debug('Failed to download %s: %s', url, error.message);
+      debug('Failed to download %s: %s', urlForLog(url), error.message);
     }
     throw error;
   }
@@ -224,29 +228,25 @@ async function sendWithRetries(args: Parameters<typeof _send>) {
 export const getDefautUploadProgressHandler =
   (label: string) =>
   ({ total, loaded }: AxiosProgressEvent) => {
-    () => {
-      debug(
-        'Uploading %s: %d / %d',
-        label,
-        bytesToMb(loaded),
-        bytesToMb(total ?? 0)
-      );
-    };
+    debug(
+      'Uploading %s: %d / %d',
+      label,
+      bytesToMb(loaded),
+      bytesToMb(total ?? 0)
+    );
   };
 
 export const getDefaultDownloadProgressHandler =
   (label: string) =>
   ({ loaded, total }: AxiosProgressEvent) => {
-    () => {
-      const percentCompleted = total ? Math.round((loaded * 100) / total) : 0;
-      debug(
-        'Downloaded %s: %d / %d (%d%)',
-        label,
-        bytesToMb(loaded),
-        bytesToMb(total ?? 0),
-        percentCompleted
-      );
-    };
+    const percentCompleted = total ? Math.round((loaded * 100) / total) : 0;
+    debug(
+      'Downloaded %s: %d / %d (%d%)',
+      label,
+      bytesToMb(loaded),
+      bytesToMb(total ?? 0),
+      percentCompleted
+    );
   };
 
 function bytesToMb(bytes: number) {
