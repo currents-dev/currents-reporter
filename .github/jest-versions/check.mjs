@@ -43,14 +43,17 @@ const RUNS = [
   },
 ];
 
+const failures = [];
 const runRequests = [];
+// The reports have no artifacts, so upload only creates the run.
 const server = http.createServer(async (req, res) => {
   const chunks = [];
   for await (const chunk of req) {
     chunks.push(chunk);
   }
-  if (req.method !== 'POST') {
-    res.writeHead(200).end();
+  if (req.method !== 'POST' || req.url !== '/v1/runs') {
+    failures.push(`Unexpected request: ${req.method} ${req.url}`);
+    res.writeHead(404).end();
     return;
   }
   const request = JSON.parse(zlib.gunzipSync(Buffer.concat(chunks)));
@@ -67,7 +70,6 @@ const server = http.createServer(async (req, res) => {
 await new Promise((resolve) => server.listen(0, resolve));
 const apiUrl = `http://localhost:${server.address().port}`;
 
-const failures = [];
 try {
   for (const run of RUNS) {
     console.log(`\n=== ${run.name} run`);
