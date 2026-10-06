@@ -66,6 +66,25 @@ describe('reporter', () => {
     }
   );
 
+  it('removes the full test suite of an earlier run from the report directory', async () => {
+    runJest();
+    runJest({}, ['basic']);
+
+    expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+  });
+
+  it('keeps the full test suite of the first run of a Detox session for a rerun', async () => {
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(0) });
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(1) }, [
+      'retries',
+    ]);
+
+    expect(await readFullTestSuiteSize()).toEqual([
+      ['checks', 8],
+      ['probes', 1],
+    ]);
+  });
+
   it('replaces the report of an earlier run', async () => {
     runJest();
     const first = await readReport();

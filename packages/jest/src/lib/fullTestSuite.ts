@@ -40,6 +40,20 @@ export async function writeFullTestSuite(
   return filePath;
 }
 
+// A report directory set by `reportDir` or CURRENTS_REPORT_DIR is reused, so
+// a run that does not write the file removes the one an earlier run wrote.
+export async function removeFullTestSuite(reportDir: string) {
+  await fs.remove(join(reportDir, FULL_TEST_SUITE_FILE));
+}
+
+// The check `currents run upload` makes on the suite that discovery returns.
+export function isEmptyTestSuite(fullTestSuite: FullTestSuite): boolean {
+  return (
+    fullTestSuite.length === 0 ||
+    fullTestSuite.some((project) => project.tests.length === 0)
+  );
+}
+
 // Jest 29 has `testPathPattern`, a string. Jest 30 has `testPathPatterns`, a
 // TestPathPatterns instance. --selectProjects and --ignoreProjects filter the
 // projects before Jest builds the global config, so they are read from argv.

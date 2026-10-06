@@ -1,6 +1,10 @@
 import type { AggregatedResult } from '@jest/reporters';
 import { Config } from '@jest/types';
-import { isIncompleteRun, isPartialRun } from '../fullTestSuite';
+import {
+  isEmptyTestSuite,
+  isIncompleteRun,
+  isPartialRun,
+} from '../fullTestSuite';
 
 const jest29Config = (overrides: Record<string, unknown> = {}) =>
   ({ testPathPattern: '', ...overrides }) as unknown as Config.GlobalConfig;
@@ -62,5 +66,27 @@ describe('isIncompleteRun', () => {
 
   it('is true when the run was interrupted', () => {
     expect(isIncompleteRun(result({ wasInterrupted: true }))).toBe(true);
+  });
+});
+
+describe('isEmptyTestSuite', () => {
+  const project = (tests: number) => ({
+    name: 'root',
+    tags: [],
+    tests: Array.from({ length: tests }, (_, i) => ({
+      title: [`test ${i}`],
+      spec: 'a.test.js',
+      tags: [],
+      testId: String(i),
+    })),
+  });
+
+  it('is true without projects or with a project without tests', () => {
+    expect(isEmptyTestSuite([])).toBe(true);
+    expect(isEmptyTestSuite([project(1), project(0)])).toBe(true);
+  });
+
+  it('is false when every project has tests', () => {
+    expect(isEmptyTestSuite([project(1), project(2)])).toBe(false);
   });
 });

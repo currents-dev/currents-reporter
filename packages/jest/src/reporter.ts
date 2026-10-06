@@ -34,10 +34,12 @@ import {
   isTestFlaky,
   jestStatusFromInvocations,
   getTestTags,
+  isEmptyTestSuite,
   isIncompleteRun,
   isPartialRun,
   mergeInstanceReport,
   readInstanceReport,
+  removeFullTestSuite,
   testToSpecName,
   withDefaultProjectName,
   writeDetoxManifest,
@@ -408,13 +410,20 @@ export default class CustomReporter implements Reporter {
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
+    const fullTestSuite = this.getFullTestSuite();
     if (
       isPartialRun(this.globalConfig, getJestArgv()) ||
-      isIncompleteRun(fullResult)
+      isIncompleteRun(fullResult) ||
+      isEmptyTestSuite(fullTestSuite)
     ) {
-      debug('Partial run - not writing the full test suite');
+      debug('Partial or empty run - not writing the full test suite');
+      // A Detox rerun runs only the failed tests, in the directory where the
+      // first run of the session wrote the full test suite.
+      if (!this.detoxSession?.testSessionIndex) {
+        await removeFullTestSuite(this.reportDir);
+      }
     } else {
-      await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
+      await writeFullTestSuite(this.reportDir, fullTestSuite);
     }
 
     if (this.detoxSession) {
