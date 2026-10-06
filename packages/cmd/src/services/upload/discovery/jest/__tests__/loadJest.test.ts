@@ -75,6 +75,22 @@ describe('loadJest', () => {
     });
   });
 
+  it('prefers a jest-cli of the project over the jest of a parent folder', () => {
+    installJest('29.7.0');
+    const packageDir = join(projectDir, 'packages/app');
+    writePackage(
+      join(packageDir, 'node_modules/jest-cli'),
+      'jest-cli',
+      '30.0.0'
+    );
+    vi.mocked(process.cwd).mockReturnValue(packageDir);
+
+    expect(loadJestCli()).toMatchObject({
+      name: 'jest-cli',
+      version: '30.0.0',
+    });
+  });
+
   it('fails with the install command when the project has no Jest', () => {
     expect(() => loadJestCli()).toThrow(
       'Jest discovery needs the "jest" package'
