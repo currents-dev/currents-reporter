@@ -1,9 +1,9 @@
 import { debug as _debug } from '@debug';
 import { error } from '@logger';
 import fs from 'fs';
-import { readInitialOptions } from 'jest-config';
 import { omit } from 'lodash';
 import path from 'path';
+import { loadJestConfig } from '../loadJest';
 import { retryWithBackoff } from '../utils';
 import { readFileContents } from '../utils/fs';
 
@@ -13,6 +13,7 @@ export async function getConfigFilePath(
   explicitConfigFilePath?: string
 ): Promise<string | null> {
   try {
+    const { readInitialOptions } = loadJestConfig();
     const { config: initialConfig, configPath } = await readInitialOptions(
       explicitConfigFilePath
     );
