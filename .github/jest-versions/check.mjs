@@ -118,6 +118,8 @@ try {
       run.specCount
     );
   }
+} catch (error) {
+  failures.push(error.message);
 } finally {
   server.close();
 }
