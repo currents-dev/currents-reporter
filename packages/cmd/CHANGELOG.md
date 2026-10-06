@@ -2,7 +2,7 @@
 
 ## [2.0.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.0...%40currents%2Fcmd-v2.0.1) (2026-10-06)
 
-`@currents/cmd` no longer installs Jest, which removes about 250 packages and all moderate `npm audit` findings from the install. When `@currents/jest` results come from a sharded or filtered run, `currents run upload` runs the Jest installed in the current folder to list every test of the suite. That needs Jest 29.5 or later in that folder; without it, the upload fails with a message that names the install command. Other commands do not need Jest.
+`@currents/cmd` no longer installs Jest, which removes about 250 packages and all moderate `npm audit` findings from the install. To upload `@currents/jest` results, `currents run upload` runs the Jest installed in the current folder to list every test of the suite. That needs Jest 29.5 or later in that folder; without it, the upload fails with a message that names the install command. Uploads of Detox runs that are not sharded or filtered, and all other commands, do not need Jest.
 
 ### Bug Fixes
 
