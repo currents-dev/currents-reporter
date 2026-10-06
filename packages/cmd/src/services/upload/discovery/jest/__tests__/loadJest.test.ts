@@ -10,7 +10,23 @@ function writePackage(dir: string, name: string, version: string) {
     version,
     main: 'index.js',
   });
-  fs.outputFileSync(join(dir, 'index.js'), `exports.name = '${name}';`);
+  fs.outputFileSync(
+    join(dir, 'index.js'),
+    `exports.name = '${name}'; exports.version = '${version}';`
+  );
+}
+
+// The layout pnpm creates: only jest is resolvable from the project.
+function installJest(version: string) {
+  const jestDir = join(process.cwd(), 'node_modules/jest');
+  const jestCliDir = join(jestDir, 'node_modules/jest-cli');
+  writePackage(jestDir, 'jest', version);
+  writePackage(jestCliDir, 'jest-cli', version);
+  writePackage(
+    join(jestCliDir, 'node_modules/jest-config'),
+    'jest-config',
+    version
+  );
 }
 
 describe('loadJest', () => {
@@ -36,18 +52,27 @@ describe('loadJest', () => {
   });
 
   it('finds jest-cli through jest when only jest is a direct dependency', () => {
-    const jestDir = join(projectDir, 'node_modules/jest');
-    const jestCliDir = join(jestDir, 'node_modules/jest-cli');
-    writePackage(jestDir, 'jest', '30.0.0');
-    writePackage(jestCliDir, 'jest-cli', '30.0.0');
+    installJest('30.0.0');
+
+    expect(loadJestCli()).toMatchObject({
+      name: 'jest-cli',
+      version: '30.0.0',
+    });
+    expect(loadJestConfig()).toMatchObject({ name: 'jest-config' });
+  });
+
+  it('prefers the jest-cli of the project jest over another resolvable jest-cli', () => {
+    installJest('30.0.0');
     writePackage(
-      join(jestCliDir, 'node_modules/jest-config'),
-      'jest-config',
-      '30.0.0'
+      join(projectDir, 'node_modules/jest-cli'),
+      'jest-cli',
+      '28.1.3'
     );
 
-    expect(loadJestCli()).toMatchObject({ name: 'jest-cli' });
-    expect(loadJestConfig()).toMatchObject({ name: 'jest-config' });
+    expect(loadJestCli()).toMatchObject({
+      name: 'jest-cli',
+      version: '30.0.0',
+    });
   });
 
   it('fails with the install command when the project has no Jest', () => {
@@ -57,15 +82,11 @@ describe('loadJest', () => {
     expect(() => loadJestCli()).toThrow('npm install --save-dev jest');
   });
 
-  it('fails when the project has Jest older than 29', () => {
-    writePackage(
-      join(projectDir, 'node_modules/jest-cli'),
-      'jest-cli',
-      '28.1.3'
-    );
+  it('fails when the project has Jest older than 29.5', () => {
+    installJest('29.4.3');
 
     expect(() => loadJestCli()).toThrow(
-      `Jest discovery needs Jest 29 or later, and ${projectDir} has Jest 28.1.3`
+      `Jest discovery needs Jest 29.5 or later, and ${projectDir} has Jest 29.4.3`
     );
   });
 });
