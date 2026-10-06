@@ -1,0 +1,53 @@
+name: Jest versions
+
+# Runs @currents/jest and `currents run upload` with each Jest version that
+# @currents/jest supports. Upload runs the project's Jest to list the suite.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Also tests jest@latest, to find a new major before customers do.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  jest:
+    name: Jest ${{ matrix.jest }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        jest: ${{ fromJSON(github.event_name == 'schedule' && '["29.5.0", "29.7.0", "30", "latest"]' || '["29.5.0", "29.7.0", "30"]') }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.jest }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build and pack @currents/jest and @currents/cmd
+        run: |
+          npx turbo run build --filter=@currents/cmd --filter=@currents/jest
+          mkdir "$RUNNER_TEMP/packs"
+          npm pack --workspace @currents/jest --workspace @currents/cmd --pack-destination "$RUNNER_TEMP/packs"
+
+      - name: Install Jest ${{ matrix.jest }}
+        run: |
+          cp -R .github/jest-versions/project "$RUNNER_TEMP/project"
+          .github/jest-versions/install.sh "$JEST_VERSION" "$RUNNER_TEMP/packs" "$RUNNER_TEMP/project"
+        env:
+          JEST_VERSION: ${{ matrix.jest }}
+
+      - name: Run Jest and upload
+        working-directory: ${{ runner.temp }}/project
+        run: node "$GITHUB_WORKSPACE/.github/jest-versions/check.mjs"
