@@ -1,5 +1,88 @@
 # Changelog
 
+## [2.0.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0...%40currents%2Fcmd-v2.0.0) (2026-10-06)
+
+### ⚠ BREAKING CHANGES
+
+* **cmd:** `currents api get-run` is replaced by `currents run get`.
+  `currents api get-run` still works, with the same options, environment
+  variables and exit codes, but is not listed in the help.
+* **cmd:** `currents api` takes a REST API path and no longer prints
+  the run commands' help. `currents api get-run` still works as a hidden
+  command with the same options as `currents run get`.
+* **cmd:** `currents cancel` is deprecated in favor of
+  `currents run cancel`. It still works, with the same options, environment
+  variables and exit codes, until the next major version.
+* **cmd:** `currents convert` is not listed in the root help. Use
+  `currents run upload --input-format ...` to convert and upload in one
+  command. `currents convert` still works, with the same options and exit codes.
+* **cmd:** `currents upload` is replaced by `currents run upload`.
+  `currents upload` still works, with the same options, environment variables
+  and exit codes, but is not listed in the help.
+* **cmd:** `upload` is no longer the default command. Change
+  `currents ...` to `currents upload ...` in scripts and CI jobs.
+* **cmd:** Command-line options now override environment variables.
+* **cmd:** Node 20 or later is required.
+* **cmd:** run upload --input-format and convert fail when
+  --output-dir or --report-dir names a folder that is not empty.
+
+### Features
+
+* **cmd:** add the skill command ([26961b7](https://github.com/currents-dev/currents-reporter/commit/26961b764b989cd9743d50c13144f0d7f4563c8e))
+* **cmd:** API client and upload for sessions and run attachments ([adcf3d3](https://github.com/currents-dev/currents-reporter/commit/adcf3d3276dad16eceb5d7517766f5679dd2ace3))
+* **cmd:** convert reports in run upload and hide convert ([83ea3b6](https://github.com/currents-dev/currents-reporter/commit/83ea3b6d193d0bfe718386d17569dcf8fc79746a))
+* **cmd:** currents session and currents run attach ([52fab58](https://github.com/currents-dev/currents-reporter/commit/52fab587c784b5e07f029f60207d088024e6efc6))
+* **cmd:** find and pack the files to attach ([55d9e0e](https://github.com/currents-dev/currents-reporter/commit/55d9e0e5bcd5832221df34f9747e639713adc16b))
+* **cmd:** group the commands in the root help ([437ef65](https://github.com/currents-dev/currents-reporter/commit/437ef65f5aa03eb7e0caec423a3efa5b7ad4689c))
+* **cmd:** list one line per command in the root help ([821a46c](https://github.com/currents-dev/currents-reporter/commit/821a46c3d635a97ea6450ab885124db27bdf4704))
+* **cmd:** make currents api a request command for any REST API route ([dafa03a](https://github.com/currents-dev/currents-reporter/commit/dafa03a0d0058853d27f7621d60105ddc62d45d9))
+* **cmd:** move api get-run to run get ([3244b11](https://github.com/currents-dev/currents-reporter/commit/3244b1168cc18a1b36ce99f7b029a05786e57ae9))
+* **cmd:** move cancel under run ([457b495](https://github.com/currents-dev/currents-reporter/commit/457b495a890ec670b5892da6d684935016cf8411))
+* **cmd:** move upload under run ([947a31c](https://github.com/currents-dev/currents-reporter/commit/947a31c6e15a57cfe07f1356706745d2b79cb3a9))
+* **cmd:** show an example of each common command in the root help ([d7393e5](https://github.com/currents-dev/currents-reporter/commit/d7393e5693dbb1c2385797a4312889796ba8bea2))
+* **cmd:** show an example of each run command in run --help ([ce3bc70](https://github.com/currents-dev/currents-reporter/commit/ce3bc709b5306e3f115e0b73e074988e948118b6))
+* **cmd:** stop running upload when no command is given ([d51013e](https://github.com/currents-dev/currents-reporter/commit/d51013eacfc08bb2895c0ac097560272ef3949f2))
+* **cmd:** warn when the default cache ID will be random ([6c64cf3](https://github.com/currents-dev/currents-reporter/commit/6c64cf3c97a0de0a1582201a1bd98ea803d3f06a))
+
+### Bug Fixes
+
+* refresh brace-expansion to the patched releases on every major ([2d1fd31](https://github.com/currents-dev/currents-reporter/commit/2d1fd31b1b55b3c4bfbb0e7813e29145385a51a0))
+* **cmd:** a saved session without an ID is no session; run attach checks its target fields ([8b1f7d2](https://github.com/currents-dev/currents-reporter/commit/8b1f7d2f836092073013eb1592b9749a383e8362))
+* **cmd:** attachFiles requires a key, takes a target only for a run, keeps every meta key ([e46284b](https://github.com/currents-dev/currents-reporter/commit/e46284b9e82817e80282984fe2f95b64de2a7376))
+* **cmd:** attachFiles returns name, type and size, not the path of a removed temporary zip ([3c77f78](https://github.com/currents-dev/currents-reporter/commit/3c77f7856078493f0c901bc9074bf2d88dde1531))
+* **cmd:** bound Retry-After, retry transient S3 4xx, send exactly the measured file size ([b1a4cf3](https://github.com/currents-dev/currents-reporter/commit/b1a4cf3e16d0a5ee33c4a0fa3070724cbd88c632))
+* **cmd:** compare a single-value option and its variable exactly; only list options compare as lists ([27cd19e](https://github.com/currents-dev/currents-reporter/commit/27cd19e4f20dc7e4a6b2b0a652d30752d3f9a717))
+* **cmd:** convert checks every file in the output folder; list options compare as lists; --group needs --spec ([6058843](https://github.com/currents-dev/currents-reporter/commit/605884370f8224b95bcc56fb9802949e5a0aec31))
+* **cmd:** convert reports only into an empty folder ([1be0105](https://github.com/currents-dev/currents-reporter/commit/1be0105e6f4dba8ddc24b4d29c8a22698a345b70))
+* **cmd:** currents api does not repeat a PATCH, keeps a __proto__ field; GitLab examples pin Node ([be1947f](https://github.com/currents-dev/currents-reporter/commit/be1947f43b02c9d3ce5d547846f5204ab2940e28))
+* **cmd:** currents api refuses . and .. path segments; JSON content types match in any case ([840ef2f](https://github.com/currents-dev/currents-reporter/commit/840ef2f50fb1b74c72f6ac85a6e75975e27e07fb))
+* **cmd:** currents api refuses an empty field name, keeps unsafe integers as strings, prints help for api help ([3e59e6a](https://github.com/currents-dev/currents-reporter/commit/3e59e6a4dc2861ada82dbbef7e5b421a7a96bc7a))
+* **cmd:** currents api refuses encoded dot segments, keeps field values as written, keeps keys out of debug output ([6e4ac65](https://github.com/currents-dev/currents-reporter/commit/6e4ac65681fe2e58b49858b0eabee9ddb52cae52))
+* **cmd:** declare at most 100 MiB per attachments request; cleanup errors do not hide the result ([b366d89](https://github.com/currents-dev/currents-reporter/commit/b366d898941600a1f0e79487dafbd31482720152))
+* **cmd:** do not require --machine-id to attach files to a whole run ([1c2fa45](https://github.com/currents-dev/currents-reporter/commit/1c2fa4531736d08467f1c2d9e46dc1333522d3c6))
+* **cmd:** do not save cache paths outside the current folder ([871cb7b](https://github.com/currents-dev/currents-reporter/commit/871cb7beb80da67b0f6dc609fc10fd075de40f70))
+* **cmd:** explain a bare currents with upload variables set; parse ! in the changelog ([4282b7e](https://github.com/currents-dev/currents-reporter/commit/4282b7e99c707fb7279e6bb5e1e04f9e50646c60))
+* **cmd:** hide keys in every debug line ([b03b220](https://github.com/currents-dev/currents-reporter/commit/b03b220d19b44b2d35eda3c9ec35c57159147dd2))
+* **cmd:** keep signed URLs and proxy credentials out of debug output; storage review fixes ([7aff9bc](https://github.com/currents-dev/currents-reporter/commit/7aff9bc3e6660554e4461e3d79374b53c8178e06))
+* **cmd:** keep the JSON of run get alone on stdout ([3757281](https://github.com/currents-dev/currents-reporter/commit/37572811677e89a4dbdbb87953f8fe4790b7aec6))
+* **cmd:** let command-line options win over environment variables ([e389b65](https://github.com/currents-dev/currents-reporter/commit/e389b655eb988f4e25d36cafc851332b345bef2c))
+* **cmd:** point to run upload only for upload options ([0951215](https://github.com/currents-dev/currents-reporter/commit/095121506c45d677fbf0da8403622df667fbd395))
+* **cmd:** refuse --expires-in-days values other than 1, 3 or 7 ([0e71986](https://github.com/currents-dev/currents-reporter/commit/0e71986083caed65bb6b100a1dc59d576d4aaaa4))
+* **cmd:** refuse more environment file names and skip keys in attached folders ([c04ec91](https://github.com/currents-dev/currents-reporter/commit/c04ec91db315536d3df1e7716f5f0a4a340530f6))
+* **cmd:** remove the stray brace from the 401 warning ([16e426e](https://github.com/currents-dev/currents-reporter/commit/16e426e6dc0a866918a6c1f0d37a7aef5dabfdb5))
+* **cmd:** retries, storage errors and credential removal ([9785712](https://github.com/currents-dev/currents-reporter/commit/978571283b164c741230373fe96b3ab2fe086657))
+* **cmd:** retry requests that got 408 ([f622777](https://github.com/currents-dev/currents-reporter/commit/f622777edb725564462e5968b54f7544ddb95aaa))
+* **cmd:** say where run upload looked for reports ([46c0bc9](https://github.com/currents-dev/currents-reporter/commit/46c0bc9bb6300c4a36d3a7a44e362e8efee53be5))
+* **cmd:** storage error text reaches the terminal without control characters or signed queries ([5ee6306](https://github.com/currents-dev/currents-reporter/commit/5ee6306b4bd5cd2cd7e73a0f9efaa77705d34d19))
+* **cmd:** take the commit and its CI fallback from commit-info ([8870c17](https://github.com/currents-dev/currents-reporter/commit/8870c179936f91b9a73512435f6b7825929de8a1))
+* **cmd:** the output folder check stops at the first other file; help and README say what the folder may hold ([bc08819](https://github.com/currents-dev/currents-reporter/commit/bc088195f33848228d8173cb0d1023a0e0a34db0))
+* **cmd:** the saved session state types projectId as optional and returns only known fields ([6d9a062](https://github.com/currents-dev/currents-reporter/commit/6d9a062960dd900dd256fdf18865ba5f555aba8b))
+* **cmd:** warn when an option overrides its environment variable; convert next to the input reports ([f3c5791](https://github.com/currents-dev/currents-reporter/commit/f3c57914d33acf8a008f6c11496fe4c03b811e03))
+
+### Miscellaneous Chores
+
+* **cmd:** upgrade commander to 14 ([726441a](https://github.com/currents-dev/currents-reporter/commit/726441ab2d8a56fdcef539a80b6ccfc81724ff41))
+
 ## [2.0.0-beta.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0...%24%7Bnpm.name%7D-v2.0.0-beta.0) (2026-10-03)
 
 ### ⚠ BREAKING CHANGES
