@@ -1,3 +1,4 @@
+import type { AggregatedResult } from '@jest/reporters';
 import { Config } from '@jest/types';
 import fs from 'fs-extra';
 import { join } from 'path';
@@ -23,9 +24,10 @@ export type FullTestSuite = FullSuiteProject[];
 
 /**
  * `currents run upload` otherwise discovers the test suite by running Jest a
- * second time, which under Detox boots a device and needs a resolvable Detox
- * configuration. The reporter already saw every test, so it writes the file
- * itself - unless Jest ran a subset, where what it saw is not the full suite.
+ * second time, which needs Jest installed where the upload runs, and under
+ * Detox boots a device. The reporter already saw every test, so it writes the
+ * file itself - unless Jest ran a subset or stopped early, where what it saw
+ * is not the full suite.
  */
 export async function writeFullTestSuite(
   reportDir: string,
@@ -38,19 +40,42 @@ export async function writeFullTestSuite(
   return filePath;
 }
 
-export function isPartialRun(globalConfig: Config.GlobalConfig): boolean {
+// Jest 29 has `testPathPattern`, a string. Jest 30 has `testPathPatterns`, a
+// TestPathPatterns instance. --selectProjects and --ignoreProjects filter the
+// projects before Jest builds the global config, so they are read from argv.
+export function isPartialRun(
+  globalConfig: Config.GlobalConfig,
+  argv: Record<string, unknown>
+): boolean {
   const config = globalConfig as Config.GlobalConfig & {
     testPathPattern?: string;
-    testPathPatterns?: string[];
+    testPathPatterns?: { patterns?: string[] };
   };
 
   return Boolean(
     config.shard ||
     config.onlyFailures ||
+    config.onlyChanged ||
+    config.changedSince ||
+    config.lastCommit ||
+    config.findRelatedTests ||
     config.testNamePattern ||
     config.testPathPattern ||
-    config.testPathPatterns?.length ||
-    config.findRelatedTests
+    config.testPathPatterns?.patterns?.length ||
+    argv.selectProjects ||
+    argv.ignoreProjects
+  );
+}
+
+// --bail stops the run after the first failing test files.
+export function isIncompleteRun(result: AggregatedResult): boolean {
+  const finishedTestSuites =
+    result.numPassedTestSuites +
+    result.numFailedTestSuites +
+    result.numPendingTestSuites;
+
+  return (
+    result.wasInterrupted || finishedTestSuites < result.numTotalTestSuites
   );
 }
 

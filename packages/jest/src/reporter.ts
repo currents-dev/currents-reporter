@@ -29,10 +29,12 @@ import {
   getTestCaseStatus,
   FullTestSuite,
   getDetoxSession,
+  getJestArgv,
   getTestRunnerStatus,
   isTestFlaky,
   jestStatusFromInvocations,
   getTestTags,
+  isIncompleteRun,
   isPartialRun,
   mergeInstanceReport,
   readInstanceReport,
@@ -406,15 +408,16 @@ export default class CustomReporter implements Reporter {
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
-    if (this.detoxSession) {
-      // Without this file `currents run upload` lists the tests with a second
-      // Jest run, which for Detox boots a device and installs the app again.
-      if (isPartialRun(this.globalConfig)) {
-        debug('Partial run - not writing the full test suite');
-      } else {
-        await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
-      }
+    if (
+      isPartialRun(this.globalConfig, getJestArgv()) ||
+      isIncompleteRun(fullResult)
+    ) {
+      debug('Partial run - not writing the full test suite');
+    } else {
+      await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
+    }
 
+    if (this.detoxSession) {
       await writeDetoxManifest(
         this.reportDir,
         this.detoxSession,
