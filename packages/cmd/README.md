@@ -10,7 +10,7 @@ Requires Node.js 20 or later.
 npm install @currents/cmd --save-dev
 ```
 
-Outside a project that installs `@currents/cmd`, run `npx --package @currents/cmd currents`. Without the package, `npx currents` runs an unrelated npm package named `currents`.
+Outside a project that installs `@currents/cmd`, run `npx --package @currents/cmd@2 currents`. Without the package, `npx currents` runs an unrelated npm package named `currents`.
 
 Upgrading from 1.x: see [Upgrade @currents/cmd to 2.0](https://docs.currents.dev/resources/reporters/currents-cmd/upgrade-to-v2).
 
@@ -85,10 +85,11 @@ See [Cancel Runs on Workflow Cancellation](https://docs.currents.dev/getting-sta
 
 ## Capture a session as evidence
 
-`currents session` captures an agent or browser session, such as a bug before and after a fix. It needs an API key with write access:
+`currents session` captures an agent or browser session, such as a bug before and after a fix. Each command needs an API key with write access; set it once as `CURRENTS_API_KEY`:
 
 ```sh
-npx currents session start --api-key <api-key> --project-id <id> --title "Checkout fails on empty cart" --status failed
+export CURRENTS_API_KEY=<api-key>
+npx currents session start --project-id <id> --title "Checkout fails on empty cart" --status failed
 npx currents session attach before.png .playwright-mcp/traces
 npx currents session share --expires-in-days 7
 ```
