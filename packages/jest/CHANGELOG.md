@@ -1,5 +1,19 @@
 # Changelog
 
+# [1.5.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.4.0...%40currents%2Fjest-v1.5.0) (2026-10-06)
+
+The reporter writes the list of every test of the suite (`fullTestSuite.json`) for every run of the whole suite, not only for Detox runs. `currents run upload` reads it and does not run Jest, so uploading these results does not need Jest installed where the upload runs.
+
+Runs of part of the suite do not get the list, and upload runs Jest to list the tests: `--shard`, `--onlyFailures`, `--onlyChanged`, `--changedSince`, `--lastCommit`, `--findRelatedTests`, `--testNamePattern`, test path filters, `--selectProjects`, `--ignoreProjects`, and runs that `--bail` stopped. For Detox runs, 1.4.0 wrote a list with only the tests that ran when the run used a test path filter on Jest 30, `--onlyChanged`, `--changedSince`, `--lastCommit`, `--selectProjects` or `--ignoreProjects`, or was stopped by `--bail`. Uploading those runs now runs Jest, which under Detox boots a device.
+
+### Bug Fixes
+
+* remove an earlier run's test list, and skip empty suites ([7cb14f2](https://github.com/currents-dev/currents-reporter/commit/7cb14f25d6398684df2c70f59346921132aab5ff))
+
+### Features
+
+* write the full test suite for every run of the whole suite ([7083f49](https://github.com/currents-dev/currents-reporter/commit/7083f4944a32c50936ed1459c90626e09d5ffb41))
+
 # [1.4.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.3.2...%40currents%2Fjest-v1.4.0) (2026-09-24)
 
 ### Bug Fixes
