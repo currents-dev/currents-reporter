@@ -55,7 +55,7 @@
     "@currents/commit-info": "2.0.0",
     "archiver": "^7.0.1",
     "async-retry": "^1.3.3",
-    "axios": "1.18.1",
+    "axios": "1.20.0",
     "axios-retry": "4.5.0",
     "chalk": "^4.1.2",
     "commander": "^14.0.0",
