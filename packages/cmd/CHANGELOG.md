@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.0...%40currents%2Fcmd-v2.0.1) (2026-10-06)
+
+`@currents/cmd` no longer installs Jest, which removes about 250 packages and all moderate `npm audit` findings from the install. When `@currents/jest` results come from a sharded or filtered run, `currents run upload` runs the Jest installed in the current folder to list every test of the suite. That needs Jest 29.5 or later in that folder; without it, the upload fails with a message that names the install command. Other commands do not need Jest.
+
+### Bug Fixes
+
+* **cmd:** load Jest from the project instead of shipping it ([909ae4b](https://github.com/currents-dev/currents-reporter/commit/909ae4b3f83f7bd985ed4b10e77fe740b9f5ed22))
+* **cmd:** load jest-cli through the project's jest, and need Jest 29.5 ([5c33cd7](https://github.com/currents-dev/currents-reporter/commit/5c33cd74dbe266647f70913c55699867b05e7201))
+* **cmd:** run the Jest that `npx jest` runs in the upload folder ([71132a2](https://github.com/currents-dev/currents-reporter/commit/71132a26c410d1d772f890fb5003519cd27ade76))
+* update axios, vitest and lockfile packages with security fixes ([b00ce45](https://github.com/currents-dev/currents-reporter/commit/b00ce453b1a3172330afb83ffcbcc533b704a79a))
+
 ## [2.0.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v1.11.0...%40currents%2Fcmd-v2.0.0) (2026-10-06)
 
 ### ⚠ BREAKING CHANGES
