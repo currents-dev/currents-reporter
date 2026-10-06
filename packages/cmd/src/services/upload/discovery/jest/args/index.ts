@@ -1,11 +1,13 @@
 import { isEmpty } from 'lodash';
 import { CLIArgs } from '../../../types';
 import { argvToString } from '../../utils';
+import type { ProjectJest } from '../projectJest';
 import { getDiscoveryOptions } from './args';
 import { getConfigFilePath } from './config';
 
 export async function getCLIArgs(
-  cliArgsFromConfig: CLIArgs
+  cliArgsFromConfig: CLIArgs,
+  readInitialOptions: ProjectJest['readInitialOptions']
 ): Promise<{ cliArgs: string[]; configFilePath: string | null }> {
   const testNamePattern = '!!##ThisPatternWillNotMatchAnyTestName##!!';
 
@@ -13,7 +15,10 @@ export async function getCLIArgs(
   const discoveryOptions = getDiscoveryOptions(jestOptions);
   const discoveryOptionsString = argvToString(discoveryOptions);
   const explicitConfigFilePath = jestOptions['config'] as string | undefined;
-  const configFilePath = await getConfigFilePath(explicitConfigFilePath);
+  const configFilePath = await getConfigFilePath(
+    readInitialOptions,
+    explicitConfigFilePath
+  );
 
   const cliArgs = [
     discoveryOptionsString,

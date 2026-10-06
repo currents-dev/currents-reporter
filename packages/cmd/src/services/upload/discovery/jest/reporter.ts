@@ -1,5 +1,5 @@
 import { debug as _debug } from '@debug';
-import {
+import type {
   AggregatedResult,
   Reporter,
   Test,

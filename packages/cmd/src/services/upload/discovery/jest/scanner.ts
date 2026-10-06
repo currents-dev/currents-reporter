@@ -1,6 +1,5 @@
-import { Config } from '@jest/types';
+import type { Config } from '@jest/types';
 import fs from 'fs-extra';
-import { run } from 'jest-cli';
 import tmp from 'tmp';
 
 import { debug as _debug } from '@debug';
@@ -8,6 +7,7 @@ import { readJsonFile } from '@lib';
 import { dim, error } from '@logger';
 import { FullTestSuite } from '../types';
 import { getCLIArgs } from './args';
+import { loadProjectJest } from './projectJest';
 import { retryWithBackoff } from './utils';
 import { readFileContents } from './utils/fs';
 import { CLIArgs } from '../../types';
@@ -18,9 +18,14 @@ export async function jestScanner(
   _config: Config.GlobalConfig,
   cliArgsFromConfig: CLIArgs
 ) {
+  const { run, readInitialOptions } = loadProjectJest();
+
   console.time(dim('@currents/jest:fullTestSuite-ready'));
 
-  const { cliArgs, configFilePath } = await getCLIArgs(cliArgsFromConfig);
+  const { cliArgs, configFilePath } = await getCLIArgs(
+    cliArgsFromConfig,
+    readInitialOptions
+  );
 
   try {
     const tmpFile = tmp.fileSync({ postfix: '.json' });

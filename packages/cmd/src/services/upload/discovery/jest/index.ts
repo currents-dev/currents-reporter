@@ -1,4 +1,4 @@
-import { Config } from '@jest/types';
+import type { Config } from '@jest/types';
 import { ReportConfig } from '../../types';
 import { Scanner } from '../scanner';
 import { FullTestSuite } from '../types';

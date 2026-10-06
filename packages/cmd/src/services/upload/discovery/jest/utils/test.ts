@@ -1,4 +1,4 @@
-import { Test, TestCaseResult } from '@jest/reporters';
+import type { Test, TestCaseResult } from '@jest/reporters';
 import type { Circus } from '@jest/types';
 import crypto from 'node:crypto';
 import { getRelativeFileLocation } from './fs';
