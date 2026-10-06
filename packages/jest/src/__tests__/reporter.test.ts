@@ -40,8 +40,49 @@ describe('reporter', () => {
   it('reports a Jest run', async () => {
     runJest();
 
-    expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+    expect(await fs.readdir(reportDir)).toEqual([
+      'config.json',
+      'fullTestSuite.json',
+      'instances',
+    ]);
     expect(await readReport()).toMatchSnapshot();
+    expect(await readFullTestSuiteSize()).toEqual([
+      ['checks', 8],
+      ['probes', 1],
+    ]);
+  });
+
+  it.each([
+    ['a test path', ['basic']],
+    ['a test name', ['--testNamePattern', 'passes']],
+    ['a shard', ['--shard=1/2']],
+    ['a project', ['--selectProjects', 'checks']],
+  ])(
+    'does not write the full test suite for a run filtered by %s',
+    async (_, args) => {
+      runJest({}, args);
+
+      expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+    }
+  );
+
+  it('removes the full test suite of an earlier run from the report directory', async () => {
+    runJest();
+    runJest({}, ['basic']);
+
+    expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+  });
+
+  it('keeps the full test suite of the first run of a Detox session for a rerun', async () => {
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(0) });
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(1) }, [
+      'retries',
+    ]);
+
+    expect(await readFullTestSuiteSize()).toEqual([
+      ['checks', 8],
+      ['probes', 1],
+    ]);
   });
 
   it('replaces the report of an earlier run', async () => {
@@ -86,15 +127,7 @@ describe('reporter', () => {
       { attempt: 1, session: 0, invocations: 2, status: 'passed' },
     ]);
 
-    const fullTestSuite = await fs.readJson(
-      join(reportDir, 'fullTestSuite.json')
-    );
-    expect(
-      fullTestSuite.map((project: { name: string; tests: unknown[] }) => [
-        project.name,
-        project.tests.length,
-      ])
-    ).toEqual([
+    expect(await readFullTestSuiteSize()).toEqual([
       ['checks', 8],
       ['probes', 1],
     ]);
@@ -163,7 +196,7 @@ describe('reporter', () => {
     ).toEqual([{ attempt: 0, session: 0, invocations: 1, status: 'passed' }]);
   });
 
-  function runJest(env: NodeJS.ProcessEnv = {}) {
+  function runJest(env: NodeJS.ProcessEnv = {}, args: string[] = []) {
     const inheritedEnv = { ...process.env };
     // Set by the Jest process running this test, and read by the one it starts.
     delete inheritedEnv.JEST_WORKER_ID;
@@ -178,6 +211,7 @@ describe('reporter', () => {
           '--config',
           'jest.config.js',
           '--ci',
+          ...args,
         ],
         {
           cwd: projectDir,
@@ -208,6 +242,16 @@ describe('reporter', () => {
       testSessionIndex,
     });
     return sessionFilePath;
+  }
+
+  async function readFullTestSuiteSize() {
+    const fullTestSuite = await fs.readJson(
+      join(reportDir, 'fullTestSuite.json')
+    );
+    return fullTestSuite.map((project: { name: string; tests: unknown[] }) => [
+      project.name,
+      project.tests.length,
+    ]);
   }
 
   async function readReport(): Promise<Report> {

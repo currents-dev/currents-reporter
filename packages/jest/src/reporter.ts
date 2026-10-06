@@ -29,13 +29,17 @@ import {
   getTestCaseStatus,
   FullTestSuite,
   getDetoxSession,
+  getJestArgv,
   getTestRunnerStatus,
   isTestFlaky,
   jestStatusFromInvocations,
   getTestTags,
+  isEmptyTestSuite,
+  isIncompleteRun,
   isPartialRun,
   mergeInstanceReport,
   readInstanceReport,
+  removeFullTestSuite,
   testToSpecName,
   withDefaultProjectName,
   writeDetoxManifest,
@@ -406,15 +410,23 @@ export default class CustomReporter implements Reporter {
   }
 
   async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
-    if (this.detoxSession) {
-      // Without this file `currents run upload` lists the tests with a second
-      // Jest run, which for Detox boots a device and installs the app again.
-      if (isPartialRun(this.globalConfig)) {
-        debug('Partial run - not writing the full test suite');
-      } else {
-        await writeFullTestSuite(this.reportDir, this.getFullTestSuite());
+    const fullTestSuite = this.getFullTestSuite();
+    if (
+      isPartialRun(this.globalConfig, getJestArgv()) ||
+      isIncompleteRun(fullResult) ||
+      isEmptyTestSuite(fullTestSuite)
+    ) {
+      debug('Partial or empty run - not writing the full test suite');
+      // A Detox rerun runs only the failed tests, in the directory where the
+      // first run of the session wrote the full test suite.
+      if (!this.detoxSession?.testSessionIndex) {
+        await removeFullTestSuite(this.reportDir);
       }
+    } else {
+      await writeFullTestSuite(this.reportDir, fullTestSuite);
+    }
 
+    if (this.detoxSession) {
       await writeDetoxManifest(
         this.reportDir,
         this.detoxSession,
