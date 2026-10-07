@@ -49,11 +49,14 @@ export function addTestsFromResults(
   const specsNotInResults: string[] = [];
 
   for (const { projectId, spec } of specs) {
-    // Projects can share spec paths. A Detox project's id differs between
-    // discovery and the results, because discovery runs a rewritten config.
+    // Projects can share spec paths. The id of a single project can differ
+    // between discovery and the results: discovery of a Detox project runs a
+    // rewritten config.
     const instance =
       instances.find((i) => i.spec === spec && i.groupId === projectId) ??
-      instances.find((i) => i.spec === spec);
+      (fullTestSuite.length === 1
+        ? instances.find((i) => i.spec === spec)
+        : undefined);
     if (!instance) {
       specsNotInResults.push(spec);
       continue;

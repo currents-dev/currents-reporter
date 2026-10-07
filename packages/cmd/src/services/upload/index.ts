@@ -340,7 +340,8 @@ function isFullTestSuite(value: unknown): value is FullTestSuite {
           (test: Record<string, unknown> | null) =>
             typeof test?.spec === 'string' &&
             typeof test.testId === 'string' &&
-            Array.isArray(test.title)
+            Array.isArray(test.title) &&
+            test.title.every((part: unknown) => typeof part === 'string')
         )
     )
   );

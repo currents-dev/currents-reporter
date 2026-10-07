@@ -128,4 +128,20 @@ describe('addTestsFromResults', () => {
       ['launch'],
     ]);
   });
+
+  it('takes no tests from another project that ran the same file', () => {
+    const fullTestSuite: FullTestSuite = [
+      { name: 'node', tags: [], tests: [] },
+      { name: 'jsdom', tags: [], tests: [] },
+    ];
+
+    const specsNotInResults = addTestsFromResults(
+      fullTestSuite,
+      [{ projectId: 'jsdom', spec: 'a.test.js' }],
+      [instance('node', 'a.test.js', [['in node']])]
+    );
+
+    expect(specsNotInResults).toEqual(['a.test.js']);
+    expect(fullTestSuite[1].tests).toEqual([]);
+  });
 });

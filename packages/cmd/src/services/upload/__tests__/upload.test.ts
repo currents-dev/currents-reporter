@@ -157,6 +157,11 @@ describe('currents run upload', () => {
       { name: 'empty', contents: '' },
       { name: 'not a list', contents: '{}' },
       { name: 'a list of other values', contents: '[{"name":"root"}]' },
+      {
+        name: 'a list with a title that is not text',
+        contents:
+          '[{"name":"root","tags":[],"tests":[{"spec":"cart.e2e.js","testId":"1","title":[42],"tags":[]}]}]',
+      },
     ])('ignores a fullTestSuite.json that is $name', async ({ contents }) => {
       await writeJestReport({
         frameworkConfig: { rootDir: detoxProjectDir },
