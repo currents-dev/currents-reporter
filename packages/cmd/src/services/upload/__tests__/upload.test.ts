@@ -1,4 +1,5 @@
 import { execFile } from 'child_process';
+import crypto from 'crypto';
 import fs from 'fs-extra';
 import http from 'http';
 import { AddressInfo } from 'net';
@@ -9,6 +10,9 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import zlib from 'zlib';
 
 const fixtureDir = join(__dirname, 'fixtures', 'jest-report');
+// A Jest project whose test environment stands in for Detox's: it appends to
+// DEVICE_LOG where Detox boots a device.
+const detoxProjectDir = join(__dirname, 'fixtures', 'detox-project');
 
 // The built CLI. Pointing this at another build compares the two, e.g. the one
 // on main.
@@ -19,7 +23,10 @@ const cliPath =
 type RunRequest = {
   group: string;
   framework: unknown;
-  fullTestSuite: unknown[];
+  fullTestSuite: {
+    name: string;
+    tests: { spec: string; testId: string; title: string[] }[];
+  }[];
   instances: {
     spec: string;
     results: {
@@ -116,8 +123,238 @@ describe('currents run upload', () => {
     ]);
   });
 
-  async function upload() {
-    await promisify(execFile)(
+  describe('the list of every test of the run', () => {
+    let deviceLog: string;
+    let emptyDir: string;
+
+    beforeEach(async () => {
+      await fs.emptyDir(reportDir);
+      emptyDir = await fs.mkdtemp(join(os.tmpdir(), 'currents-upload-cwd-'));
+      deviceLog = join(emptyDir, 'device.log');
+    });
+
+    afterEach(async () => {
+      await fs.remove(emptyDir);
+    });
+
+    it('takes the tests of a run that is not sharded from the results, without Jest', async () => {
+      await writeJestReport({
+        frameworkConfig: { rootDir: detoxProjectDir },
+        cliArgs: { options: { testNamePattern: 'signs in' }, args: [] },
+        results: { 'login.e2e.js': ['signs in', 'signs out'] },
+      });
+
+      // A folder without Jest
+      await upload({ cwd: emptyDir });
+
+      expect(getFullTestSuite()).toEqual({
+        root: ['login.e2e.js: login signs in', 'login.e2e.js: login signs out'],
+      });
+      expect(runRequests[0].group).toBe('root');
+    });
+
+    it.each([
+      { name: 'empty', contents: '' },
+      { name: 'not a list', contents: '{}' },
+      { name: 'an empty list', contents: '[]' },
+      {
+        name: 'a list with a project without tests',
+        contents: '[{"name":"root","tags":[],"tests":[]}]',
+      },
+      { name: 'a list of other values', contents: '[{"name":"root"}]' },
+      {
+        name: 'a list with a title that is not text',
+        contents:
+          '[{"name":"root","tags":[],"tests":[{"spec":"cart.e2e.js","testId":"1","title":[42],"tags":[]}]}]',
+      },
+    ])('ignores a fullTestSuite.json that is $name', async ({ contents }) => {
+      await writeJestReport({
+        frameworkConfig: { rootDir: detoxProjectDir },
+        cliArgs: { options: {}, args: [] },
+        results: { 'cart.e2e.js': ['adds an item'] },
+      });
+      await fs.writeFile(join(reportDir, 'fullTestSuite.json'), contents);
+
+      await upload({ cwd: emptyDir });
+
+      expect(getFullTestSuite()).toEqual({
+        root: ['cart.e2e.js: cart adds an item'],
+      });
+    });
+
+    it.each([
+      {
+        name: 'a run by detox test',
+        config: 'jest.config.js',
+        originFramework: 'detox',
+      },
+      {
+        name: 'a project with Detox in its Jest config',
+        config: 'jest.detox.config.js',
+        originFramework: undefined,
+      },
+    ])(
+      'lists the tests of a Detox shard without the device: $name',
+      async ({ config, originFramework }) => {
+        await writeJestReport({
+          frameworkConfig: {
+            rootDir: detoxProjectDir,
+            shard: { shardIndex: 1, shardCount: 2 },
+            originFramework,
+          },
+          cliArgs: { options: { config, shard: '1/2' }, args: [] },
+          // launch.e2e.js uses the device while loading, so discovery cannot
+          // load it, and its tests come from these results.
+          results: { 'launch.e2e.js': ['shows the home screen'] },
+        });
+
+        const { stdout, stderr } = await upload({
+          cwd: detoxProjectDir,
+          env: { DEVICE_LOG: deviceLog },
+        });
+
+        expect(await readDeviceLog()).toEqual([]);
+        expect(getFullTestSuite()).toEqual({
+          root: [
+            'cart.e2e.js: cart adds an item',
+            'launch.e2e.js: launch shows the home screen',
+            'login.e2e.js: login signs in',
+            'login.e2e.js: login signs out',
+          ],
+        });
+        expect(stdout + stderr).toContain(
+          'Discovery could not load launch.e2e.js'
+        );
+      }
+    );
+
+    it('lists the tests of a Jest shard with the project test environment', async () => {
+      await writeJestReport({
+        frameworkConfig: {
+          rootDir: detoxProjectDir,
+          shard: { shardIndex: 1, shardCount: 2 },
+        },
+        cliArgs: { options: { shard: '1/2' }, args: [] },
+        results: { 'cart.e2e.js': ['adds an item'] },
+      });
+
+      await upload({ cwd: detoxProjectDir, env: { DEVICE_LOG: deviceLog } });
+
+      expect(await readDeviceLog()).toEqual(['setup', 'setup', 'setup']);
+      expect(getFullTestSuite()).toEqual({
+        root: [
+          'cart.e2e.js: cart adds an item',
+          'launch.e2e.js: launch shows the home screen',
+          'login.e2e.js: login signs in',
+          'login.e2e.js: login signs out',
+        ],
+      });
+    });
+
+    it('fails a JUnit upload whose fullTestSuite.json is not a list of projects', async () => {
+      await writeJestReport({
+        frameworkConfig: {},
+        cliArgs: { options: {}, args: [] },
+        results: { 'cart.e2e.js': ['adds an item'] },
+      });
+      await fs.writeJson(join(reportDir, 'config.json'), {
+        framework: 'junit',
+        frameworkVersion: null,
+        cliArgs: {},
+        frameworkConfig: {},
+      });
+      await fs.writeFile(join(reportDir, 'fullTestSuite.json'), '{}');
+
+      await expect(upload({ cwd: emptyDir })).rejects.toMatchObject({
+        stderr: expect.stringContaining(
+          'Failed to discover the full test suite'
+        ),
+      });
+      expect(runRequests).toEqual([]);
+    });
+
+    it('fails a shard upload where Jest is not installed', async () => {
+      await writeJestReport({
+        frameworkConfig: {
+          rootDir: detoxProjectDir,
+          shard: { shardIndex: 1, shardCount: 2 },
+        },
+        cliArgs: { options: { shard: '1/2' }, args: [] },
+        results: { 'cart.e2e.js': ['adds an item'] },
+      });
+
+      await expect(upload({ cwd: emptyDir })).rejects.toMatchObject({
+        stderr: expect.stringContaining('needs the "jest" package'),
+      });
+      expect(runRequests).toEqual([]);
+    });
+
+    async function readDeviceLog() {
+      if (!(await fs.pathExists(deviceLog))) {
+        return [];
+      }
+      return (await fs.readFile(deviceLog, 'utf8')).trim().split('\n');
+    }
+
+    function getFullTestSuite() {
+      return Object.fromEntries(
+        runRequests[0].fullTestSuite.map((project) => [
+          project.name,
+          project.tests
+            .map((test) => `${test.spec}: ${test.title.join(' ')}`)
+            .sort(),
+        ])
+      );
+    }
+  });
+
+  // A report as @currents/jest writes it, with one passed test per title.
+  async function writeJestReport({
+    frameworkConfig,
+    cliArgs,
+    results,
+  }: {
+    frameworkConfig: Record<string, unknown>;
+    cliArgs: { options: Record<string, unknown>; args: string[] };
+    results: Record<string, string[]>;
+  }) {
+    await fs.writeJson(join(reportDir, 'config.json'), {
+      framework: 'jest',
+      frameworkVersion: '30.0.0',
+      cliArgs,
+      frameworkConfig,
+    });
+
+    for (const [spec, titles] of Object.entries(results)) {
+      const describeTitle = spec.split('.')[0];
+      await fs.outputJson(
+        join(reportDir, 'instances', `${describeTitle}.json`),
+        {
+          // Jest names a project without displayName after its config id.
+          groupId: 'c2b1e7d8f0a94e6b8d3c5a7f9e1b2d4c',
+          spec,
+          startTime: '2026-10-06T00:00:00.000Z',
+          results: {
+            stats: { suites: 1, tests: titles.length, passes: titles.length },
+            tests: titles.map((title) => ({
+              testId: getTestId([describeTitle, title], spec),
+              title: [describeTitle, title],
+              state: 'passed',
+              attempts: [
+                { attempt: 0, status: 'passed', steps: [], errors: [] },
+              ],
+            })),
+          },
+        }
+      );
+    }
+  }
+
+  async function upload({
+    cwd = reportDir,
+    env = {},
+  }: { cwd?: string; env?: Record<string, string> } = {}) {
+    return promisify(execFile)(
       process.execPath,
       [
         cliPath,
@@ -132,7 +369,7 @@ describe('currents run upload', () => {
         '--ci-build-id',
         'build',
       ],
-      { cwd: reportDir, env: { ...process.env, CURRENTS_API_URL: apiUrl } }
+      { cwd, env: { ...process.env, CURRENTS_API_URL: apiUrl, ...env } }
     );
   }
 
@@ -242,6 +479,15 @@ describe('currents run upload', () => {
     );
   }
 });
+
+// The test id the discovery reporter gives a test.
+function getTestId(title: string[], spec: string) {
+  return crypto
+    .createHash('sha256')
+    .update(title.join(' ') + spec)
+    .digest('hex')
+    .substring(0, 16);
+}
 
 function byGroupAndSize(a: RunRequest, b: RunRequest) {
   return (

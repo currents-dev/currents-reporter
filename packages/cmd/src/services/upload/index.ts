@@ -72,23 +72,28 @@ export async function handleCurrentsReport() {
     });
   }
 
-  const fullTestSuiteFileExists = await checkPathExists(fullTestSuiteFilePath);
-  if (fullTestSuiteFileExists) {
-    fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
-    debug('Full test suite file detected: %s', fullTestSuiteFilePath);
+  const instances: InstanceReport[] = [];
+  for (const instanceReport of instanceReportList) {
+    instances.push(await readJsonFile<InstanceReport>(instanceReport));
   }
 
+  fullTestSuite = await readFullTestSuite(fullTestSuiteFilePath);
   if (!fullTestSuite) {
-    const scanner = createScanner(config, reportOptions.reportDir);
-    fullTestSuite = await scanner.getFullTestSuite();
+    const scanner = createScanner(config, reportOptions.reportDir, instances);
+    const discoveredTestSuite: unknown = await scanner.getFullTestSuite();
 
-    if (isEmptyTestSuite(fullTestSuite)) {
+    // The JUnit scanner reads the same fullTestSuite.json again.
+    if (
+      !isFullTestSuite(discoveredTestSuite) ||
+      isEmptyTestSuite(discoveredTestSuite)
+    ) {
       throw new Error('Failed to discover the full test suite!');
     }
+    fullTestSuite = discoveredTestSuite;
 
     await writeFileAsync(fullTestSuiteFilePath, JSON.stringify(fullTestSuite));
   } else {
-    debug('The discovery stage was skipped');
+    debug('Full test suite file detected: %s', fullTestSuiteFilePath);
   }
 
   const defaultGroup =
@@ -116,8 +121,7 @@ export async function handleCurrentsReport() {
   const ci = getCI(currentsConfig.ciBuildId);
 
   const instancesByGroup: Record<string, InstanceReport[]> = {};
-  for await (const instanceReport of instanceReportList) {
-    const report = await readJsonFile<InstanceReport>(instanceReport);
+  for (const report of instances) {
     if (!instancesByGroup[report.groupId]) {
       instancesByGroup[report.groupId] = [];
     }
@@ -307,6 +311,45 @@ function getMarkerFilePath(reportDir: string) {
 
 function getTraceFilePath(reportDir: string) {
   return path.join(reportDir, `.debug-${new Date().toISOString()}.log`);
+}
+
+// @currents/jest before 1.5.1 can leave an empty file when --bail stops the
+// run.
+async function readFullTestSuite(
+  filePath: string
+): Promise<FullTestSuite | null> {
+  if (!(await checkPathExists(filePath))) {
+    return null;
+  }
+  try {
+    const fullTestSuite = await readJsonFile<unknown>(filePath);
+    if (!isFullTestSuite(fullTestSuite) || isEmptyTestSuite(fullTestSuite)) {
+      warn('Ignoring %s, it is not a list of projects and tests', filePath);
+      return null;
+    }
+    return fullTestSuite;
+  } catch (err) {
+    warn('Ignoring %s, it is not valid JSON: %s', filePath, err);
+    return null;
+  }
+}
+
+function isFullTestSuite(value: unknown): value is FullTestSuite {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (project) =>
+        typeof project?.name === 'string' &&
+        Array.isArray(project.tests) &&
+        project.tests.every(
+          (test: Record<string, unknown> | null) =>
+            typeof test?.spec === 'string' &&
+            typeof test.testId === 'string' &&
+            Array.isArray(test.title) &&
+            test.title.every((part: unknown) => typeof part === 'string')
+        )
+    )
+  );
 }
 
 function isEmptyTestSuite(testSuite: FullTestSuite) {
