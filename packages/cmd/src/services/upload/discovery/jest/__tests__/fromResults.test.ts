@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { InstanceReport } from '../../../../../types';
+import { FullTestSuite } from '../../types';
 import { addTestsFromResults, fullTestSuiteFromResults } from '../fromResults';
 
 const configId = 'c2b1e7d8f0a94e6b8d3c5a7f9e1b2d4c';
@@ -90,5 +91,41 @@ describe('addTestsFromResults', () => {
       },
     ]);
     expect(fullTestSuite[1].tests).toEqual([]);
+  });
+
+  it('takes the tests of the file from the project that ran it', () => {
+    const fullTestSuite: FullTestSuite = [
+      { name: 'node', tags: [], tests: [] },
+      { name: 'jsdom', tags: [], tests: [] },
+    ];
+
+    addTestsFromResults(
+      fullTestSuite,
+      [{ projectId: 'jsdom', spec: 'a.test.js' }],
+      [
+        instance('node', 'a.test.js', [['in node']]),
+        instance('jsdom', 'a.test.js', [['in jsdom']]),
+      ]
+    );
+
+    expect(fullTestSuite[1].tests.map((test) => test.title)).toEqual([
+      ['in jsdom'],
+    ]);
+  });
+
+  it('takes the tests of a Detox project, whose id differs in discovery', () => {
+    const fullTestSuite: FullTestSuite = [
+      { name: 'root', tags: [], tests: [] },
+    ];
+
+    addTestsFromResults(
+      fullTestSuite,
+      [{ projectId: 'discovery-config-id', spec: 'launch.e2e.js' }],
+      [instance(configId, 'launch.e2e.js', [['launch']])]
+    );
+
+    expect(fullTestSuite[0].tests.map((test) => test.title)).toEqual([
+      ['launch'],
+    ]);
   });
 });

@@ -153,13 +153,17 @@ describe('currents run upload', () => {
       expect(runRequests[0].group).toBe('root');
     });
 
-    it('ignores an empty fullTestSuite.json', async () => {
+    it.each([
+      { name: 'empty', contents: '' },
+      { name: 'not a list', contents: '{}' },
+      { name: 'a list of other values', contents: '[{"name":"root"}]' },
+    ])('ignores a fullTestSuite.json that is $name', async ({ contents }) => {
       await writeJestReport({
         frameworkConfig: { rootDir: detoxProjectDir },
         cliArgs: { options: {}, args: [] },
         results: { 'cart.e2e.js': ['adds an item'] },
       });
-      await fs.writeFile(join(reportDir, 'fullTestSuite.json'), '');
+      await fs.writeFile(join(reportDir, 'fullTestSuite.json'), contents);
 
       await upload({ cwd: emptyDir });
 

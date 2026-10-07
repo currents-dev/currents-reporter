@@ -46,7 +46,9 @@ export class JestScanner extends Scanner {
     );
     debug('Files that did not run on this shard: %o', specsNotInResults);
 
-    return fullTestSuite;
+    // A project whose files all failed to load and ran on other shards. Those
+    // shards add its tests.
+    return fullTestSuite.filter((project) => project.tests.length > 0);
   }
 }
 

@@ -317,11 +317,33 @@ async function readFullTestSuite(
     return null;
   }
   try {
-    return await readJsonFile<FullTestSuite>(filePath);
+    const fullTestSuite = await readJsonFile<unknown>(filePath);
+    if (!isFullTestSuite(fullTestSuite)) {
+      warn('Ignoring %s, it is not a list of projects and tests', filePath);
+      return null;
+    }
+    return fullTestSuite;
   } catch (err) {
     warn('Ignoring %s, it is not valid JSON: %s', filePath, err);
     return null;
   }
+}
+
+function isFullTestSuite(value: unknown): value is FullTestSuite {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (project) =>
+        typeof project?.name === 'string' &&
+        Array.isArray(project.tests) &&
+        project.tests.every(
+          (test: Record<string, unknown> | null) =>
+            typeof test?.spec === 'string' &&
+            typeof test.testId === 'string' &&
+            Array.isArray(test.title)
+        )
+    )
+  );
 }
 
 function isEmptyTestSuite(testSuite: FullTestSuite) {

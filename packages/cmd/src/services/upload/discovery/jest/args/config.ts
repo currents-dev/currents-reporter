@@ -36,10 +36,15 @@ export async function getConfigFilePath(
   explicitConfigFilePath: string | undefined,
   options: { detox: boolean }
 ): Promise<string | null> {
+  let hasDetoxConfig = options.detox;
   try {
     const { readInitialOptions } = loadJestConfig();
     const { config: initialConfig, configPath } = await readInitialOptions(
       explicitConfigFilePath
+    );
+    hasDetoxConfig ||= [initialConfig, ...(initialConfig.projects ?? [])].some(
+      (project) =>
+        typeof project !== 'string' && isDetoxProject(project as ProjectOptions)
     );
 
     const configOptionsToAvoid = [
@@ -151,7 +156,7 @@ export async function getConfigFilePath(
     debug('error %o', err);
     // Without the rewritten config, discovery of a Detox project would boot
     // a device.
-    if (options.detox) {
+    if (hasDetoxConfig) {
       throw new Error(
         `Failed to recreate the Jest config for discovery: ${(err as Error).message}`
       );
