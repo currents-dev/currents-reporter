@@ -80,11 +80,16 @@ export async function handleCurrentsReport() {
   fullTestSuite = await readFullTestSuite(fullTestSuiteFilePath);
   if (!fullTestSuite) {
     const scanner = createScanner(config, reportOptions.reportDir, instances);
-    fullTestSuite = await scanner.getFullTestSuite();
+    const discoveredTestSuite: unknown = await scanner.getFullTestSuite();
 
-    if (isEmptyTestSuite(fullTestSuite)) {
+    // The JUnit scanner reads the same fullTestSuite.json again.
+    if (
+      !isFullTestSuite(discoveredTestSuite) ||
+      isEmptyTestSuite(discoveredTestSuite)
+    ) {
       throw new Error('Failed to discover the full test suite!');
     }
+    fullTestSuite = discoveredTestSuite;
 
     await writeFileAsync(fullTestSuiteFilePath, JSON.stringify(fullTestSuite));
   } else {

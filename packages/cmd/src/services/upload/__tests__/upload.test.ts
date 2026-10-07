@@ -246,6 +246,28 @@ describe('currents run upload', () => {
       });
     });
 
+    it('fails a JUnit upload whose fullTestSuite.json is not a list of projects', async () => {
+      await writeJestReport({
+        frameworkConfig: {},
+        cliArgs: { options: {}, args: [] },
+        results: { 'cart.e2e.js': ['adds an item'] },
+      });
+      await fs.writeJson(join(reportDir, 'config.json'), {
+        framework: 'junit',
+        frameworkVersion: null,
+        cliArgs: {},
+        frameworkConfig: {},
+      });
+      await fs.writeFile(join(reportDir, 'fullTestSuite.json'), '{}');
+
+      await expect(upload({ cwd: emptyDir })).rejects.toMatchObject({
+        stderr: expect.stringContaining(
+          'Failed to discover the full test suite'
+        ),
+      });
+      expect(runRequests).toEqual([]);
+    });
+
     it('fails a shard upload where Jest is not installed', async () => {
       await writeJestReport({
         frameworkConfig: {
