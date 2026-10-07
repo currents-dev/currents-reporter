@@ -4,9 +4,15 @@ CLI tool for [Currents](https://currents.dev) - a cloud platform for debugging, 
 
 ## Installation
 
+Requires Node.js 20 or later.
+
 ```sh
 npm install @currents/cmd --save-dev
 ```
+
+Outside a project that installs `@currents/cmd`, run `npx --package @currents/cmd@2 currents`. Without the package, `npx currents` runs an unrelated npm package named `currents`.
+
+Upgrading from 1.x: see [Upgrade @currents/cmd to 2.0](https://docs.currents.dev/resources/reporters/currents-cmd/upgrade-to-v2).
 
 ## Upload test results
 
@@ -58,13 +64,45 @@ Please note that all options apart from `--project-id` and `--key` are optional.
 
 An option on the command line wins over its environment variable. The configuration is also available by running the CLI command with the `--help` argument.
 
+## Attach files to a run
+
+`currents run attach` uploads files, such as logs or screenshots, to a run that CI already recorded. It uses the record key, or an API key with write access when no record key is set:
+
+```sh
+npx currents run attach --key <record-key> --project-id <id> --ci-build-id <build-id> --machine-id shard-1 docker-logs.zip
+npx currents run attach --key <record-key> --project-id <id> --ci-build-id <build-id> --spec tests/cart.spec.ts --test-title "adds an item" --attempt 0 screenshot.png
+```
+
+Without `--spec`, the files are attached to the whole run. For the options, run `npx currents run attach --help`.
+
+## Cancel a run
+
+`currents run cancel` cancels a run in progress, for example when its CI job is cancelled. It uses the record key:
+
+```sh
+npx currents run cancel --key <record-key> --project-id <id> --ci-build-id <build-id>
+```
+
+See [Cancel Runs on Workflow Cancellation](https://docs.currents.dev/getting-started/ci-setup/github-actions/cancel-runs) for GitHub Actions.
+
+## Capture a session as evidence
+
+`currents session` captures an agent or browser session, such as a bug before and after a fix. Each command needs an API key with write access; set it once as `CURRENTS_API_KEY`:
+
+```sh
+export CURRENTS_API_KEY=<api-key>
+npx currents session start --project-id <id> --title "Checkout fails on empty cart" --status failed
+npx currents session attach before.png .playwright-mcp/traces
+npx currents session share --expires-in-days 7
+```
+
+`session share` prints a public link to the session page, and a link to the same content as Markdown. For the options, run `npx currents session --help`.
+
 ## Use Currents API
 
-- Retrieve information about Currents resources in [JSON](https://docs.currents.dev/resources/api/api-resources) format
+- Retrieve information about Currents resources in JSON format. See the [REST API](https://docs.currents.dev/api) docs.
 
-ℹ️ Please note that the command is experimental and was primarily built to obtain test run data in CI. Its functionality might be extended in the future.
-
-ℹ️ The command requires the `--project-id` and [`--api-key`](https://docs.currents.dev/resources/api/api-keys#managing-the-api-keys) from [Currents](https://app.currents.dev) to authenticate the request and provide the required data. Alternatively, you can set the `CURRENTS_PROJECT_ID` and `CURRENTS_API_KEY` environment variables.
+ℹ️ The command requires the `--project-id` and [`--api-key`](https://docs.currents.dev/dashboard/administration/api-keys) from [Currents](https://app.currents.dev) to authenticate the request and provide the required data. Alternatively, you can set the `CURRENTS_PROJECT_ID` and `CURRENTS_API_KEY` environment variables.
 
 **Supported operations:**
 
@@ -127,4 +165,6 @@ The skill is also in this repository, in `skills/currents-cli`: `npx skills add 
 
 ## Troubleshooting
 
-Run the CLI command with the `--debug` argument or prefix it with `DEBUG="currents,currents:*"` to obtain detailed information about the command execution process.
+Run the CLI command with the `--debug` argument or prefix it with `DEBUG="currents,currents:*"` to obtain detailed information about the command execution process. Keys are hidden in the debug output.
+
+The full documentation is at https://docs.currents.dev/resources/reporters/currents-cmd.
