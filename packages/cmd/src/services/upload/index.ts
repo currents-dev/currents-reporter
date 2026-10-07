@@ -323,7 +323,7 @@ async function readFullTestSuite(
   }
   try {
     const fullTestSuite = await readJsonFile<unknown>(filePath);
-    if (!isFullTestSuite(fullTestSuite)) {
+    if (!isFullTestSuite(fullTestSuite) || isEmptyTestSuite(fullTestSuite)) {
       warn('Ignoring %s, it is not a list of projects and tests', filePath);
       return null;
     }

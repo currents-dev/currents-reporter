@@ -156,6 +156,11 @@ describe('currents run upload', () => {
     it.each([
       { name: 'empty', contents: '' },
       { name: 'not a list', contents: '{}' },
+      { name: 'an empty list', contents: '[]' },
+      {
+        name: 'a list with a project without tests',
+        contents: '[{"name":"root","tags":[],"tests":[]}]',
+      },
       { name: 'a list of other values', contents: '[{"name":"root"}]' },
       {
         name: 'a list with a title that is not text',
