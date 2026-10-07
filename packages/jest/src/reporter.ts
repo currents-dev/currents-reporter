@@ -29,14 +29,11 @@ import {
   getTestCaseStatus,
   FullTestSuite,
   getDetoxSession,
-  getJestArgv,
   getTestRunnerStatus,
   isTestFlaky,
   jestStatusFromInvocations,
   getTestTags,
   isEmptyTestSuite,
-  isIncompleteRun,
-  isPartialRun,
   mergeInstanceReport,
   readInstanceReport,
   removeFullTestSuite,
@@ -118,14 +115,21 @@ export default class CustomReporter implements Reporter {
 
     this.instancesDir = await createFolder(join(this.reportDir, 'instances'));
 
-    const reportConfig = getReportConfig(this.globalConfig, this.detoxSession);
-    debug('Report config:', reportConfig);
+    // A Detox rerun runs the failed test files without --shard, and upload
+    // reads the shard of the session from config.json.
+    if (!this.detoxSession?.testSessionIndex) {
+      const reportConfig = getReportConfig(
+        this.globalConfig,
+        this.detoxSession
+      );
+      debug('Report config:', reportConfig);
 
-    await writeFileAsync(
-      this.reportDir,
-      'config.json',
-      JSON.stringify(reportConfig)
-    );
+      await writeFileAsync(
+        this.reportDir,
+        'config.json',
+        JSON.stringify(reportConfig)
+      );
+    }
 
     this.reportDirDeferred.resolve();
   }
@@ -409,21 +413,17 @@ export default class CustomReporter implements Reporter {
     // );
   }
 
-  async onRunComplete(test: Set<TestContext>, fullResult: AggregatedResult) {
-    const fullTestSuite = this.getFullTestSuite();
-    if (
-      isPartialRun(this.globalConfig, getJestArgv()) ||
-      isIncompleteRun(fullResult) ||
-      isEmptyTestSuite(fullTestSuite)
-    ) {
-      debug('Partial or empty run - not writing the full test suite');
-      // A Detox rerun runs only the failed tests, in the directory where the
-      // first run of the session wrote the full test suite.
-      if (!this.detoxSession?.testSessionIndex) {
+  async onRunComplete() {
+    // A Detox rerun runs only the failed tests, in the directory where the
+    // first run of the session wrote the full test suite.
+    if (!this.detoxSession?.testSessionIndex) {
+      const fullTestSuite = this.getFullTestSuite();
+      if (this.globalConfig.shard || isEmptyTestSuite(fullTestSuite)) {
+        debug('Sharded or empty run - not writing the full test suite');
         await removeFullTestSuite(this.reportDir);
+      } else {
+        await writeFullTestSuite(this.reportDir, fullTestSuite);
       }
-    } else {
-      await writeFullTestSuite(this.reportDir, fullTestSuite);
     }
 
     if (this.detoxSession) {

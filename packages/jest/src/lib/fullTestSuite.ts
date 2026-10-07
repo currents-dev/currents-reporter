@@ -1,5 +1,3 @@
-import type { AggregatedResult } from '@jest/reporters';
-import { Config } from '@jest/types';
 import fs from 'fs-extra';
 import { join } from 'path';
 import { debug } from './debug';
@@ -23,11 +21,11 @@ export type FullSuiteProject = {
 export type FullTestSuite = FullSuiteProject[];
 
 /**
- * `currents run upload` otherwise discovers the test suite by running Jest a
- * second time, which needs Jest installed where the upload runs, and under
- * Detox boots a device. The reporter already saw every test, so it writes the
- * file itself - unless Jest ran a subset or stopped early, where what it saw
- * is not the full suite.
+ * The list of every test of the run, which `currents run upload` sends.
+ * Without it, @currents/cmd 2.0.1 and earlier run Jest again to list the
+ * tests, which needs Jest where the upload runs, and under Detox boots a
+ * device. A shard does not write it: the other shards ran the rest of the
+ * suite.
  */
 export async function writeFullTestSuite(
   reportDir: string,
@@ -51,45 +49,6 @@ export function isEmptyTestSuite(fullTestSuite: FullTestSuite): boolean {
   return (
     fullTestSuite.length === 0 ||
     fullTestSuite.some((project) => project.tests.length === 0)
-  );
-}
-
-// Jest 29 has `testPathPattern`, a string. Jest 30 has `testPathPatterns`, a
-// TestPathPatterns instance. --selectProjects and --ignoreProjects filter the
-// projects before Jest builds the global config, so they are read from argv.
-export function isPartialRun(
-  globalConfig: Config.GlobalConfig,
-  argv: Record<string, unknown>
-): boolean {
-  const config = globalConfig as Config.GlobalConfig & {
-    testPathPattern?: string;
-    testPathPatterns?: { patterns?: string[] };
-  };
-
-  return Boolean(
-    config.shard ||
-    config.onlyFailures ||
-    config.onlyChanged ||
-    config.changedSince ||
-    config.lastCommit ||
-    config.findRelatedTests ||
-    config.testNamePattern ||
-    config.testPathPattern ||
-    config.testPathPatterns?.patterns?.length ||
-    argv.selectProjects ||
-    argv.ignoreProjects
-  );
-}
-
-// --bail stops the run after the first failing test files.
-export function isIncompleteRun(result: AggregatedResult): boolean {
-  const finishedTestSuites =
-    result.numPassedTestSuites +
-    result.numFailedTestSuites +
-    result.numPendingTestSuites;
-
-  return (
-    result.wasInterrupted || finishedTestSuites < result.numTotalTestSuites
   );
 }
 
