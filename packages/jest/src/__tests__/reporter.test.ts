@@ -53,24 +53,69 @@ describe('reporter', () => {
   });
 
   it.each([
-    ['a test path', ['basic']],
-    ['a test name', ['--testNamePattern', 'passes']],
-    ['a shard', ['--shard=1/2']],
-    ['a project', ['--selectProjects', 'checks']],
+    ['a test path', ['basic'], [['checks', 5]]],
+    [
+      'a test name',
+      ['--testNamePattern', 'passes'],
+      [
+        ['checks', 8],
+        ['probes', 1],
+      ],
+    ],
+    ['a project', ['--selectProjects', 'checks'], [['checks', 8]]],
   ])(
-    'does not write the full test suite for a run filtered by %s',
-    async (_, args) => {
+    'writes the tests of a run filtered by %s',
+    async (_, args, fullTestSuiteSize) => {
       runJest({}, args);
 
-      expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+      expect(await readFullTestSuiteSize()).toEqual(fullTestSuiteSize);
     }
   );
 
-  it('removes the full test suite of an earlier run from the report directory', async () => {
-    runJest();
-    runJest({}, ['basic']);
+  it('does not write the full test suite for a shard', async () => {
+    runJest({}, ['--shard=1/2']);
 
     expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+  });
+
+  it('removes the full test suite of an earlier run from the report directory', async () => {
+    runJest();
+    runJest({}, ['--shard=1/2']);
+
+    expect(await fs.readdir(reportDir)).toEqual(['config.json', 'instances']);
+  });
+
+  it('writes the tests of the files a run stopped by --bail ran', async () => {
+    runJest({}, ['--bail', '--runInBand']);
+
+    const fullTestSuite = await fs.readJson(
+      join(reportDir, 'fullTestSuite.json')
+    );
+    const listedSpecs = new Set(
+      fullTestSuite.flatMap((project: { tests: { spec: string }[] }) =>
+        project.tests.map((test) => test.spec)
+      )
+    );
+    expect([...listedSpecs].sort()).toEqual(
+      Object.keys((await readReport()).instances).sort()
+    );
+  });
+
+  it('keeps the config of the first run of a Detox session for a rerun', async () => {
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(0) }, [
+      '--shard=1/2',
+    ]);
+    // Detox reruns the failed test files without --shard.
+    runJest({ DETOX_CONFIG_SNAPSHOT_PATH: await writeDetoxSession(1) }, [
+      'retries',
+    ]);
+
+    const config = await fs.readJson(join(reportDir, 'config.json'));
+    expect(config.frameworkConfig.shard).toEqual({
+      shardIndex: 1,
+      shardCount: 2,
+    });
+    expect(await fs.readdir(reportDir)).not.toContain('fullTestSuite.json');
   });
 
   it('keeps the full test suite of the first run of a Detox session for a rerun', async () => {
