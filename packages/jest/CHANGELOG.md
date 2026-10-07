@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.5.0...%40currents%2Fjest-v1.5.1) (2026-10-07)
+
+The reporter writes `fullTestSuite.json` for every run that is not sharded. Runs filtered by test name, test path or project, and runs stopped by `--bail`, get the tests of the files that ran. Uploading those runs with `@currents/cmd` 2.0.1 or earlier no longer runs Jest again, which under Detox booted a device. A Detox rerun (`detox test --retries`) keeps the `config.json` of the first run of the session, so the upload of a sharded Detox run with retries sees the shard and lists every test of the suite.
+
+### Bug Fixes
+
+* write the test list unless the run is sharded, and keep the shard of a Detox session ([9096647](https://github.com/currents-dev/currents-reporter/commit/909664778cd9ccf5ea79c9f8b149f4f32cf6df1f))
+
 # [1.5.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.4.0...%40currents%2Fjest-v1.5.0) (2026-10-06)
 
 The reporter writes the list of every test of the suite (`fullTestSuite.json`) for every run of the whole suite, not only for Detox runs. `currents run upload` reads it and does not run Jest, so uploading these results does not need Jest installed where the upload runs.
