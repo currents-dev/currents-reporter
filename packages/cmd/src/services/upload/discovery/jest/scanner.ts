@@ -1,11 +1,10 @@
-import { Config } from '@jest/types';
 import fs from 'fs-extra';
 import tmp from 'tmp';
 
 import { debug as _debug } from '@debug';
 import { readJsonFile } from '@lib';
 import { dim, error } from '@logger';
-import { FullTestSuite } from '../types';
+import { JestDiscoveryResult } from '../types';
 import { getCLIArgs } from './args';
 import { loadJestCli } from './loadJest';
 import { retryWithBackoff } from './utils';
@@ -15,13 +14,16 @@ import { CLIArgs } from '../../types';
 const debug = _debug.extend('jest-discovery');
 
 export async function jestScanner(
-  _config: Config.GlobalConfig,
-  cliArgsFromConfig: CLIArgs
-) {
+  cliArgsFromConfig: CLIArgs,
+  options: { detox: boolean }
+): Promise<JestDiscoveryResult> {
   console.time(dim('@currents/jest:fullTestSuite-ready'));
 
   const { run } = loadJestCli();
-  const { cliArgs, configFilePath } = await getCLIArgs(cliArgsFromConfig);
+  const { cliArgs, configFilePath } = await getCLIArgs(
+    cliArgsFromConfig,
+    options
+  );
 
   try {
     const tmpFile = tmp.fileSync({ postfix: '.json' });
@@ -38,10 +40,10 @@ export async function jestScanner(
     )(tmpFile.name);
     console.timeEnd(dim('@currents/jest:fullTestSuite-ready'));
 
-    return await readJsonFile<FullTestSuite>(tmpFile.name);
+    return await readJsonFile<JestDiscoveryResult>(tmpFile.name);
   } catch (err) {
     error('Failed to obtain the jest full test suite:', err);
-    return [];
+    return { fullTestSuite: [], specsWithoutResults: [] };
   } finally {
     if (configFilePath) {
       fs.unlinkSync(configFilePath);

@@ -72,14 +72,14 @@ export async function handleCurrentsReport() {
     });
   }
 
-  const fullTestSuiteFileExists = await checkPathExists(fullTestSuiteFilePath);
-  if (fullTestSuiteFileExists) {
-    fullTestSuite = await readJsonFile<FullTestSuite>(fullTestSuiteFilePath);
-    debug('Full test suite file detected: %s', fullTestSuiteFilePath);
+  const instances: InstanceReport[] = [];
+  for (const instanceReport of instanceReportList) {
+    instances.push(await readJsonFile<InstanceReport>(instanceReport));
   }
 
+  fullTestSuite = await readFullTestSuite(fullTestSuiteFilePath);
   if (!fullTestSuite) {
-    const scanner = createScanner(config, reportOptions.reportDir);
+    const scanner = createScanner(config, reportOptions.reportDir, instances);
     fullTestSuite = await scanner.getFullTestSuite();
 
     if (isEmptyTestSuite(fullTestSuite)) {
@@ -88,7 +88,7 @@ export async function handleCurrentsReport() {
 
     await writeFileAsync(fullTestSuiteFilePath, JSON.stringify(fullTestSuite));
   } else {
-    debug('The discovery stage was skipped');
+    debug('Full test suite file detected: %s', fullTestSuiteFilePath);
   }
 
   const defaultGroup =
@@ -116,8 +116,7 @@ export async function handleCurrentsReport() {
   const ci = getCI(currentsConfig.ciBuildId);
 
   const instancesByGroup: Record<string, InstanceReport[]> = {};
-  for await (const instanceReport of instanceReportList) {
-    const report = await readJsonFile<InstanceReport>(instanceReport);
+  for (const report of instances) {
     if (!instancesByGroup[report.groupId]) {
       instancesByGroup[report.groupId] = [];
     }
@@ -307,6 +306,22 @@ function getMarkerFilePath(reportDir: string) {
 
 function getTraceFilePath(reportDir: string) {
   return path.join(reportDir, `.debug-${new Date().toISOString()}.log`);
+}
+
+// @currents/jest before 1.5.1 can leave an empty file when --bail stops the
+// run.
+async function readFullTestSuite(
+  filePath: string
+): Promise<FullTestSuite | null> {
+  if (!(await checkPathExists(filePath))) {
+    return null;
+  }
+  try {
+    return await readJsonFile<FullTestSuite>(filePath);
+  } catch (err) {
+    warn('Ignoring %s, it is not valid JSON: %s', filePath, err);
+    return null;
+  }
 }
 
 function isEmptyTestSuite(testSuite: FullTestSuite) {

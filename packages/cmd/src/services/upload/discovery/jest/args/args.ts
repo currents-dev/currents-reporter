@@ -34,6 +34,7 @@ const ignoredOptions = [
   'showConfig',
   'showSeed',
   'silent',
+  'testFailureExitCode',
   'testNamePattern',
   'verbose',
   'waitNextEventLoopTurnForUnhandledRejectionEvents',

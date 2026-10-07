@@ -9,8 +9,32 @@ import { readFileContents } from '../utils/fs';
 
 const debug = _debug.extend('jest-discovery');
 
+type ProjectOptions = Record<string, unknown>;
+
+// Detox boots a device in its test environment's setup(), which Jest calls
+// for every test file, also when no test runs. Its globalSetup fails outside
+// `detox test` when the Detox config has several configurations. Discovery
+// loads the files of a Detox project in the node environment instead.
+function isDetoxProject(project: ProjectOptions) {
+  return ['testEnvironment', 'globalSetup', 'globalTeardown'].some((key) =>
+    String(project[key] ?? '').includes('detox')
+  );
+}
+
+function withoutDetox<T extends ProjectOptions>(project: T): T {
+  return {
+    ...omit(project, [
+      'globalSetup',
+      'globalTeardown',
+      'testEnvironmentOptions',
+    ]),
+    testEnvironment: 'node',
+  } as unknown as T;
+}
+
 export async function getConfigFilePath(
-  explicitConfigFilePath?: string
+  explicitConfigFilePath: string | undefined,
+  options: { detox: boolean }
 ): Promise<string | null> {
   try {
     const { readInitialOptions } = loadJestConfig();
@@ -79,14 +103,25 @@ export async function getConfigFilePath(
       'watchPathIgnorePatterns',
     ];
 
-    const parsedConfigObject = omit(initialConfig, configOptionsToAvoid);
+    const useNodeEnvironment = (project: ProjectOptions) =>
+      options.detox || isDetoxProject(project);
+
+    let parsedConfigObject = omit(initialConfig, configOptionsToAvoid);
+    if (useNodeEnvironment(parsedConfigObject)) {
+      parsedConfigObject = withoutDetox(parsedConfigObject);
+    }
 
     if (parsedConfigObject.projects) {
       parsedConfigObject.projects = parsedConfigObject.projects.map(
-        (project) =>
-          typeof project !== 'string'
-            ? omit(project, projectConfigOptionsToAvoid)
-            : project
+        (project) => {
+          if (typeof project === 'string') {
+            return project;
+          }
+          const discoveryProject = omit(project, projectConfigOptionsToAvoid);
+          return useNodeEnvironment(discoveryProject)
+            ? withoutDetox(discoveryProject)
+            : discoveryProject;
+        }
       );
     }
 
@@ -113,8 +148,15 @@ export async function getConfigFilePath(
 
     return tmpFilePath;
   } catch (err) {
-    error('Failed to recreate the config file');
     debug('error %o', err);
+    // Without the rewritten config, discovery of a Detox project would boot
+    // a device.
+    if (options.detox) {
+      throw new Error(
+        `Failed to recreate the Jest config for discovery: ${(err as Error).message}`
+      );
+    }
+    error('Failed to recreate the config file');
     return null;
   }
 }

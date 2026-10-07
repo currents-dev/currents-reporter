@@ -16,13 +16,13 @@ import {
   testToSpecName,
 } from './utils/test';
 
-import { dim, error } from '@logger';
-import { FullSuiteProject, FullSuiteTest, FullTestSuite } from '../types';
+import { dim } from '@logger';
+import { FullSuiteProject, FullSuiteTest, JestDiscoveryResult } from '../types';
 
 const debug = _debug.extend('jest-discovery');
 
 export default class DiscoveryReporter implements Reporter {
-  private specsWithoutResultsCount = 0;
+  private specsWithoutResults: JestDiscoveryResult['specsWithoutResults'] = [];
   private fullTestSuite: Record<
     string,
     Omit<FullSuiteProject, 'tests'> & {
@@ -55,7 +55,11 @@ export default class DiscoveryReporter implements Reporter {
         spec,
         testResult.failureMessage
       );
-      this.specsWithoutResultsCount += 1;
+      this.specsWithoutResults.push({
+        projectId,
+        spec,
+        message: testResult.failureMessage ?? '',
+      });
     } else {
       this.fullTestSuite[projectId].tests.push(
         ...testResult.testResults.map((tc) => {
@@ -80,15 +84,13 @@ export default class DiscoveryReporter implements Reporter {
       throw new Error('CURRENTS_DISCOVERY_PATH is not set');
     }
 
-    let fullTestSuite: FullTestSuite = [];
-    if (this.specsWithoutResultsCount > 0) {
-      error('Incomplete full test suite! Run the command with --debug flag.');
-    } else {
-      fullTestSuite = this.getFullTestSuite(testContexts);
-      debug('onRunComplete %s, %o', filePath, fullTestSuite);
-    }
+    const result: JestDiscoveryResult = {
+      fullTestSuite: this.getFullTestSuite(testContexts),
+      specsWithoutResults: this.specsWithoutResults,
+    };
+    debug('onRunComplete %s, %o', filePath, result);
 
-    await fs.writeFile(filePath, JSON.stringify(fullTestSuite), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(result), 'utf8');
 
     console.timeEnd(dim('@currents/jest-discovery'));
   }
