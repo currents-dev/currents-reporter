@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.2](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.1...%40currents%2Fcmd-v2.0.2) (2026-10-07)
+
+`currents run upload` no longer boots a Detox device, and it runs Jest only to list the tests of a sharded run. A run that is not sharded, also one filtered with `-t`, a test path, `--selectProjects` or `--onlyChanged`, or stopped by `--bail`, takes the list from its results, so its upload does not need Jest in the current folder. A Detox shard is listed with Jest's `node` environment and without Detox's `globalSetup` and `globalTeardown`. A `fullTestSuite.json` that is empty, invalid or lists no tests is ignored. A shard upload without Jest in the current folder still fails, as in 2.0.1.
+
+### Bug Fixes
+
+* **cmd:** list the tests from the results unless the run is sharded, and never boot a Detox device ([11977ab](https://github.com/currents-dev/currents-reporter/commit/11977ab55d914fbc7f871fff7a300868569da5e0))
+* **cmd:** check the test list file, match results by project, and keep a Detox config from booting a device ([97be070](https://github.com/currents-dev/currents-reporter/commit/97be070ab3634adc7a519d58a05bccd45f547450))
+* **cmd:** match a shared spec to its own project, and check that test titles are text ([6e1e957](https://github.com/currents-dev/currents-reporter/commit/6e1e9575f00e5255afb5472ca304b62cddfe28e5))
+* **cmd:** fail with a clear error when the discovered test list is malformed ([a52a30f](https://github.com/currents-dev/currents-reporter/commit/a52a30ffd0353e6082ae1d17c457dfb8f3ee2177))
+* **cmd:** ignore a saved test list without tests ([2571750](https://github.com/currents-dev/currents-reporter/commit/257175065e845ec09fedd5a90d3881fdf2c6f82e))
+
 ## [2.0.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.0...%40currents%2Fcmd-v2.0.1) (2026-10-06)
 
 `@currents/cmd` no longer installs Jest, which removes about 250 packages and all moderate `npm audit` findings from the install. To upload `@currents/jest` results, `currents run upload` runs the Jest installed in the current folder to list every test of the suite. That needs Jest 29.5 or later in that folder; without it, the upload fails with a message that names the install command. Uploads of Detox runs that are not sharded or filtered, and all other commands, do not need Jest.
