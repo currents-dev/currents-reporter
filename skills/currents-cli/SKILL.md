@@ -118,7 +118,7 @@ When a command fails:
 - Never print, echo, log or commit a record key or an API key, and do not put a key in a command you show to the user. Write `<record-key>` or refer to the environment variable.
 - `session start` writes `.currents-session/session.json` and a `.gitignore` that keeps the folder out of git. Do not commit the folder and do not delete that `.gitignore`.
 - Anyone with a session share link can open what you attach. Attach only test data and files from development accounts.
-- `run attach` and `session attach` refuse files named `.env` or `.env.*`. In a folder you pass, they skip hidden files, links and subfolders. Do not rename or copy files to get around this.
+- `run attach` and `session attach` refuse files named `.env` or `.env.*`. In a folder you pass, they skip hidden files and folders, and links. Do not rename or copy files to get around this.
 
 ## References
 

@@ -5,7 +5,7 @@ import path from 'path';
 import unzipper from 'unzipper';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { collectFiles } from '../collect';
-import { ALLOWED_TYPES, getFileLevel } from '../levels';
+import { ALLOWED_TYPES, getFileLevel, SESSION_ALLOWED_TYPES } from '../levels';
 import { assertTypeMatchesFile, getContentType, getFileType } from '../detect';
 import { keepNetworkLine, mergeNetworkFiles } from '../packTrace';
 import {
@@ -103,10 +103,10 @@ describe('collectFiles', () => {
     await fs.remove(dir);
   });
 
-  it('collects a file and the files directly in a folder', async () => {
+  it('collects a file and every file under a folder, named by its path in the folder', async () => {
     const logs = path.join(dir, 'logs');
     await fs.outputFile(path.join(logs, 'a.log'), 'aaa');
-    await fs.outputFile(path.join(logs, 'nested', 'b.log'), 'b');
+    await fs.outputFile(path.join(logs, 'nested', 'deeper', 'b.log'), 'b');
     await fs.outputFile(path.join(dir, 'shot.png'), 'png');
 
     const { files, cleanup } = await collectFiles(
@@ -115,9 +115,40 @@ describe('collectFiles', () => {
     );
     await cleanup();
 
-    expect(files.map((f) => [f.name, f.type, f.sizeBytes])).toEqual([
-      ['shot.png', 'screenshot', 3],
+    expect(files.map((f) => [f.name, f.type, f.sizeBytes]).sort()).toEqual([
       ['a.log', 'attachment', 3],
+      ['nested/deeper/b.log', 'attachment', 1],
+      ['shot.png', 'screenshot', 3],
+    ]);
+  });
+
+  it('attaches a Playwright Test results folder with its traces typed as traces', async () => {
+    const results = path.join(dir, 'test-results');
+    for (const test of ['login-chromium', 'login-firefox']) {
+      await fs.outputFile(path.join(results, test, 'test-failed-1.png'), 'png');
+      await fs.outputFile(path.join(results, test, 'video.webm'), 'webm');
+      const archive = Archiver('zip');
+      const out = fs.createWriteStream(path.join(results, test, 'trace.zip'));
+      archive.pipe(out);
+      archive.append('{}', { name: 'test.trace' });
+      archive.append('{}', { name: '0-trace.trace' });
+      archive.append('x', { name: 'resources/r1' });
+      await archive.finalize();
+      await new Promise((resolve) => out.on('close', resolve));
+    }
+    await fs.outputFile(path.join(results, '.last-run.json'), '{}');
+
+    const { files, cleanup } = await collectFiles([results], {
+      allowedTypes: SESSION_ALLOWED_TYPES,
+    });
+    await cleanup();
+    expect(files.map((f) => [f.name, f.type]).sort()).toEqual([
+      ['login-chromium/test-failed-1.png', 'screenshot'],
+      ['login-chromium/trace.zip', 'trace'],
+      ['login-chromium/video.webm', 'video'],
+      ['login-firefox/test-failed-1.png', 'screenshot'],
+      ['login-firefox/trace.zip', 'trace'],
+      ['login-firefox/video.webm', 'video'],
     ]);
   });
 
@@ -184,7 +215,7 @@ describe('collectFiles', () => {
     expect(files[0].type).toBe('attachment');
   });
 
-  it('leaves out hidden files, links, folders and empty files of a folder', async () => {
+  it('leaves out hidden files and folders, links and empty files of a folder', async () => {
     const logs = path.join(dir, 'logs');
     await fs.outputFile(path.join(logs, 'a.log'), 'a');
     await fs.outputFile(path.join(logs, '.env'), 'SECRET=1');
@@ -194,7 +225,8 @@ describe('collectFiles', () => {
       .ensureSymlink(path.join(dir, 'outside.txt'), path.join(logs, 'link.txt'))
       .catch(() => undefined);
     await fs.outputFile(path.join(dir, 'outside.txt'), 'outside');
-    await fs.outputFile(path.join(logs, 'sub', 'b.log'), 'b');
+    await fs.outputFile(path.join(logs, '.cache', 'b.log'), 'b');
+    await fs.outputFile(path.join(logs, 'sub', '.env'), 'SECRET=1');
 
     const { files, cleanup } = await collectFiles([logs], {
       allowedTypes: ALLOWED_TYPES.run,
@@ -251,7 +283,23 @@ describe('collectFiles', () => {
     ]);
   });
 
-  it('makes a zip a trace only when it holds trace.trace', async () => {
+  it('packs a Playwright MCP trace folder deeper in a folder, named by where it sits', async () => {
+    const out = path.join(dir, 'out');
+    await fs.outputFile(
+      path.join(out, 'run-1', 'mcp', 'trace-1.trace'),
+      '{}\n'
+    );
+    await fs.outputFile(path.join(out, 'run-1', 'mcp', 'page-1.yml'), '- a');
+    const { files, cleanup } = await collectFiles([out], {
+      allowedTypes: ALLOWED_TYPES.attempt,
+    });
+    await cleanup();
+    expect(files.map((f) => [f.type, f.name.replace(/-\w{8}/, '-x')])).toEqual([
+      ['trace', 'run-1/trace-x.zip'],
+    ]);
+  });
+
+  it('makes a zip a trace only when it holds a .trace file at its top', async () => {
     const zip = async (name: string, entry: string) => {
       const archive = Archiver('zip');
       const out = fs.createWriteStream(path.join(dir, name));
@@ -262,13 +310,20 @@ describe('collectFiles', () => {
       return path.join(dir, name);
     };
     const { files, cleanup } = await collectFiles(
-      [await zip('logs.zip', 'docker.log'), await zip('t.zip', 'trace.trace')],
+      [
+        await zip('logs.zip', 'docker.log'),
+        await zip('nested.zip', 'logs/a.trace'),
+        await zip('t.zip', 'trace.trace'),
+        await zip('pw.zip', 'test.trace'),
+      ],
       { allowedTypes: ALLOWED_TYPES.attempt }
     );
     await cleanup();
     expect(files.map((f) => [f.name, f.type])).toEqual([
       ['logs.zip', 'attachment'],
+      ['nested.zip', 'attachment'],
       ['t.zip', 'trace'],
+      ['pw.zip', 'trace'],
     ]);
   });
 
@@ -319,6 +374,24 @@ describe('attachFiles', () => {
     await expect(
       attachFiles({ credentials: {}, owner: { sessionId: 's' }, paths: [] })
     ).rejects.toThrow('Pass an API key or a record key');
+  });
+
+  it('refuses more files than the API takes before sending a request', async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'attach-'));
+    try {
+      for (let i = 0; i < 201; i++) {
+        await fs.outputFile(path.join(dir, `test-${i}`, 'a.log'), 'a');
+      }
+      await expect(
+        attachFiles({
+          credentials: { apiKey: 'k' },
+          owner: { sessionId: 's' },
+          paths: [dir],
+        })
+      ).rejects.toThrow('Found 201 files to attach; the API takes at most 200');
+    } finally {
+      await fs.remove(dir);
+    }
   });
 });
 

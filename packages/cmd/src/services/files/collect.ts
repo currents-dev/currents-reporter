@@ -75,42 +75,53 @@ async function toLocalFile(
 }
 
 /**
- * The files directly in a folder. Hidden files, links, and key and secrets
- * files are left out, with a warning: a folder passed on purpose is not a reason to publish what happens
- * to sit in it.
+ * The files in a folder and its subfolders, named by their path from the
+ * folder, such as `login-chromium/trace.zip`: Playwright Test writes one
+ * subfolder per test, each with the same file names. Hidden files and folders,
+ * links, and key and secrets files are left out, with a warning: a folder
+ * passed on purpose is not a reason to publish what happens to sit in it.
+ * A subfolder holding Playwright MCP `trace-*.trace` files goes to
+ * `addPackedTrace` instead of being walked.
  */
 async function toLocalFilesInFolder(
-  folder: string,
+  root: string,
   options: CollectOptions,
-  packedFolder?: string
+  addPackedTrace: (traceFolder: string, namePrefix: string) => Promise<void>
 ) {
   const files: LocalFile[] = [];
-  for (const entry of await fs.readdir(folder, { withFileTypes: true })) {
-    const entryPath = path.join(folder, entry.name);
-    if (entry.name.startsWith('.')) {
-      warn(`Skipping the hidden file "${entryPath}"`);
-    } else if (KEY_FILE.test(entry.name) || ENV_FILE.test(entry.name)) {
-      warn(`Skipping "${entryPath}", which looks like a key or secrets file`);
-    } else if (entry.isSymbolicLink()) {
-      warn(`Skipping the link "${entryPath}"`);
-    } else if (entry.isDirectory()) {
-      if (entryPath === packedFolder) continue;
-      warn(`Skipping the folder "${entryPath}"`);
-    } else if (entry.isFile()) {
-      if ((await fs.stat(entryPath)).size === 0) {
-        warn(`Skipping the empty file "${entryPath}"`);
-        continue;
+  const walk = async (folder: string) => {
+    for (const entry of await fs.readdir(folder, { withFileTypes: true })) {
+      const entryPath = path.join(folder, entry.name);
+      const name = path.relative(root, entryPath).split(path.sep).join('/');
+      if (entry.name.startsWith('.')) {
+        warn(`Skipping the hidden file "${entryPath}"`);
+      } else if (KEY_FILE.test(entry.name) || ENV_FILE.test(entry.name)) {
+        warn(`Skipping "${entryPath}", which looks like a key or secrets file`);
+      } else if (entry.isSymbolicLink()) {
+        warn(`Skipping the link "${entryPath}"`);
+      } else if (entry.isDirectory()) {
+        if (await isTraceFolder(entryPath)) {
+          await addPackedTrace(entryPath, path.posix.dirname(name));
+        } else {
+          await walk(entryPath);
+        }
+      } else if (entry.isFile()) {
+        if ((await fs.stat(entryPath)).size === 0) {
+          warn(`Skipping the empty file "${entryPath}"`);
+          continue;
+        }
+        files.push(await toLocalFile(entryPath, name, options));
       }
-      files.push(await toLocalFile(entryPath, entry.name, options));
     }
-  }
+  };
+  await walk(root);
   return files;
 }
 
 /**
- * Expands files and folders into the files to upload. A folder gives each file
- * directly in it. A folder holding Playwright MCP `trace-*.trace` files, or a
- * `traces` folder that does (the MCP output folder), gives one packed trace zip.
+ * Expands files and folders into the files to upload. A folder gives every
+ * file under it. A folder holding Playwright MCP `trace-*.trace` files gives
+ * one packed trace zip, wherever it sits.
  */
 export async function collectFiles(
   inputs: string[],
@@ -122,13 +133,14 @@ export async function collectFiles(
     await Promise.all(cleanups.map((fn) => fn()));
   };
 
-  const addPackedTrace = async (traceFolder: string) => {
+  const addPackedTrace = async (traceFolder: string, namePrefix = '.') => {
     const packed = await packTraceFolder(traceFolder);
     cleanups.push(packed.cleanup);
     // The API refuses two traces with one name on an attempt, so a retried
     // attach needs a name of its own.
+    const name = path.posix.join(namePrefix, `trace-${getNanoid(8)}.zip`);
     files.push(
-      await toLocalFile(packed.zipPath, `trace-${getNanoid(8)}.zip`, {
+      await toLocalFile(packed.zipPath, name, {
         ...options,
         type: options.type ?? getFileType('trace.zip', options.allowedTypes),
       })
@@ -150,16 +162,9 @@ export async function collectFiles(
         continue;
       }
 
-      const tracesFolder = path.join(input, 'traces');
-      let packedFolder: string | undefined;
-      if (
-        (await fs.pathExists(tracesFolder)) &&
-        (await isTraceFolder(tracesFolder))
-      ) {
-        await addPackedTrace(tracesFolder);
-        packedFolder = tracesFolder;
-      }
-      files.push(...(await toLocalFilesInFolder(input, options, packedFolder)));
+      files.push(
+        ...(await toLocalFilesInFolder(input, options, addPackedTrace))
+      );
     }
   } catch (e) {
     await cleanup();
