@@ -299,7 +299,7 @@ describe('collectFiles', () => {
     ]);
   });
 
-  it('makes a zip a trace only when it holds a .trace file at its top', async () => {
+  it('makes a zip a trace only when it holds a Playwright trace file at its top', async () => {
     const zip = async (name: string, entry: string) => {
       const archive = Archiver('zip');
       const out = fs.createWriteStream(path.join(dir, name));
@@ -312,9 +312,11 @@ describe('collectFiles', () => {
     const { files, cleanup } = await collectFiles(
       [
         await zip('logs.zip', 'docker.log'),
-        await zip('nested.zip', 'logs/a.trace'),
+        await zip('nested.zip', 'logs/trace.trace'),
+        await zip('debug.zip', 'debug.trace'),
         await zip('t.zip', 'trace.trace'),
         await zip('pw.zip', 'test.trace'),
+        await zip('context.zip', '1-trace.trace'),
       ],
       { allowedTypes: ALLOWED_TYPES.attempt }
     );
@@ -322,8 +324,10 @@ describe('collectFiles', () => {
     expect(files.map((f) => [f.name, f.type])).toEqual([
       ['logs.zip', 'attachment'],
       ['nested.zip', 'attachment'],
+      ['debug.zip', 'attachment'],
       ['t.zip', 'trace'],
       ['pw.zip', 'trace'],
+      ['context.zip', 'trace'],
     ]);
   });
 

@@ -30,7 +30,7 @@ currents session share --expires-in-days 7
 
 `session attach` takes files and folders:
 
-- A file is uploaded as it is. Its type comes from its name: `.png`, `.jpg`, `.jpeg`, `.webp` and `.gif` are screenshots, `.webm` and `.mp4` are videos, and a `.zip` with a `.trace` file at its top, such as a Playwright Test `trace.zip`, is a trace. Anything else is an attachment. `--type` sets the type.
+- A file is uploaded as it is. Its type comes from its name: `.png`, `.jpg`, `.jpeg`, `.webp` and `.gif` are screenshots, `.webm` and `.mp4` are videos, and a `.zip` made by Playwright, such as a Playwright Test `trace.zip`, is a trace. Anything else is an attachment. `--type` sets the type.
 - A folder adds every file under it, subfolders included. Each file is named by its path in the folder, such as `login-chromium/trace.zip`, so a Playwright `test-results` folder attaches in one command. Hidden files and folders, links and empty files are skipped, with a warning.
 - A folder that holds `trace-*.trace` files, the one you pass or one inside it, is packed into one trace zip, and nothing else in it is attached. This is how the Playwright MCP output folder is attached.
 - A session takes at most 200 files. A folder with more fails before anything is uploaded; pass the subfolders you need instead.
