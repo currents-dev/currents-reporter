@@ -56,16 +56,19 @@ function assertCIBuildIdDetectable() {
 }
 
 export async function handleSessionStart(config: SessionStartConfig) {
-  const session = await createSession(config.apiKey, {
-    projectId: config.projectId,
-    title: config.title,
-    status: config.status,
-    error: config.error,
-    tags: config.tag,
-    commit: await getCommit(),
-    ci: getCIParams(),
-    pr: parsePr(config.pr),
-  });
+  const session = await createSession(
+    { apiKey: config.apiKey, recordKey: config.recordKey },
+    {
+      projectId: config.projectId,
+      title: config.title,
+      status: config.status,
+      error: config.error,
+      tags: config.tag,
+      commit: await getCommit(),
+      ci: getCIParams(),
+      pr: parsePr(config.pr),
+    }
+  );
 
   await saveSessionState({
     sessionId: session.sessionId,
@@ -88,7 +91,7 @@ export async function handleSessionAttach(
 ) {
   const sessionId = await resolveSessionId(config.sessionId);
   return attachFiles({
-    credentials: { apiKey: config.apiKey },
+    credentials: { apiKey: config.apiKey, recordKey: config.recordKey },
     owner: { sessionId },
     paths,
     type: config.type,
@@ -99,11 +102,14 @@ export async function handleSessionAttach(
 
 export async function handleSessionShare(config: SessionShareConfig) {
   const sessionId = await resolveSessionId(config.sessionId);
-  const share = await createShare(config.apiKey, {
-    sessionId,
-    purpose: 'report',
-    expiresInDays: config.expiresInDays as 1 | 3 | 7 | undefined,
-  });
+  const share = await createShare(
+    { apiKey: config.apiKey, recordKey: config.recordKey },
+    {
+      sessionId,
+      purpose: 'report',
+      expiresInDays: config.expiresInDays as 1 | 3 | 7 | undefined,
+    }
+  );
   info(share.pageUrl);
   // A person opens the page; an agent reads the markdown.
   info('Markdown: %s', share.url);

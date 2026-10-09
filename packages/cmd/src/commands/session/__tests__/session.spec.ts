@@ -104,7 +104,7 @@ describe('session and run attach commands', () => {
     ]);
 
     expect(createSession).toHaveBeenCalledWith(
-      'k',
+      { apiKey: 'k' },
       expect.objectContaining({
         projectId: 'proj',
         title: 'Bug',
@@ -267,11 +267,14 @@ describe('session and run attach commands', () => {
       '--expires-in-days',
       '3',
     ]);
-    expect(createShare).toHaveBeenCalledWith('k', {
-      sessionId: 'sess-1',
-      purpose: 'report',
-      expiresInDays: 3,
-    });
+    expect(createShare).toHaveBeenCalledWith(
+      { apiKey: 'k' },
+      {
+        sessionId: 'sess-1',
+        purpose: 'report',
+        expiresInDays: 3,
+      }
+    );
     expect(vi.mocked(console.log).mock.calls[0][0]).toBe('https://share/x');
   });
 

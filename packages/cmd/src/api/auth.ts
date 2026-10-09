@@ -1,8 +1,9 @@
 export type ApiCredentials = { apiKey?: string; recordKey?: string };
 
 /**
- * A record key goes in `x-currents-key`, and only the files routes accept it.
- * It wins when both are set, as in `currents run upload`.
+ * A record key goes in `x-currents-key`. Only the routes that create and
+ * attach to sessions and runs, and share a session, accept it. It wins when
+ * both are set, as in `currents run upload`.
  */
 export function getAuthHeaders({ apiKey, recordKey }: ApiCredentials) {
   if (recordKey) return { 'x-currents-key': recordKey };

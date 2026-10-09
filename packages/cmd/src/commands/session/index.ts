@@ -11,8 +11,14 @@ import {
 } from '../../services/session';
 import { formatExamples, HelpExample } from '../help';
 import { commandHandler, printLogsToStderr } from '../utils';
-import { apiKeyOption, debugOption, projectOption } from '../options';
 import {
+  apiKeyOption,
+  debugOption,
+  projectOption,
+  recordKeyOption,
+} from '../options';
+import {
+  API_KEY_NOTE,
   captionOption,
   errorOption,
   expiresInDaysOption,
@@ -20,12 +26,12 @@ import {
   metaOption,
   PATHS_DESCRIPTION,
   prOption,
+  RECORD_KEY_NOTE,
   sessionIdOption,
   sessionTagOption,
   sessionTypeOption,
   statusOption,
   titleOption,
-  WRITE_ACCESS,
 } from './options';
 
 const COMMAND_NAME = 'session';
@@ -65,7 +71,8 @@ const getStartCommand = (name: string) =>
     .description(
       'Create a session and save its ID to .currents-session/session.json in the current folder, where "attach" and "share" read it'
     )
-    .addOption(apiKeyOption(WRITE_ACCESS))
+    .addOption(recordKeyOption(RECORD_KEY_NOTE))
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(projectOption())
     .addOption(titleOption)
     .addOption(statusOption)
@@ -75,11 +82,13 @@ const getStartCommand = (name: string) =>
     .addOption(jsonOption)
     .addOption(debugOption())
     .action(async (options) => {
-      await commandHandler(async (opts) => {
+      await commandHandler(async ({ key, ...opts }) => {
         if (opts.json) {
           printLogsToStderr();
         }
-        await handleSessionStart(getSessionStartConfig(opts));
+        await handleSessionStart(
+          getSessionStartConfig({ ...opts, recordKey: key })
+        );
       }, options);
     });
 
@@ -92,15 +101,19 @@ const getAttachCommand = (name: string) =>
       'Upload files, folders or a Playwright MCP trace folder to the session'
     )
     .argument('<paths...>', PATHS_DESCRIPTION)
-    .addOption(apiKeyOption(WRITE_ACCESS))
+    .addOption(recordKeyOption(RECORD_KEY_NOTE))
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
     .addOption(sessionTypeOption)
     .addOption(captionOption)
     .addOption(metaOption)
     .addOption(debugOption())
     .action(async (paths, options) => {
-      await commandHandler(async (opts) => {
-        await handleSessionAttach(getSessionAttachConfig(opts), paths);
+      await commandHandler(async ({ key, ...opts }) => {
+        await handleSessionAttach(
+          getSessionAttachConfig({ ...opts, recordKey: key }),
+          paths
+        );
       }, options);
     });
 
@@ -112,13 +125,16 @@ const getShareCommand = (name: string) =>
     .description(
       'Create a public link to the session page and print it. The second line, "Markdown: <url>", is the address of the same content as Markdown, for agents'
     )
-    .addOption(apiKeyOption(WRITE_ACCESS))
+    .addOption(recordKeyOption(RECORD_KEY_NOTE))
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
     .addOption(expiresInDaysOption)
     .addOption(debugOption())
     .action(async (options) => {
-      await commandHandler(async (opts) => {
-        await handleSessionShare(getSessionShareConfig(opts));
+      await commandHandler(async ({ key, ...opts }) => {
+        await handleSessionShare(
+          getSessionShareConfig({ ...opts, recordKey: key })
+        );
       }, options);
     });
 

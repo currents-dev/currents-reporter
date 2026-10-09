@@ -91,11 +91,14 @@ export type CreateSessionResponse = {
   sessionId: string;
 };
 
-export function createSession(apiKey: string, params: CreateSessionParams) {
+export function createSession(
+  credentials: ApiCredentials,
+  params: CreateSessionParams
+) {
   debug('Create session params: %o', params);
   return post<CreateSessionResponse, CreateSessionParams>(
     'v1/sessions',
-    { apiKey },
+    credentials,
     params
   );
 }
@@ -176,10 +179,13 @@ export type CreateShareResponse = {
   expiresAt: string;
 };
 
-export function createShare(apiKey: string, params: CreateShareParams) {
+export function createShare(
+  credentials: ApiCredentials,
+  params: CreateShareParams
+) {
   return post<CreateShareResponse, CreateShareParams>(
     'v1/share',
-    { apiKey },
+    credentials,
     params
   );
 }

@@ -76,7 +76,7 @@ Each command takes one kind of key. Both come from the Currents dashboard.
 | ---------------------------------------------------- | --------------------------------------------------- | -------------------- | ----------------------------------------- |
 | `run upload`, `run cancel`, `cache set`, `cache get` | record key                                          | `--key`              | `CURRENTS_RECORD_KEY`                     |
 | `run attach`                                         | record key, or an API key when no record key is set | `--key`, `--api-key` | `CURRENTS_RECORD_KEY`, `CURRENTS_API_KEY` |
-| `session start`, `session attach`, `session share`   | API key with write access                           | `--api-key`          | `CURRENTS_API_KEY`                        |
+| `session start`, `session attach`, `session share`   | record key, or an API key when no record key is set | `--key`, `--api-key` | `CURRENTS_RECORD_KEY`, `CURRENTS_API_KEY` |
 | `run get`, `api`                                     | API key                                             | `--api-key`          | `CURRENTS_API_KEY`                        |
 
 Other environment variables the commands read:
