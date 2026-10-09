@@ -11,6 +11,7 @@ These are the commands from `currents session --help`:
 ```bash
 currents session start --api-key <api-key> --project-id <id> --title "Checkout fails on empty cart" --status failed
 currents session attach before.png .playwright-mcp/traces
+currents session attach test-results
 currents session share --expires-in-days 7
 ```
 
@@ -29,9 +30,10 @@ currents session share --expires-in-days 7
 
 `session attach` takes files and folders:
 
-- A file is uploaded as it is. Its type comes from its name: `.png`, `.jpg`, `.jpeg`, `.webp` and `.gif` are screenshots, `.webm` and `.mp4` are videos, and a `.zip` that holds `trace.trace` is a trace. Anything else is an attachment. `--type` sets the type.
-- A folder that holds `trace-*.trace` files is packed into one trace zip, and nothing else in it is attached. A folder with a `traces/` subfolder that holds them adds the packed trace and its own files. This is how the Playwright MCP output folder is attached.
-- Of any other folder, only the files directly in it are attached. Hidden files, links, subfolders and empty files are skipped, with a warning.
+- A file is uploaded as it is. Its type comes from its name: `.png`, `.jpg`, `.jpeg`, `.webp` and `.gif` are screenshots, `.webm` and `.mp4` are videos, and a `.zip` made by Playwright, such as a Playwright Test `trace.zip`, is a trace. Anything else is an attachment. `--type` sets the type.
+- A folder adds every file under it, subfolders included. Each file is named by its path in the folder, such as `login-chromium/trace.zip`, so a Playwright `test-results` folder attaches in one command. Hidden files and folders, links and empty files are skipped, with a warning.
+- A folder that holds `trace-*.trace` files, the one you pass or one inside it, is packed into one trace zip, and nothing else in it is attached. This is how the Playwright MCP output folder is attached.
+- A session takes at most 200 files. A folder with more fails before anything is uploaded; pass the subfolders you need instead.
 - A file named `.env` or `.env.*` is refused, and the command fails. So is an empty file named on the command line, and a file larger than 1 GiB.
 - `--caption` adds a short description to each file, and `--meta key=value` adds a label (repeat it for more labels).
 

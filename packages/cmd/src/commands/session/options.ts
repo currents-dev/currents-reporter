@@ -93,7 +93,7 @@ export const runTypeOption = new Option(
 ).choices(FILE_TYPES);
 
 export const PATHS_DESCRIPTION =
-  'files or folders to attach. A folder adds the files directly in it; hidden files, links, subfolders and empty files in it are skipped. A folder of Playwright MCP trace-*.trace files is packed into one trace and nothing else in it is attached; a folder with such a traces/ subfolder adds the packed trace and its own files. Files named .env or .env.* are refused, and each file can be at most 1 GiB';
+  'files or folders to attach. A folder adds every file under it, named by its path in the folder, such as login-chromium/trace.zip, so a Playwright test-results folder attaches in one go; hidden files and folders, links and empty files in it are skipped. A folder of Playwright MCP trace-*.trace files, at the top or inside, is packed into one trace and nothing else in it is attached. At most 200 files, each at most 1 GiB; files named .env or .env.* are refused';
 
 export const captionOption = new Option(
   '--caption <text>',

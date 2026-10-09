@@ -5,13 +5,17 @@ import unzipper from 'unzipper';
 import { dir as tmpDir } from 'tmp-promise';
 
 /**
- * A zip is a trace when it holds `trace.trace`, as the zip made from a Playwright
- * trace folder does. Any other zip, such as a folder of logs, is an attachment.
+ * A zip is a trace when it holds, at its top, `trace.trace` (the zip packed
+ * from a Playwright MCP trace folder), or `test.trace` or `<n>-trace.trace`
+ * (a Playwright Test `trace.zip`, one per browser context). Any other zip, such
+ * as a folder of logs, is an attachment.
  */
 export async function isTraceZip(zipPath: string) {
   try {
     const archive = await unzipper.Open.file(zipPath);
-    return archive.files.some((file) => file.path === 'trace.trace');
+    return archive.files.some((file) =>
+      /^(trace|test|\d+-trace)\.trace$/.test(file.path)
+    );
   } catch {
     return false;
   }

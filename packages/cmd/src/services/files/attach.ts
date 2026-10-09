@@ -76,8 +76,8 @@ const MAX_FILES_PER_REQUEST = 50;
  */
 export const MAX_BYTES_PER_REQUEST = 100 * 1024 ** 2;
 
-/** The most files an instance takes through the API. */
-const MAX_FILES_PER_INSTANCE = 200;
+/** The most files a session, an instance or a run takes through the API. */
+const MAX_FILES_PER_OWNER = 200;
 
 export function chunkFiles(
   files: LocalFile[],
@@ -122,9 +122,10 @@ export async function attachFiles(params: AttachParams) {
     allowedTypes,
   });
 
-  if (files.length > MAX_FILES_PER_INSTANCE) {
-    warn(
-      `Attaching ${files.length} files. An instance takes up to ${MAX_FILES_PER_INSTANCE} files through the API, so the rest may be refused`
+  if (files.length > MAX_FILES_PER_OWNER) {
+    await cleanup();
+    throw new Error(
+      `Found ${files.length} files to attach; the API takes at most ${MAX_FILES_PER_OWNER}. Pass the folders or files you need instead`
     );
   }
 
