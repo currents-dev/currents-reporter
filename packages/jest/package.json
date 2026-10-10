@@ -23,7 +23,7 @@
     "publish:npm": "npm run rm  && npm run build && ./publish.js"
   },
   "devDependencies": {
-    "@jest/reporters": "^30.4.1",
+    "@jest/reporters": "^30.5.0",
     "@jest/types": "^30.4.1",
     "@release-it/conventional-changelog": "^12.0.0",
     "release-it": "^21.0.2",
