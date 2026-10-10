@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.2...%40currents%2Fcmd-v2.1.0) (2026-10-10)
+
+`currents session attach` and `currents run attach` take a folder and attach every file under it, not only the files directly in it. Each file is named by its path inside the folder, for example `login-chromium/trace.zip`, so files with the same name in two test folders stay apart. Without `--type`, a zip is typed as a trace only when it holds the trace files Playwright writes, so a Playwright Test `trace.zip` is attached as a trace in a session, and in `run attach` with `--test-title` and `--attempt`. Other `run attach` targets take no traces, so there it stays a plain attachment. More than 200 files fails before any upload.
+
+`currents session start`, `attach` and `share` take a record key with `-k, --key` or `CURRENTS_RECORD_KEY`, as `currents run attach` does. When both `CURRENTS_RECORD_KEY` and `CURRENTS_API_KEY` are set, these commands use the record key. A CI job that sets both keys now uses the record key for session commands, and a Currents server without record-key support for sessions returns 401. To keep the old behavior, set only `CURRENTS_API_KEY`.
+
+### Features
+
+* **cmd:** attach every file under a folder, with Playwright Test traces typed as traces ([c0d5d5e](https://github.com/currents-dev/currents-reporter/commit/c0d5d5e233f904f526fc64a520504bcee1169874))
+* **cmd:** take a record key in currents session start, attach and share [ENG-1750] ([b47d8f9](https://github.com/currents-dev/currents-reporter/commit/b47d8f9f1bb0bc9e23898738b19fc30ea3b19f6e))
+
+### Bug Fixes
+
+* **cmd:** type a zip as a trace only by the trace file names Playwright writes ([97d51ba](https://github.com/currents-dev/currents-reporter/commit/97d51bad2e7e0c04f880b599b30db3b3994c9ab4))
+
 ## [2.0.2](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.1...%40currents%2Fcmd-v2.0.2) (2026-10-07)
 
 `currents run upload` no longer boots a Detox device, and it runs Jest only to list the tests of a sharded run. A run that is not sharded, also one filtered with `-t`, a test path, `--selectProjects` or `--onlyChanged`, or stopped by `--bail`, takes the list from its results, so its upload does not need Jest in the current folder. A Detox shard is listed with Jest's `node` environment and without Detox's `globalSetup` and `globalTeardown`. A `fullTestSuite.json` that is empty, invalid or lists no tests is ignored. A shard upload without Jest in the current folder still fails, as in 2.0.1.
