@@ -87,7 +87,7 @@ See [Cancel Runs on Workflow Cancellation](https://docs.currents.dev/getting-sta
 
 ## Capture a session as evidence
 
-`currents session` captures an agent or browser session, such as a bug before and after a fix. Each command needs an API key with write access; set it once as `CURRENTS_API_KEY`:
+`currents session` captures an agent or browser session, such as a bug before and after a fix. Each command uses the record key, or an API key with write access when no record key is set. In CI, where `CURRENTS_RECORD_KEY` is already set, nothing else is needed; elsewhere, set an API key once as `CURRENTS_API_KEY`:
 
 ```sh
 export CURRENTS_API_KEY=<api-key>

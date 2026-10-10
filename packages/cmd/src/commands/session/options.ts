@@ -6,7 +6,8 @@ import { recordedCiBuildIdOption, tagOption } from '../options';
 const env = (key: keyof typeof configKeys) =>
   getEnvironmentVariableName(configKeys, key);
 
-export const WRITE_ACCESS = '(required; needs write access)';
+export const RECORD_KEY_NOTE = '(required unless --api-key is set)';
+export const API_KEY_NOTE = '(used when --key is not set; needs write access)';
 
 export const ciBuildIdOption = recordedCiBuildIdOption(
   '. Leave it out only if the run was recorded without one, on a CI the reporters recognize'

@@ -166,6 +166,34 @@ describe('session and run attach with the built CLI', () => {
       expect(request.json).not.toHaveProperty('ciBuildId');
     });
 
+    it('sends a record key in x-currents-key, and it wins over an API key', async () => {
+      const result = await run([
+        'session',
+        'start',
+        '--key',
+        'record-key',
+        '-p',
+        'project',
+        '--title',
+        't',
+      ]);
+      await start('--key', 'record-key');
+
+      expect(result.code).toBe(0);
+      for (const request of posts()) {
+        expect(request.headers['x-currents-key']).toBe('record-key');
+        expect(request.headers.authorization).toBeUndefined();
+      }
+    });
+
+    it('takes the record key from CURRENTS_RECORD_KEY', async () => {
+      await run(['session', 'start', '-p', 'project', '--title', 't'], {
+        CURRENTS_RECORD_KEY: 'record-key',
+      });
+
+      expect(posts()[0].headers['x-currents-key']).toBe('record-key');
+    });
+
     it('sends the pull request link as a link', async () => {
       await start('--pr', 'https://github.com/org/repo/pull/12');
 
@@ -203,9 +231,9 @@ describe('session and run attach with the built CLI', () => {
 
     it.each([
       [
-        'no API key',
+        'no credential',
         ['session', 'start', '-p', 'project', '--title', 't'],
-        'API key is required',
+        'Record key or API key is required',
       ],
       [
         'no project ID',
@@ -301,6 +329,34 @@ describe('session and run attach with the built CLI', () => {
       expect(uploads()[0].headers['content-type']).toBe('image/png');
     });
 
+    it('declares files with a record key', async () => {
+      await start('--json');
+      api.requests.length = 0;
+
+      const result = await run([
+        'session',
+        'attach',
+        '--key',
+        'record-key',
+        'before.png',
+      ]);
+
+      expect(result.code).toBe(0);
+      expect(posts()[0].headers['x-currents-key']).toBe('record-key');
+      expect(posts()[0].headers.authorization).toBeUndefined();
+    });
+
+    it('exits with 1 and sends nothing without a credential', async () => {
+      await start('--json');
+      api.requests.length = 0;
+
+      const result = await run(['session', 'attach', 'before.png']);
+
+      expect(result.code).toBe(1);
+      expect(result.stderr).toContain('Record key or API key is required');
+      expect(api.requests).toEqual([]);
+    });
+
     it('uses --session-id instead of the saved session', async () => {
       await start('--json');
       api.requests.length = 0;
@@ -369,6 +425,18 @@ describe('session and run attach with the built CLI', () => {
         purpose: 'report',
         expiresInDays: 7,
       });
+    });
+
+    it('shares with a record key', async () => {
+      await start('--json');
+      api.requests.length = 0;
+
+      const result = await run(['session', 'share', '--key', 'record-key']);
+
+      expect(result.code).toBe(0);
+      expect(posts()[0].url).toBe('/v1/share');
+      expect(posts()[0].headers['x-currents-key']).toBe('record-key');
+      expect(posts()[0].headers.authorization).toBeUndefined();
     });
 
     it('exits with 1 for a number of days the API does not take', async () => {

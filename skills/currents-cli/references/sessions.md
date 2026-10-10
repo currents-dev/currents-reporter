@@ -2,7 +2,7 @@
 
 A session holds the files of an ad-hoc, one-off agent or browser session, such as screenshots, a Playwright MCP trace and logs, and gives a link to share them. Use it as evidence: a bug before and after a fix, or proof that something works.
 
-The session commands need an API key with write access, in `CURRENTS_API_KEY` or `--api-key`.
+The session commands use the record key, in `CURRENTS_RECORD_KEY` or `--key`, or an API key with write access, in `CURRENTS_API_KEY` or `--api-key`, when no record key is set. The record key wins when both are set.
 
 ## Flow
 
@@ -70,7 +70,7 @@ curl -sL "<markdown url>"
 ## Errors
 
 - `No session found`: `session start` did not run in this folder. Run it here, or pass `--session-id`.
-- 401 or 403 from `session start`: `CURRENTS_API_KEY` is missing, or the key has no write access.
+- 401 or 403 from `session start`: the key is wrong, the API key has no write access, or the Currents server is too old to take a record key on the session routes.
 - 404 from `session start`: the project ID does not belong to the organization of the key.
 - 403 from `session share`: the organization turned public sharing off. Report the files you have without a link.
 - `<n> of <m> files could not be uploaded`: the other files were attached. Attach only the failed files again.

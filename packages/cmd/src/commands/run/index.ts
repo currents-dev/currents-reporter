@@ -12,6 +12,7 @@ import {
   recordKeyOption,
 } from '../options';
 import {
+  API_KEY_NOTE,
   attemptOption,
   captionOption,
   ciBuildIdOption,
@@ -19,6 +20,7 @@ import {
   machineIdOption,
   metaOption,
   PATHS_DESCRIPTION,
+  RECORD_KEY_NOTE,
   runTypeOption,
   specOption,
   testTitleOption,
@@ -49,8 +51,8 @@ const getAttachCommand = (name: string) =>
     .addHelpText('after', formatExamples(getRunAttachExamples(name)))
     .description('Upload files to a run recorded in CI')
     .argument('<paths...>', PATHS_DESCRIPTION)
-    .addOption(recordKeyOption('(required unless --api-key is set)'))
-    .addOption(apiKeyOption('(used when --key is not set; needs write access)'))
+    .addOption(recordKeyOption(RECORD_KEY_NOTE))
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(projectOption())
     .addOption(ciBuildIdOption)
     .addOption(machineIdOption)

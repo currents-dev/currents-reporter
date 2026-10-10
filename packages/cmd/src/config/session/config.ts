@@ -5,8 +5,13 @@ import { configKeys } from './env';
 
 const debug = _debug.extend('config');
 
-export type SessionStartConfig = {
-  apiKey: string;
+/** A record key, sent when set, or an API key with write access. */
+type Credentials = {
+  apiKey?: string;
+  recordKey?: string;
+};
+
+export type SessionStartConfig = Credentials & {
   projectId: string;
   title: string;
   status: 'passed' | 'failed';
@@ -21,8 +26,7 @@ export type SessionStartConfig = {
  * Where attached files go. Without a run ID the session saved by
  * `session start` is used.
  */
-export type SessionAttachConfig = {
-  apiKey: string;
+export type SessionAttachConfig = Credentials & {
   sessionId?: string;
   type?: string;
   caption?: string;
@@ -30,16 +34,13 @@ export type SessionAttachConfig = {
   debug?: boolean;
 };
 
-export type SessionShareConfig = {
-  apiKey: string;
+export type SessionShareConfig = Credentials & {
   sessionId?: string;
   expiresInDays?: number;
   debug?: boolean;
 };
 
-export type RunAttachConfig = {
-  apiKey?: string;
-  recordKey?: string;
+export type RunAttachConfig = Credentials & {
   projectId: string;
   /** Without it the CI environment tells the API which run this is. */
   ciBuildId?: string;
@@ -57,8 +58,9 @@ export type RunAttachConfig = {
 export function getSessionStartConfig(options?: Partial<SessionStartConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionStartConfig>(
     configKeys,
-    ['apiKey', 'projectId', 'title'],
-    options
+    ['projectId', 'title'],
+    options,
+    requireCredentials
   );
   debug('Resolved config: %o', maskKeys(config));
   return config;
@@ -67,8 +69,9 @@ export function getSessionStartConfig(options?: Partial<SessionStartConfig>) {
 export function getSessionAttachConfig(options?: Partial<SessionAttachConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionAttachConfig>(
     configKeys,
-    ['apiKey'],
-    options
+    [],
+    options,
+    requireCredentials
   );
   debug('Resolved config: %o', maskKeys(config));
   return config;
@@ -77,8 +80,9 @@ export function getSessionAttachConfig(options?: Partial<SessionAttachConfig>) {
 export function getSessionShareConfig(options?: Partial<SessionShareConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionShareConfig>(
     configKeys,
-    ['apiKey'],
-    options
+    [],
+    options,
+    requireCredentials
   );
   debug('Resolved config: %o', maskKeys(config));
   return config;
@@ -95,7 +99,7 @@ export function getRunAttachConfig(options?: Partial<RunAttachConfig>) {
   return config;
 }
 
-function requireCredentials(config: RunAttachConfig) {
+function requireCredentials(config: Credentials) {
   if (config.recordKey || config.apiKey) return;
   throw new ValidationError(
     `${configKeys.recordKey.name} or ${configKeys.apiKey.name} is required. Set ${configKeys.recordKey.env} or ${configKeys.apiKey.env}, or pass ${configKeys.recordKey.cli} or ${configKeys.apiKey.cli}`
