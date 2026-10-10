@@ -2,15 +2,19 @@ import { Command } from '@commander-js/extra-typings';
 import fs from 'fs-extra';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { getProgram } from '../../../bin/program';
+import { getProgram } from '../../bin/program';
+import { getDocsFolder } from '../docs/docs';
+import { getSkillFolder } from '../skill/skill';
 
-const skillFolder = path.resolve(
-  __dirname,
-  '../../../../../../skills/currents-cli'
-);
-const skillFiles = fs
-  .readdirSync(skillFolder, { recursive: true, encoding: 'utf8' })
-  .filter((file) => file.endsWith('.md'));
+const docsFolder = getDocsFolder();
+const topics = fs
+  .readdirSync(docsFolder)
+  .filter((file) => file.endsWith('.md'))
+  .map((file) => path.basename(file, '.md'));
+const markdownFiles = [
+  path.join(getSkillFolder(), 'SKILL.md'),
+  ...topics.map((topic) => path.join(docsFolder, `${topic}.md`)),
+];
 
 // The lines of the fenced code blocks, with the lines that end in "\" joined
 // to the next one.
@@ -32,6 +36,13 @@ function codeLines(markdown: string) {
     pending = '';
   }
   return lines;
+}
+
+// The text of the inline code spans outside the fenced code blocks.
+function inlineCode(markdown: string) {
+  return markdown
+    .split(/^\s*```.*$[\s\S]*?^\s*```\s*$/m)
+    .flatMap((text) => [...text.matchAll(/`([^`\n]+)`/g)].map((m) => m[1]));
 }
 
 // The currents commands in a line: "currents ..." at the start of a line, or
@@ -68,9 +79,25 @@ function checkCommand(program: Command, line: string) {
     i++;
   }
   const path = command === program ? 'currents' : command.name();
+  // `currents <command> --help`, `currents session --help`
+  const isPlaceholder = args[i]?.startsWith('<');
+  const isHelp = args[i] === '--help' || args[i] === '-h';
   // `currents api <path>` has a hidden subcommand and takes a path.
-  if (command.commands.length > 0 && command.registeredArguments.length === 0) {
+  if (
+    command.commands.length > 0 &&
+    command.registeredArguments.length === 0 &&
+    !isPlaceholder &&
+    !isHelp
+  ) {
     return [`"${line}": "${args[i]}" is not a command of ${path}`];
+  }
+  if (
+    path === 'docs' &&
+    args[i] &&
+    !isPlaceholder &&
+    !topics.includes(args[i])
+  ) {
+    problems.push(`"${line}": "${args[i]}" is not a topic of docs`);
   }
   for (const word of args.slice(i)) {
     if (!word.startsWith('-')) continue;
@@ -83,16 +110,19 @@ function checkCommand(program: Command, line: string) {
   return problems;
 }
 
-describe('commands in the currents-cli skill', () => {
+describe('commands in the skill and the guides', () => {
   const program = getProgram() as unknown as Command;
-  const commands = skillFiles.flatMap((file) =>
-    codeLines(fs.readFileSync(path.join(skillFolder, file), 'utf8'))
+  const commands = markdownFiles.flatMap((filePath) => {
+    const markdown = fs.readFileSync(filePath, 'utf8');
+    const file = path.basename(filePath);
+    return [...codeLines(markdown), ...inlineCode(markdown)]
       .flatMap(currentsCommands)
-      .map((command) => ({ file, command }))
-  );
+      .map((command) => ({ file, command }));
+  });
 
   it('finds commands in every file', () => {
-    for (const file of skillFiles) {
+    for (const filePath of markdownFiles) {
+      const file = path.basename(filePath);
       expect(commands.some((c) => c.file === file)).toBe(true);
     }
   });
@@ -108,6 +138,12 @@ describe('commands in the currents-cli skill', () => {
       '"run attach --test-name x a.png": --test-name is not an option of attach',
     ]);
     expect(checkCommand(program, 'run upload --key=x')).toEqual([]);
+    expect(checkCommand(program, '<command> --help')).toEqual([]);
+    expect(checkCommand(program, 'session --help')).toEqual([]);
+    expect(checkCommand(program, 'docs ci-setup')).toEqual([]);
+    expect(checkCommand(program, 'docs ci')).toEqual([
+      '"docs ci": "ci" is not a topic of docs',
+    ]);
     expect(checkCommand(program, 'api /v1/runs/<run-id> -X PUT')).toEqual([]);
     expect(checkCommand(program, 'api /v1/runs/<run-id> --branch x')).toEqual([
       '"api /v1/runs/<run-id> --branch x": --branch is not an option of api',

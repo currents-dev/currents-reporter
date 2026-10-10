@@ -65,15 +65,10 @@ describe('skill command', () => {
     await run(['--install']);
 
     const target = path.join(dir, '.agents/skills/currents-cli');
-    for (const file of [
-      'SKILL.md',
-      'references/ci-setup.md',
-      'references/sessions.md',
-    ]) {
-      expect(await fs.readFile(path.join(target, file), 'utf8')).toBe(
-        await fs.readFile(path.join(skillFolder, file), 'utf8')
-      );
-    }
+    expect(await fs.readdir(target)).toEqual(['SKILL.md']);
+    expect(await fs.readFile(path.join(target, 'SKILL.md'), 'utf8')).toBe(
+      await fs.readFile(path.join(skillFolder, 'SKILL.md'), 'utf8')
+    );
     expect(stdout).toContain(
       'Wrote the currents-cli skill to .agents/skills/currents-cli'
     );

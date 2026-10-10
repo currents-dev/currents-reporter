@@ -1,3 +1,7 @@
+---
+description: Record an agent or browser session as evidence and share it: start, attach, share and what each prints
+---
+
 # Sessions
 
 A session holds the files of an ad-hoc, one-off agent or browser session, such as screenshots, a Playwright MCP trace and logs, and gives a link to share them. Use it as evidence: a bug before and after a fix, or proof that something works.
