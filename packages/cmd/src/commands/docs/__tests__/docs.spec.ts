@@ -78,6 +78,12 @@ describe('docs command', () => {
     expect(process.exit).toHaveBeenCalledWith(1);
   });
 
+  it('reads a guide with CRLF line endings', () => {
+    expect(
+      parseTopic('x', '---\r\ndescription: A guide\r\n---\r\n\r\n# X\r\n')
+    ).toEqual({ name: 'x', description: 'A guide', body: '# X\r\n' });
+  });
+
   it('refuses a guide without a description', () => {
     expect(() => parseTopic('x', '# X\n')).toThrow(
       'docs/x.md has no description in its front matter'

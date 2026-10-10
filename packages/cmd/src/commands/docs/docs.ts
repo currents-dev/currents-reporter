@@ -16,8 +16,8 @@ export function getDocsFolder(from = __dirname) {
 // A guide starts with a front matter block that has a "description:" line,
 // like SKILL.md.
 export function parseTopic(name: string, markdown: string): Topic {
-  const match = markdown.match(/^---\n([\s\S]*?)\n---\n+/);
-  const description = match?.[1].match(/^description:\s*(.+)$/m)?.[1];
+  const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)+/);
+  const description = match?.[1].match(/^description:[ \t]*(.+?)\r?$/m)?.[1];
   if (!match || !description) {
     throw new Error(`docs/${name}.md has no description in its front matter`);
   }

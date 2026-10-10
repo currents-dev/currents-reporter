@@ -19,7 +19,7 @@ description: Run the Currents CLI (the `currents` command of the npm package @cu
 
 `@currents/playwright` and the Cypress integration send results themselves. Do not add `currents run upload` after them.
 
-Before you use a command, run `currents <command> --help` for its options and examples, and do not use an option it does not list. For CI steps run `currents docs ci-setup`, and for the session flow run `currents docs sessions`.
+Before you use a command, run `currents <command> --help` for its options and examples, and do not use an option it does not list. For CI steps run `currents docs ci-setup`, and for the session flow run `currents docs sessions`. If `docs` is an unknown command, update `@currents/cmd`.
 
 ## Credentials
 
