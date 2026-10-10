@@ -303,6 +303,27 @@ Examples:
 "
 `;
 
+exports[`command surface of the built CLI > prints the help of docs 1`] = `
+"Usage: currents docs [options] [topic]
+
+Print the guide of a topic as Markdown. Without a topic, list the topics.
+
+Arguments:
+  topic       the topic of the guide
+
+Options:
+  -h, --help  display help for command
+
+Examples:
+  # List the topics
+  currents docs
+
+  # Print the guide to CI setup
+  currents docs ci-setup
+
+"
+`;
+
 exports[`command surface of the built CLI > prints the help of run 1`] = `
 "Usage: currents run [options] [command]
 
@@ -569,8 +590,7 @@ exports[`command surface of the built CLI > prints the help of skill 1`] = `
 "Usage: currents skill [options]
 
 Print SKILL.md of the currents-cli skill, which tells coding agents how to use
-this CLI, or install the skill in the project. Install it to get the reference
-files too.
+this CLI, or install the skill in the project.
 
 Agents read project skills from these folders:
   Codex, Cursor   .agents/skills

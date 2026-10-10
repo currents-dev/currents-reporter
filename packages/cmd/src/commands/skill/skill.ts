@@ -1,6 +1,8 @@
+import { findUp } from '@lib/fs';
 import { info } from '@logger';
 import fs from 'fs-extra';
 import path from 'path';
+import { writeStdout } from '../utils';
 
 export const SKILL_NAME = 'currents-cli';
 export const DEFAULT_SKILLS_DIR = path.join('.agents', 'skills');
@@ -11,16 +13,12 @@ export const DEFAULT_SKILLS_DIR = path.join('.agents', 'skills');
  * and the repository copy when the code runs from src/ in tests.
  */
 export function getSkillFolder(from = __dirname) {
-  let dir = from;
-  while (true) {
-    const folder = path.join(dir, 'skills', SKILL_NAME);
-    if (fs.existsSync(path.join(folder, 'SKILL.md'))) return folder;
-    const parent = path.dirname(dir);
-    if (parent === dir) {
-      throw new Error(`The ${SKILL_NAME} skill is missing from this package`);
-    }
-    dir = parent;
+  const skill = path.join('skills', SKILL_NAME);
+  const dir = findUp(path.join(skill, 'SKILL.md'), from);
+  if (!dir) {
+    throw new Error(`The ${SKILL_NAME} skill is missing from this package`);
   }
+  return path.join(dir, skill);
 }
 
 async function listFiles(folder: string, prefix = ''): Promise<string[]> {
@@ -49,14 +47,8 @@ async function haveSameFiles(a: string, b: string) {
 }
 
 export async function printSkill() {
-  const content = await fs.readFile(
-    path.join(getSkillFolder(), 'SKILL.md'),
-    'utf8'
-  );
-  // commandHandler calls process.exit, which can cut off a write to a pipe
-  // that has not finished.
-  await new Promise<void>((resolve, reject) =>
-    process.stdout.write(content, (e) => (e ? reject(e) : resolve()))
+  await writeStdout(
+    await fs.readFile(path.join(getSkillFolder(), 'SKILL.md'), 'utf8')
   );
 }
 

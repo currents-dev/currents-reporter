@@ -103,3 +103,11 @@ export async function commandHandler<T extends Record<string, unknown>>(
     process.exit(exitCode);
   }
 }
+
+// commandHandler calls process.exit, which can cut off a write to a pipe that
+// has not finished.
+export function writeStdout(content: string) {
+  return new Promise<void>((resolve, reject) =>
+    process.stdout.write(content, (e) => (e ? reject(e) : resolve()))
+  );
+}
