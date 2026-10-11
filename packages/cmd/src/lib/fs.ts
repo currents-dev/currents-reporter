@@ -96,3 +96,17 @@ export async function copyFileAsync(
     throw err;
   }
 }
+
+/**
+ * Returns the first of `from` and its parent folders that holds `name`, a
+ * file or folder path relative to that folder.
+ */
+export function findUp(name: string, from: string) {
+  let dir = from;
+  while (!fs.existsSync(join(dir, name))) {
+    const parent = dirname(dir);
+    if (parent === dir) return undefined;
+    dir = parent;
+  }
+  return dir;
+}

@@ -8,6 +8,7 @@ import {
 } from '../commands/cache';
 import { getCancelCommand, getCancelExamples } from '../commands/cancel';
 import { getConvertCommand } from '../commands/convert';
+import { getDocsCommand } from '../commands/docs';
 import { formatExamples } from '../commands/help';
 import { getRunAttachExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
@@ -42,6 +43,7 @@ export const getProgram = () => {
     .addCommand(getCacheCommand(NAME))
     .commandsGroup('Other:')
     .addCommand(getApiCommand(NAME))
+    .addCommand(getDocsCommand(NAME))
     .addCommand(getSkillCommand(NAME))
     .helpCommand(true)
     .addHelpText(

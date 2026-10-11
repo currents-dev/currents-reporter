@@ -1,3 +1,7 @@
+---
+description: GitHub Actions and GitLab CI steps: upload results, attach files, cancel a run, rerun only the failed Playwright tests
+---
+
 # CI setup
 
 Steps for GitHub Actions and GitLab CI. They assume `@currents/cmd` is in the project's `devDependencies`, so that `npx currents` runs it.

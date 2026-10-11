@@ -163,6 +163,10 @@ npx currents skill --install --dir .claude/skills
 
 The skill is also in this repository, in `skills/currents-cli`: `npx skills add https://github.com/currents-dev/currents-reporter --skill currents-cli`.
 
+## Guides
+
+`npx currents docs` lists the guides that ship with the package, such as the CI setup steps. `npx currents docs <topic>` prints one as Markdown. The guides are in [docs/](./docs).
+
 ## Troubleshooting
 
 Run the CLI command with the `--debug` argument or prefix it with `DEBUG="currents,currents:*"` to obtain detailed information about the command execution process. Keys are hidden in the debug output.

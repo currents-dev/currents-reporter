@@ -14,6 +14,7 @@ const commands = [
   'cache get',
   'cache set',
   'api',
+  'docs',
   'skill',
 ];
 
@@ -43,6 +44,7 @@ describe('command surface of the built CLI', () => {
       'session',
       'cache',
       'api',
+      'docs',
       'skill',
       'help',
     ]);
