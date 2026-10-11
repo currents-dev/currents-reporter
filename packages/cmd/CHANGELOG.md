@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.2.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.1.0...%40currents%2Fcmd-v2.2.0) (2026-10-10)
+
+`currents docs` lists the guides for the CLI, one line each, and `currents docs <topic>` prints a guide as Markdown. The guides are `ci-setup`, with the GitHub Actions and GitLab CI steps, and `sessions`, which records a browser session and shares it. An unknown topic exits with code 1 and lists the topics.
+
+The `currents-cli` skill is shorter. It says which command to use, which key each command takes, and the exit codes, and tells the agent to run `currents <command> --help` for options and `currents docs ci-setup` or `currents docs sessions` for the guides. `currents skill --install` writes only `SKILL.md`. A skill installed by an earlier version differs from this one, so `currents skill --install` asks for `--force` to replace it. `--force` deletes the whole `currents-cli` folder before it writes the skill, so files you added to that folder are deleted too.
+
+### Features
+
+* **cmd:** add currents docs and shorten the currents-cli skill ([e242353](https://github.com/currents-dev/currents-reporter/commit/e2423535f1b1d8eaed6177bd83cdce56ca2d09a2))
+
+### Bug Fixes
+
+* **cmd:** read guide front matter with CRLF line endings; say to update when docs is missing ([ec899ff](https://github.com/currents-dev/currents-reporter/commit/ec899ff10009f2573b87df9fedcd761ff6b6199b))
+
 ## [2.1.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.0.2...%40currents%2Fcmd-v2.1.0) (2026-10-10)
 
 `currents session attach` and `currents run attach` take a folder and attach every file under it, not only the files directly in it. Each file is named by its path inside the folder, for example `login-chromium/trace.zip`, so files with the same name in two test folders stay apart. Without `--type`, a zip is typed as a trace only when it holds the trace files Playwright writes, so a Playwright Test `trace.zip` is attached as a trace in a session, and in `run attach` with `--test-title` and `--attempt`. Other `run attach` targets take no traces, so there it stays a plain attachment. More than 200 files fails before any upload.
