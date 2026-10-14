@@ -22,6 +22,11 @@ export const configKeys = {
     env: 'CURRENTS_REMOVE_TITLE_TAGS',
     cli: '--remove-title-tags',
   },
+  environment: {
+    name: 'Environment',
+    env: 'CURRENTS_ENVIRONMENT',
+    cli: '--environment',
+  },
   reportDir: {
     name: 'Report folder',
     env: 'CURRENTS_REPORT_DIR',

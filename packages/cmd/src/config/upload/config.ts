@@ -38,6 +38,12 @@ export type CurrentsConfig = {
   disableTitleTags?: boolean;
 
   /**
+   * The environment to label the run with, e.g. `staging`. A project of the
+   * report that has its own environment keeps it.
+   */
+  environment?: string;
+
+  /**
    * Unique identifier of the machine running the tests. If not provided, it will be generated automatically. See: https://currents.dev/readme/readme?q=machineId
    */
   machineId?: string;
