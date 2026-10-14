@@ -1,0 +1,4 @@
+results/
+cypress/screenshots/
+cypress/videos/
+.currents/
