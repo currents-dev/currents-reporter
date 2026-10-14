@@ -78,7 +78,7 @@ reports being converted.`
     .addOption(reportDirOption)
     .addOption(inputFormatOption())
     .addOption(inputFileOption(REQUIRED_WITH_INPUT_FORMAT))
-    .addOption(frameworkOption(REQUIRED_WITH_INPUT_FORMAT))
+    .addOption(frameworkOption('(required with --input-format junit)'))
     .addOption(frameworkVersionOption)
     .addOption(outputDirOption)
     .action((options) => uploadHandler(options));

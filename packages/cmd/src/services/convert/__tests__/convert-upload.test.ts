@@ -12,6 +12,7 @@ import { CliResult, runCli } from '../../../test-utils/cli';
 const junitDir = join(__dirname, 'fixtures/junit');
 
 const frameworks = [
+  ['cypress', 'cypress.xml'],
   ['postman', 'newman.xml'],
   ['vitest', 'vitest.xml'],
   ['node', 'node.xml'],

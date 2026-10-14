@@ -279,7 +279,7 @@ Options:
   --debug                        print debug logs; keys are hidden in them
                                  (default: false, env: CURRENTS_DEBUG)
   --input-format <format>        the format of the reports to convert (required)
-                                 (choices: "junit")
+                                 (choices: "junit", "cypress-json")
   --input-file <patterns>        comma-separated glob patterns of the report
                                  files, e.g. "reports/*.xml,other.xml"; quote
                                  them so that the shell does not expand them
@@ -288,8 +288,8 @@ Options:
                                  must be empty, not exist, or hold only the
                                  reports being converted
   --framework <framework>        the test framework that wrote the reports
-                                 (required) (choices: "postman", "node",
-                                 "vitest", "wdio")
+                                 (required, except with cypress-json) (choices:
+                                 "cypress", "postman", "node", "vitest", "wdio")
   --framework-version <version>  the version of the test framework that wrote
                                  the reports
   -h, --help                     display help for command
@@ -550,14 +550,14 @@ Options:
                                  the newest folder in .currents (env:
                                  CURRENTS_REPORT_DIR)
   --input-format <format>        the format of the reports to convert (choices:
-                                 "junit")
+                                 "junit", "cypress-json")
   --input-file <patterns>        comma-separated glob patterns of the report
                                  files, e.g. "reports/*.xml,other.xml"; quote
                                  them so that the shell does not expand them
                                  (required with --input-format)
   --framework <framework>        the test framework that wrote the reports
-                                 (required with --input-format) (choices:
-                                 "postman", "node", "vitest", "wdio")
+                                 (required with --input-format junit) (choices:
+                                 "cypress", "postman", "node", "vitest", "wdio")
   --framework-version <version>  the version of the test framework that wrote
                                  the reports
   -o, --output-dir <folder>      the folder to save the converted reports to; it
@@ -653,14 +653,14 @@ Options:
                                  the newest folder in .currents (env:
                                  CURRENTS_REPORT_DIR)
   --input-format <format>        the format of the reports to convert (choices:
-                                 "junit")
+                                 "junit", "cypress-json")
   --input-file <patterns>        comma-separated glob patterns of the report
                                  files, e.g. "reports/*.xml,other.xml"; quote
                                  them so that the shell does not expand them
                                  (required with --input-format)
   --framework <framework>        the test framework that wrote the reports
-                                 (required with --input-format) (choices:
-                                 "postman", "node", "vitest", "wdio")
+                                 (required with --input-format junit) (choices:
+                                 "cypress", "postman", "node", "vitest", "wdio")
   --framework-version <version>  the version of the test framework that wrote
                                  the reports
   -o, --output-dir <folder>      the folder to save the converted reports to; it

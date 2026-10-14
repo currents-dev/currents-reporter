@@ -1,0 +1,184 @@
+{
+  "browserName": "electron",
+  "cypressVersion": "14.5.4",
+  "runs": [
+    {
+      "spec": {
+        "relative": "cypress/e2e/flaky.cy.js",
+        "absolute": "/project/cypress/e2e/flaky.cy.js"
+      },
+      "stats": {
+        "duration": 4245,
+        "endedAt": "2026-10-13T22:45:27.947Z",
+        "failures": 0,
+        "passes": 1,
+        "pending": 0,
+        "skipped": 0,
+        "startedAt": "2026-10-13T22:45:23.702Z",
+        "suites": 1,
+        "tests": 1
+      },
+      "tests": [
+        {
+          "attempts": [
+            {
+              "state": "failed"
+            },
+            {
+              "state": "passed"
+            }
+          ],
+          "displayError": null,
+          "duration": 4230,
+          "state": "passed",
+          "title": ["Flaky", "passes on the second attempt"]
+        }
+      ],
+      "screenshots": [
+        {
+          "path": "/project/cypress/screenshots/flaky.cy.js/Flaky -- passes on the second attempt (failed).png",
+          "takenAt": "2026-10-13T22:45:27.756Z"
+        }
+      ],
+      "video": "/project/cypress/videos/flaky.cy.js.mp4"
+    },
+    {
+      "spec": {
+        "relative": "cypress/e2e/home.cy.js",
+        "absolute": "/project/cypress/e2e/home.cy.js"
+      },
+      "stats": {
+        "duration": 61,
+        "endedAt": "2026-10-13T22:45:29.622Z",
+        "failures": 0,
+        "passes": 2,
+        "pending": 0,
+        "skipped": 0,
+        "startedAt": "2026-10-13T22:45:29.561Z",
+        "suites": 1,
+        "tests": 2
+      },
+      "tests": [
+        {
+          "attempts": [
+            {
+              "state": "passed"
+            }
+          ],
+          "displayError": null,
+          "duration": 35,
+          "state": "passed",
+          "title": ["runs a test outside a describe block"]
+        },
+        {
+          "attempts": [
+            {
+              "state": "passed"
+            }
+          ],
+          "displayError": null,
+          "duration": 22,
+          "state": "passed",
+          "title": ["Home", "shows the title"]
+        }
+      ],
+      "screenshots": [],
+      "video": "/project/cypress/videos/home.cy.js.mp4"
+    },
+    {
+      "spec": {
+        "relative": "cypress/e2e/login.cy.js",
+        "absolute": "/project/cypress/e2e/login.cy.js"
+      },
+      "stats": {
+        "duration": 14013,
+        "endedAt": "2026-10-13T22:45:45.261Z",
+        "failures": 1,
+        "passes": 3,
+        "pending": 1,
+        "skipped": 0,
+        "startedAt": "2026-10-13T22:45:31.248Z",
+        "suites": 2,
+        "tests": 5
+      },
+      "tests": [
+        {
+          "attempts": [
+            {
+              "state": "passed"
+            }
+          ],
+          "displayError": null,
+          "duration": 429,
+          "state": "passed",
+          "title": ["Login", "shows a welcome message"]
+        },
+        {
+          "attempts": [
+            {
+              "state": "passed"
+            }
+          ],
+          "displayError": null,
+          "duration": 92,
+          "state": "passed",
+          "title": ["Login", "asks for an email"]
+        },
+        {
+          "attempts": [
+            {
+              "state": "failed"
+            },
+            {
+              "state": "failed"
+            },
+            {
+              "state": "failed"
+            }
+          ],
+          "displayError": "AssertionError: Timed out retrying after 4000ms: expected '<p#message>' to contain text 'Welcome back', but the text was 'Welcome, jane@example.com'\n    at Context.eval (webpack://examples-cypress-junit/./cypress/e2e/login.cy.js:21:23)",
+          "duration": 13435,
+          "state": "failed",
+          "title": ["Login", "remembers the user"]
+        },
+        {
+          "attempts": [
+            {
+              "state": "passed"
+            }
+          ],
+          "displayError": null,
+          "duration": 19,
+          "state": "passed",
+          "title": ["Login", "password", "hides the password"]
+        },
+        {
+          "attempts": [
+            {
+              "state": "pending"
+            }
+          ],
+          "displayError": null,
+          "duration": 0,
+          "state": "pending",
+          "title": ["Login", "password", "shows a strength meter"]
+        }
+      ],
+      "screenshots": [
+        {
+          "path": "/project/cypress/screenshots/login.cy.js/Login -- remembers the user (failed).png",
+          "takenAt": "2026-10-13T22:45:36.149Z"
+        },
+        {
+          "path": "/project/cypress/screenshots/login.cy.js/Login -- remembers the user (failed) (attempt 2).png",
+          "takenAt": "2026-10-13T22:45:40.644Z"
+        },
+        {
+          "path": "/project/cypress/screenshots/login.cy.js/Login -- remembers the user (failed) (attempt 3).png",
+          "takenAt": "2026-10-13T22:45:45.125Z"
+        }
+      ],
+      "video": "/project/cypress/videos/login.cy.js.mp4"
+    }
+  ]
+}

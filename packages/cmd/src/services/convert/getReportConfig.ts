@@ -3,7 +3,8 @@ import { ReportConfig } from './types';
 
 export function getReportConfig(config: ConvertCommandConfig): ReportConfig {
   return {
-    framework: config.inputFormat,
+    // The API takes converted reports of every input format as `junit`
+    framework: 'junit',
     frameworkVersion: config.frameworkVersion ?? null,
     frameworkConfig: {
       originFramework: config.framework,

@@ -3,6 +3,8 @@ import * as globby from 'globby';
 
 export enum REPORT_INPUT_FORMATS {
   junit = 'junit',
+  // The run results of Cypress, from `after:run` or `cypress.run()`
+  cypressJson = 'cypress-json',
 }
 export const inputFormatOption = (note?: string) =>
   new Option(
@@ -22,6 +24,7 @@ export const outputDirOption = new Option(
 );
 
 export enum REPORT_FRAMEWORKS {
+  cypress = 'cypress',
   postman = 'postman',
   node = 'node',
   vitest = 'vitest',

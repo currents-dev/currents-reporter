@@ -37,7 +37,7 @@ export const getConvertCommand = (name: string) => {
     .addOption(inputFormatOption('(required)'))
     .addOption(inputFileOption('(required)'))
     .addOption(outputDirOption)
-    .addOption(frameworkOption('(required)'))
+    .addOption(frameworkOption('(required, except with cypress-json)'))
     .addOption(frameworkVersionOption)
     .action((options) => convertHandler(options));
 
