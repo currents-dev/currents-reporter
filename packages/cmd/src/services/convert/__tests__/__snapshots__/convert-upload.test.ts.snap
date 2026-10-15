@@ -1,5 +1,348 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`currents run upload --input-format, with the built CLI > cypress > sends the converted results to the API 1`] = `
+[
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "cypress",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [
+        {
+          "name": "e2e",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "cypress/e2e/login.cy.js",
+              "tags": [],
+              "testId": "dfdd5a13810c29ea",
+              "title": [
+                "Login",
+                "shows a welcome message",
+              ],
+            },
+            {
+              "spec": "cypress/e2e/login.cy.js",
+              "tags": [],
+              "testId": "e6c11689588bd7e4",
+              "title": [
+                "Login",
+                "asks for an email",
+              ],
+            },
+            {
+              "spec": "cypress/e2e/login.cy.js",
+              "tags": [],
+              "testId": "95cbdf96d8fc7c7c",
+              "title": [
+                "Login",
+                "remembers the user",
+              ],
+            },
+            {
+              "spec": "cypress/e2e/login.cy.js",
+              "tags": [],
+              "testId": "b95eee76c762db78",
+              "title": [
+                "Login password",
+                "hides the password",
+              ],
+            },
+            {
+              "spec": "cypress/e2e/login.cy.js",
+              "tags": [],
+              "testId": "63dc023b0d3f9ead",
+              "title": [
+                "Login password",
+                "shows a strength meter",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "e2e",
+      "instances": [],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "cypress",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [],
+      "group": "e2e",
+      "instances": [
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "e2e",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 0,
+              "passes": 3,
+              "pending": 1,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 5,
+              "wallClockDuration": 4973,
+              "wallClockEndedAt": "2026-10-13T16:06:08.973Z",
+              "wallClockStartedAt": "2026-10-13T16:06:04.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1791907564000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 418,
+                    "errors": [],
+                    "startTime": "2026-10-13T16:06:04.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "cypress/e2e/login.cy.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "dfdd5a13810c29ea",
+                "timeout": 0,
+                "title": [
+                  "Login",
+                  "shows a welcome message",
+                ],
+              },
+              {
+                "_t": 1791907564000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 93,
+                    "errors": [],
+                    "startTime": "2026-10-13T16:06:04.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "cypress/e2e/login.cy.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "e6c11689588bd7e4",
+                "timeout": 0,
+                "title": [
+                  "Login",
+                  "asks for an email",
+                ],
+              },
+              {
+                "_t": 1791907564000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 0,
+                    "error": {
+                      "message": "Timed out retrying after 4000ms: expected '<p#message>' to contain text 'Welcome back', but the text was 'Welcome, jane@example.com'",
+                      "stack": "AssertionError: Timed out retrying after 4000ms: expected '<p#message>' to contain text 'Welcome back', but the text was 'Welcome, jane@example.com'
+    at Context.eval (webpack:///./cypress/e2e/login.cy.js:21:23)",
+                      "value": "AssertionError",
+                    },
+                    "errors": [
+                      {
+                        "message": "Timed out retrying after 4000ms: expected '<p#message>' to contain text 'Welcome back', but the text was 'Welcome, jane@example.com'",
+                        "stack": "AssertionError: Timed out retrying after 4000ms: expected '<p#message>' to contain text 'Welcome back', but the text was 'Welcome, jane@example.com'
+    at Context.eval (webpack:///./cypress/e2e/login.cy.js:21:23)",
+                        "value": "AssertionError",
+                      },
+                    ],
+                    "startTime": "2026-10-13T16:06:05.254Z",
+                    "status": "failed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "cypress/e2e/login.cy.js",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "failed",
+                "testId": "95cbdf96d8fc7c7c",
+                "timeout": 0,
+                "title": [
+                  "Login",
+                  "remembers the user",
+                ],
+              },
+              {
+                "_t": 1791907564000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 17,
+                    "errors": [],
+                    "startTime": "2026-10-13T16:06:04.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "cypress/e2e/login.cy.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "b95eee76c762db78",
+                "timeout": 0,
+                "title": [
+                  "Login password",
+                  "hides the password",
+                ],
+              },
+              {
+                "_t": 1791907564000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "pending",
+                    "attempt": 0,
+                    "duration": 0,
+                    "errors": [],
+                    "startTime": "2026-10-13T16:06:04.000Z",
+                    "status": "skipped",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "cypress/e2e/login.cy.js",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "pending",
+                "testId": "63dc023b0d3f9ead",
+                "timeout": 0,
+                "title": [
+                  "Login password",
+                  "shows a strength meter",
+                ],
+              },
+            ],
+          },
+          "spec": "cypress/e2e/login.cy.js",
+          "startTime": "2026-10-13T16:06:04.000Z",
+        },
+      ],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+]
+`;
+
 exports[`currents run upload --input-format, with the built CLI > node > sends the converted results to the API 1`] = `
 [
   {

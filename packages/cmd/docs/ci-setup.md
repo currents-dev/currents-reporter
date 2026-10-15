@@ -53,7 +53,7 @@ For JUnit XML, `run upload` converts the reports first:
   run: npx currents run upload --input-format junit --input-file "reports/*.xml" --framework postman
 ```
 
-`--framework` takes `postman`, `node`, `vitest` or `wdio`. See `currents run upload --help`.
+`--framework` takes `cypress`, `postman`, `node`, `vitest` or `wdio`. For Cypress run results saved by `after:run`, use `--input-format cypress-json --input-file results.json` without `--framework`: it uploads every attempt, screenshot and video. See `currents run upload --help`.
 
 ### Attach files to the run
 

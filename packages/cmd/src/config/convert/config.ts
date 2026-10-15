@@ -56,11 +56,14 @@ let _config: ConvertCommandConfig | null = null;
 export function setConvertCommandConfig(
   reporterOptions?: Partial<ConvertCommandConfig>
 ) {
-  _config = getValidatedConfig(
-    configKeys,
-    mandatoryConfigKeys,
-    reporterOptions
-  );
+  _config = getValidatedConfig(configKeys, mandatoryConfigKeys, {
+    ...reporterOptions,
+    framework:
+      reporterOptions?.framework ??
+      (reporterOptions?.inputFormat === REPORT_INPUT_FORMATS.cypressJson
+        ? REPORT_FRAMEWORKS.cypress
+        : undefined),
+  });
   debug('Resolved config: %o', _config);
 }
 

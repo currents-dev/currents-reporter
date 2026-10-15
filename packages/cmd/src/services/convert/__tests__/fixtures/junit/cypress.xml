@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="e2e" time="4.973" tests="5" failures="1" skipped="1">
+  <testsuite name="Root Suite" timestamp="2026-10-13T16:06:04" tests="0" file="cypress/e2e/login.cy.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Login" timestamp="2026-10-13T16:06:04" tests="3" time="0.000" failures="1">
+    <testcase name="Login shows a welcome message" time="0.418" classname="shows a welcome message">
+    </testcase>
+    <testcase name="Login asks for an email" time="0.093" classname="asks for an email">
+    </testcase>
+    <testcase name="Login remembers the user" time="0.000" classname="remembers the user">
+      <failure message="Timed out retrying after 4000ms: expected &apos;&lt;p#message&gt;&apos; to contain text &apos;Welcome back&apos;, but the text was &apos;Welcome, jane@example.com&apos;" type="AssertionError"><![CDATA[AssertionError: Timed out retrying after 4000ms: expected '<p#message>' to contain text 'Welcome back', but the text was 'Welcome, jane@example.com'
+    at Context.eval (webpack:///./cypress/e2e/login.cy.js:21:23)]]></failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="password" timestamp="2026-10-13T16:06:04" tests="2" time="0.031" failures="0" skipped="1">
+    <testcase name="Login password hides the password" time="0.017" classname="hides the password">
+    </testcase>
+    <testcase name="Login password shows a strength meter" time="0.000" classname="shows a strength meter">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>
