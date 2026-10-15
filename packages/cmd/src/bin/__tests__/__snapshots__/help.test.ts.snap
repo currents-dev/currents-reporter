@@ -541,6 +541,8 @@ Options:
                                  name @smoke\` is not tagged with \`smoke\` in the
                                  dashboard (default: false, env:
                                  CURRENTS_DISABLE_TITLE_TAGS)
+  --environment <name>           the environment to label the run with, e.g.
+                                 staging (env: CURRENTS_ENVIRONMENT)
   --machine-id <id>              the ID of the machine that ran the tests; by
                                  default a random value (env:
                                  CURRENTS_MACHINE_ID)
@@ -644,6 +646,8 @@ Options:
                                  name @smoke\` is not tagged with \`smoke\` in the
                                  dashboard (default: false, env:
                                  CURRENTS_DISABLE_TITLE_TAGS)
+  --environment <name>           the environment to label the run with, e.g.
+                                 staging (env: CURRENTS_ENVIRONMENT)
   --machine-id <id>              the ID of the machine that ran the tests; by
                                  default a random value (env:
                                  CURRENTS_MACHINE_ID)

@@ -96,6 +96,13 @@ export async function handleCurrentsReport() {
     debug('Full test suite file detected: %s', fullTestSuiteFilePath);
   }
 
+  if (currentsConfig.environment) {
+    fullTestSuite = fullTestSuite.map((project) => ({
+      ...project,
+      environment: project.environment ?? currentsConfig.environment,
+    }));
+  }
+
   const defaultGroup =
     fullTestSuite.length === 1 ? fullTestSuite[0].name : null;
 

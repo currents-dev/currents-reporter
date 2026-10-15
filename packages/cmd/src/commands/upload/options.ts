@@ -27,6 +27,11 @@ export const disableTitleTagsOption = new Option(
   .env(getEnvironmentVariableName(configKeys, 'disableTitleTags'))
   .default(false);
 
+export const environmentOption = new Option(
+  '--environment <name>',
+  'the environment to label the run with, e.g. staging'
+).env(getEnvironmentVariableName(configKeys, 'environment'));
+
 export const machineIdOption = new Option(
   '--machine-id <id>',
   'the ID of the machine that ran the tests; by default a random value'

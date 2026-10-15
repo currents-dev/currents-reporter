@@ -11,6 +11,7 @@ import { debugOption, projectOption, recordKeyOption } from '../options';
 import {
   ciBuildIdOption,
   disableTitleTagsOption,
+  environmentOption,
   machineIdOption,
   removeTagOption,
   reportDirOption,
@@ -73,6 +74,7 @@ reports being converted.`
     .addOption(runTagOption)
     .addOption(removeTagOption)
     .addOption(disableTitleTagsOption)
+    .addOption(environmentOption)
     .addOption(machineIdOption)
     .addOption(debugOption())
     .addOption(reportDirOption)

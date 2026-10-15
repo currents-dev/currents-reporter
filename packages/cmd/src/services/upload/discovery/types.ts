@@ -3,6 +3,7 @@ export type FullTestSuite = FullSuiteProject[];
 export type FullSuiteProject = {
   name: string;
   tags: string[];
+  environment?: string;
   tests: FullSuiteTest[];
 };
 
