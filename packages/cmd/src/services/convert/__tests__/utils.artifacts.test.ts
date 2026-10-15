@@ -151,6 +151,35 @@ describe('Artifact Parsing', () => {
       expect(result.attempts[1].artifacts![0].path).toBe('a1p');
     });
 
+    it('assigns the artifacts of every attempt index to the attempt of a skipped test', () => {
+      const testCase: TestCase = {
+        name: 'test',
+        classname: 'class',
+        time: '1',
+        skipped: '',
+        properties: {
+          property: [
+            { name: 'currents.artifact.attempt.0.path', value: 'a0p' },
+            { name: 'currents.artifact.attempt.0.type', value: 't' },
+            { name: 'currents.artifact.attempt.0.contentType', value: 'c' },
+
+            { name: 'currents.artifact.attempt.1.path', value: 'a1p' },
+            { name: 'currents.artifact.attempt.1.type', value: 't' },
+            { name: 'currents.artifact.attempt.1.contentType', value: 'c' },
+          ],
+        },
+      };
+
+      const result = getTestCase(testCase, mockSuite, mockTime, mockSuiteName);
+
+      expect(result.attempts).toHaveLength(1);
+      expect(result.attempts[0].status).toBe('skipped');
+      expect(result.attempts[0].artifacts!.map((a) => a.path)).toEqual([
+        'a0p',
+        'a1p',
+      ]);
+    });
+
     it('parses mixed indexed and unindexed attempt level artifacts (all assigned to attempt 0)', () => {
       // Logic change: Unindexed artifacts are assigned to attempt 0.
       // Indexed artifacts are assigned to their specific attempt.
