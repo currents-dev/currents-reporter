@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<testsuites name="detox" tests="2" failures="1" errors="0" skipped="0" time="0.5">
+  <testsuite name="onboarding" tests="2" failures="1" errors="0" skipped="0" time="0.5" timestamp="2026-10-15T00:00:00">
+    <testcase name="quarantined failure after retries" classname="onboarding" time="0.3">
+      <properties>
+        <property name="currents.artifact.attempt.0.path" value="artifacts/attempt-1/device.log"/>
+        <property name="currents.artifact.attempt.0.type" value="attachment"/>
+        <property name="currents.artifact.attempt.0.contentType" value="text/plain"/>
+        <property name="currents.artifact.attempt.0.name" value="attempt 1 device.log"/>
+        <property name="currents.artifact.attempt.1.path" value="artifacts/attempt-2/device.log"/>
+        <property name="currents.artifact.attempt.1.type" value="attachment"/>
+        <property name="currents.artifact.attempt.1.contentType" value="text/plain"/>
+        <property name="currents.artifact.attempt.1.name" value="attempt 2 device.log"/>
+      </properties>
+      <failure message="Element not found: welcome">Error: Element not found: welcome
+    at onboarding.test.js:10:5</failure>
+      <failure message="Element not found: welcome">Error: Element not found: welcome
+    at onboarding.test.js:10:5</failure>
+    </testcase>
+    <testcase name="shows the home screen" classname="onboarding" time="0.2"/>
+  </testsuite>
+</testsuites>

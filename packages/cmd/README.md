@@ -46,6 +46,21 @@ Obtain `--project-id` and [--key](https://docs.currents.dev/guides/record-key) f
 
 For [Detox](https://wix.github.io/Detox/) runs reported by `@currents/jest`, `currents run upload` also attaches the videos, screenshots and logs that Detox recorded to the matching test attempt, adds the element actions of `detox.trace.json` as steps, and uploads `detox.trace.json`. Run it after `detox test` exits: Detox finishes writing the files only then.
 
+`currents run upload` applies the [actions](https://docs.currents.dev/guides/currents-actions) of the project to the results before it sends them. The tests already ran, so each attempt keeps its result, errors and artifacts:
+
+- a skip action marks the test as skipped
+- a quarantine action marks a failed test as skipped
+- a tag action adds its tags to the test
+
+The dashboard shows which action changed each test. Actions with regex or date conditions are not applied yet. The command uploads the results without actions when it can't get them.
+
+With `--fail-on-failures`, or `CURRENTS_FAIL_ON_FAILURES=true`, the command exits with 1 after it uploads the results when a test failed, and lists the failed tests. A test that an action quarantined or skipped does not count. Let the test command pass and use the upload to fail the CI job, so a quarantined test does not fail it:
+
+```sh
+npx detox test || true
+npx currents run upload --fail-on-failures
+```
+
 ### Configuration
 
 Please note that all options apart from `--project-id` and `--key` are optional.
@@ -61,6 +76,7 @@ Please note that all options apart from `--project-id` and `--key` are optional.
 | `-t, --tag`            | `string`  | Comma-separated tag(s) for recorded runs in Currents                                                                                                         | `CURRENTS_TAG`                | -                      |
 | `--disable-title-tags` | `boolean` | Disable extracting tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke`                                                            | `CURRENTS_DISABLE_TITLE_TAGS` | `false`                |
 | `--remove-title-tags`  | `boolean` | Remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard                                                        | `CURRENTS_REMOVE_TITLE_TAGS`  | `false`                |
+| `--fail-on-failures`   | `boolean` | Exit with 1 after uploading when a test failed. A test quarantined or skipped by a Currents action does not count                                            | `CURRENTS_FAIL_ON_FAILURES`   | `false`                |
 
 An option on the command line wins over its environment variable. The configuration is also available by running the CLI command with the `--help` argument.
 

@@ -11,6 +11,7 @@ import { debugOption, projectOption, recordKeyOption } from '../options';
 import {
   ciBuildIdOption,
   disableTitleTagsOption,
+  failOnFailuresOption,
   machineIdOption,
   removeTagOption,
   reportDirOption,
@@ -44,6 +45,13 @@ export const getUploadExamples = (name: string): HelpExample[] => [
     ],
   },
   {
+    comment:
+      'Upload test results, then fail if a test failed that no Currents action quarantined or skipped',
+    commands: [
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --fail-on-failures`,
+    ],
+  },
+  {
     comment: 'Upload test results from another folder',
     commands: [
       `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --report-dir <report-dir>`,
@@ -74,6 +82,7 @@ reports being converted.`
     .addOption(removeTagOption)
     .addOption(disableTitleTagsOption)
     .addOption(machineIdOption)
+    .addOption(failOnFailuresOption)
     .addOption(debugOption())
     .addOption(reportDirOption)
     .addOption(inputFormatOption())

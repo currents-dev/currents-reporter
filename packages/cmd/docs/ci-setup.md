@@ -55,6 +55,13 @@ For JUnit XML, `run upload` converts the reports first:
 
 `--framework` takes `postman`, `node`, `vitest` or `wdio`. See `currents run upload --help`.
 
+To let Currents actions quarantine tests, let the test step pass and fail the job from the upload. `--fail-on-failures` exits with 1 when a test failed that no action quarantined or skipped:
+
+```yaml
+- run: npx detox test || true
+- run: npx currents run upload --fail-on-failures
+```
+
 ### Attach files to the run
 
 After the tests, attach logs to the run. `--machine-id` names the CI machine the files come from; run-level files are listed by machine when it is set:

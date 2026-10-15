@@ -17,6 +17,11 @@ import {
 } from '../../api';
 import { getCurrentsConfig } from '../../config/upload';
 import { InstanceReport } from '../../types';
+import {
+  applyProjectActions,
+  fetchProjectActions,
+  logAppliedActions,
+} from './actions';
 import { attachDetoxArtifacts, readDetoxManifest } from './detox';
 import { FullTestSuite, createScanner } from './discovery';
 import {
@@ -143,6 +148,21 @@ export async function handleCurrentsReport() {
     );
   }
 
+  const actions = await fetchProjectActions(
+    currentsConfig.projectId,
+    currentsConfig.recordKey
+  );
+  logAppliedActions(
+    applyProjectActions({
+      actions,
+      instances: Object.values(instancesByGroup).flat(),
+      fullTestSuite,
+      gitInfo: await getGitInfo(),
+      runTags: currentsConfig.tag ?? [],
+      group: defaultGroup,
+    })
+  );
+
   const allArtifactsMap = new Map<string, string>();
 
   // Pre-calculate artifact content types for all instances
@@ -254,6 +274,34 @@ export async function handleCurrentsReport() {
       throw e;
     }
   }
+
+  if (currentsConfig.failOnFailures) {
+    failOnFailedTests(instances);
+  }
+}
+
+const MAX_LISTED_FAILED_TESTS = 10;
+
+// Runs after the actions are applied: a quarantined or skipped test is pending
+function failOnFailedTests(instances: InstanceReport[]) {
+  const failed = instances.flatMap((instance) =>
+    instance.results.tests
+      .filter((test) => test.state === 'failed')
+      .map((test) => `${instance.spec}: ${test.title.join(' > ')}`)
+  );
+  if (failed.length === 0) {
+    return;
+  }
+
+  const listed = failed.slice(0, MAX_LISTED_FAILED_TESTS);
+  const more = failed.length - listed.length;
+  throw new Error(
+    [
+      `${failed.length} ${failed.length === 1 ? 'test' : 'tests'} failed (--fail-on-failures):`,
+      ...listed.map((test) => `  - ${test}`),
+      ...(more > 0 ? [`  and ${more} more`] : []),
+    ].join('\n')
+  );
 }
 
 async function createRun({

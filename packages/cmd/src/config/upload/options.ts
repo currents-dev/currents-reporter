@@ -24,5 +24,6 @@ export function cliOptionsToConfig(
     debug: cliOptions.debug,
     machineId: cliOptions.machineId,
     reportDir: cliOptions.reportDir,
+    failOnFailures: cliOptions.failOnFailures,
   };
 }

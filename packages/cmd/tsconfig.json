@@ -11,7 +11,8 @@
       "@lib": ["lib"],
       "@lib/*": ["lib/*"],
       "@logger": ["logger"],
-      "@logger/*": ["logger/*"]
+      "@logger/*": ["logger/*"],
+      "@currents/rules": ["../../rules/src"]
     }
   }
 }

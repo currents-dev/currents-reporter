@@ -22,6 +22,11 @@ export const configKeys = {
     env: 'CURRENTS_REMOVE_TITLE_TAGS',
     cli: '--remove-title-tags',
   },
+  failOnFailures: {
+    name: 'Fail on failures',
+    env: 'CURRENTS_FAIL_ON_FAILURES',
+    cli: '--fail-on-failures',
+  },
   reportDir: {
     name: 'Report folder',
     env: 'CURRENTS_REPORT_DIR',

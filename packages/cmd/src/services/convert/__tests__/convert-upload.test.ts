@@ -22,9 +22,11 @@ describe('currents run upload --input-format, with the built CLI', () => {
   let api: ApiServer;
   let workDir: string;
   let artifactUploads: { path: string; contentType?: string; body: string }[];
+  let projectActions: unknown[];
 
   beforeEach(async () => {
     artifactUploads = [];
+    projectActions = [];
     workDir = await fs.mkdtemp(join(os.tmpdir(), 'currents-convert-'));
     await fs.copy(junitDir, join(workDir, 'junit'));
     api = await startApiServer(respond);
@@ -36,6 +38,10 @@ describe('currents run upload --input-format, with the built CLI', () => {
   });
 
   function respond(request: RecordedRequest) {
+    if (request.url.startsWith('/rules/project/')) {
+      return { status: 200, json: { rules: projectActions } };
+    }
+
     if (request.method === 'PUT') {
       artifactUploads.push({
         path: decodeURIComponent(request.url.split('?path=')[1]),
@@ -111,6 +117,86 @@ describe('currents run upload --input-format, with the built CLI', () => {
     });
   });
 
+  // A Detox run whose CI ignores a quarantined failure (ENG-1604)
+  it('quarantines a failed test and keeps the results of its attempts', async () => {
+    for (const attempt of ['attempt-1', 'attempt-2']) {
+      await fs.outputFile(
+        join(workDir, 'artifacts', attempt, 'device.log'),
+        `${attempt} log`
+      );
+    }
+    projectActions = [
+      {
+        _id: 'action-id',
+        v: 0,
+        name: 'Quarantine onboarding',
+        action: [{ op: 'quarantine' }],
+        matcher: {
+          op: 'AND',
+          cond: [{ type: 'titlePath', op: 'inc', value: ['onboarding'] }],
+        },
+      },
+    ];
+
+    expectSuccess(await convertAndUpload('wdio', ['detox-retries.xml']));
+
+    const tests = api.requests
+      .filter((r) => r.method === 'POST')
+      .flatMap((r) => r.json.instances)
+      .flatMap((instance) => instance.results.tests);
+    const quarantined = tests.find(
+      (test) => test.title.at(-1) === 'quarantined failure after retries'
+    );
+    const passed = tests.find(
+      (test) => test.title.at(-1) === 'shows the home screen'
+    );
+
+    expect(quarantined.state).toBe('pending');
+    expect(
+      quarantined.attempts.map(
+        (attempt: {
+          status: string;
+          errors: { message: string }[];
+          artifacts: { name: string }[];
+        }) => ({
+          status: attempt.status,
+          error: attempt.errors[0].message,
+          artifacts: attempt.artifacts.map((artifact) => artifact.name),
+        })
+      )
+    ).toEqual([
+      {
+        status: 'failed',
+        error: 'Element not found: welcome',
+        artifacts: ['attempt 1 device.log'],
+      },
+      {
+        status: 'failed',
+        error: 'Element not found: welcome',
+        artifacts: ['attempt 2 device.log'],
+      },
+    ]);
+    expect(quarantined.annotations).toEqual([
+      {
+        type: '_currents:rule:quarantine-post',
+        description: expect.any(String),
+        source: 'test',
+      },
+    ]);
+    expect(JSON.parse(quarantined.annotations[0].description)).toMatchObject({
+      rule: {
+        id: 'action-id',
+        name: 'Quarantine onboarding',
+        type: 'quarantine',
+        extraDetails: { status: 'failed' },
+      },
+      testInfo: { testId: quarantined.testId, status: 'failed' },
+    });
+
+    expect(passed.state).toBe('passed');
+    expect(passed.annotations).toBeUndefined();
+  });
+
   // The hidden convert command only converts.
   it('writes the report files with currents convert', async () => {
     expectSuccess(
@@ -138,7 +224,7 @@ describe('currents run upload --input-format, with the built CLI', () => {
       )
     );
 
-    const [run] = api.requests;
+    const run = api.requests.find((r) => r.method === 'POST')!;
     expect(run.json.framework).toMatchObject({
       type: 'junit',
       version: '3.2.1',
@@ -167,7 +253,7 @@ describe('currents run upload --input-format, with the built CLI', () => {
     );
 
     const createRequests = api.requests.filter(
-      (r) => r.json.instances.length === 0
+      (r) => r.method === 'POST' && r.json.instances.length === 0
     );
     expect(createRequests.map((r) => r.json.group).sort()).toEqual([
       'Shop API',

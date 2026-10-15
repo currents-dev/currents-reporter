@@ -544,6 +544,11 @@ Options:
   --machine-id <id>              the ID of the machine that ran the tests; by
                                  default a random value (env:
                                  CURRENTS_MACHINE_ID)
+  --fail-on-failures             exit with 1 when a test failed, after the
+                                 results are uploaded; a test quarantined or
+                                 skipped by a Currents action does not count
+                                 (default: false, env:
+                                 CURRENTS_FAIL_ON_FAILURES)
   --debug                        print debug logs; keys are hidden in them
                                  (default: false, env: CURRENTS_DEBUG)
   --report-dir <folder>          the folder of the reports to upload; by default
@@ -578,6 +583,11 @@ Examples:
   # Upload test results and add the tags "tagA" and "tagB" to the run
   currents run upload --key <record-key> --project-id <id> \\
       --ci-build-id <build-id> --tag tagA --tag tagB
+
+  # Upload test results, then fail if a test failed that no Currents action
+  # quarantined or skipped
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --fail-on-failures
 
   # Upload test results from another folder
   currents run upload --key <record-key> --project-id <id> \\
@@ -647,6 +657,11 @@ Options:
   --machine-id <id>              the ID of the machine that ran the tests; by
                                  default a random value (env:
                                  CURRENTS_MACHINE_ID)
+  --fail-on-failures             exit with 1 when a test failed, after the
+                                 results are uploaded; a test quarantined or
+                                 skipped by a Currents action does not count
+                                 (default: false, env:
+                                 CURRENTS_FAIL_ON_FAILURES)
   --debug                        print debug logs; keys are hidden in them
                                  (default: false, env: CURRENTS_DEBUG)
   --report-dir <folder>          the folder of the reports to upload; by default
@@ -681,6 +696,11 @@ Examples:
   # Upload test results and add the tags "tagA" and "tagB" to the run
   currents run upload --key <record-key> --project-id <id> \\
       --ci-build-id <build-id> --tag tagA --tag tagB
+
+  # Upload test results, then fail if a test failed that no Currents action
+  # quarantined or skipped
+  currents run upload --key <record-key> --project-id <id> \\
+      --ci-build-id <build-id> --fail-on-failures
 
   # Upload test results from another folder
   currents run upload --key <record-key> --project-id <id> \\
