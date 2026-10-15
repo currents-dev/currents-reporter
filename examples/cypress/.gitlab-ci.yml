@@ -1,0 +1,36 @@
+# Cypress runs on 2 parallel jobs without any Currents package, variable or
+# configuration. A later job uploads the results of both to one Currents run.
+stages:
+  - test
+  - report
+
+cypress:
+  stage: test
+  image:
+    name: cypress/included:14.2.0
+    entrypoint: ['']
+  parallel: 2
+  script:
+    - npx cypress run --spec "$(node split-specs.js)"
+  artifacts:
+    when: always
+    paths:
+      - results/
+      - cypress/screenshots/
+      - cypress/videos/
+
+currents:
+  stage: report
+  image: node:22
+  # Downloads the artifacts of every parallel cypress job
+  needs:
+    - job: cypress
+      artifacts: true
+  when: always
+  variables:
+    CURRENTS_PROJECT_ID: <project id>
+    CURRENTS_TAG: nightly
+    CURRENTS_ENVIRONMENT: staging
+    # CURRENTS_RECORD_KEY is a masked CI/CD variable
+  script:
+    - npx --yes @currents/cmd run upload --input-format cypress-json --input-file "results/cypress-results-*.json"
