@@ -51,6 +51,13 @@ const server = http.createServer(async (req, res) => {
   for await (const chunk of req) {
     chunks.push(chunk);
   }
+  // Upload applies the actions of the project; the project has none.
+  if (req.method === 'GET' && req.url?.startsWith('/rules/project/')) {
+    res
+      .writeHead(200, { 'Content-Type': 'application/json' })
+      .end(JSON.stringify({ rules: [] }));
+    return;
+  }
   if (req.method !== 'POST' || req.url !== '/v1/runs') {
     failures.push(`Unexpected request: ${req.method} ${req.url}`);
     res.writeHead(404).end();
