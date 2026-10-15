@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  // The build loads @currents/rules from node_modules, so that the bundle
+  // requires the package instead of copying it in. tsconfig.json maps it to
+  // its source, so that type checks and tests don't need it built first.
+  "compilerOptions": {
+    "paths": {
+      "@debug": ["debug"],
+      "@debug/*": ["debug/*"],
+      "@env": ["env"],
+      "@env/*": ["env/*"],
+      "@lib": ["lib"],
+      "@lib/*": ["lib/*"],
+      "@logger": ["logger"],
+      "@logger/*": ["logger/*"]
+    }
+  }
+}

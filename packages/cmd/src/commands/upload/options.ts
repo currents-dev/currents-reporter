@@ -37,6 +37,13 @@ export const machineIdOption = new Option(
   'the ID of the machine that ran the tests; by default a random value'
 ).env(getEnvironmentVariableName(configKeys, 'machineId'));
 
+export const failOnFailuresOption = new Option(
+  '--fail-on-failures',
+  'exit with 1 when a test failed, after the results are uploaded; a test quarantined or skipped by a Currents action does not count'
+)
+  .env(getEnvironmentVariableName(configKeys, 'failOnFailures'))
+  .default(false);
+
 export const reportDirOption = new Option(
   '--report-dir <folder>',
   'the folder of the reports to upload; by default the newest folder in .currents'

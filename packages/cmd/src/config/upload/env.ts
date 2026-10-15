@@ -27,6 +27,11 @@ export const configKeys = {
     env: 'CURRENTS_ENVIRONMENT',
     cli: '--environment',
   },
+  failOnFailures: {
+    name: 'Fail on failures',
+    env: 'CURRENTS_FAIL_ON_FAILURES',
+    cli: '--fail-on-failures',
+  },
   reportDir: {
     name: 'Report folder',
     env: 'CURRENTS_REPORT_DIR',

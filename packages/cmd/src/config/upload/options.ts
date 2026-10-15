@@ -25,5 +25,6 @@ export function cliOptionsToConfig(
     machineId: cliOptions.machineId,
     environment: cliOptions.environment,
     reportDir: cliOptions.reportDir,
+    failOnFailures: cliOptions.failOnFailures,
   };
 }

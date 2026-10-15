@@ -20,6 +20,7 @@ const config = {
       '@env': path.resolve(__dirname, './src/env'),
       '@lib': path.resolve(__dirname, './src/lib'),
       '@logger': path.resolve(__dirname, './src/logger'),
+      '@currents/rules': path.resolve(__dirname, '../rules/src'),
     },
   },
 };

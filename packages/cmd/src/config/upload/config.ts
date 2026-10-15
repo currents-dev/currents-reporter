@@ -49,6 +49,12 @@ export type CurrentsConfig = {
   machineId?: string;
 
   /**
+   * Exit with 1 when a test failed, after the project actions are applied: a
+   * quarantined or skipped test does not count.
+   */
+  failOnFailures?: boolean;
+
+  /**
    * Path to the report directory.
    */
   reportDir?: string;

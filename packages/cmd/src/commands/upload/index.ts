@@ -12,6 +12,7 @@ import {
   ciBuildIdOption,
   disableTitleTagsOption,
   environmentOption,
+  failOnFailuresOption,
   machineIdOption,
   removeTagOption,
   reportDirOption,
@@ -42,6 +43,13 @@ export const getUploadExamples = (name: string): HelpExample[] => [
       'Upload test results and add the tags "tagA" and "tagB" to the run',
     commands: [
       `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --tag tagA --tag tagB`,
+    ],
+  },
+  {
+    comment:
+      'Upload test results, then fail if a test failed that no Currents action quarantined or skipped',
+    commands: [
+      `${name} ${PARENT_NAME} ${COMMAND_NAME} --key <record-key> --project-id <id> --ci-build-id <build-id> --fail-on-failures`,
     ],
   },
   {
@@ -76,6 +84,7 @@ reports being converted.`
     .addOption(disableTitleTagsOption)
     .addOption(environmentOption)
     .addOption(machineIdOption)
+    .addOption(failOnFailuresOption)
     .addOption(debugOption())
     .addOption(reportDirOption)
     .addOption(inputFormatOption())

@@ -44,6 +44,9 @@ describe('currents run upload', () => {
   let apiUrl: string;
   let runRequests: RunRequest[];
   let uploads: { path: string; contentType?: string; bytes: number }[];
+  // null answers the actions request with 404
+  let projectActions: unknown[] | null;
+  let actionsRequests: { url?: string; recordKey?: string }[];
   let reportDir: string;
   let artifactsRootDir: string;
 
@@ -56,6 +59,8 @@ describe('currents run upload', () => {
   beforeEach(async () => {
     runRequests = [];
     uploads = [];
+    projectActions = [];
+    actionsRequests = [];
     server = http.createServer(handleApiRequest);
     await new Promise<void>((resolve) => server.listen(0, resolve));
     apiUrl = `http://localhost:${(server.address() as AddressInfo).port}`;
@@ -80,6 +85,186 @@ describe('currents run upload', () => {
       runRequests: runRequests.sort(byGroupAndSize),
       uploads,
     }).toMatchSnapshot();
+  });
+
+  it('applies the project actions to the results', async () => {
+    projectActions = [
+      {
+        _id: 'quarantine-id',
+        v: 0,
+        name: 'Quarantine basic fails',
+        action: [{ op: 'quarantine' }],
+        matcher: {
+          op: 'AND',
+          cond: [
+            { type: 'file', op: 'eq', value: 'specs/basic.check.js' },
+            { type: 'title', op: 'eq', value: 'fails' },
+          ],
+        },
+      },
+      {
+        _id: 'skip-id',
+        v: 0,
+        name: 'Skip probes',
+        action: [{ op: 'skip' }],
+        matcher: {
+          op: 'AND',
+          cond: [{ type: 'project', op: 'eq', value: 'probes' }],
+        },
+      },
+      {
+        _id: 'tag-id',
+        v: 0,
+        name: 'Tag retries',
+        action: [{ op: 'tag', details: { tags: ['flaky'] } }],
+        matcher: {
+          op: 'AND',
+          cond: [{ type: 'file', op: 'eq', value: 'specs/retries.check.js' }],
+        },
+      },
+    ];
+
+    await upload();
+
+    expect(actionsRequests).toEqual([
+      { url: '/rules/project/project', recordKey: 'record-key' },
+    ]);
+
+    const tests = runRequests
+      .flatMap((request) => request.instances)
+      .flatMap((instance) => instance.results.tests) as unknown as {
+      title: string[];
+      state: string;
+      tags?: string[];
+      annotations?: { type: string; description: string }[];
+      attempts: { status: string; errors: unknown[] }[];
+    }[];
+    const byTitle = (title: string) =>
+      tests.find((test) => test.title.join(' ') === title)!;
+    const annotation = (title: string) => {
+      const [first] = byTitle(title).annotations ?? [];
+      return first && { ...first, description: JSON.parse(first.description) };
+    };
+
+    // The quarantined test keeps the results of its attempts
+    expect(byTitle('basic fails').state).toBe('pending');
+    expect(
+      byTitle('basic fails').attempts.map((attempt) => attempt.status)
+    ).toEqual(['failed']);
+    expect(byTitle('basic fails').attempts[0].errors).not.toHaveLength(0);
+    expect(annotation('basic fails')).toMatchObject({
+      type: '_currents:rule:quarantine-post',
+      description: {
+        rule: {
+          id: 'quarantine-id',
+          name: 'Quarantine basic fails',
+          type: 'quarantine',
+          extraDetails: { status: 'failed' },
+        },
+        testInfo: { status: 'failed' },
+      },
+    });
+
+    // A passed test is not quarantined
+    expect(byTitle('basic passes').state).toBe('passed');
+    expect(byTitle('basic passes').annotations).toBeUndefined();
+
+    expect(byTitle('responds').state).toBe('pending');
+    expect(byTitle('responds').attempts.map((a) => a.status)).toEqual([
+      'passed',
+    ]);
+    expect(annotation('responds')).toMatchObject({
+      type: '_currents:rule:skip-post',
+      description: { rule: { id: 'skip-id', type: 'skip' } },
+    });
+
+    expect(byTitle('retries fails every attempt').tags).toContain('flaky');
+    expect(byTitle('retries fails every attempt').state).toBe('failed');
+    expect(annotation('retries fails every attempt')).toMatchObject({
+      type: '_currents:rule:tag',
+      description: {
+        rule: { id: 'tag-id', extraDetails: { tags: ['@flaky'] } },
+      },
+    });
+    expect(
+      runRequests[0].fullTestSuite
+        .flatMap(
+          (project) => project.tests as { spec: string; tags?: string[] }[]
+        )
+        .filter((test) => test.spec === 'specs/retries.check.js')
+        .map((test) => test.tags)
+    ).toEqual([['flaky'], ['flaky'], ['flaky']]);
+  });
+
+  it('uploads the results without actions when they cannot be fetched', async () => {
+    projectActions = null;
+    const { stdout } = await upload();
+    expect(stdout).toContain('Failed to fetch the project actions');
+    expect(runRequests.length).toBeGreaterThan(0);
+  });
+
+  describe('--fail-on-failures', () => {
+    const quarantineFailures = {
+      _id: 'quarantine-id',
+      v: 0,
+      name: 'Quarantine failures',
+      action: [{ op: 'quarantine' }],
+      matcher: {
+        op: 'OR',
+        cond: [
+          { type: 'title', op: 'eq', value: 'fails' },
+          { type: 'title', op: 'eq', value: 'fails every attempt' },
+        ],
+      },
+    };
+
+    it('exits with 1 after uploading when a test failed', async () => {
+      const error = await upload({ args: ['--fail-on-failures'] }).catch(
+        (e) => e
+      );
+
+      expect(error.code).toBe(1);
+      expect(error.stderr).toContain('2 tests failed (--fail-on-failures):');
+      expect(error.stderr).toContain('specs/basic.check.js: basic > fails');
+      expect(error.stderr).toContain(
+        'specs/retries.check.js: retries > fails every attempt'
+      );
+      expect(runRequests.length).toBeGreaterThan(0);
+    });
+
+    it('exits with 0 when every failed test is quarantined', async () => {
+      projectActions = [quarantineFailures];
+
+      await expect(
+        upload({ env: { CURRENTS_FAIL_ON_FAILURES: 'true' } })
+      ).resolves.toBeDefined();
+    });
+
+    it('lists only the failed tests that no action quarantined', async () => {
+      projectActions = [
+        {
+          ...quarantineFailures,
+          matcher: {
+            op: 'AND',
+            cond: [{ type: 'file', op: 'eq', value: 'specs/basic.check.js' }],
+          },
+        },
+      ];
+
+      const error = await upload({
+        env: { CURRENTS_FAIL_ON_FAILURES: 'true' },
+      }).catch((e) => e);
+
+      expect(error.code).toBe(1);
+      expect(error.stderr).toContain('1 test failed (--fail-on-failures):');
+      expect(error.stderr).not.toContain('basic > fails');
+    });
+
+    it('is off when the environment variable is false', async () => {
+      await expect(
+        upload({ env: { CURRENTS_FAIL_ON_FAILURES: 'false' } })
+      ).resolves.toBeDefined();
+    });
   });
 
   it('attaches Detox artifacts, steps and the trace', async () => {
@@ -222,9 +407,7 @@ describe('currents run upload', () => {
             'login.e2e.js: login signs out',
           ],
         });
-        expect(stdout + stderr).toContain(
-          'Discovery could not load launch.e2e.js'
-        );
+        expect(stdout).toContain('Discovery could not load launch.e2e.js');
       }
     );
 
@@ -353,7 +536,8 @@ describe('currents run upload', () => {
   async function upload({
     cwd = reportDir,
     env = {},
-  }: { cwd?: string; env?: Record<string, string> } = {}) {
+    args = [],
+  }: { cwd?: string; env?: Record<string, string>; args?: string[] } = {}) {
     return promisify(execFile)(
       process.execPath,
       [
@@ -368,6 +552,7 @@ describe('currents run upload', () => {
         'record-key',
         '--ci-build-id',
         'build',
+        ...args,
       ],
       { cwd, env: { ...process.env, CURRENTS_API_URL: apiUrl, ...env } }
     );
@@ -434,6 +619,21 @@ describe('currents run upload', () => {
       chunks.push(chunk);
     }
     const body = Buffer.concat(chunks);
+
+    if (req.method === 'GET' && req.url?.startsWith('/rules/project/')) {
+      actionsRequests.push({
+        url: req.url,
+        recordKey: req.headers['x-currents-key'] as string | undefined,
+      });
+      if (!projectActions) {
+        res.writeHead(404).end();
+        return;
+      }
+      res
+        .writeHead(200, { 'Content-Type': 'application/json' })
+        .end(JSON.stringify({ rules: projectActions }));
+      return;
+    }
 
     if (req.method === 'PUT') {
       uploads.push({

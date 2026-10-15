@@ -157,6 +157,9 @@ function getTestAttempts(
   skipped?: boolean
 ): InstanceReportTestAttempt[] {
   const testCaseTime = testCase.time ? timeToMilliseconds(testCase.time) : 0;
+  // A skipped or passed test has a single attempt, which gets the artifacts
+  // of every attempt index.
+  const allArtifacts = Array.from(attemptArtifacts.values()).flat();
   if (skipped) {
     return [
       {
@@ -168,20 +171,13 @@ function getTestAttempts(
         status: 'skipped',
         stdout: getStdOut(testCase?.['system-out']),
         stderr: getStdErr(testCase?.['system-err']),
-        artifacts: attemptArtifacts.get(0),
+        artifacts: allArtifacts,
         errors: [],
         error: undefined,
       },
     ];
   }
   if (failures.length === 0) {
-    // If no failures (passed), assign all discovered artifacts to attempt 0
-    // regardless of their index, because there is only 1 attempt.
-    const allArtifacts: Artifact[] = [];
-    attemptArtifacts.forEach((artifacts) => {
-      allArtifacts.push(...artifacts);
-    });
-
     return [
       {
         _s: 'passed',
