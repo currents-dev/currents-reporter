@@ -17,6 +17,11 @@ Cypress is not a dependency of this example, so that `npm install` in this
 repository does not download the Cypress binary. `npm run test` runs it with
 `npx`.
 
+The `report` scripts run the `currents` command of this repository. Build it
+first: `npm install` at the repository root, `npm run build` in
+`packages/cmd`, then `npm install` at the root again, which links the command
+now that it is built.
+
 ```bash
 npm run test                 # cypress run: results/, cypress/screenshots/, cypress/videos/
 npm run attach-screenshots   # add the screenshots to the JUnit reports
@@ -79,7 +84,10 @@ then copies and uploads the files.
 
 - Cypress names a failure screenshot `<spec>/<describe> -- <test> (failed).png`.
   Screenshots with a custom name (`cy.screenshot('name')`) do not match a test
-  and are not attached.
+  and are not attached. The script lists the screenshots it did not attach.
+- Tests with the same title in one spec file get screenshots with the same
+  name, which the script cannot tell apart. It attaches none of them and
+  prints a warning.
 - Each screenshot goes to the first attempt of the test. With Cypress retries,
   the report has the last attempt only.
 - The script uses paths relative to the folder it runs in. Run it and
@@ -146,7 +154,8 @@ the results of both from a later job, to one Currents run.
 - Each job writes `results/cypress-results-<CI_NODE_INDEX>.json`, so the files
   of the jobs do not overwrite each other in the `currents` job.
 - The `currents` job downloads the artifacts of every `cypress` job, and
-  uploads all result files in one command. `when: always` uploads the results
+  uploads all result files in one command. `--input-format cypress-json` needs
+  `@currents/cmd` newer than 2.2.0. `when: always` uploads the results
   when a Cypress job fails.
 - Without `--ci-build-id`, Currents creates one run for each GitLab pipeline
   (`CI_PIPELINE_ID`). Uploads from several jobs of the same pipeline go to the

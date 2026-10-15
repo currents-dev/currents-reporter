@@ -17,6 +17,8 @@ async function main(reportsDir, screenshotsDir) {
     file.endsWith('.png')
   );
 
+  const attachedFiles = new Set();
+
   for (const reportFile of listFiles(reportsDir)) {
     if (!reportFile.endsWith('.xml')) continue;
 
@@ -27,14 +29,32 @@ async function main(reportsDir, screenshotsDir) {
     const spec = suites.find((suite) => suite.$?.file)?.$.file;
     if (!spec) continue;
 
+    const testcases = suites.flatMap((suite) => suite.testcase ?? []);
+    const names = testcases.map((testcase) => normalizeName(testcase.$.name));
+
     let attached = 0;
-    for (const testcase of suites.flatMap((suite) => suite.testcase ?? [])) {
+    testcases.forEach((testcase, index) => {
       const files = screenshots.filter(
         (file) =>
           isScreenshotOfSpec(path.relative(screenshotsDir, file), spec) &&
-          getTestName(file) === testcase.$.name
+          getTestName(file) === names[index]
       );
+      if (files.length === 0) return;
+
+      // Cypress gives the screenshots of tests with the same title one name,
+      // so they cannot be told apart
+      const first = names.indexOf(names[index]);
+      if (first !== names.lastIndexOf(names[index])) {
+        if (first === index) {
+          console.warn(
+            `${reportFile}: more than one test is named "${testcase.$.name}", not attaching their screenshots`
+          );
+        }
+        return;
+      }
+
       for (const file of files) {
+        attachedFiles.add(file);
         const added = addArtifact(testcase, {
           path: path.relative(process.cwd(), file),
           type: 'screenshot',
@@ -43,10 +63,15 @@ async function main(reportsDir, screenshotsDir) {
         });
         if (added) attached++;
       }
-    }
+    });
 
     fs.writeFileSync(reportFile, new Builder().buildObject(report));
     console.log(`${reportFile}: attached ${attached} screenshot(s)`);
+  }
+
+  const notAttached = screenshots.filter((file) => !attachedFiles.has(file));
+  if (notAttached.length > 0) {
+    console.warn(`Not attached to a test:\n  ${notAttached.join('\n  ')}`);
   }
 }
 
@@ -58,12 +83,18 @@ function isScreenshotOfSpec(screenshot, spec) {
 }
 
 function getTestName(file) {
-  return path
-    .basename(file, '.png')
-    .replace(/ \(failed\)/, '')
-    .replace(/ \(attempt \d+\)$/, '')
-    .split(' -- ')
-    .join(' ');
+  return normalizeName(
+    path
+      .basename(file, '.png')
+      .replace(/ \(failed\)/, '')
+      .replace(/ \(attempt \d+\)$/, '')
+  );
+}
+
+// The file name separates the titles with " -- ", the report with spaces. A
+// title can have " -- " in it too, so both sides drop the separator.
+function normalizeName(name) {
+  return name.split(' -- ').join(' ');
 }
 
 // Attempt-level properties without an index go to the first attempt. Use
