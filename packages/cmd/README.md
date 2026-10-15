@@ -29,7 +29,7 @@ For JUnit XML reports, `run upload` converts them to the Currents format first, 
 npx currents run upload --project-id=xxx --key=yyy --input-format junit --input-file "reports/*.xml" --framework postman
 ```
 
-`--framework` takes `postman`, `node`, `vitest` or `wdio`. The converted reports are saved to `--output-dir`, or `--report-dir`, or a new folder in `.currents`. A folder you name must be empty or not exist yet.
+`--framework` takes `cypress`, `postman`, `node`, `vitest` or `wdio`. For Cypress run results saved by `after:run`, use `--input-format cypress-json --input-file results.json` without `--framework`: it uploads every attempt, screenshot and video. The converted reports are saved to `--output-dir`, or `--report-dir`, or a new folder in `.currents`. A folder you name must be empty or not exist yet.
 
 ℹ️ Get familiar with [CI Build ID 📖](https://docs.currents.dev/guides/ci-build-id) before using `currents` in CI. It is **important** to set the `CI Build ID` explicitly using `--ci-build-id` option, if you are using CI sharding or multiple CI machines to parallelize your tests. If not set explicitly, the `CI Build ID` will be set to a random value.
 
@@ -74,6 +74,7 @@ Please note that all options apart from `--project-id` and `--key` are optional.
 | `--ci-build-id`        | `string`  | The id of the build to record the test run. Read more: https://currents.dev/readme/guides/ci-build-id                                                        | `CURRENTS_CI_BUILD_ID`        | `auto:[random-string]` |
 | `--debug`              | `boolean` | Enable debug logs                                                                                                                                            | `CURRENTS_DEBUG`              | `false`                |
 | `-t, --tag`            | `string`  | Comma-separated tag(s) for recorded runs in Currents                                                                                                         | `CURRENTS_TAG`                | -                      |
+| `--environment`        | `string`  | The environment to label the run with, e.g. `staging`                                                                                                        | `CURRENTS_ENVIRONMENT`        | -                      |
 | `--disable-title-tags` | `boolean` | Disable extracting tags from test title, e.g. `Test name @smoke` would not be tagged with `smoke`                                                            | `CURRENTS_DISABLE_TITLE_TAGS` | `false`                |
 | `--remove-title-tags`  | `boolean` | Remove tags from test names in Currents, e.g. `Test name @smoke` becomes `Test name` in the dashboard                                                        | `CURRENTS_REMOVE_TITLE_TAGS`  | `false`                |
 | `--fail-on-failures`   | `boolean` | Exit with 1 after uploading when a test failed. A test quarantined or skipped by a Currents action does not count                                            | `CURRENTS_FAIL_ON_FAILURES`   | `false`                |

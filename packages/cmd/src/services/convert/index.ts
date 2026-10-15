@@ -8,10 +8,24 @@ import {
 import { info } from '@logger';
 import fs from 'fs-extra';
 import { join, resolve, sep } from 'path';
-import { getConvertCommandConfig } from '../../config/convert';
+import {
+  REPORT_FRAMEWORKS,
+  REPORT_INPUT_FORMATS,
+} from '../../commands/convert/options';
+import {
+  ConvertCommandConfig,
+  getConvertCommandConfig,
+} from '../../config/convert';
 import { Artifact, InstanceReport } from '../../types';
 import { getFullTestSuiteFilePath } from '../upload/path';
-import { createFullTestSuite } from './createFullTestSuite';
+import {
+  createFullTestSuite,
+  createFullTestSuiteFromInstances,
+} from './createFullTestSuite';
+import {
+  getInstanceMap as getCypressInstanceMap,
+  readCypressResults,
+} from './cypress-json';
 import { getInstanceMap } from './getInstanceMap';
 import { getParsedXMLArray } from './getParsedXMLArray';
 import { getReportConfig } from './getReportConfig';
@@ -32,34 +46,17 @@ export async function handleConvert() {
       : await createUniqueFolder(process.cwd(), '.currents');
     const instancesDir = await createFolder(join(reportDir, 'instances'));
 
-    const reportConfig = getReportConfig(config);
-    debug('Report config:', reportConfig);
+    const instances =
+      config.inputFormat === REPORT_INPUT_FORMATS.cypressJson
+        ? await convertCypressResults(config, reportDir)
+        : await convertJUnit(config, reportDir);
 
-    info('[currents] Convertion files: %s', config.inputFiles.join(', '));
-
-    await writeFileAsyncIfNotExists(
-      join(reportDir, 'config.json'),
-      JSON.stringify(reportConfig)
-    );
-
-    const parsedXMLArray = await getParsedXMLArray(config.inputFiles);
-
-    if (parsedXMLArray.length === 0) {
-      throw new Error('No valid XML JUnit report was found.');
+    // Otherwise the upload fails with "Failed to discover the full test suite!"
+    if (instances.size === 0) {
+      throw new Error(
+        `No test results found in ${config.inputFiles.join(', ')}. Check that the tests ran and that the reports are the files the tests wrote.`
+      );
     }
-
-    const fullTestSuite = createFullTestSuite(parsedXMLArray);
-
-    await writeFileAsyncIfNotExists(
-      getFullTestSuiteFilePath(reportDir),
-      JSON.stringify(fullTestSuite)
-    );
-
-    const instances: Map<string, InstanceReport> = await getInstanceMap({
-      inputFormat: config.inputFormat,
-      framework: config.framework,
-      parsedXMLArray,
-    });
 
     const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
     const workspaceRoot = process.cwd();
@@ -131,6 +128,75 @@ export async function handleConvert() {
     debug('Failed to convert: %o', e);
     throw e;
   }
+}
+
+// Writes config.json and fullTestSuite.json, and returns the instances
+async function convertJUnit(config: ConvertCommandConfig, reportDir: string) {
+  const reportConfig = getReportConfig(config);
+  debug('Report config:', reportConfig);
+
+  info('[currents] Convertion files: %s', config.inputFiles.join(', '));
+
+  await writeFileAsyncIfNotExists(
+    join(reportDir, 'config.json'),
+    JSON.stringify(reportConfig)
+  );
+
+  const parsedXMLArray = await getParsedXMLArray(config.inputFiles);
+
+  if (parsedXMLArray.length === 0) {
+    throw new Error('No valid XML JUnit report was found.');
+  }
+
+  const instances: Map<string, InstanceReport> = await getInstanceMap({
+    inputFormat: config.inputFormat,
+    framework: config.framework,
+    parsedXMLArray,
+  });
+
+  // The Cypress conversion joins the <testsuite> elements of a report into one
+  // spec, which the list read from the XML would not match
+  const fullTestSuite =
+    config.framework === REPORT_FRAMEWORKS.cypress
+      ? createFullTestSuiteFromInstances(instances)
+      : createFullTestSuite(parsedXMLArray);
+
+  await writeFileAsyncIfNotExists(
+    getFullTestSuiteFilePath(reportDir),
+    JSON.stringify(fullTestSuite)
+  );
+
+  return instances;
+}
+
+// Writes config.json and fullTestSuite.json, and returns the instances
+async function convertCypressResults(
+  config: ConvertCommandConfig,
+  reportDir: string
+) {
+  info('[currents] Convertion files: %s', config.inputFiles.join(', '));
+
+  const results = await readCypressResults(config.inputFiles);
+
+  const reportConfig = getReportConfig({
+    ...config,
+    frameworkVersion: config.frameworkVersion ?? results[0]?.cypressVersion,
+  });
+  debug('Report config:', reportConfig);
+
+  await writeFileAsyncIfNotExists(
+    join(reportDir, 'config.json'),
+    JSON.stringify(reportConfig)
+  );
+
+  const instances = getCypressInstanceMap(results);
+
+  await writeFileAsyncIfNotExists(
+    getFullTestSuiteFilePath(reportDir),
+    JSON.stringify(createFullTestSuiteFromInstances(instances))
+  );
+
+  return instances;
 }
 
 /**

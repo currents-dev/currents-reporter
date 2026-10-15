@@ -61,6 +61,18 @@ export function generateTestId(testName: string, suiteName: string): string {
   return fullHash.substring(0, 16);
 }
 
+// Cypress's JUnit reports join the describe block titles with spaces. Joining
+// them the same way for the run results gives a test the same ID in both
+// formats, so its history does not split when a project switches format.
+export function generateCypressTestId(title: string[], spec: string): string {
+  const describeTitles = title.slice(0, -1).join(' ');
+  const testTitle = title[title.length - 1];
+  return generateTestId(
+    [describeTitles, testTitle].filter(Boolean).join(', '),
+    spec
+  );
+}
+
 export function getTimestampValue(dateString: string) {
   if (!isValidDate(dateString)) {
     return new Date().getTime();

@@ -1,0 +1,20 @@
+{
+  "name": "examples-cypress",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "npx --yes cypress@14.5.4 run || true",
+    "attach-screenshots": "node attach-screenshots.js results cypress/screenshots",
+    "report": "currents run upload --input-format=junit --input-file='results/*.xml' --framework=cypress --framework-version=14.5.4",
+    "report:json": "currents run upload --input-format=cypress-json --input-file='results/cypress-results-*.json'",
+    "build": "echo \"No build specified\" && exit 0"
+  },
+  "devDependencies": {
+    "@currents/cmd": "*",
+    "xml2js": "^0.6.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

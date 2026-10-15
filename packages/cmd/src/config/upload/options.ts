@@ -23,6 +23,7 @@ export function cliOptionsToConfig(
     disableTitleTags: cliOptions.disableTitleTags,
     debug: cliOptions.debug,
     machineId: cliOptions.machineId,
+    environment: cliOptions.environment,
     reportDir: cliOptions.reportDir,
     failOnFailures: cliOptions.failOnFailures,
   };

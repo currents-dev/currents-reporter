@@ -22,6 +22,11 @@ export const configKeys = {
     env: 'CURRENTS_REMOVE_TITLE_TAGS',
     cli: '--remove-title-tags',
   },
+  environment: {
+    name: 'Environment',
+    env: 'CURRENTS_ENVIRONMENT',
+    cli: '--environment',
+  },
   failOnFailures: {
     name: 'Fail on failures',
     env: 'CURRENTS_FAIL_ON_FAILURES',

@@ -1,3 +1,4 @@
+import { InstanceReport } from '../../types';
 import {
   FullSuiteProject,
   FullSuiteTest,
@@ -45,4 +46,27 @@ export function createFullTestSuite(parsedXMLInputs: TestSuites[]) {
   });
 
   return fullTestSuite;
+}
+
+// For conversions that join several <testsuite> elements into one spec, so the
+// list matches the specs and test IDs of the results
+export function createFullTestSuiteFromInstances(
+  instances: Map<string, InstanceReport>
+): FullTestSuite {
+  const projects = new Map<string, FullSuiteProject>();
+
+  instances.forEach(({ groupId, spec, results }) => {
+    const project = projects.get(groupId) ?? {
+      name: groupId,
+      tags: [],
+      tests: [],
+    };
+    projects.set(groupId, project);
+
+    results.tests.forEach(({ title, testId }) => {
+      project.tests.push({ title, spec, tags: [], testId });
+    });
+  });
+
+  return Array.from(projects.values());
 }

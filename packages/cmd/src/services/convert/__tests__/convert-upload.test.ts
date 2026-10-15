@@ -12,6 +12,7 @@ import { CliResult, runCli } from '../../../test-utils/cli';
 const junitDir = join(__dirname, 'fixtures/junit');
 
 const frameworks = [
+  ['cypress', 'cypress.xml'],
   ['postman', 'newman.xml'],
   ['vitest', 'vitest.xml'],
   ['node', 'node.xml'],
@@ -235,6 +236,53 @@ describe('currents run upload --input-format, with the built CLI', () => {
     });
   });
 
+  it('labels the run with the environment of --environment', async () => {
+    expectSuccess(
+      await convertAndUpload(
+        'postman',
+        ['newman.xml', 'wdio.xml'],
+        ['--environment', 'staging']
+      )
+    );
+
+    const createRequests = api.requests.filter(
+      (r) => r.method === 'POST' && r.json.instances.length === 0
+    );
+    expect(
+      createRequests.flatMap((r) =>
+        r.json.fullTestSuite.map(
+          (project: { environment?: string }) => project.environment
+        )
+      )
+    ).toEqual(['staging', 'staging', 'staging', 'staging']);
+  });
+
+  it('labels the run with the environment of CURRENTS_ENVIRONMENT', async () => {
+    const result = await runCli(
+      [
+        'run',
+        'upload',
+        ...convertOptions('vitest', ['vitest.xml']),
+        '--key',
+        'record-key',
+        '--project-id',
+        'project',
+        '--ci-build-id',
+        'build',
+      ],
+      {
+        cwd: workDir,
+        env: { CURRENTS_API_URL: api.url, CURRENTS_ENVIRONMENT: 'nightly' },
+      }
+    );
+    expectSuccess(result);
+
+    const run = api.requests.find((r) => r.method === 'POST')!;
+    expect(run.json.fullTestSuite).toEqual([
+      expect.objectContaining({ environment: 'nightly' }),
+    ]);
+  });
+
   it('uploads the output of a suite as a text artifact', async () => {
     expectSuccess(await convertAndUpload('vitest', ['vitest.xml']));
 
@@ -268,6 +316,24 @@ describe('currents run upload --input-format, with the built CLI', () => {
 
     expect(result.code).toBe(1);
     expect(result.stderr).toContain('No valid XML JUnit report was found');
+    expect(api.requests).toEqual([]);
+  });
+
+  // Cypress writes it for a spec file that fails to load
+  it('fails without sending anything when the reports have no tests', async () => {
+    await fs.writeFile(
+      join(workDir, 'junit/no-tests.xml'),
+      `<testsuites name="e2e" tests="0" failures="0">
+  <testsuite name="Root Suite" tests="0" file="cypress/e2e/broken.cy.js" failures="0">
+  </testsuite>
+</testsuites>`
+    );
+
+    const result = await convertAndUpload('cypress', ['no-tests.xml']);
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('No test results found in');
+    expect(result.stderr).not.toContain('Failed to discover');
     expect(api.requests).toEqual([]);
   });
 

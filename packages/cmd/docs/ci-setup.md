@@ -53,7 +53,7 @@ For JUnit XML, `run upload` converts the reports first:
   run: npx currents run upload --input-format junit --input-file "reports/*.xml" --framework postman
 ```
 
-`--framework` takes `postman`, `node`, `vitest` or `wdio`. See `currents run upload --help`.
+`--framework` takes `cypress`, `postman`, `node`, `vitest` or `wdio`. For Cypress run results saved by `after:run`, use `--input-format cypress-json --input-file results.json` without `--framework`: it uploads every attempt, screenshot and video. See `currents run upload --help`.
 
 To let Currents actions quarantine tests, let the test step pass and fail the job from the upload. `--fail-on-failures` exits with 1 when a test failed that no action quarantined or skipped:
 

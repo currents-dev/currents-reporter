@@ -11,6 +11,7 @@ import { debugOption, projectOption, recordKeyOption } from '../options';
 import {
   ciBuildIdOption,
   disableTitleTagsOption,
+  environmentOption,
   failOnFailuresOption,
   machineIdOption,
   removeTagOption,
@@ -81,13 +82,14 @@ reports being converted.`
     .addOption(runTagOption)
     .addOption(removeTagOption)
     .addOption(disableTitleTagsOption)
+    .addOption(environmentOption)
     .addOption(machineIdOption)
     .addOption(failOnFailuresOption)
     .addOption(debugOption())
     .addOption(reportDirOption)
     .addOption(inputFormatOption())
     .addOption(inputFileOption(REQUIRED_WITH_INPUT_FORMAT))
-    .addOption(frameworkOption(REQUIRED_WITH_INPUT_FORMAT))
+    .addOption(frameworkOption('(required with --input-format junit)'))
     .addOption(frameworkVersionOption)
     .addOption(outputDirOption)
     .action((options) => uploadHandler(options));
