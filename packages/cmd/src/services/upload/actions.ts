@@ -62,6 +62,7 @@ export function applyProjectActions({
   fullTestSuite,
   gitInfo,
   runTags,
+  disableTitleTags = false,
   group,
 }: {
   actions: Action[];
@@ -69,6 +70,8 @@ export function applyProjectActions({
   fullTestSuite: FullTestSuite;
   gitInfo: Commit | null;
   runTags: string[];
+  /** The API then ignores the tags the full test suite reads from titles */
+  disableTitleTags?: boolean;
   /** Replaces the group of every instance, as the upload does */
   group?: string | null;
 }): AppliedActionsSummary {
@@ -86,8 +89,21 @@ export function applyProjectActions({
   for (const instance of instances) {
     const groupId = group ?? instance.groupId;
     for (const test of instance.results.tests) {
+      const suiteTags = disableTitleTags
+        ? []
+        : (findFullTestSuiteTest(fullTestSuite, {
+            groupId,
+            spec: instance.spec,
+            testId: test.testId,
+          })?.test.tags ?? []);
       const matched = rules.getMatchedRules(
-        getMatchable({ groupId, spec: instance.spec, test, gitInfo, runTags })
+        getMatchable({
+          groupId,
+          spec: instance.spec,
+          test,
+          gitInfo,
+          tags: [...suiteTags, ...runTags],
+        })
       );
       if (matched.length === 0) {
         continue;
@@ -133,19 +149,20 @@ export function logAppliedActions(summary: AppliedActionsSummary) {
   );
 }
 
-// The same test fields the Currents API matches actions on
+// The same test fields the Currents API matches actions on. The API takes the
+// tags of a test from the full test suite, and adds the tags of the run.
 function getMatchable({
   groupId,
   spec,
   test,
   gitInfo,
-  runTags,
+  tags,
 }: {
   groupId: string;
   spec: string;
   test: InstanceReportTest;
   gitInfo: Commit | null;
-  runTags: string[];
+  tags: string[];
 }): RuleMatchable {
   return {
     title: test.title[test.title.length - 1],
@@ -153,7 +170,7 @@ function getMatchable({
     file: spec,
     project: groupId,
     testId: test.testId,
-    tag: Array.from(new Set([...(test.tags ?? []), ...runTags])),
+    tag: Array.from(new Set([...(test.tags ?? []), ...tags])),
     gitInfo: gitInfo && {
       branch: gitInfo.branch,
       authorName: gitInfo.authorName,
@@ -265,6 +282,17 @@ function getActionTrace({
   };
 }
 
+function findFullTestSuiteTest(
+  fullTestSuite: FullTestSuite,
+  { groupId, spec, testId }: { groupId: string; spec: string; testId: string }
+) {
+  const project = fullTestSuite.find((p) => p.name === groupId);
+  const test = project?.tests.find(
+    (t) => t.spec === spec && t.testId === testId
+  );
+  return project && test ? { project, test } : null;
+}
+
 function addFullTestSuiteTags(
   fullTestSuite: FullTestSuite,
   {
@@ -274,13 +302,11 @@ function addFullTestSuiteTags(
     tags,
   }: { groupId: string; spec: string; testId: string; tags: string[] }
 ) {
-  const project = fullTestSuite.find((p) => p.name === groupId);
-  const test = project?.tests.find(
-    (t) => t.spec === spec && t.testId === testId
-  );
-  if (!project || !test) {
+  const found = findFullTestSuiteTest(fullTestSuite, { groupId, spec, testId });
+  if (!found) {
     return;
   }
+  const { project, test } = found;
   test.tags = Array.from(new Set([...test.tags, ...tags]));
   project.tags = Array.from(new Set([...project.tags, ...tags]));
 }

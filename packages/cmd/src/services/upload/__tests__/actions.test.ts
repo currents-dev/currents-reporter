@@ -91,6 +91,44 @@ describe('applyProjectActions', () => {
     expect(tests[0].state).toBe('pending');
   });
 
+  describe('tags', () => {
+    const smokeAction = action({
+      matcher: {
+        op: 'AND',
+        cond: [{ type: 'tag', op: 'inc', value: ['@smoke'] }],
+      },
+    });
+    const fullTestSuite = () => [
+      {
+        name: 'android',
+        tags: ['smoke'],
+        tests: [
+          {
+            spec: 'spec.xml',
+            testId: 'test-id',
+            title: ['suite', 'test @smoke'],
+            tags: ['smoke'],
+          },
+        ],
+      },
+    ];
+
+    it('matches on the tags of the test in the full test suite', () => {
+      const { tests } = apply([smokeAction], [test({})], {
+        fullTestSuite: fullTestSuite(),
+      });
+      expect(tests[0].state).toBe('pending');
+    });
+
+    it('ignores those tags with disableTitleTags, as the API does', () => {
+      const { tests } = apply([smokeAction], [test({})], {
+        fullTestSuite: fullTestSuite(),
+        disableTitleTags: true,
+      });
+      expect(tests[0].state).toBe('failed');
+    });
+  });
+
   it('matches on the group the upload uses', () => {
     const { tests } = apply(
       [

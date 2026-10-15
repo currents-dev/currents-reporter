@@ -159,6 +159,7 @@ export async function handleCurrentsReport() {
       fullTestSuite,
       gitInfo: await getGitInfo(),
       runTags: currentsConfig.tag ?? [],
+      disableTitleTags: currentsConfig.disableTitleTags,
       group: defaultGroup,
     })
   );
