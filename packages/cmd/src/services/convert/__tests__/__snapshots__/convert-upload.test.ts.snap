@@ -41,7 +41,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
             {
               "spec": "cypress/e2e/login.cy.js",
               "tags": [],
-              "testId": "7ed83ca40ad5d4a7",
+              "testId": "dfdd5a13810c29ea",
               "title": [
                 "Login",
                 "shows a welcome message",
@@ -50,7 +50,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
             {
               "spec": "cypress/e2e/login.cy.js",
               "tags": [],
-              "testId": "e268530855edb559",
+              "testId": "e6c11689588bd7e4",
               "title": [
                 "Login",
                 "asks for an email",
@@ -59,7 +59,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
             {
               "spec": "cypress/e2e/login.cy.js",
               "tags": [],
-              "testId": "46d89490d1e0a4d6",
+              "testId": "95cbdf96d8fc7c7c",
               "title": [
                 "Login",
                 "remembers the user",
@@ -68,7 +68,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
             {
               "spec": "cypress/e2e/login.cy.js",
               "tags": [],
-              "testId": "a29ef4dea966d430",
+              "testId": "b95eee76c762db78",
               "title": [
                 "Login password",
                 "hides the password",
@@ -77,7 +77,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
             {
               "spec": "cypress/e2e/login.cy.js",
               "tags": [],
-              "testId": "396aaf50c04e31cf",
+              "testId": "63dc023b0d3f9ead",
               "title": [
                 "Login password",
                 "shows a strength meter",
@@ -175,7 +175,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
                 },
                 "retries": 0,
                 "state": "passed",
-                "testId": "7ed83ca40ad5d4a7",
+                "testId": "dfdd5a13810c29ea",
                 "timeout": 0,
                 "title": [
                   "Login",
@@ -208,7 +208,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
                 },
                 "retries": 0,
                 "state": "passed",
-                "testId": "e268530855edb559",
+                "testId": "e6c11689588bd7e4",
                 "timeout": 0,
                 "title": [
                   "Login",
@@ -253,7 +253,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
                 },
                 "retries": 1,
                 "state": "failed",
-                "testId": "46d89490d1e0a4d6",
+                "testId": "95cbdf96d8fc7c7c",
                 "timeout": 0,
                 "title": [
                   "Login",
@@ -286,7 +286,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
                 },
                 "retries": 0,
                 "state": "passed",
-                "testId": "a29ef4dea966d430",
+                "testId": "b95eee76c762db78",
                 "timeout": 0,
                 "title": [
                   "Login password",
@@ -318,7 +318,7 @@ exports[`currents run upload --input-format, with the built CLI > cypress > send
                 },
                 "retries": 0,
                 "state": "pending",
-                "testId": "396aaf50c04e31cf",
+                "testId": "63dc023b0d3f9ead",
                 "timeout": 0,
                 "title": [
                   "Login password",

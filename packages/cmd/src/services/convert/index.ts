@@ -51,6 +51,13 @@ export async function handleConvert() {
         ? await convertCypressResults(config, reportDir)
         : await convertJUnit(config, reportDir);
 
+    // Otherwise the upload fails with "Failed to discover the full test suite!"
+    if (instances.size === 0) {
+      throw new Error(
+        `No test results found in ${config.inputFiles.join(', ')}. Check that the tests ran and that the reports are the files the tests wrote.`
+      );
+    }
+
     const artifactsDir = await createFolder(join(reportDir, 'artifacts'));
     const workspaceRoot = process.cwd();
 

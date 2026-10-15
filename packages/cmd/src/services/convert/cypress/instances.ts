@@ -5,7 +5,7 @@ import {
   getInstanceMap as getSuiteInstanceMap,
 } from '../postman';
 import { TestCase, TestSuite, TestSuites } from '../types';
-import { ensureArray } from '../utils';
+import { ensureArray, generateCypressTestId } from '../utils';
 
 /**
  * Cypress's built-in `junit` reporter (mocha-junit-reporter) writes one report
@@ -45,6 +45,7 @@ export async function getInstanceMap(
     );
     suiteJson.results.tests.forEach((test, index) => {
       test.title = getTestTitle(testcases[index]);
+      test.testId = generateCypressTestId(test.title, spec);
     });
 
     if (suiteJson.results.tests.length !== 0) {

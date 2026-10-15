@@ -1,3 +1,4 @@
+import { warn } from '@logger';
 import { readJson } from 'fs-extra';
 import { basename, relative } from 'path';
 import {
@@ -9,7 +10,7 @@ import {
   TestCaseStatus,
   TestRunnerStatus,
 } from '../../../types';
-import { generateTestId } from '../utils';
+import { generateCypressTestId } from '../utils';
 import {
   CypressRunResult,
   CypressSpecRun,
@@ -20,7 +21,17 @@ import {
 export async function readCypressResults(
   inputFiles: string[]
 ): Promise<CypressRunResult[]> {
-  return Promise.all(inputFiles.map((file) => readJson(file)));
+  return Promise.all(
+    inputFiles.map(async (file) => {
+      const result = await readJson(file);
+      if (!Array.isArray(result?.runs)) {
+        throw new Error(
+          `${file} is not a Cypress run result: it has no "runs" list. Save the results of the "after:run" event or of cypress.run().`
+        );
+      }
+      return result;
+    })
+  );
 }
 
 export function getInstanceMap(
@@ -30,9 +41,25 @@ export function getInstanceMap(
 
   for (const result of results) {
     for (const run of result.runs) {
-      if (run.tests.length === 0) continue;
+      if (run.tests.length === 0) {
+        // A spec file that fails to load, e.g. with a syntax error
+        if (run.error) {
+          warn(
+            'Skipping %s, Cypress could not load it and it has no test results: %s',
+            run.spec.relative,
+            getErrorLine(run.error)
+          );
+        }
+        continue;
+      }
       const instance = getInstance(run, result.browserName);
-      instances.set(`${instance.groupId}${instance.spec}`, instance);
+      const key = `${instance.groupId}${instance.spec}`;
+      if (instances.has(key)) {
+        throw new Error(
+          `The results have ${instance.spec} in ${instance.groupId} more than once. Upload the results of each spec file once: split the spec files between the machines, or upload the files of each run with its own --ci-build-id.`
+        );
+      }
+      instances.set(key, instance);
     }
   }
 
@@ -152,7 +179,7 @@ function getTest(
 
   return {
     _t: startTime,
-    testId: generateTestId(test.title.join(', '), spec),
+    testId: generateCypressTestId(test.title, spec),
     title: test.title,
     state: getTestCaseStatus(test.state),
     isFlaky:
@@ -184,6 +211,13 @@ function matchScreenshot(path: string, tests: CypressTest[]) {
   );
   if (testIndex === -1) return null;
   return { testIndex, attempt: attemptNumber ? Number(attemptNumber) - 1 : 0 };
+}
+
+// Cypress starts the error of a spec file it could not load with
+// "Oops...we found an error preparing this test file", then names the error
+function getErrorLine(error: string) {
+  const lines = error.split('\n').map((line) => line.trim());
+  return lines.find((line) => /^\w*Error\b/.test(line)) ?? lines[0];
 }
 
 // "AssertionError: Timed out ...\n    at ..." to its type, message and stack

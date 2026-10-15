@@ -22,6 +22,8 @@ export interface CypressSpecRun {
   tests: CypressTest[];
   screenshots: { path: string; takenAt: string }[];
   video: string | null;
+  // Why a spec file has no tests, e.g. a syntax error
+  error?: string | null;
 }
 
 export type CypressTestState = 'passed' | 'failed' | 'pending' | 'skipped';

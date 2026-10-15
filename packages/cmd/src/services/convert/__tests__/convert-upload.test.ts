@@ -186,6 +186,24 @@ describe('currents run upload --input-format, with the built CLI', () => {
     expect(api.requests).toEqual([]);
   });
 
+  // Cypress writes it for a spec file that fails to load
+  it('fails without sending anything when the reports have no tests', async () => {
+    await fs.writeFile(
+      join(workDir, 'junit/no-tests.xml'),
+      `<testsuites name="e2e" tests="0" failures="0">
+  <testsuite name="Root Suite" tests="0" file="cypress/e2e/broken.cy.js" failures="0">
+  </testsuite>
+</testsuites>`
+    );
+
+    const result = await convertAndUpload('cypress', ['no-tests.xml']);
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('No test results found in');
+    expect(result.stderr).not.toContain('Failed to discover');
+    expect(api.requests).toEqual([]);
+  });
+
   it('fails when the input pattern matches no file', async () => {
     const result = await convertAndUpload('postman', ['missing.xml']);
 
