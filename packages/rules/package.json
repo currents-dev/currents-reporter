@@ -1,0 +1,88 @@
+{
+  "name": "@currents/rules",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "author": {
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/currents-dev/currents-reporter",
+    "directory": "packages/rules"
+  },
+  "description": "Matches tests against Currents actions",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "vitest --run",
+    "rm": "rimraf dist",
+    "lint": "TIMING=1 eslint \"**/*.ts*\"",
+    "types": "tsc --noEmit",
+    "build": "tsup-node --minify --dts",
+    "dev": "tsup-node --watch --dts",
+    "release": "release-it",
+    "publish:npm": "npm run rm  && npm run build && ./publish.js"
+  },
+  "files": [
+    "dist",
+    "!**/*.map",
+    "!**/*/*.map",
+    "LICENSE.md",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "keywords": [
+    "currents",
+    "actions",
+    "quarantine"
+  ],
+  "dependencies": {
+    "lodash": "^4.18.1",
+    "safe-regex2": "^5.1.1"
+  },
+  "devDependencies": {
+    "@release-it/conventional-changelog": "^12.0.0",
+    "@types/lodash": "^4.17.16",
+    "commander": "^14.0.0",
+    "release-it": "^21.0.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "release-it": {
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true,
+      "releaseName": "${npm.name} v${version}"
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "conventionalcommits"
+        },
+        "header": "# Changelog",
+        "ignoreVersion": true,
+        "infile": "./CHANGELOG.md"
+      }
+    },
+    "git": {
+      "commitMessage": "chore: release ${npm.name} v${version}",
+      "tagName": "${npm.name}-v${version}"
+    }
+  }
+}

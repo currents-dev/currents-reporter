@@ -34,6 +34,11 @@ jobs:
         run: |
           npx turbo run build --filter=@currents/cmd --filter=@currents/jest
 
+      - name: Run Rules Tests
+        working-directory: ./packages/rules
+        run: |
+          npm run test
+
       - name: Run Tests
         working-directory: ./packages/cmd
         env:
