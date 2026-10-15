@@ -31,6 +31,10 @@ currents:
     CURRENTS_PROJECT_ID: <project id>
     CURRENTS_TAG: nightly
     CURRENTS_ENVIRONMENT: staging
-    # CURRENTS_RECORD_KEY is a masked CI/CD variable
+    # GitLab passes CI/CD variables to every job, and Cypress does not run
+    # when it finds CURRENTS_RECORD_KEY, CURRENTS_PROJECT_ID or
+    # CURRENTS_API_URL. The record key is the masked CI/CD variable
+    # CURRENTS_UPLOAD_KEY, set as CURRENTS_RECORD_KEY in this job only.
+    CURRENTS_RECORD_KEY: $CURRENTS_UPLOAD_KEY
   script:
     - npx --yes @currents/cmd run upload --input-format cypress-json --input-file "results/cypress-results-*.json"
