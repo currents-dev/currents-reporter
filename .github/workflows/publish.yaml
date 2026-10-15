@@ -21,6 +21,7 @@ on:
           - '@currents/cmd'
           - '@currents/jest'
           - '@currents/node-test-reporter'
+          - '@currents/rules'
 
 permissions:
   id-token: write  # Required for OIDC
@@ -31,7 +32,8 @@ env:
     {
       "@currents/cmd": "cmd",
       "@currents/jest": "jest",
-      "@currents/node-test-reporter": "node-test-reporter"
+      "@currents/node-test-reporter": "node-test-reporter",
+      "@currents/rules": "rules"
     }
 
 jobs:
@@ -83,6 +85,9 @@ jobs:
             node-test-reporter)
               echo "key=LINEAR_ACCESS_KEY_NODE_TEST_REPORTER" >> $GITHUB_OUTPUT
               ;;
+            rules)
+              # No Linear release pipeline
+              ;;
             *)
               echo "Error: Unknown package '$PACKAGE_SHORT'"
               exit 1
@@ -91,7 +96,7 @@ jobs:
 
       - name: Mark Linear release as complete
         id: release
-        if: success() && github.event.inputs.channel == 'latest'
+        if: success() && github.event.inputs.channel == 'latest' && steps.linear_key.outputs.key != ''
         uses: linear/linear-release-action@v0
         with:
           access_key: ${{ secrets[steps.linear_key.outputs.key] }}

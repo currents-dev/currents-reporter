@@ -15,6 +15,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   platform: 'node',
+  tsconfig: 'tsconfig.build.json',
   target: 'esnext',
   // `currents skill` reads the skill from dist/skills. The repository keeps the
   // only copy in skills/ at its root, where `npx skills add` finds it.

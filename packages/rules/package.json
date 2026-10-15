@@ -10,11 +10,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/currents-dev/currents-reporter"
+    "url": "https://github.com/currents-dev/currents-reporter",
+    "directory": "packages/rules"
   },
   "description": "Matches tests against Currents actions",
   "engines": {
-    "node": ">=18.20.4"
+    "node": ">=18.17"
   },
   "scripts": {
     "test": "vitest --run",
@@ -55,9 +56,9 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },

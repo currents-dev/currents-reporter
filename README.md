@@ -5,6 +5,7 @@ A monorepo which contains the following packages:
 - `@currents/jest` - Currents jest reporter ([documentation](https://docs.currents.dev/resources/reporters/currents-jest)).
 - `@currents/cmd` - `currents` CLI command ([documentation](https://docs.currents.dev/resources/reporters/currents-cmd))
 - `@currents/node-test-reporter` - Currents Node.js test reporter
+- `@currents/rules` - matches tests against Currents actions; shared by `@currents/playwright` and `@currents/cmd`
 - `examples` - a private package used to test the implementation
 
 ## Develop and contribute

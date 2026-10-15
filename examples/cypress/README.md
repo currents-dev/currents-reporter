@@ -147,6 +147,13 @@ Limits:
 the results of both from a later job, to one Currents run.
 
 - The `cypress` jobs do not need Currents packages, variables or configuration.
+- Keep the record key in a masked CI/CD variable named `CURRENTS_UPLOAD_KEY`,
+  not `CURRENTS_RECORD_KEY`. GitLab passes CI/CD variables to every job, and
+  Cypress stops with "We've detected that you're using a 3rd party library
+  that is not supported by Cypress: cypress-cloud" when the job has
+  `CURRENTS_RECORD_KEY`, `CURRENTS_PROJECT_ID` or `CURRENTS_API_URL`. The
+  `currents` job sets `CURRENTS_RECORD_KEY` from `CURRENTS_UPLOAD_KEY`, and
+  `CURRENTS_PROJECT_ID` in its own `variables`.
   They keep the results, screenshots and videos as job artifacts.
 - Without Cypress Cloud, each Cypress job runs every spec.
   [split-specs.js](split-specs.js) gives each job every `CI_NODE_TOTAL`-th spec
