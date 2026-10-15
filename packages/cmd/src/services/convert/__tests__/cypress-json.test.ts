@@ -1,4 +1,8 @@
+import fs from 'fs-extra';
+import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { parseStringPromise } from 'xml2js';
+import { getInstanceMap as getJUnitInstanceMap } from '../cypress';
 import { getInstanceMap } from '../cypress-json';
 import { CypressRunResult } from '../cypress-json/types';
 import results from './fixtures/cypress-results.json';
@@ -92,5 +96,43 @@ describe('getInstanceMap for Cypress run results', () => {
 
     expect(test.state).toBe('pending');
     expect(test.attempts[0].status).toBe('skipped');
+  });
+
+  it('gives a test the same ID as the JUnit report of the same spec', async () => {
+    const junit = await parseStringPromise(
+      fs.readFileSync(join(__dirname, 'fixtures/junit/cypress.xml'), 'utf-8'),
+      { explicitArray: false, mergeAttrs: true }
+    );
+    const [junitLogin] = (await getJUnitInstanceMap([junit])).values();
+    const getTestIds = (spec: typeof junitLogin) =>
+      spec.results.tests.map((test) => test.testId);
+
+    expect(getTestIds(getInstance('cypress/e2e/login.cy.js'))).toEqual(
+      getTestIds(junitLogin)
+    );
+  });
+
+  it('fails when a spec file is in the results more than once', () => {
+    expect(() =>
+      getInstanceMap([results as CypressRunResult, results as CypressRunResult])
+    ).toThrow(
+      'The results have cypress/e2e/flaky.cy.js in electron more than once'
+    );
+  });
+
+  it('skips a spec file that failed to load', () => {
+    const [run] = (results as CypressRunResult).runs;
+    const broken = {
+      ...run,
+      spec: { ...run.spec, relative: 'cypress/e2e/broken.cy.js' },
+      tests: [],
+      error: 'Oops...we found an error preparing this test file:',
+    };
+
+    const map = getInstanceMap([
+      { ...(results as CypressRunResult), runs: [broken] },
+    ]);
+
+    expect(map.size).toBe(0);
   });
 });
