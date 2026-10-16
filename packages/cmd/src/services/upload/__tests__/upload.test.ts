@@ -194,6 +194,11 @@ describe('currents run upload', () => {
         .filter((test) => test.spec === 'specs/retries.check.js')
         .map((test) => test.tags)
     ).toEqual([['flaky'], ['flaky'], ['flaky']]);
+    // The API adds the tags of a project to every test of the project
+    const checks = runRequests[0].fullTestSuite.find(
+      (project) => project.name === 'checks'
+    ) as unknown as { tags: string[] };
+    expect(checks.tags).not.toContain('flaky');
   });
 
   it('uploads the results without actions when they cannot be fetched', async () => {
