@@ -104,6 +104,8 @@ Restore the last run before the tests and save it after them:
 
 Set `CURRENTS_RECORD_KEY` as a masked CI/CD variable in the project settings.
 
+GitLab passes the project's CI/CD variables to every job. Cypress 13 and later does not run when its job has `CURRENTS_RECORD_KEY`, `CURRENTS_PROJECT_ID` or `CURRENTS_API_URL`. If the project also runs Cypress jobs, name the CI/CD variable `CURRENTS_UPLOAD_KEY` and set `CURRENTS_RECORD_KEY: $CURRENTS_UPLOAD_KEY` in the `variables` of the jobs that use the CLI.
+
 ### Upload after a reporter
 
 ```yaml

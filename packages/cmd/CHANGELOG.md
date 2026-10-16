@@ -6,7 +6,7 @@
 
 `--environment` or `CURRENTS_ENVIRONMENT` labels an uploaded run with an environment, as the Playwright reporter does.
 
-`currents run upload` now applies the project's actions before it sends the results, with the rules engine from the new `@currents/rules` package: skip marks a test as skipped, quarantine marks a failed test as skipped, and tag adds tags. The attempts keep their status, errors and artifacts. A project with actions sees them applied to uploaded runs from this version on. If the actions cannot be fetched, the upload prints a warning and sends the results without them. `--fail-on-failures` or `CURRENTS_FAIL_ON_FAILURES` exits with 1 after the upload when a test failed that no action skipped or quarantined.
+`currents run upload` now applies the project's actions before it sends the results, with the rules engine from the new `@currents/rules` package: skip marks a test as skipped, quarantine marks a failed test as skipped, and tag adds tags. The attempts keep their status, errors and artifacts. Actions with regex or date conditions are not applied yet. A project with actions sees them applied to uploaded runs from this version on. If the actions cannot be fetched, the upload prints a warning and sends the results without them. `--fail-on-failures` or `CURRENTS_FAIL_ON_FAILURES` exits with 1 after the upload when a test failed that no action skipped or quarantined.
 
 ### Features
 
