@@ -295,7 +295,10 @@ function failOnFailedTests(instances: InstanceReport[]) {
   const failed = instances.flatMap((instance) =>
     instance.results.tests
       .filter((test) => test.state === 'failed')
-      .map((test) => `${instance.spec}: ${test.title.join(' > ')}`)
+      .map(
+        (test) =>
+          `${instance.spec}: ${getTitleWithoutSpec(test.title, instance.spec)}`
+      )
   );
   if (failed.length === 0) {
     return;
@@ -310,6 +313,12 @@ function failOnFailedTests(instances: InstanceReport[]) {
       ...(more > 0 ? [`  and ${more} more`] : []),
     ].join('\n')
   );
+}
+
+// Converted JUnit reports start the title with the spec, which the list
+// already names
+function getTitleWithoutSpec(title: string[], spec: string) {
+  return (title[0] === spec ? title.slice(1) : title).join(' > ');
 }
 
 async function createRun({

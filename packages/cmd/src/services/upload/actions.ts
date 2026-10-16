@@ -306,7 +306,6 @@ function addFullTestSuiteTags(
   if (!found) {
     return;
   }
-  const { project, test } = found;
-  test.tags = Array.from(new Set([...test.tags, ...tags]));
-  project.tags = Array.from(new Set([...project.tags, ...tags]));
+  // Not on the project: the API adds the tags of a project to all its tests
+  found.test.tags = Array.from(new Set([...found.test.tags, ...tags]));
 }

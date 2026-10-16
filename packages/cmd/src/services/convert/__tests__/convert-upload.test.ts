@@ -198,6 +198,19 @@ describe('currents run upload --input-format, with the built CLI', () => {
     expect(passed.annotations).toBeUndefined();
   });
 
+  it('names each failed test once with --fail-on-failures', async () => {
+    const result = await convertAndUpload(
+      'wdio',
+      ['detox-retries.xml'],
+      ['--fail-on-failures']
+    );
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain(
+      '1 test failed (--fail-on-failures):\n  - onboarding: quarantined failure after retries\n'
+    );
+  });
+
   // The hidden convert command only converts.
   it('writes the report files with currents convert', async () => {
     expectSuccess(
