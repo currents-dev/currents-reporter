@@ -121,9 +121,11 @@ export async function handleCurrentsReport() {
     clientVersion: reporterVersion,
     frameworkConfig: {
       originFramework: config.frameworkConfig?.originFramework as
-        string | undefined,
+        | string
+        | undefined,
       originFrameworkVersion: config.frameworkConfig?.originFrameworkVersion as
-        string | undefined,
+        | string
+        | undefined,
     },
   };
 
