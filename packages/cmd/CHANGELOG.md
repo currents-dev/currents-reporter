@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.3.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.2.0...%40currents%2Fcmd-v2.3.0) (2026-10-16)
+
+`currents run upload` uploads Cypress 13+ results without a Currents package in the Cypress project. `--input-format cypress-json` reads Cypress's run results, saved by an `after:run` handler or returned by `cypress.run()`: every attempt of a test, the screenshots of each attempt and the spec video, and a test that passed on a retry is flaky. `--input-format junit --framework cypress` reads the reports of Cypress's built-in `junit` reporter, with the last attempt of each test only. Both show the run as Cypress, and a test has the same ID in both. Reports without any test now fail with `No test results found in <files>` instead of `Failed to discover the full test suite!`. [`examples/cypress`](https://github.com/currents-dev/currents-reporter/tree/main/examples/cypress) runs Cypress on GitLab CI and uploads the results from a later job.
+
+`--environment` or `CURRENTS_ENVIRONMENT` labels an uploaded run with an environment, as the Playwright reporter does.
+
+`currents run upload` now applies the project's actions before it sends the results, with the rules engine from the new `@currents/rules` package: skip marks a test as skipped, quarantine marks a failed test as skipped, and tag adds tags. The attempts keep their status, errors and artifacts. A project with actions sees them applied to uploaded runs from this version on. If the actions cannot be fetched, the upload prints a warning and sends the results without them. `--fail-on-failures` or `CURRENTS_FAIL_ON_FAILURES` exits with 1 after the upload when a test failed that no action skipped or quarantined.
+
+### Features
+
+* **cmd:** apply Currents actions in run upload, and add --fail-on-failures ([#462](https://github.com/currents-dev/currents-reporter/issues/462)) ([30748fd](https://github.com/currents-dev/currents-reporter/commit/30748fd1bfc777229a2e8c13f179ca3388773759))
+* **cmd:** label uploaded runs with an environment ([88e520e](https://github.com/currents-dev/currents-reporter/commit/88e520ed7ce753bcf90aabb02e31aada2f37e057))
+* **cmd:** upload Cypress results from JUnit or Cypress run results ([e1280be](https://github.com/currents-dev/currents-reporter/commit/e1280be25f03a0f35391f864c50653c7d9b9ead1))
+
+### Bug Fixes
+
+* **cmd:** clear errors for Cypress uploads without tests or with a spec twice ([fc49d5b](https://github.com/currents-dev/currents-reporter/commit/fc49d5b17d6e5029d0083ced721938ec466204f4))
+
 ## [2.2.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.1.0...%40currents%2Fcmd-v2.2.0) (2026-10-10)
 
 `currents docs` lists the guides for the CLI, one line each, and `currents docs <topic>` prints a guide as Markdown. The guides are `ci-setup`, with the GitHub Actions and GitLab CI steps, and `sessions`, which records a browser session and shares it. An unknown topic exits with code 1 and lists the topics.
