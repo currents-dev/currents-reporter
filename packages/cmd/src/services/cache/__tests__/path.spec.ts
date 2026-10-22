@@ -2,12 +2,10 @@ import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { posixJoin } from '../../../test-utils/path';
 import { filterPaths, getLastRunFilePaths, getUploadPaths } from '../path';
 
 vi.mock('../lib', () => ({ warn: vi.fn() }));
-
-// The paths found are joined with / on every platform
-const posix = (...parts: string[]) => path.join(...parts).replace(/\\/g, '/');
 
 describe('cache paths', () => {
   let root: string;
@@ -44,8 +42,8 @@ describe('cache paths', () => {
     fs.outputFileSync(path.join(cwd, 'test-results/s1/trace.zip'), 'zip');
 
     expect((await getLastRunFilePaths()).sort()).toEqual([
-      posix(cwd, 'test-results/.last-run.json'),
-      posix(cwd, 'test-results/s1/.last-run.json'),
+      posixJoin(cwd, 'test-results/.last-run.json'),
+      posixJoin(cwd, 'test-results/s1/.last-run.json'),
     ]);
   });
 
@@ -53,7 +51,7 @@ describe('cache paths', () => {
     fs.outputFileSync(path.join(root, 'pw-out/.last-run.json'), '{}');
 
     expect(await getLastRunFilePaths(path.join(root, 'pw-out'))).toEqual([
-      posix(root, 'pw-out/.last-run.json'),
+      posixJoin(root, 'pw-out/.last-run.json'),
     ]);
   });
 
