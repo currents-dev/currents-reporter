@@ -1,5 +1,5 @@
 import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
-import * as globby from 'globby';
+import { globPaths } from '@lib/glob';
 
 export enum REPORT_INPUT_FORMATS {
   junit = 'junit',
@@ -44,7 +44,7 @@ export const frameworkVersionOption = new Option(
 function validateGlobPattern(value: string) {
   const patterns = value.split(',').map((pattern) => pattern.trim());
 
-  const allResults = globby.sync(patterns);
+  const allResults = globPaths(patterns);
 
   if (allResults.length === 0) {
     throw new InvalidArgumentError('No files found with the provided patterns');
