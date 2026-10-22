@@ -134,8 +134,43 @@ describe('globPaths', () => {
     ]);
   });
 
+  it('sorts one folder name at a time', () => {
+    for (const file of ['order/a/x.xml', 'order/a-b/x.xml']) {
+      fs.outputFileSync(path.join(cwd, file), file);
+    }
+
+    expect(globPaths(['order/**/*.xml'])).toEqual([
+      'order/a/x.xml',
+      'order/a-b/x.xml',
+    ]);
+  });
+
+  it('sorts ignoring case on Windows, like its file system', () => {
+    for (const file of ['order/a.xml', 'order/UPPER.xml', 'order/z.xml']) {
+      fs.outputFileSync(path.join(cwd, file), file);
+    }
+    expect(globPaths(['order/*.xml'])).toEqual([
+      'order/UPPER.xml',
+      'order/a.xml',
+      'order/z.xml',
+    ]);
+
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32');
+    expect(globPaths(['order/*.xml'])).toEqual([
+      'order/a.xml',
+      'order/UPPER.xml',
+      'order/z.xml',
+    ]);
+  });
+
   it('returns nothing for a pattern that matches no file', () => {
     expect(globPaths(['nope/*.xml'])).toEqual([]);
+  });
+
+  // globby 11 matched every file in the current folder for an empty pattern,
+  // so a trailing comma in --input-file made convert read all of them
+  it('matches nothing for an empty pattern', () => {
+    expect(globPaths(['reports/a.xml', ''])).toEqual(['reports/a.xml']);
   });
 
   // GHSA-vfj7-8cjw-p6xm: braces overflowed the stack on deeply nested groups.

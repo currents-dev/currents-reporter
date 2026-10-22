@@ -1,4 +1,6 @@
+import fs from 'fs';
 import { isAbsolute, resolve } from 'path';
+import picomatch from 'picomatch';
 import { globSync } from 'tinyglobby';
 
 /**
@@ -11,8 +13,8 @@ import { globSync } from 'tinyglobby';
  * - a `!pattern` leaves out the files whose path matches it, or every file of
  *   a folder it names, from the patterns before it, and a relative `!pattern`
  *   leaves nothing out of an absolute pattern's matches. tinyglobby's `ignore`
- *   skips whole folders whose name matches, so `!**\/a*` would also drop
- *   `a_/report.xml`.
+ *   skips whole folders whose name matches, so `!reports/a*` would also drop
+ *   `reports/a_old/report.xml`.
  * - the matches of each pattern come in the order of the patterns, shallower
  *   files first. When two reports hold the same spec, `convert` keeps the one
  *   it reads last, so a different order changes the converted results.
@@ -24,24 +26,50 @@ export function globPaths(patterns: string[]): string[] {
     if (pattern.startsWith('!')) {
       return;
     }
-    const left = new Set(
-      patterns
-        .slice(index + 1)
-        .filter((p) => p.startsWith('!'))
-        .map((p) => p.slice(1))
-        // globby matched a relative !pattern against the absolute paths an
-        // absolute pattern returns, so it never left anything out of them
-        .filter((p) => !isAbsolute(pattern) || isAbsolute(p))
-        .flatMap((p) => globSync(p, { absolute: true }))
-    );
-    const files = globSync(pattern, { absolute: isAbsolute(pattern) }).filter(
-      (file) => !left.has(resolve(file).replace(/\\/g, '/'))
+    const absolute = isAbsolute(pattern);
+    const isLeftOut = negationMatcher(patterns.slice(index + 1), absolute);
+    const files = globSync(pattern, { absolute }).filter(
+      (file) => !isLeftOut(file)
     );
     for (const file of sortByDepth(files)) {
       matches.add(file);
     }
   });
   return [...matches];
+}
+
+// Matches the files a pattern found against the `!patterns` after it, instead
+// of listing what each `!pattern` matches: `!**/old*` would otherwise walk the
+// whole current folder, node_modules included.
+function negationMatcher(patterns: string[], absolute: boolean) {
+  const matchers = patterns
+    .filter((pattern) => pattern.length > 1 && pattern.startsWith('!'))
+    .map((pattern) => pattern.slice(1).replace(/\\/g, '/'))
+    // globby matched a relative !pattern against the absolute paths an
+    // absolute pattern returns, so it never left anything out of them
+    .filter((pattern) => !absolute || isAbsolute(pattern))
+    .map((pattern) => ({
+      absolute: isAbsolute(pattern),
+      isMatch: picomatch(
+        isFolder(pattern) ? `${pattern.replace(/\/$/, '')}/**` : pattern
+      ),
+    }));
+
+  return (file: string) =>
+    matchers.some(({ absolute, isMatch }) =>
+      isMatch(absolute ? resolve(file).replace(/\\/g, '/') : file)
+    );
+}
+
+function isFolder(pattern: string) {
+  if (picomatch.scan(pattern).isGlob) {
+    return false;
+  }
+  try {
+    return fs.statSync(resolve(pattern)).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 // globby listed each folder in the order the file system returns it: by
