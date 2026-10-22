@@ -2,7 +2,11 @@ import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { globPaths } from '../glob';
+import { globPaths, sortByDepth } from '../glob';
+
+// Glob patterns use / on every platform, and globPaths returns / paths
+const posix = (...parts: string[]) => path.join(...parts).replace(/\\/g, '/');
+const sorted = (paths: string[]) => [...paths].sort();
 
 describe('globPaths', () => {
   let root: string;
@@ -32,8 +36,6 @@ describe('globPaths', () => {
     fs.removeSync(root);
   });
 
-  const sorted = (paths: string[]) => [...paths].sort();
-
   it('returns the matches of relative patterns relative to the current folder', () => {
     expect(sorted(globPaths(['reports/**/*.xml']))).toEqual([
       'reports/a.xml',
@@ -43,12 +45,11 @@ describe('globPaths', () => {
     ]);
   });
 
-  it('expands brace lists and ranges', () => {
-    expect(sorted(globPaths(['reports/{a,b}.xml']))).toEqual([
+  it('expands brace lists', () => {
+    expect(sorted(globPaths(['reports/{a,c}.{xml,json}']))).toEqual([
       'reports/a.xml',
-      'reports/b.xml',
+      'reports/c.json',
     ]);
-    expect(sorted(globPaths(['reports/*.{xml,json}']))).toHaveLength(4);
   });
 
   it('returns the files of a folder', () => {
@@ -61,19 +62,19 @@ describe('globPaths', () => {
   });
 
   it('returns the matches of absolute patterns as absolute paths', () => {
-    expect(sorted(globPaths([path.join(cwd, 'dist')]))).toEqual([
-      path.join(cwd, 'dist/a.js'),
-      path.join(cwd, 'dist/sub/b.js'),
+    expect(sorted(globPaths([posix(cwd, 'dist')]))).toEqual([
+      posix(cwd, 'dist/a.js'),
+      posix(cwd, 'dist/sub/b.js'),
     ]);
-    expect(globPaths([path.join(root, 'outside/*.xml')])).toEqual([
-      path.join(root, 'outside/r.xml'),
+    expect(globPaths([posix(root, 'outside/*.xml')])).toEqual([
+      posix(root, 'outside/r.xml'),
     ]);
   });
 
   it('keeps the form of each pattern when relative and absolute are mixed', () => {
     expect(
-      sorted(globPaths(['reports/a.xml', path.join(cwd, 'reports/b.xml')]))
-    ).toEqual([path.join(cwd, 'reports/b.xml'), 'reports/a.xml']);
+      sorted(globPaths(['reports/a.xml', posix(cwd, 'reports/b.xml')]))
+    ).toEqual([posix(cwd, 'reports/b.xml'), 'reports/a.xml']);
   });
 
   it('leaves out the matches of negated patterns', () => {
@@ -81,42 +82,49 @@ describe('globPaths', () => {
       'reports/a.xml',
       'reports/b.xml',
     ]);
-    expect(
-      sorted(
-        globPaths([
-          path.join(cwd, 'reports/*.xml'),
-          '!' + path.join(cwd, 'reports/skip.xml'),
-        ])
-      )
-    ).toEqual([
-      path.join(cwd, 'reports/a.xml'),
-      path.join(cwd, 'reports/b.xml'),
-    ]);
   });
 
-  it('leaves out every file of a negated folder', () => {
-    expect(globPaths(['reports/**/*.xml', '!reports/nested'])).not.toContain(
-      'reports/nested/d.xml'
-    );
-  });
-
-  // The cases below are how globby 11 behaved
-  it('keeps the files of a folder whose name matches a negated pattern', () => {
-    expect(globPaths(['reports/**/*.xml', '!reports/**/n*'])).toContain(
-      'reports/nested/d.xml'
-    );
-  });
-
-  it('applies a negated pattern only to the patterns before it', () => {
-    expect(globPaths(['!reports/skip.xml', 'reports/*.xml'])).toContain(
-      'reports/skip.xml'
-    );
-  });
-
-  it('leaves nothing out of an absolute pattern with a relative negation', () => {
-    expect(
-      globPaths([path.join(cwd, 'reports/*.xml'), '!reports/skip.xml'])
-    ).toContain(path.join(cwd, 'reports/skip.xml'));
+  // How globby 11 applied negated patterns. The rows are functions because
+  // cwd is only set in beforeEach.
+  it.each([
+    [
+      'leaves out every file of a negated folder',
+      () => ['reports/**/*.xml', '!reports/nested'],
+      () => 'reports/nested/d.xml',
+      false,
+    ],
+    [
+      'keeps the files of a folder whose name matches a negated pattern',
+      () => ['reports/**/*.xml', '!reports/**/n*'],
+      () => 'reports/nested/d.xml',
+      true,
+    ],
+    [
+      'applies a negated pattern only to the patterns before it',
+      () => ['!reports/skip.xml', 'reports/*.xml'],
+      () => 'reports/skip.xml',
+      true,
+    ],
+    [
+      'applies an absolute negated pattern to a relative one',
+      () => ['reports/*.xml', `!${posix(cwd, 'reports/skip.xml')}`],
+      () => 'reports/skip.xml',
+      false,
+    ],
+    [
+      'applies an absolute negated pattern to an absolute one',
+      () => [posix(cwd, 'reports/*.xml'), `!${posix(cwd, 'reports/skip.xml')}`],
+      () => posix(cwd, 'reports/skip.xml'),
+      false,
+    ],
+    [
+      'leaves nothing out of an absolute pattern with a relative negation',
+      () => [posix(cwd, 'reports/*.xml'), '!reports/skip.xml'],
+      () => posix(cwd, 'reports/skip.xml'),
+      true,
+    ],
+  ])('%s', (_, patterns, file, kept) => {
+    expect(globPaths(patterns()).includes(file())).toBe(kept);
   });
 
   // convert keeps the last report of a spec, so the order decides the results
@@ -134,35 +142,6 @@ describe('globPaths', () => {
     ]);
   });
 
-  it('sorts one folder name at a time', () => {
-    for (const file of ['order/a/x.xml', 'order/a-b/x.xml']) {
-      fs.outputFileSync(path.join(cwd, file), file);
-    }
-
-    expect(globPaths(['order/**/*.xml'])).toEqual([
-      'order/a/x.xml',
-      'order/a-b/x.xml',
-    ]);
-  });
-
-  it('sorts ignoring case on Windows, like its file system', () => {
-    for (const file of ['order/a.xml', 'order/UPPER.xml', 'order/z.xml']) {
-      fs.outputFileSync(path.join(cwd, file), file);
-    }
-    expect(globPaths(['order/*.xml'])).toEqual([
-      'order/UPPER.xml',
-      'order/a.xml',
-      'order/z.xml',
-    ]);
-
-    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32');
-    expect(globPaths(['order/*.xml'])).toEqual([
-      'order/a.xml',
-      'order/UPPER.xml',
-      'order/z.xml',
-    ]);
-  });
-
   it('returns nothing for a pattern that matches no file', () => {
     expect(globPaths(['nope/*.xml'])).toEqual([]);
   });
@@ -173,10 +152,41 @@ describe('globPaths', () => {
     expect(globPaths(['reports/a.xml', ''])).toEqual(['reports/a.xml']);
   });
 
-  // GHSA-vfj7-8cjw-p6xm: braces overflowed the stack on deeply nested groups.
+  // GHSA-vfj7-8cjw-p6xm: braces overflowed the stack on deeply nested groups
   it('handles deeply nested braces', () => {
     const depth = 5000;
     const pattern = '{'.repeat(depth) + 'a' + '}'.repeat(depth) + '.xml';
     expect(globPaths([pattern])).toEqual([]);
+  });
+});
+
+describe('sortByDepth', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('sorts one folder name at a time', () => {
+    expect(sortByDepth(['a-b/x.xml', 'a/x.xml'])).toEqual([
+      'a/x.xml',
+      'a-b/x.xml',
+    ]);
+  });
+
+  it('sorts by character code on macOS and Linux', () => {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('linux');
+    expect(sortByDepth(['z.xml', 'a.xml', 'UPPER.xml'])).toEqual([
+      'UPPER.xml',
+      'a.xml',
+      'z.xml',
+    ]);
+  });
+
+  it('sorts ignoring case on Windows, like its file system', () => {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32');
+    expect(sortByDepth(['z.xml', 'a.xml', 'UPPER.xml'])).toEqual([
+      'a.xml',
+      'UPPER.xml',
+      'z.xml',
+    ]);
   });
 });

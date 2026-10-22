@@ -4,32 +4,38 @@ import picomatch from 'picomatch';
 import { globSync } from 'tinyglobby';
 
 /**
- * Returns the files that match the glob patterns, the way globby 11 returned
- * them, so that switching from globby changes no command's results:
- * - a match of an absolute pattern is an absolute path, and a match of a
- *   relative pattern is relative to the current folder. tinyglobby alone
- *   returns every match relative to the current folder, so
- *   `--input-file /tmp/r.xml` would print as `../../tmp/r.xml`.
- * - a `!pattern` leaves out the files whose path matches it, or every file of
- *   a folder it names, from the patterns before it, and a relative `!pattern`
- *   leaves nothing out of an absolute pattern's matches. tinyglobby's `ignore`
- *   skips whole folders whose name matches, so `!reports/a*` would also drop
- *   `reports/a_old/report.xml`.
- * - the matches of each pattern come in the order of the patterns, shallower
- *   files first. When two reports hold the same spec, `convert` keeps the one
- *   it reads last, so a different order changes the converted results.
+ * Returns the files that match the glob patterns as globby 11 did, so that
+ * replacing it changes no command's results:
+ * - an absolute pattern returns absolute paths, a relative one paths relative
+ *   to the current folder
+ * - a `!pattern` leaves out the files it matches, or the files of a folder it
+ *   names, from the patterns before it; a relative one leaves nothing out of
+ *   an absolute pattern
+ * - files come in pattern order, shallower first. `convert` keeps the last
+ *   report of a spec, so the order decides its results.
  */
 export function globPaths(patterns: string[]): string[] {
+  const negations = patterns.flatMap((pattern, index) =>
+    pattern.length > 1 && pattern.startsWith('!')
+      ? [toNegation(pattern.slice(1), index)]
+      : []
+  );
   const matches = new Set<string>();
 
   patterns.forEach((pattern, index) => {
     if (pattern.startsWith('!')) {
       return;
     }
+    // Without the `absolute` option, tinyglobby returns /tmp/r.xml as
+    // ../../tmp/r.xml
     const absolute = isAbsolute(pattern);
-    const isLeftOut = negationMatcher(patterns.slice(index + 1), absolute);
+    const applying = negations.filter(
+      (negation) => negation.index > index && (!absolute || negation.absolute)
+    );
+    // Not tinyglobby's `ignore`: it skips whole folders whose name matches, so
+    // `!reports/a*` would also drop reports/a_old/report.xml
     const files = globSync(pattern, { absolute }).filter(
-      (file) => !isLeftOut(file)
+      (file) => !applying.some((negation) => negation.leavesOut(file))
     );
     for (const file of sortByDepth(files)) {
       matches.add(file);
@@ -38,27 +44,17 @@ export function globPaths(patterns: string[]): string[] {
   return [...matches];
 }
 
-// Matches the files a pattern found against the `!patterns` after it, instead
-// of listing what each `!pattern` matches: `!**/old*` would otherwise walk the
-// whole current folder, node_modules included.
-function negationMatcher(patterns: string[], absolute: boolean) {
-  const matchers = patterns
-    .filter((pattern) => pattern.length > 1 && pattern.startsWith('!'))
-    .map((pattern) => pattern.slice(1).replace(/\\/g, '/'))
-    // globby matched a relative !pattern against the absolute paths an
-    // absolute pattern returns, so it never left anything out of them
-    .filter((pattern) => !absolute || isAbsolute(pattern))
-    .map((pattern) => ({
-      absolute: isAbsolute(pattern),
-      isMatch: picomatch(
-        isFolder(pattern) ? `${pattern.replace(/\/$/, '')}/**` : pattern
-      ),
-    }));
-
-  return (file: string) =>
-    matchers.some(({ absolute, isMatch }) =>
-      isMatch(absolute ? resolve(file).replace(/\\/g, '/') : file)
-    );
+function toNegation(pattern: string, index: number) {
+  const absolute = isAbsolute(pattern);
+  const isMatch = picomatch(
+    isFolder(pattern) ? `${pattern.replace(/\/$/, '')}/**` : pattern
+  );
+  return {
+    index,
+    absolute,
+    leavesOut: (file: string) =>
+      isMatch(absolute ? resolve(file).replace(/\\/g, '/') : file),
+  };
 }
 
 function isFolder(pattern: string) {
@@ -76,7 +72,7 @@ function isFolder(pattern: string) {
 // character code on macOS and Linux, ignoring case on Windows. Comparing whole
 // paths instead of one folder name at a time would put a-b/x.xml before
 // a/x.xml.
-function sortByDepth(files: string[]) {
+export function sortByDepth(files: string[]) {
   const sortable = files.map((file) => ({
     file,
     segments: (process.platform === 'win32' ? file.toUpperCase() : file).split(
