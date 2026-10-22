@@ -33,7 +33,7 @@ describe('cache paths', () => {
       'dist/../../outside.txt',
     ]);
 
-    expect(paths).toEqual([path.join(cwd, 'dist/a.js')]);
+    expect(paths).toEqual([posixJoin(cwd, 'dist/a.js')]);
   });
 
   it('finds every .last-run.json under the Playwright output folder', async () => {

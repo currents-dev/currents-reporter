@@ -21,7 +21,8 @@ export function globPaths(globs: string[]): string[] {
 }
 
 const NUMERIC_RANGE = /(?<!\\)\{(-?\d+)\.\.(-?\d+)(?:\.\.(-?\d+))?\}/g;
-// globby (through braces) refused to expand a range with more values
+// globby (through braces) refused ascending ranges with more values; this
+// refuses descending ones too, so a typo like {10000..1} doesn't hang the CLI
 const MAX_RANGE_VALUES = 1000;
 
 // tinyglobby reads {1..10} as the character class [1-10], which matches only
@@ -41,8 +42,9 @@ function numericRange(from: string, to: string, step = '1') {
   const size = Math.abs(Number(step)) || 1;
   const count = Math.floor(Math.abs(end - start) / size) + 1;
   if (count > MAX_RANGE_VALUES) {
+    const range = [from, to, ...(step === '1' ? [] : [step])].join('..');
     throw new Error(
-      `{${from}..${to}} expands to more than ${MAX_RANGE_VALUES} values`
+      `{${range}} expands to more than ${MAX_RANGE_VALUES} values`
     );
   }
   const direction = start <= end ? 1 : -1;

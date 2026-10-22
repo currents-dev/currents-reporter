@@ -84,22 +84,52 @@ describe('globPaths', () => {
     ['reports/{2..1}.xml', ['1', '2']],
     ['reports/{01..03}.xml', ['01', '03']],
     ['reports/{1..10..9}.xml', ['1', '10']],
+    ['reports/{a,{1..2}}.xml', ['1', '2', 'a']],
   ])('expands the numeric range in %s', (pattern, names) => {
     expect(globPaths([pattern])).toEqual(
       names.map((name) => `reports/${name}.xml`)
     );
   });
 
-  it('refuses a numeric range of more than 1000 values, like globby', () => {
-    expect(() => globPaths(['reports/{1..2000}.xml'])).toThrow(
-      'more than 1000 values'
-    );
+  it('leaves an escaped range as written', () => {
+    fs.outputFileSync(path.join(cwd, 'reports/{1..2}.xml'), 'literal');
+    expect(globPaths(['reports/\\{1..2\\}.xml'])).toEqual([
+      'reports/{1..2}.xml',
+    ]);
   });
+
+  it('expands a numeric range in a negated pattern', () => {
+    expect(globPaths(['reports/*.xml', '!reports/{1..10}.xml'])).toEqual([
+      'reports/01.xml',
+      'reports/03.xml',
+      'reports/a.xml',
+      'reports/b.xml',
+      'reports/skip.xml',
+    ]);
+  });
+
+  it.each(['{1..2000}', '{2000..1}', '{1..4000..2}'])(
+    'refuses the numeric range %s, which has more than 1000 values',
+    (range) => {
+      expect(() => globPaths([`reports/${range}.xml`])).toThrow(
+        `${range} expands to more than 1000 values`
+      );
+    }
+  );
 
   it('leaves out the matches of a negated pattern from every pattern', () => {
     expect(
       globPaths(['reports/[as]*.xml', '!reports/skip.xml', 'reports/s*.xml'])
     ).toEqual(['reports/a.xml']);
+  });
+
+  it.each([
+    ['relative', () => '!reports/skip.xml'],
+    ['absolute', () => `!${posixJoin(cwd, 'reports/skip.xml')}`],
+  ])('applies a %s negated pattern to an absolute one', (_, negation) => {
+    expect(
+      globPaths([posixJoin(cwd, 'reports/[as]*.xml'), negation()])
+    ).toEqual([posixJoin(cwd, 'reports/a.xml')]);
   });
 
   it('leaves out the files of a negated folder', () => {
