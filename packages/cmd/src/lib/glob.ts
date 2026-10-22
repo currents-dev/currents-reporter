@@ -3,8 +3,8 @@ import { globSync } from 'tinyglobby';
 
 /**
  * Returns the files that match the glob patterns, pattern by pattern and
- * sorted within each, without duplicates. A `!pattern` leaves its matches out
- * of every pattern.
+ * sorted within each, without repeating a path. A `!pattern` leaves its
+ * matches out of every pattern.
  */
 export function globPaths(globs: string[]): string[] {
   const patterns = globs.map(expandNumericRanges);
@@ -21,8 +21,8 @@ export function globPaths(globs: string[]): string[] {
 }
 
 const NUMERIC_RANGE = /(?<!\\)\{(-?\d+)\.\.(-?\d+)(?:\.\.(-?\d+))?\}/g;
-// globby (through braces) refused ascending ranges with more values; this
-// refuses descending ones too, so a typo like {10000..1} doesn't hang the CLI
+// globby (through braces) threw on ascending ranges with more values; this
+// throws on descending ones too, so a typo like {10000..1} doesn't hang the CLI
 const MAX_RANGE_VALUES = 1000;
 
 // tinyglobby reads {1..10} as the character class [1-10], which matches only

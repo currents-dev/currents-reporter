@@ -1,9 +1,17 @@
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
+import { globSync } from 'tinyglobby';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { posixJoin } from '../../test-utils/path';
 import { globPaths } from '../glob';
+
+// Wrapped so one test can return files out of order: macOS lists folders
+// sorted, so only a fixed tinyglobby result shows that globPaths sorts
+vi.mock('tinyglobby', async (importActual) => {
+  const actual = await importActual<typeof import('tinyglobby')>();
+  return { ...actual, globSync: vi.fn(actual.globSync) };
+});
 
 describe('globPaths', () => {
   let root: string;
@@ -36,6 +44,14 @@ describe('globPaths', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     fs.removeSync(root);
+  });
+
+  it('sorts the matches of a pattern', () => {
+    vi.mocked(globSync).mockReturnValueOnce(['reports/b.xml', 'reports/a.xml']);
+    expect(globPaths(['reports/*.xml'])).toEqual([
+      'reports/a.xml',
+      'reports/b.xml',
+    ]);
   });
 
   it('returns the matches sorted, relative to the current folder', () => {
@@ -85,10 +101,20 @@ describe('globPaths', () => {
     ['reports/{01..03}.xml', ['01', '03']],
     ['reports/{1..10..9}.xml', ['1', '10']],
     ['reports/{a,{1..2}}.xml', ['1', '2', 'a']],
+    ['reports/{0..1}{0..3}.xml', ['01', '03', '10']],
+    ['reports/{1..1000}.xml', ['1', '10', '2']],
   ])('expands the numeric range in %s', (pattern, names) => {
     expect(globPaths([pattern])).toEqual(
       names.map((name) => `reports/${name}.xml`)
     );
+  });
+
+  it('expands a numeric range with negative values', () => {
+    fs.outputFileSync(path.join(cwd, 'reports/-1.xml'), '-1');
+    expect(globPaths(['reports/{-1..1}.xml'])).toEqual([
+      'reports/-1.xml',
+      'reports/1.xml',
+    ]);
   });
 
   it('leaves an escaped range as written', () => {
