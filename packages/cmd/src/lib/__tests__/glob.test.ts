@@ -52,6 +52,26 @@ describe('globPaths', () => {
     ]);
   });
 
+  it.each([
+    ['reports/{1..10}.xml', ['1', '2', '9', '10']],
+    ['reports/{2..1}.xml', ['2', '1']],
+    ['reports/{01..03}.xml', ['01', '03']],
+    ['reports/n{1..2}/*.xml', ['n1/a', 'n2/a']],
+  ])('expands the numeric range in %s in its order', (pattern, names) => {
+    for (const name of ['1', '2', '9', '10', '01', '03', 'n1/a', 'n2/a']) {
+      fs.outputFileSync(path.join(cwd, `reports/${name}.xml`), name);
+    }
+    expect(globPaths([pattern])).toEqual(
+      names.map((name) => `reports/${name}.xml`)
+    );
+  });
+
+  it('refuses a numeric range of more than 1000 values, like globby', () => {
+    expect(() => globPaths(['reports/{1..2000}.xml'])).toThrow(
+      'more than 1000 values'
+    );
+  });
+
   it('returns the files of a folder', () => {
     expect(sorted(globPaths(['dist']))).toEqual(['dist/a.js', 'dist/sub/b.js']);
   });

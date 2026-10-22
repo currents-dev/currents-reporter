@@ -14,7 +14,8 @@ import { globSync } from 'tinyglobby';
  * - files come in pattern order, shallower first. `convert` keeps the last
  *   report of a spec, so the order decides its results.
  */
-export function globPaths(patterns: string[]): string[] {
+export function globPaths(globs: string[]): string[] {
+  const patterns = globs.flatMap(expandNumericRanges);
   const negations = patterns.flatMap((pattern, index) =>
     pattern.length > 1 && pattern.startsWith('!')
       ? [toNegation(pattern.slice(1), index)]
@@ -42,6 +43,72 @@ export function globPaths(patterns: string[]): string[] {
     }
   });
   return [...matches];
+}
+
+const NUMERIC_RANGE = /(?<!\\)\{(-?\d+)\.\.(-?\d+)(?:\.\.(-?\d+))?\}/;
+// globby (through braces) refused to expand a range with more values than this
+const MAX_RANGE_VALUES = 1000;
+
+// globby expanded {1..10} to 1, 2, ..., 10, while picomatch reads it as the
+// character class [1-10], which matches only 0 and 1, and matches nothing for
+// {01..03}. Like globby, values that name different files or folders become
+// one pattern each, read in the range's order; values in one folder become a
+// single list pattern, matched in one walk of that folder.
+function expandNumericRanges(pattern: string): string[] {
+  const expanded = writeOutRanges(pattern);
+  const folders = new Set(expanded.map((p) => picomatch.scan(p).base));
+  if (expanded.length > 1 && !pattern.startsWith('!') && folders.size > 1) {
+    return expanded;
+  }
+  return [
+    pattern.replace(new RegExp(NUMERIC_RANGE, 'g'), (_, from, to, step) => {
+      const values = numericRange(from, to, step);
+      return values.length === 1 ? values[0] : `{${values.join(',')}}`;
+    }),
+  ];
+}
+
+function writeOutRanges(pattern: string): string[] {
+  const range = NUMERIC_RANGE.exec(pattern);
+  if (!range) {
+    return [pattern];
+  }
+  const [text, from, to, step] = range;
+  return numericRange(from, to, step).flatMap((value) =>
+    writeOutRanges(
+      pattern.slice(0, range.index) +
+        value +
+        pattern.slice(range.index + text.length)
+    )
+  );
+}
+
+// Same values as braces: a step of 0 counts as 1, and a bound written with a
+// leading zero pads every value to the longest bound
+function numericRange(from: string, to: string, step = '1') {
+  const start = Number(from);
+  const end = Number(to);
+  const size = Math.abs(Number(step)) || 1;
+  if (Math.abs(end - start) / size >= MAX_RANGE_VALUES) {
+    throw new Error(
+      `{${from}..${to}} expands to more than ${MAX_RANGE_VALUES} values`
+    );
+  }
+  const padded = [from, to].some((bound) => /^-?0\d/.test(bound));
+  const width = Math.max(from.length, to.length);
+  const values: string[] = [];
+  for (
+    let value = start;
+    start <= end ? value <= end : value >= end;
+    value += start <= end ? size : -size
+  ) {
+    const digits = String(Math.abs(value));
+    values.push(
+      (value < 0 ? '-' : '') +
+        (padded ? digits.padStart(width - (value < 0 ? 1 : 0), '0') : digits)
+    );
+  }
+  return values;
 }
 
 function toNegation(pattern: string, index: number) {
