@@ -1,5 +1,5 @@
 import path from 'path';
-import * as globby from 'globby';
+import { globPaths } from '@lib/glob';
 import { MetaFile, warn } from './lib';
 
 export const getLastRunFilePaths = async (outputPath?: string) => {
@@ -10,7 +10,7 @@ export const getLastRunFilePaths = async (outputPath?: string) => {
     path.posix.join(prefix.replace(/\\/g, '/'), '.last-run.json'),
   ];
 
-  return globby.sync(patterns);
+  return globPaths(patterns);
 };
 
 export const getUploadPaths = async (pathPatterns: string[] = []) => {
@@ -18,7 +18,7 @@ export const getUploadPaths = async (pathPatterns: string[] = []) => {
   if (insidePaths.length === 0) {
     return [];
   }
-  return globby.sync(insidePaths.map((p) => p.replace(/\\/g, '/')));
+  return globPaths(insidePaths.map((p) => p.replace(/\\/g, '/')));
 };
 
 /** Keeps the paths inside the current folder, with a warning for the others. */
