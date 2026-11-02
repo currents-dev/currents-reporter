@@ -55,6 +55,17 @@ export type RunAttachConfig = Credentials & {
   debug?: boolean;
 };
 
+export type RunShareConfig = {
+  apiKey: string;
+  runId: string;
+  instanceId?: string;
+  testId?: string;
+  attempt?: number;
+  purpose: 'report' | 'fix';
+  expiresInDays?: number;
+  debug?: boolean;
+};
+
 export function getSessionStartConfig(options?: Partial<SessionStartConfig>) {
   const config = getValidatedConfig<typeof configKeys, SessionStartConfig>(
     configKeys,
@@ -97,6 +108,24 @@ export function getRunAttachConfig(options?: Partial<RunAttachConfig>) {
   );
   debug('Resolved config: %o', maskKeys(config));
   return config;
+}
+
+export function getRunShareConfig(options?: Partial<RunShareConfig>) {
+  const config = getValidatedConfig<typeof configKeys, RunShareConfig>(
+    configKeys,
+    [],
+    options,
+    requireApiKey
+  );
+  debug('Resolved config: %o', maskKeys(config));
+  return config;
+}
+
+function requireApiKey(config: Credentials) {
+  if (config.apiKey) return;
+  throw new ValidationError(
+    `run share needs an API key (${configKeys.apiKey.cli} or ${configKeys.apiKey.env}). A record key can share only sessions.`
+  );
 }
 
 function requireCredentials(config: Credentials) {

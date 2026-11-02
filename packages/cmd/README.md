@@ -92,6 +92,17 @@ npx currents run attach --key <record-key> --project-id <id> --ci-build-id <buil
 
 Without `--spec`, the files are attached to the whole run. For the options, run `npx currents run attach --help`.
 
+## Share a run
+
+`currents run share` prints a public link to a run, or to one spec file or test of it, and a link to the same content as Markdown. It uses an API key with write access:
+
+```sh
+npx currents run share <run-id>
+npx currents run share <run-id> --instance-id <instance-id> --test-id <test-id> --purpose fix
+```
+
+`--purpose report`, the default, holds every test with its attempts and files, for a person. `--purpose fix` holds the failure context, for an agent fixing the tests. For the options, run `npx currents run share --help`.
+
 ## Cancel a run
 
 `currents run cancel` cancels a run in progress, for example when its CI job is cancelled. It uses the record key:

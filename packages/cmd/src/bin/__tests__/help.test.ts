@@ -9,6 +9,7 @@ const commands = [
   'run upload',
   'run attach',
   'run get',
+  'run share',
   'run cancel',
   'cache',
   'cache get',
@@ -60,6 +61,7 @@ describe('command surface of the built CLI', () => {
       'upload',
       'attach',
       'get',
+      'share',
       'cancel',
       'help',
     ]);

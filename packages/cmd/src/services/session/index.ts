@@ -2,9 +2,16 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { debug as _debug } from '@debug';
 import { info } from '@logger';
-import { createSession, createShare } from '../../api';
+import {
+  createSession,
+  createShare,
+  CreateShareResponse,
+  getInstance,
+  ShareTarget,
+} from '../../api';
 import {
   RunAttachConfig,
+  RunShareConfig,
   SessionAttachConfig,
   SessionShareConfig,
   SessionStartConfig,
@@ -110,9 +117,51 @@ export async function handleSessionShare(config: SessionShareConfig) {
       expiresInDays: config.expiresInDays as 1 | 3 | 7 | undefined,
     }
   );
+  printShare(share);
+  return share;
+}
+
+function printShare(share: CreateShareResponse) {
   info(share.pageUrl);
   // A person opens the page; an agent reads the markdown.
   info('Markdown: %s', share.url);
+}
+
+export async function handleRunShare(config: RunShareConfig) {
+  const { runId, instanceId, testId, attempt, purpose } = config;
+  if (testId && !instanceId) {
+    throw new Error('--test-id needs --instance-id, the spec file of the test');
+  }
+  if (attempt !== undefined && !testId) {
+    throw new Error('--attempt needs --test-id');
+  }
+  if (attempt !== undefined && purpose !== 'fix') {
+    throw new Error(
+      '--attempt needs --purpose fix: a report holds every attempt'
+    );
+  }
+  const credentials = { apiKey: config.apiKey };
+
+  let target: ShareTarget = { runId, instanceId };
+  if (instanceId && testId) {
+    // The API ignores runId when it shares a test.
+    const instance = await getInstance(credentials, instanceId);
+    if (instance.runId !== runId) {
+      throw new Error(
+        `Instance ${instanceId} belongs to run ${instance.runId}, not run ${runId}`
+      );
+    }
+    target = { instanceId, testId, attempt };
+  }
+
+  const share = await createShare(credentials, {
+    ...target,
+    purpose,
+    // Left out unless set, so the API applies its default for the purpose and
+    // returns the existing fix link of the target.
+    expiresInDays: config.expiresInDays as 1 | 3 | 7 | undefined,
+  });
+  printShare(share);
   return share;
 }
 

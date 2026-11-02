@@ -1,6 +1,6 @@
 import { Command } from '@commander-js/extra-typings';
-import { getRunAttachConfig } from '../../config/session';
-import { handleRunAttach } from '../../services/session';
+import { getRunAttachConfig, getRunShareConfig } from '../../config/session';
+import { handleRunAttach, handleRunShare } from '../../services/session';
 import { getRunGetCommand, getRunGetExamples } from '../api';
 import { getCancelCommand, getCancelExamples } from '../cancel';
 import { formatExamples, HelpExample } from '../help';
@@ -17,12 +17,17 @@ import {
   captionOption,
   ciBuildIdOption,
   groupOption,
+  instanceIdOption,
   machineIdOption,
   metaOption,
   PATHS_DESCRIPTION,
+  purposeOption,
   RECORD_KEY_NOTE,
   runTypeOption,
+  shareAttemptOption,
+  shareExpiresInDaysOption,
   specOption,
+  testIdOption,
   testTitleOption,
 } from '../session/options';
 import { getUploadCommand, getUploadExamples } from '../upload';
@@ -73,12 +78,64 @@ const getAttachCommand = (name: string) =>
       }, options);
     });
 
+export const getRunShareExamples = (name: string): HelpExample[] => {
+  const share = `${name} ${COMMAND_NAME} share <run-id>`;
+  const test = `${share} --instance-id <instance-id> --test-id <test-id> --purpose fix`;
+  return [
+    {
+      comment:
+        'Share a whole run with a reviewer or a colleague outside Currents',
+      commands: [share],
+    },
+    {
+      comment: 'Give an agent the failures of a whole run',
+      commands: [`${share} --purpose fix`],
+    },
+    {
+      comment:
+        'Share one spec file, e.g. the copy that ran in the firefox group',
+      commands: [`${share} --instance-id <instance-id>`],
+    },
+    {
+      comment: 'Give an agent one failing test (its last failed attempt)',
+      commands: [test],
+    },
+    {
+      comment: 'Give an agent one specific attempt of a test',
+      commands: [`${test} --attempt 0`],
+    },
+  ];
+};
+
+const getShareCommand = (name: string) =>
+  new Command()
+    .name('share')
+    .usage('<run-id> [options]')
+    .summary('Print a public link to a run, a spec file or a test')
+    .description(
+      'Create a public link to a run, or to one spec file or test of it, and print it. The second line, "Markdown: <url>", is the same content as Markdown, for agents'
+    )
+    .addHelpText('after', formatExamples(getRunShareExamples(name)))
+    .argument('<run-id>', 'the run to share')
+    .addOption(instanceIdOption)
+    .addOption(testIdOption)
+    .addOption(shareAttemptOption)
+    .addOption(purposeOption)
+    .addOption(shareExpiresInDaysOption)
+    .addOption(apiKeyOption('(required; needs write access)'))
+    .addOption(debugOption())
+    .action(async (runId, options) => {
+      await commandHandler(async (opts) => {
+        await handleRunShare(getRunShareConfig({ ...opts, runId }));
+      }, options);
+    });
+
 export const getRunFilesCommand = (name: string) =>
   new Command()
     .name(COMMAND_NAME)
-    .summary('Upload test results, attach files, get or cancel a run')
+    .summary('Upload results, attach files, get, share or cancel a run')
     .description(
-      'Upload test results to a run, attach files to it, get its data or cancel it'
+      'Upload test results to a run, attach files to it, get its data, share a link to it or cancel it'
     )
     .addHelpText(
       'after',
@@ -86,6 +143,7 @@ export const getRunFilesCommand = (name: string) =>
         ...getUploadExamples(name).slice(0, 2),
         getRunAttachExamples(name)[0],
         getRunGetExamples(name)[0],
+        getRunShareExamples(name)[0],
         getCancelExamples(name)[0],
       ])
     )
@@ -93,4 +151,5 @@ export const getRunFilesCommand = (name: string) =>
     .addCommand(getUploadCommand(name))
     .addCommand(getAttachCommand(name))
     .addCommand(getRunGetCommand(name))
+    .addCommand(getShareCommand(name))
     .addCommand(getCancelCommand(name));
