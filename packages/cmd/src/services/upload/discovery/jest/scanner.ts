@@ -1,8 +1,7 @@
 import fs from 'fs-extra';
-import tmp from 'tmp';
 
 import { debug as _debug } from '@debug';
-import { readJsonFile } from '@lib';
+import { createTempFile, readJsonFile } from '@lib';
 import { dim, error } from '@logger';
 import { JestDiscoveryResult } from '../types';
 import { getCLIArgs } from './args';
@@ -26,21 +25,21 @@ export async function jestScanner(
   );
 
   try {
-    const tmpFile = tmp.fileSync({ postfix: '.json' });
+    const tmpFile = await createTempFile('.json');
 
     debug('running scanner: %o', cliArgs);
 
-    process.env.CURRENTS_DISCOVERY_PATH = tmpFile.name;
+    process.env.CURRENTS_DISCOVERY_PATH = tmpFile;
     // set openHandlesTimeout to 0 to avoid Jest "open handles" warning
     await run(cliArgs.concat(['--openHandlesTimeout=0']));
 
     await retryWithBackoff(
       readFileContents,
       Array.from({ length: 300 }, () => 100) // 30s
-    )(tmpFile.name);
+    )(tmpFile);
     console.timeEnd(dim('@currents/jest:fullTestSuite-ready'));
 
-    return await readJsonFile<JestDiscoveryResult>(tmpFile.name);
+    return await readJsonFile<JestDiscoveryResult>(tmpFile);
   } catch (err) {
     error('Failed to obtain the jest full test suite:', err);
     return { fullTestSuite: [], specsWithoutResults: [] };

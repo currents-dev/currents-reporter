@@ -1,8 +1,8 @@
 import Archiver from 'archiver';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import unzipper from 'unzipper';
-import { dir as tmpDir } from 'tmp-promise';
 
 /**
  * A zip is a trace when it holds, at its top, `trace.trace` (the zip packed
@@ -81,7 +81,8 @@ export async function mergeNetworkFiles(folder: string) {
  * are) and `resources/`. The zip goes to a temp directory; `cleanup` removes it.
  */
 export async function packTraceFolder(folder: string) {
-  const { path: tmp, cleanup } = await tmpDir({ unsafeCleanup: true });
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'currents-trace-'));
+  const cleanup = () => fs.rm(tmp, { recursive: true, force: true });
   const zipPath = path.join(tmp, 'trace.zip');
 
   try {

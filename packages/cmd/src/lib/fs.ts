@@ -1,6 +1,7 @@
 import { error } from '@logger';
 import { randomUUID } from 'crypto';
 import fs from 'fs-extra';
+import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { debug } from '../debug';
 
@@ -53,6 +54,13 @@ export async function ensurePathExists(
 
   const dir = dirname(filePath);
   await fs.ensureDir(dir);
+}
+
+/** Creates an empty file, readable only by the owner, in the OS temp folder. */
+export async function createTempFile(suffix = '') {
+  const filePath = join(tmpdir(), `currents-${randomUUID()}${suffix}`);
+  await fs.writeFile(filePath, '', { flag: 'wx', mode: 0o600 });
+  return filePath;
 }
 
 export function generateUniqueDirName(): string {
