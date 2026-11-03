@@ -1,5 +1,4 @@
 import { AxiosError, AxiosRequestConfig, isAxiosError } from 'axios';
-import prettyMilliseconds from 'pretty-ms';
 
 import { warn } from '@logger';
 import { debug as _debug } from '../debug';
@@ -96,6 +95,24 @@ export const isRetriableRestError = (err: AxiosError | Error): boolean => {
 
 export const getMaxRetries = () => 3;
 
+/** A duration below a day as pretty-ms 7 wrote it, for example `7.5s` or `1m`. */
+export function formatDuration(ms: number) {
+  const parts: string[] = [];
+  const hours = Math.trunc(ms / 3_600_000);
+  const minutes = Math.trunc(ms / 60_000) % 60;
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  if (ms < 1000) {
+    const rounded = ms >= 1 ? Math.round(ms) : Math.ceil(ms);
+    if (rounded) parts.push(`${rounded}ms`);
+  } else {
+    // Rounded down to a tenth of a second.
+    const seconds = Math.floor(((ms / 1000) % 60) * 10 + 1e-7) / 10;
+    if (seconds) parts.push(`${seconds}s`);
+  }
+  return parts.join(' ') || '0ms';
+}
+
 export function onRetry(
   retryCount: number,
   err: AxiosError,
@@ -105,7 +122,7 @@ export function onRetry(
     "Network request '%s' failed: '%s'. Next attempt is in %s (%d/%d).",
     `${_config.method?.toUpperCase()} ${_config.url}`,
     err.message,
-    prettyMilliseconds(getDelay(retryCount, err) ?? 0),
+    formatDuration(getDelay(retryCount, err) ?? 0),
     retryCount,
     getMaxRetries()
   );
@@ -113,7 +130,7 @@ export function onRetry(
     "Network request '%s' failed: '%s'. Next attempt is in %s (%d/%d).",
     `${_config.method?.toUpperCase()} ${_config.url}`,
     err.message,
-    prettyMilliseconds(getDelay(retryCount, err) ?? 0),
+    formatDuration(getDelay(retryCount, err) ?? 0),
     retryCount,
     getMaxRetries()
   );
