@@ -1,7 +1,7 @@
-import { AxiosRequestConfig, AxiosResponse, isAxiosError } from 'axios';
 import { debug as _debug } from '../debug';
-import { ClientType, getClient } from '../http/client';
+import { ClientType, getClient, RequestConfig } from '../http/client';
 import { getRetryAfterMs } from '../http/httpRetry';
+import { isHttpError } from '../http/send';
 import type { Commit } from '../env/gitInfo';
 import type { FileType } from '../services/files/types';
 import { ApiCredentials, getAuthHeaders } from './auth';
@@ -15,7 +15,7 @@ type ApiResponse<T> = { status: 'OK'; data: T };
  * text is what the user needs, for example "public sharing is turned off".
  */
 export function toApiError(e: unknown) {
-  if (!isAxiosError(e) || !e.response) return e;
+  if (!isHttpError(e) || !e.response) return e;
   const data = e.response.data as {
     error?: string;
     code?: string;
@@ -54,15 +54,15 @@ function formatCandidates(candidates: unknown) {
 
 async function request<T>(
   credentials: ApiCredentials,
-  config: Pick<AxiosRequestConfig, 'method' | 'url' | 'data'>
+  config: Pick<RequestConfig, 'method' | 'url' | 'data'>
 ) {
   try {
     // Not makeRequest: it prints a generic warning for each failed status, and
     // toApiError turns the API's own message into the error.
-    const res = await getClient(ClientType.REST_API).request<
-      ApiResponse<T>,
-      AxiosResponse<ApiResponse<T>>
-    >({ ...config, headers: getAuthHeaders(credentials) });
+    const res = await getClient(ClientType.REST_API).request<ApiResponse<T>>({
+      ...config,
+      headers: getAuthHeaders(credentials),
+    });
     return res.data.data;
   } catch (e) {
     throw toApiError(e);

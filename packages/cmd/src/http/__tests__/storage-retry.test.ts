@@ -57,8 +57,7 @@ const send = () =>
       uploadUrl: `${origin}/put`,
       contentType: 'application/json',
     },
-    'application/json',
-    undefined
+    'application/json'
   );
 
 describe('retries of an upload', () => {

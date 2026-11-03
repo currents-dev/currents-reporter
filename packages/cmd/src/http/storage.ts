@@ -1,11 +1,10 @@
 import fs from 'fs';
 import { Readable } from 'stream';
 import { setTimeout as sleep } from 'timers/promises';
-import { AxiosProgressEvent, isAxiosError, RawAxiosRequestConfig } from 'axios';
 import { debug as _debug } from '../debug';
-import { getAxios } from './axios';
 import { error, warn } from '../logger';
 import { urlForLog } from '../lib/url';
+import { isHttpError, RequestBody, sendRequest } from './send';
 
 const debug = _debug.extend('upload');
 
@@ -28,10 +27,12 @@ export type BufferUpload = {
   headers?: Record<string, string>;
 };
 
+export type UploadProgress = { loaded: number; total?: number };
+
 export async function sendBuffer(
   upload: BufferUpload,
   contentType: string,
-  onUploadProgress: RawAxiosRequestConfig['onUploadProgress']
+  onUploadProgress?: (progress: UploadProgress) => void
 ) {
   debug('Uploading buffer %s', upload.name, {
     buffer: Buffer.byteLength(upload.buffer),
@@ -83,10 +84,7 @@ export async function sendFile(upload: FileUpload) {
   );
 }
 
-/**
- * For a streamed body axios times out the whole request, not only an idle
- * socket, so the limit grows with the file.
- */
+/** The timeout is for the whole request, so the limit grows with the file. */
 export function getUploadTimeoutMs(sizeBytes: number) {
   return (
     UPLOAD_TIMEOUT_BASE_MS +
@@ -98,41 +96,36 @@ async function _send(
   body: Buffer | (() => Readable),
   url: string,
   contentType: string,
-  onUploadProgress: RawAxiosRequestConfig['onUploadProgress'],
+  onUploadProgress?: (progress: UploadProgress) => void,
   headers?: Record<string, string>,
   timeout?: number
 ) {
-  return getAxios().request({
-    method: 'put',
+  const data: RequestBody = typeof body === 'function' ? body() : body;
+  await sendRequest({
+    method: 'PUT',
     url,
     timeout,
-    data: typeof body === 'function' ? body() : body,
-    // The redirect handler keeps a copy of the whole body in memory. A signed
-    // upload URL does not redirect.
-    ...(typeof body === 'function' && { maxRedirects: 0 }),
-    onUploadProgress,
+    body: data,
     headers: headers ?? {
       'Content-Disposition': `inline`,
       'Content-Type': contentType,
     },
   });
+  if (Buffer.isBuffer(data)) {
+    onUploadProgress?.({ loaded: data.length, total: data.length });
+  }
 }
 
-export async function download(
-  url: string,
-  onDownloadProgress?: RawAxiosRequestConfig['onDownloadProgress']
-): Promise<Buffer> {
+export async function download(url: string): Promise<Buffer> {
   try {
-    const response = await getAxios().get(url, {
-      responseType: 'arraybuffer',
-      onDownloadProgress,
+    const response = await sendRequest<Buffer>({
+      method: 'GET',
+      url,
+      responseType: 'buffer',
     });
-
-    return Buffer.isBuffer(response.data)
-      ? response.data
-      : Buffer.from(response.data);
+    return response.data;
   } catch (error) {
-    if (isAxiosError(error)) {
+    if (isHttpError(error)) {
       debug('Failed to download %s: %s', urlForLog(url), error.message);
     }
     throw error;
@@ -163,7 +156,7 @@ function cleanStorageText(text?: string) {
  * `AccessDenied` and `Request has expired`.
  */
 function readStorageError(e: unknown) {
-  const data = isAxiosError(e) ? e.response?.data : undefined;
+  const data = isHttpError(e) ? e.response?.data : undefined;
   const body = typeof data === 'string' ? data : '';
   return {
     code: body.match(/<Code>([^<]*)<\/Code>/)?.[1],
@@ -177,7 +170,7 @@ function readStorageError(e: unknown) {
  * `TRANSIENT_STORAGE_CODES` are worth repeating.
  */
 export function isFinalUploadError(e: unknown) {
-  const status = isAxiosError(e) ? e.response?.status : undefined;
+  const status = isHttpError(e) ? e.response?.status : undefined;
   if (status === undefined || status < 400 || status >= 500) return false;
   if (status === 408 || status === 429) return false;
   const { code } = readStorageError(e);
@@ -186,7 +179,7 @@ export function isFinalUploadError(e: unknown) {
 
 /** What storage said, for example `403 AccessDenied: Request has expired`. */
 export function describeUploadError(e: unknown) {
-  if (!isAxiosError(e) || !e.response)
+  if (!isHttpError(e) || !e.response)
     return e instanceof Error ? e : new Error(String(e));
   const { code, message } = readStorageError(e);
   const detail = [cleanStorageText(code), message].filter(Boolean).join(': ');
@@ -266,25 +259,12 @@ function onRetry(e: Error, retryCount: number) {
 
 export const getDefautUploadProgressHandler =
   (label: string) =>
-  ({ total, loaded }: AxiosProgressEvent) => {
+  ({ total, loaded }: UploadProgress) => {
     debug(
       'Uploading %s: %d / %d',
       label,
       bytesToMb(loaded),
       bytesToMb(total ?? 0)
-    );
-  };
-
-export const getDefaultDownloadProgressHandler =
-  (label: string) =>
-  ({ loaded, total }: AxiosProgressEvent) => {
-    const percentCompleted = total ? Math.round((loaded * 100) / total) : 0;
-    debug(
-      'Downloaded %s: %d / %d (%d%)',
-      label,
-      bytesToMb(loaded),
-      bytesToMb(total ?? 0),
-      percentCompleted
     );
   };
 

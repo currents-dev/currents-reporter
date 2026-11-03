@@ -1,4 +1,5 @@
 import http from 'http';
+import https from 'https';
 import { AddressInfo } from 'net';
 import zlib from 'zlib';
 
@@ -26,10 +27,14 @@ export type ApiServer = {
   close: () => Promise<void>;
 };
 
-export async function startApiServer(responder: Responder): Promise<ApiServer> {
+/** With `tls`, the server answers https on the same `localhost` address. */
+export async function startApiServer(
+  responder: Responder,
+  tls?: { key: string; cert: string }
+): Promise<ApiServer> {
   const requests: RecordedRequest[] = [];
 
-  const server = http.createServer(async (req, res) => {
+  const listener: http.RequestListener = async (req, res) => {
     const chunks: Buffer[] = [];
     for await (const chunk of req) {
       chunks.push(chunk);
@@ -56,10 +61,13 @@ export async function startApiServer(responder: Responder): Promise<ApiServer> {
     } else {
       res.writeHead(response.status).end(response.body);
     }
-  });
+  };
+  const server = tls
+    ? https.createServer(tls, listener)
+    : http.createServer(listener);
 
   await new Promise<void>((resolve) => server.listen(0, resolve));
-  const url = `http://localhost:${(server.address() as AddressInfo).port}`;
+  const url = `${tls ? 'https' : 'http'}://localhost:${(server.address() as AddressInfo).port}`;
 
   return {
     url,

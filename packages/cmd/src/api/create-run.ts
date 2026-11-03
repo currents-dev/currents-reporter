@@ -93,7 +93,7 @@ export async function createRun(params: CreateRunParams) {
     debug('Run params: %o', maskKeys(params));
     const data = await compressData(JSON.stringify(params));
 
-    return makeRequest<CreateRunResponse, Buffer>(ClientType.API, {
+    return makeRequest<CreateRunResponse>(ClientType.API, {
       url: `v1/runs`,
       method: 'POST',
       headers: {

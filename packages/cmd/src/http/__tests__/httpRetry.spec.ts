@@ -1,16 +1,15 @@
-import { AxiosError, AxiosHeaders } from 'axios';
 import { describe, expect, it } from 'vitest';
 import { getDelay, getRetryAfterMs, isRetriableRestError } from '../httpRetry';
+import { HttpError } from '../send';
 
 const error = (
   method: string,
   options: { status?: number; code?: string; retryAfter?: string } = {}
 ) =>
-  new AxiosError(
+  new HttpError(
     'failed',
     options.code,
-    { method, headers: new AxiosHeaders() } as never,
-    undefined,
+    { method, url: 'v1/runs' },
     options.status
       ? ({
           status: options.status,

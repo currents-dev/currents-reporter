@@ -1,21 +1,20 @@
-import { AxiosError } from 'axios';
 import { format } from 'util';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { warn } from '../../logger';
 import { formatDuration, onRetry } from '../httpRetry';
+import { HttpError, HttpResponse } from '../send';
 
 vi.mock('../../logger');
 
 const failure = (status: number, retryAfter?: string) =>
-  new AxiosError(
+  new HttpError(
     `Request failed with status code ${status}`,
     'ERR_BAD_RESPONSE',
-    { method: 'post', url: 'v1/runs' } as never,
-    undefined,
+    { method: 'post', url: 'v1/runs' },
     {
       status,
       headers: retryAfter ? { 'retry-after': retryAfter } : {},
-    } as never
+    } as HttpResponse
   );
 
 const warnings = () =>

@@ -34,17 +34,14 @@ export type CancelRunResponse = {
 export async function cancelRun(params: CancelRunParams) {
   debug('Cancel params: %o', maskKeys(params));
 
-  // No catch: an AxiosError carries the request config, so logging it would put
+  // No catch: an HttpError carries the request body, so logging it would put
   // the record key in the debug output. makeRequest already logs the status,
   // url and response body of a failure.
-  const res = await makeRequest<CancelRunResponse, CancelRunParams>(
-    ClientType.API,
-    {
-      url: `v1/runs/cancel`,
-      method: 'POST',
-      data: params,
-    }
-  );
+  const res = await makeRequest<CancelRunResponse>(ClientType.API, {
+    url: `v1/runs/cancel`,
+    method: 'POST',
+    data: params,
+  });
 
   return res.data;
 }

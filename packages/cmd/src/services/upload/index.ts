@@ -12,7 +12,6 @@ import {
 } from '@lib';
 import { createLimit } from '@lib/limit';
 import { info, warn } from '@logger';
-import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import semver from 'semver';
@@ -23,6 +22,7 @@ import {
   createRun as createRunApi,
 } from '../../api';
 import { getCurrentsConfig } from '../../config/upload';
+import { sendRequest } from '../../http/send';
 import { InstanceReport } from '../../types';
 import {
   applyProjectActions,
@@ -467,7 +467,10 @@ const uploadArtifact = async (
 
     const fileBuffer = await fs.readFile(filePath);
 
-    await axios.put(uploadUrl, fileBuffer, {
+    await sendRequest({
+      method: 'PUT',
+      url: uploadUrl,
+      body: fileBuffer,
       headers: {
         'Content-Type': contentType,
       },

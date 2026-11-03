@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ApiServer,
@@ -8,6 +7,7 @@ import {
 import { ClientType, createClient } from '../client';
 import { makeRequest } from '../http';
 import { getMaxRetries, isRetriableError } from '../httpRetry';
+import { HttpError } from '../send';
 
 // The real delays are 3, 15 and 30 seconds.
 vi.mock('../httpRetry', async (importOriginal) => ({
@@ -128,7 +128,7 @@ describe('retry settings', () => {
 
   it('retries POST and GET alike, the condition ignores the method', () => {
     const error = (method: string, status: number) =>
-      new AxiosError('failed', undefined, { method } as never, undefined, {
+      new HttpError('failed', undefined, { method, url: 'v1/runs' }, {
         status,
       } as never);
 

@@ -1,24 +1,23 @@
-import { AxiosError } from 'axios';
 import { format } from 'util';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as log from '../../logger';
 import { handleHTTPError } from '../httpErrors';
+import { HttpError, HttpResponse } from '../send';
 
 vi.mock('../../logger');
 
 const config = { method: 'post', url: 'v1/runs', data: '{}' };
 
 const failure = (status: number, data?: unknown) =>
-  new AxiosError(
+  new HttpError(
     `Request failed with status code ${status}`,
     status < 500 ? 'ERR_BAD_REQUEST' : 'ERR_BAD_RESPONSE',
-    config as never,
-    undefined,
-    { status, data, config } as never
+    config,
+    { status, data } as HttpResponse
   );
 
 const networkFailure = (code: string, message: string) =>
-  new AxiosError(message, code, config as never);
+  new HttpError(message, code, config);
 
 // What the logger printed, one line per call, `spacer` included.
 function printed() {

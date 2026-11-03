@@ -1,9 +1,9 @@
 import * as log from '@logger';
-import { AxiosError, isAxiosError } from 'axios';
 import _ from 'lodash';
+import { HttpError, isHttpError } from './send';
 
 export function handleHTTPError(error: unknown) {
-  if (!isAxiosError(error)) {
+  if (!isHttpError(error)) {
     log.warn(`Unexpected error while sending network request: %s`, error);
     return;
   }
@@ -36,8 +36,8 @@ export function handleHTTPError(error: unknown) {
   });
 }
 
-function handle4xx(error: AxiosError, status: number, data: unknown) {
-  const { method, url } = error.response?.config ?? {};
+function handle4xx(error: HttpError, status: number, data: unknown) {
+  const { method, url } = error.config;
   switch (status) {
     case 401:
       log.warn(
@@ -68,10 +68,10 @@ function handle4xx(error: AxiosError, status: number, data: unknown) {
   }
 }
 
-function warnUnexpectedResponse(error: AxiosError) {
+function warnUnexpectedResponse(error: HttpError) {
   log.warn('[currents] Unexpected network response: %s\n%O', error.message, {
-    method: error.response?.config.method,
-    url: error.response?.config.url,
+    method: error.config.method,
+    url: error.config.url,
     status: error.response?.status,
   });
 }
@@ -79,7 +79,7 @@ function warnUnexpectedResponse(error: AxiosError) {
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every(_.isString);
 
-function handle422Error(error: AxiosError, data: unknown) {
+function handle422Error(error: HttpError, data: unknown) {
   const { code, message, errors } = (data ?? {}) as Record<string, unknown>;
 
   if (

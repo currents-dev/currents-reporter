@@ -1,5 +1,4 @@
 import { debug } from '@debug';
-import { isAxiosError } from 'axios';
 import path from 'path';
 import { getRefCacheMeta, retrieveCache } from '../../api';
 import { PRESETS } from '../../commands/cache/options';
@@ -9,6 +8,7 @@ import { dim, info, success, warnWithNoTrace } from '../../logger';
 import { unzipBuffer } from './fs';
 import { warnIfCacheIdIsRandom } from './id';
 import { RefMetaFile } from './lib';
+import { isHttpError } from '../../http/send';
 import { download } from '../../http/storage';
 import { handlePostLastRunPreset, handlePreLastRunPreset } from './presets';
 
@@ -65,7 +65,7 @@ export async function handleGetCache() {
     info(dim('- restoring cache to'), destination);
     success('Cache restored. Cache ID: %s', cacheId);
   } catch (e) {
-    if (isAxiosError(e)) {
+    if (isHttpError(e)) {
       if (e.response?.status === 403 || e.response?.status === 404) {
         const message = `Cache with ID "${cacheId}" not found`;
         if (continueOnCacheMiss) {
