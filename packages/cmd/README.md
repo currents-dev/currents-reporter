@@ -4,7 +4,7 @@ CLI tool for [Currents](https://currents.dev) - a cloud platform for debugging, 
 
 ## Installation
 
-Requires Node.js 20 or later.
+Requires Node.js 22.13 or later.
 
 ```sh
 npm install @currents/cmd --save-dev

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { codeFrameColumns } from '@babel/code-frame';
-import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
 import StackUtils from 'stack-utils';
 import url from 'url';
 import { ErrorSchema, LocationSchema } from '../types';
 import { debug } from '../lib/debug';
+import { gray } from '../logger/logger';
 
 function parseErrorString(errorString: string) {
   // Remove ANSI escape codes for easier parsing
@@ -160,7 +160,7 @@ export function formatError(
         ) {
           tokens.push('');
           tokens.push(
-            chalk.gray(`   at `) +
+            gray(`   at `) +
               `${relativeFilePath(rootDir, location.file)}:${location.line}`
           );
         }

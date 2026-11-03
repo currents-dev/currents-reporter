@@ -35,7 +35,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # The oldest version in engines.node of @currents/jest and @currents/cmd
+          node-version: '22.13.0'
           cache: npm
 
       - run: npm ci
