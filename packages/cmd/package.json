@@ -43,7 +43,6 @@
     "@types/unzipper": "^0.10.11",
     "@types/uuid": "^10.0.0",
     "@types/xml2js": "^0.4.14",
-    "@types/xxhashjs": "^0.2.4",
     "jest": "^30.4.2",
     "jest-cli": "^30.4.2",
     "jest-config": "^30.4.2",
@@ -73,15 +72,13 @@
     "pretty-ms": "^7.0.1",
     "proxy-from-env": "^1.1.0",
     "semver": "^7.8.5",
-    "source-map-support": "^0.5.21",
     "tinyglobby": "^0.2.17",
     "tmp": "^0.2.7",
     "tmp-promise": "^3.0.3",
     "ts-pattern": "^5.8.0",
     "unzipper": "^0.12.3",
     "uuid": "11.1.1",
-    "xml2js": "^0.6.2",
-    "xxhashjs": "^0.2.2"
+    "xml2js": "^0.6.2"
   },
   "bin": {
     "currents": "./dist/bin/index.js",
