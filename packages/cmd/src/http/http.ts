@@ -33,7 +33,7 @@ export async function makeRequest<T = any, D = any>(
       headers: error.response?.headers,
       data: error.response?.data,
     });
-    handleHTTPError<T, D>(error);
+    handleHTTPError(error);
     throw error;
   }
 }

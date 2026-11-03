@@ -1,133 +1,109 @@
 import * as log from '@logger';
 import { AxiosError, isAxiosError } from 'axios';
 import _ from 'lodash';
-import { P, match } from 'ts-pattern';
 
-export function handleHTTPError<T, D>(error: unknown) {
-  match(error)
-    .when(isAxiosError, handleAxiosError)
-    .otherwise(() => {
-      log.warn(`Unexpected error while sending network request: %s`, error);
-    });
-}
-
-function handleAxiosError<T, D>(error: AxiosError<T, D>) {
-  return (
-    match(error)
-      // Generic network errors
-      .with({ code: 'ECONNABORTED' }, () => {
-        log.warn(`Network connection aborted`);
-      })
-      .with({ code: 'ECONNREFUSED' }, () => {
-        log.warn(`Network connection aborted`);
-      })
-      .with({ code: 'ECONNRESET' }, () => {
-        log.warn(`Network connection reset`);
-      })
-      .with({ code: 'ETIMEDOUT' }, () => {
-        log.warn(`Network connection timeout`);
-      })
-      .with({ response: P.not(P.nullish) }, (i) => {
-        handle4xx(i, {
-          status: i.response.status,
-          data: i.response.data,
-        });
-      })
-      .otherwise((i) => {
-        log.warn('[currents] Unexpected network error: %s\n%O', error.message, {
-          method: error.response?.config.method,
-          url: error.response?.config.url,
-          status: error.response?.status,
-          payload: error.response?.config.data,
-        });
-      })
-  );
-}
-
-function handle4xx<T, D>(
-  error: AxiosError<T, D>,
-  {
-    status,
-    data,
-  }: {
-    status: number;
-    data: unknown;
+export function handleHTTPError(error: unknown) {
+  if (!isAxiosError(error)) {
+    log.warn(`Unexpected error while sending network request: %s`, error);
+    return;
   }
-) {
-  match(status)
-    .with(401, () => {
+
+  switch (error.code) {
+    case 'ECONNABORTED':
+    case 'ECONNREFUSED':
+      log.warn(`Network connection aborted`);
+      return;
+    case 'ECONNRESET':
+      log.warn(`Network connection reset`);
+      return;
+    case 'ETIMEDOUT':
+      log.warn(`Network connection timeout`);
+      return;
+  }
+
+  if (error.response) {
+    handle4xx(error, error.response.status, error.response.data);
+    return;
+  }
+
+  // Kept for the same output: these were read from the response, which this
+  // request did not get.
+  log.warn('[currents] Unexpected network error: %s\n%O', error.message, {
+    method: undefined,
+    url: undefined,
+    status: undefined,
+    payload: undefined,
+  });
+}
+
+function handle4xx(error: AxiosError, status: number, data: unknown) {
+  const { method, url } = error.response?.config ?? {};
+  switch (status) {
+    case 401:
       log.warn(
-        `[currents] ${error.response?.config.method} ${error.response?.config.url} - 401 Unauthorized Request from cloud service`
+        `[currents] ${method} ${url} - 401 Unauthorized Request from cloud service`
       );
-    })
-    .with(400, () => {
+      return;
+    case 400:
       log.warn(
-        `[currents] ${error.response?.config.method} ${error.response?.config.url} - 400 Bad Request from cloud service:\n%o`,
+        `[currents] ${method} ${url} - 400 Bad Request from cloud service:\n%o`,
         data
       );
-    })
-    .with(404, () => {
+      return;
+    case 404:
       log.warn(
-        `[currents] ${error.response?.config.method} ${error.response?.config.url} - 404 Not Found from cloud service`
+        `[currents] ${method} ${url} - 404 Not Found from cloud service`
       );
-    })
-    .with(429, () => {
+      return;
+    case 429:
       log.warn(
-        `[currents] ${error.response?.config.method} ${error.response?.config.url} - 429 Too Many Requests from cloud service`
+        `[currents] ${method} ${url} - 429 Too Many Requests from cloud service`
       );
-    })
-    .with(422, () => {
+      return;
+    case 422:
       handle422Error(error, data);
-    })
-    .otherwise(() => {
-      log.warn(
-        '[currents] Unexpected network response: %s\n%O',
-        error.message,
-        {
-          method: error.response?.config.method,
-          url: error.response?.config.url,
-          status: error.response?.status,
-        }
-      );
-    });
+      return;
+    default:
+      warnUnexpectedResponse(error);
+  }
 }
+
+function warnUnexpectedResponse(error: AxiosError) {
+  log.warn('[currents] Unexpected network response: %s\n%O', error.message, {
+    method: error.response?.config.method,
+    url: error.response?.config.url,
+    status: error.response?.status,
+  });
+}
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every(_.isString);
 
 function handle422Error(error: AxiosError, data: unknown) {
-  match(data)
-    .with(
-      {
-        code: ErrorCodes.MISSING_SUITE,
-        message: P.string,
-        errors: P.array(P.string),
-      },
-      async (i) => {
-        const { message, errors } = i;
+  const { code, message, errors } = (data ?? {}) as Record<string, unknown>;
 
-        log.spacer(1);
-        log.error(...formatGenericCloudError(message, errors));
-      }
-    )
-    .with({ code: ErrorCodes.RUN_EXPIRED, message: P.string }, (i) => {
-      log.warn(i.message);
-    })
-    .with({ message: P.string, errors: P.array(P.string) }, (i) => {
-      const { message, errors } = i;
-      log.spacer(1);
-      log.warn(...formatGenericCloudError(message, errors));
-      log.spacer(1);
-    })
-    .otherwise(() => {
-      log.warn(
-        '[currents] Unexpected network response: %s\n%O',
-        error.message,
-        {
-          method: error.response?.config.method,
-          url: error.response?.config.url,
-          status: error.response?.status,
-        }
-      );
-    });
+  if (
+    code === ErrorCodes.MISSING_SUITE &&
+    _.isString(message) &&
+    isStringArray(errors)
+  ) {
+    log.spacer(1);
+    log.error(...formatGenericCloudError(message, errors));
+    return;
+  }
+  if (code === ErrorCodes.RUN_EXPIRED && _.isString(message)) {
+    log.warn(message);
+    return;
+  }
+  if (_.isString(message) && isStringArray(errors)) {
+    log.spacer(1);
+    log.warn(...formatGenericCloudError(message, errors));
+    log.spacer(1);
+    return;
+  }
+  warnUnexpectedResponse(error);
 }
+
 const ErrorCodes = {
   RUN_CANCELLED: 'RUN_CANCELLED',
   RUN_EXPIRED: 'RUN_EXPIRED',
