@@ -1,5 +1,4 @@
 import { Config } from '@jest/types';
-import { omit } from 'lodash';
 import { ReportConfig } from '../types';
 import { getJestArgv } from './args';
 import { DetoxSession } from './detox';
@@ -9,14 +8,14 @@ export function getReportConfig(
   config: Config.GlobalConfig,
   detox?: DetoxSession
 ): ReportConfig {
-  const argv = getJestArgv();
+  const { _, $0, ...options } = getJestArgv();
 
   return {
     framework: 'jest',
     frameworkVersion: getJestVersion(),
     cliArgs: {
-      options: omit(argv, '_', '$0'),
-      args: argv._ as string[],
+      options,
+      args: _ as string[],
     },
     // originFramework is read by `currents run upload` and shown as the
     // framework of the run, the same way junit reports carry postman or vitest.

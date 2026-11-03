@@ -1,6 +1,5 @@
 import { Test, TestCaseResult } from '@jest/reporters';
 import type { Circus } from '@jest/types';
-import { maxBy } from 'lodash';
 import crypto from 'node:crypto';
 import {
   ExpectedStatus,
@@ -114,9 +113,9 @@ export function jestStatusFromInvocations(
     return 'failed';
   }
 
-  const resultWithMaxInvocation =
-    maxBy(testResults, (r) => r.invocations ?? 0) ??
-    testResults[testResults.length - 1];
+  const resultWithMaxInvocation = testResults.reduce((max, r) =>
+    (r.invocations ?? 0) > (max.invocations ?? 0) ? r : max
+  );
 
   return resultWithMaxInvocation.status as JestTestCaseStatus;
 }
