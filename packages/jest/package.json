@@ -41,6 +41,7 @@
     "@babel/code-frame": "^7.26.2",
     "debug": "^4.4.0",
     "fs-extra": "^11.3.4",
+    "stack-utils": "^2.0.3",
     "yargs": "^17.7.2"
   },
   "peerDependencies": {
