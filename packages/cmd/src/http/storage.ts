@@ -1,6 +1,6 @@
-import retry from 'async-retry';
 import fs from 'fs';
 import { Readable } from 'stream';
+import { setTimeout as sleep } from 'timers/promises';
 import { AxiosProgressEvent, isAxiosError, RawAxiosRequestConfig } from 'axios';
 import { debug as _debug } from '../debug';
 import { getAxios } from './axios';
@@ -203,37 +203,64 @@ async function send(...args: Parameters<typeof _send>) {
   }
 }
 
-async function sendWithRetries(args: Parameters<typeof _send>) {
-  await retry(
-    async (bail) => {
-      try {
-        await _send(...args);
-      } catch (e) {
-        if (isFinalUploadError(e)) {
-          bail(e as Error);
-          return;
-        }
-        throw e;
-      }
-    },
-    {
-      retries: UPLOAD_RETRY_COUNT,
-      onRetry: (e: Error, retryCount: number) => {
-        debug(
-          'Upload failed %d out of %d attempts: %s',
-          retryCount,
-          UPLOAD_RETRY_COUNT,
-          e.message
-        );
-        if (retryCount === UPLOAD_RETRY_COUNT) {
-          error(`Cannot upload after ${retryCount} times: ${e.message}`);
-          return;
-        }
-        warn(
-          `Upload failed ${retryCount} out of ${UPLOAD_RETRY_COUNT} attempts: ${e.message}`
-        );
-      },
+/**
+ * Waits before each retry as async-retry did: 1, 2, 4, 8 and 16 seconds, each
+ * multiplied by a random factor between 1 and 2, shortest first.
+ */
+function getRetryDelays() {
+  return Array.from({ length: UPLOAD_RETRY_COUNT }, (_, i) =>
+    Math.round((Math.random() + 1) * 1000 * 2 ** i)
+  ).sort((a, b) => a - b);
+}
+
+/**
+ * async-retry rejected with the error that failed the most attempts, the
+ * latest of those that failed as many.
+ */
+function mostFrequentError(errors: Error[]) {
+  const counts = new Map<string, number>();
+  let result = errors[0];
+  let max = 0;
+  for (const e of errors) {
+    const count = (counts.get(e.message) ?? 0) + 1;
+    counts.set(e.message, count);
+    if (count >= max) {
+      result = e;
+      max = count;
     }
+  }
+  return result;
+}
+
+async function sendWithRetries(args: Parameters<typeof _send>) {
+  const delays = getRetryDelays();
+  const errors: Error[] = [];
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await _send(...args);
+    } catch (e) {
+      if (isFinalUploadError(e)) throw e;
+      errors.push(e as Error);
+      if (attempt > UPLOAD_RETRY_COUNT) throw mostFrequentError(errors);
+      onRetry(e as Error, attempt);
+      await sleep(delays[attempt - 1]);
+    }
+  }
+}
+
+function onRetry(e: Error, retryCount: number) {
+  debug(
+    'Upload failed %d out of %d attempts: %s',
+    retryCount,
+    UPLOAD_RETRY_COUNT,
+    e.message
+  );
+  if (retryCount === UPLOAD_RETRY_COUNT) {
+    error(`Cannot upload after ${retryCount} times: ${e.message}`);
+    return;
+  }
+  warn(
+    `Upload failed ${retryCount} out of ${UPLOAD_RETRY_COUNT} attempts: ${e.message}`
   );
 }
 
