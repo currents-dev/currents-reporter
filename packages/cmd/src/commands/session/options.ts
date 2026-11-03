@@ -67,16 +67,18 @@ export const groupOption = new Option(
   'the group of the spec file; a spec that runs once per Playwright project matches more than once without it'
 );
 
-export const attemptOption = new Option(
-  '--attempt <n>',
-  'attach to this attempt of the test; the first attempt is 0'
-).argParser((value) => {
+function parseAttempt(value: string) {
   const attempt = Number(value);
   if (!Number.isInteger(attempt) || attempt < 0) {
     throw new Error('--attempt must be a whole number from 0');
   }
   return attempt;
-});
+}
+
+export const attemptOption = new Option(
+  '--attempt <n>',
+  'attach to this attempt of the test; the first attempt is 0'
+).argParser(parseAttempt);
 
 const FILE_TYPES = ['trace', 'screenshot', 'video', 'attachment'] as const;
 
@@ -114,17 +116,46 @@ export const metaOption = new Option(
 const EXPIRES_IN_DAYS = ['1', '3', '7'];
 
 // .argParser replaces the check of .choices, so the parser checks the value.
-export const expiresInDaysOption = new Option(
-  '--expires-in-days <days>',
+const getExpiresInDaysOption = (description: string) =>
+  new Option('--expires-in-days <days>', description)
+    .choices(EXPIRES_IN_DAYS)
+    .argParser((value) => {
+      if (!EXPIRES_IN_DAYS.includes(value)) {
+        throw new InvalidArgumentError(
+          `Allowed choices are ${EXPIRES_IN_DAYS.join(', ')}.`
+        );
+      }
+      return Number(value);
+    });
+
+export const expiresInDaysOption = getExpiresInDaysOption(
   'the number of days the link works'
+).default(7);
+
+// No default value: without the option the API picks the number of days for
+// the purpose.
+export const shareExpiresInDaysOption = getExpiresInDaysOption(
+  'the number of days the link works; by default 7 for report and 1 for fix'
+);
+
+export const instanceIdOption = new Option(
+  '--instance-id <id>',
+  'one spec file of the run (default: the whole run)'
+);
+
+export const testIdOption = new Option(
+  '--test-id <id>',
+  'one test of the spec file; needs --instance-id'
+);
+
+export const shareAttemptOption = new Option(
+  '--attempt <n>',
+  'one attempt of the test, from 0; needs --test-id and --purpose fix (default: the last attempt that failed)'
+).argParser(parseAttempt);
+
+export const purposeOption = new Option(
+  '--purpose <purpose>',
+  'report: every test with its attempts and files, for a person\nfix: the failure context, for an agent fixing the tests'
 )
-  .choices(EXPIRES_IN_DAYS)
-  .default(7)
-  .argParser((value) => {
-    if (!EXPIRES_IN_DAYS.includes(value)) {
-      throw new InvalidArgumentError(
-        `Allowed choices are ${EXPIRES_IN_DAYS.join(', ')}.`
-      );
-    }
-    return Number(value);
-  });
+  .choices(['report', 'fix'] as const)
+  .default('report' as const);

@@ -327,7 +327,8 @@ Examples:
 exports[`command surface of the built CLI > prints the help of run 1`] = `
 "Usage: currents run [options] [command]
 
-Upload test results to a run, attach files to it, get its data or cancel it
+Upload test results to a run, attach files to it, get its data, share a link to
+it or cancel it
 
 Options:
   -h, --help                   display help for command
@@ -337,6 +338,8 @@ Commands:
                                JUnit
   attach [options] <paths...>  Upload files to a run recorded in CI
   get [options]                Get the data of a run from the Currents API
+  share [options] <run-id>     Print a public link to a run, a spec file or a
+                               test
   cancel [options]             Cancel a run in progress
   help [command]               display help for command
 
@@ -357,6 +360,9 @@ Examples:
   # Get the data of the run recorded under a CI build ID
   currents run get --api-key <api-key> --project-id <project-id> \\
       --ci-build-id <ci-build-id>
+
+  # Share a whole run with a reviewer or a colleague outside Currents
+  currents run share <run-id>
 
   # Cancel the run recorded under a CI build ID
   currents run cancel --key <record-key> --project-id <id> \\
@@ -509,6 +515,54 @@ Examples:
   currents run get --api-key <api-key> --project-id <project-id> \\
       --ci-build-id <ci-build-id> --pw-last-run \\
       --output test-results/.last-run.json
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of run share 1`] = `
+"Usage: currents run share <run-id> [options]
+
+Create a public link to a run, or to one spec file or test of it, and print it.
+The second line, "Markdown: <url>", is the same content as Markdown, for agents
+
+Arguments:
+  run-id                    the run to share
+
+Options:
+  --instance-id <id>        one spec file of the run (default: the whole run)
+  --test-id <id>            one test of the spec file; needs --instance-id
+  --attempt <n>             one attempt of the test, from 0; needs --test-id and
+                            --purpose fix (default: the last attempt that
+                            failed)
+  --purpose <purpose>       report: every test with its attempts and files, for
+                            a person
+                            fix: the failure context, for an agent fixing the
+                            tests (choices: "report", "fix", default: "report")
+  --expires-in-days <days>  the number of days the link works; by default 7 for
+                            report and 1 for fix (choices: "1", "3", "7")
+  --api-key <api-key>       an API key from the Currents dashboard (required;
+                            needs write access) (env: CURRENTS_API_KEY)
+  --debug                   print debug logs; keys are hidden in them (default:
+                            false, env: CURRENTS_DEBUG)
+  -h, --help                display help for command
+
+Examples:
+  # Share a whole run with a reviewer or a colleague outside Currents
+  currents run share <run-id>
+
+  # Give an agent the failures of a whole run
+  currents run share <run-id> --purpose fix
+
+  # Share one spec file, e.g. the copy that ran in the firefox group
+  currents run share <run-id> --instance-id <instance-id>
+
+  # Give an agent one failing test (its last failed attempt)
+  currents run share <run-id> --instance-id <instance-id> --test-id <test-id> \\
+      --purpose fix
+
+  # Give an agent one specific attempt of a test
+  currents run share <run-id> --instance-id <instance-id> --test-id <test-id> \\
+      --purpose fix --attempt 0
 
 "
 `;

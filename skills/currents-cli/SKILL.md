@@ -1,6 +1,6 @@
 ---
 name: currents-cli
-description: Run the Currents CLI (the `currents` command of the npm package @currents/cmd). Use when asked to upload test results to Currents, convert JUnit or other test reports to the Currents format, attach files or logs to a CI run, cancel a Currents run when CI is cancelled, record a browser session and share it as evidence, cache the last run so a CI rerun runs only the failed tests, or call a Currents REST API route from the command line. Also use when adding these steps to GitHub Actions or GitLab CI.
+description: Run the Currents CLI (the `currents` command of the npm package @currents/cmd). Use when asked to upload test results to Currents, convert JUnit or other test reports to the Currents format, attach files or logs to a CI run, cancel a Currents run when CI is cancelled, share a public link to a CI run or to one of its failing tests, record a browser session and share it as evidence, cache the last run so a CI rerun runs only the failed tests, or call a Currents REST API route from the command line. Also use when adding these steps to GitHub Actions or GitLab CI.
 ---
 
 # Currents CLI
@@ -13,6 +13,7 @@ description: Run the Currents CLI (the `currents` command of the npm package @cu
 - `currents run attach`: attach logs or other files to a run that CI recorded.
 - `currents run cancel`: cancel a run when its CI workflow is cancelled.
 - `currents run get`: get the data of a run.
+- `currents run share`: print a public link to a run, or to one spec file or test of it, for a person or for an agent fixing the tests.
 - `currents session start`, then `session attach` and `session share`: record a browser session and share a link to it.
 - `currents cache set` and `cache get` with `--preset last-run`: rerun only the failed Playwright tests in a CI rerun. With `--id`: save files in one CI job and restore them in another.
 - `currents api <path>`: call any other REST API route.
@@ -24,7 +25,7 @@ Before you use a command, run `currents <command> --help` for its options and ex
 ## Credentials
 
 - Record key, in `CURRENTS_RECORD_KEY` or `--key`: `run upload`, `run cancel`, `cache`.
-- API key, in `CURRENTS_API_KEY` or `--api-key`: `run get`, `api`.
+- API key, in `CURRENTS_API_KEY` or `--api-key`: `run get`, `run share`, `api`.
 - `run attach` and `session` take either key. The record key wins when both are set.
 
 Both keys come from the Currents dashboard. Set them as environment variables or CI secrets, not as options.

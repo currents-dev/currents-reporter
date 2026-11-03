@@ -1,4 +1,4 @@
-import { AxiosResponse, isAxiosError } from 'axios';
+import { AxiosRequestConfig, AxiosResponse, isAxiosError } from 'axios';
 import { debug as _debug } from '../debug';
 import { ClientType, getClient } from '../http/client';
 import { getRetryAfterMs } from '../http/httpRetry';
@@ -52,19 +52,25 @@ function formatCandidates(candidates: unknown) {
   return `\nMatches:\n${lines.join('\n')}`;
 }
 
-async function post<T, D>(url: string, credentials: ApiCredentials, data: D) {
+async function request<T>(
+  credentials: ApiCredentials,
+  config: Pick<AxiosRequestConfig, 'method' | 'url' | 'data'>
+) {
   try {
     // Not makeRequest: it prints a generic warning for each failed status, and
     // toApiError turns the API's own message into the error.
-    const res = await getClient(ClientType.REST_API).post<
+    const res = await getClient(ClientType.REST_API).request<
       ApiResponse<T>,
-      AxiosResponse<ApiResponse<T>>,
-      D
-    >(url, data, { headers: getAuthHeaders(credentials) });
+      AxiosResponse<ApiResponse<T>>
+    >({ ...config, headers: getAuthHeaders(credentials) });
     return res.data.data;
   } catch (e) {
     throw toApiError(e);
   }
+}
+
+function post<T, D>(url: string, credentials: ApiCredentials, data: D) {
+  return request<T>(credentials, { method: 'POST', url, data });
 }
 
 export type AttachmentDeclaration = {
@@ -166,9 +172,16 @@ export function createAttachments(
   );
 }
 
-export type CreateShareParams = {
-  sessionId: string;
-  purpose: 'report';
+export type SharePurpose = 'report' | 'fix';
+
+/** A session, a run, a spec file of a run, or a test of a spec file. */
+export type ShareTarget =
+  | { sessionId: string }
+  | { runId: string; instanceId?: string }
+  | { instanceId: string; testId: string; attempt?: number };
+
+export type CreateShareParams = ShareTarget & {
+  purpose: SharePurpose;
   expiresInDays?: 1 | 3 | 7;
 };
 
@@ -188,4 +201,16 @@ export function createShare(
     credentials,
     params
   );
+}
+
+export type GetInstanceResponse = {
+  instanceId: string;
+  runId: string;
+};
+
+export function getInstance(credentials: ApiCredentials, instanceId: string) {
+  return request<GetInstanceResponse>(credentials, {
+    method: 'GET',
+    url: `v1/instances/${encodeURIComponent(instanceId)}`,
+  });
 }

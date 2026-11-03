@@ -22,7 +22,7 @@ export const getProgram = () => {
   const program = new Command(NAME)
     .version(reporterVersion)
     .description(
-      'Currents CLI: upload test results and files to Currents, get and cancel runs, capture agent or browser sessions as evidence, and cache files between CI jobs'
+      'Currents CLI: upload test results and files to Currents, get, share and cancel runs, capture agent or browser sessions as evidence, and cache files between CI jobs'
     )
     .showHelpAfterError(`(run '${NAME} --help' for usage)`)
     // Without it, the options after "api get-run" go to api, which has the
