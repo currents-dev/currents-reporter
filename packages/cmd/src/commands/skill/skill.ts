@@ -1,6 +1,6 @@
-import { findUp } from '@lib/fs';
+import { findUp, pathExists } from '@lib/fs';
 import { info } from '@logger';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path from 'path';
 import { writeStdout } from '../utils';
 
@@ -63,7 +63,7 @@ export async function installSkill({
   const target = path.resolve(dir, SKILL_NAME);
   const shownTarget = path.relative(process.cwd(), target) || '.';
 
-  if (await fs.pathExists(target)) {
+  if (await pathExists(target)) {
     if (!(await fs.stat(target)).isDirectory()) {
       throw new Error(`${shownTarget} exists and is not a folder`);
     }
@@ -76,10 +76,10 @@ export async function installSkill({
         `${shownTarget} exists and differs from the skill of this version. Pass --force to replace it`
       );
     }
-    await fs.remove(target);
+    await fs.rm(target, { recursive: true, force: true });
   }
 
-  await fs.copy(source, target);
+  await fs.cp(source, target, { recursive: true, verbatimSymlinks: true });
   info('Wrote the %s skill to %s', SKILL_NAME, shownTarget);
   return target;
 }

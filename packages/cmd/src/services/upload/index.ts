@@ -3,10 +3,17 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
-import { maskKeys, nanoid, readJsonFile, writeFileAsync } from '@lib';
+import {
+  maskKeys,
+  limitOpenFiles,
+  nanoid,
+  pathExists,
+  readJsonFile,
+  writeFileAsync,
+} from '@lib';
 import { info, warn } from '@logger';
 import axios from 'axios';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path from 'path';
 import semver from 'semver';
 import {
@@ -447,12 +454,12 @@ const uploadArtifact = async (
   uploadUrl: string
 ) => {
   try {
-    if (!(await fs.pathExists(filePath))) {
+    if (!(await pathExists(filePath))) {
       warn('Artifact file not found: %s', filePath);
       return;
     }
 
-    const fileBuffer = await fs.readFile(filePath);
+    const fileBuffer = await limitOpenFiles(() => fs.readFile(filePath));
 
     await axios.put(uploadUrl, fileBuffer, {
       headers: {

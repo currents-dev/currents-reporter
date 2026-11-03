@@ -1,8 +1,9 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { createTempFile } from '../fs';
+import { randomUUID } from 'crypto';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createTempFile, pathExists, readJson } from '../fs';
 
 describe('createTempFile', () => {
   const created: string[] = [];
@@ -31,5 +32,45 @@ describe('createTempFile', () => {
     const files = await Promise.all([createTempFile(), createTempFile()]);
     created.push(...files);
     expect(files[0]).not.toBe(files[1]);
+  });
+});
+
+describe('readJson', () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'read-json-test-'));
+  });
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('reads a file with a byte order mark', async () => {
+    const file = path.join(dir, 'a.json');
+    fs.writeFileSync(file, '\uFEFF{"a":1}');
+    expect(await readJson(file)).toEqual({ a: 1 });
+  });
+
+  it('starts a parse error with the file path', async () => {
+    const file = path.join(dir, 'bad.json');
+    fs.writeFileSync(file, '{');
+    await expect(readJson(file)).rejects.toThrow(
+      expect.objectContaining({
+        name: 'SyntaxError',
+        message: expect.stringMatching(new RegExp(`^${file}: `)),
+      })
+    );
+  });
+
+  it('fails with ENOENT for a missing file', async () => {
+    await expect(readJson(path.join(dir, 'none.json'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+});
+
+describe('pathExists', () => {
+  it('is true for a file or folder and false otherwise', async () => {
+    expect(await pathExists(os.tmpdir())).toBe(true);
+    expect(await pathExists(path.join(os.tmpdir(), randomUUID()))).toBe(false);
   });
 });

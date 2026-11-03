@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs';
 
 import { debug as _debug } from '@debug';
 import { createTempFile, readJsonFile } from '@lib';

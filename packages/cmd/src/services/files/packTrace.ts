@@ -1,5 +1,7 @@
 import Archiver from 'archiver';
-import fs from 'fs-extra';
+import { pathExists } from '@lib/fs';
+import { createWriteStream } from 'fs';
+import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import unzipper from 'unzipper';
@@ -87,7 +89,7 @@ export async function packTraceFolder(folder: string) {
 
   try {
     const archive = Archiver('zip', { zlib: { level: 9 } });
-    const output = fs.createWriteStream(zipPath);
+    const output = createWriteStream(zipPath);
     const done = new Promise<void>((resolve, reject) => {
       output.on('close', () => resolve());
       output.on('error', reject);
@@ -99,7 +101,7 @@ export async function packTraceFolder(folder: string) {
     archive.append(await mergeNetworkFiles(folder), { name: 'trace.network' });
     for (const sub of ['screencast', 'resources']) {
       const subPath = path.join(folder, sub);
-      if (await fs.pathExists(subPath)) archive.directory(subPath, sub);
+      if (await pathExists(subPath)) archive.directory(subPath, sub);
     }
     await archive.finalize();
     await done;
