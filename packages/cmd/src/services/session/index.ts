@@ -129,6 +129,16 @@ function printShare(share: CreateShareResponse) {
 
 export async function handleRunShare(config: RunShareConfig) {
   const { runId, instanceId, testId, attempt, purpose } = config;
+  // Read as omitted, an empty id would share the whole spec file or run.
+  for (const [name, id] of [
+    ['<run-id>', runId],
+    ['--instance-id', instanceId],
+    ['--test-id', testId],
+  ] as const) {
+    if (id !== undefined && id.trim() === '') {
+      throw new Error(`${name} must not be empty`);
+    }
+  }
   if (testId && !instanceId) {
     throw new Error('--test-id needs --instance-id, the spec file of the test');
   }

@@ -187,6 +187,21 @@ describe('run share with the built CLI', () => {
     expect(api.requests).toHaveLength(0);
   });
 
+  it.each([
+    [[' '], '<run-id> must not be empty'],
+    [['run1', '--instance-id', ''], '--instance-id must not be empty'],
+    [
+      ['run1', '--instance-id', 'inst1', '--test-id', ' '],
+      '--test-id must not be empty',
+    ],
+  ])('refuses the empty id in %j before any request', async (args, message) => {
+    const result = await share(args);
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain(message);
+    expect(api.requests).toHaveLength(0);
+  });
+
   it('refuses a record key without an API key', async () => {
     const result = await runCli(['run', 'share', 'run1'], {
       cwd: workDir,
