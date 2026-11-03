@@ -64,7 +64,6 @@
     "getos": "^3.2.1",
     "https-proxy-agent": "^7.0.4",
     "lodash": "^4.18.1",
-    "nanoid": "^3.3.8",
     "pretty-ms": "^7.0.1",
     "proxy-from-env": "^1.1.0",
     "semver": "^7.8.5",
