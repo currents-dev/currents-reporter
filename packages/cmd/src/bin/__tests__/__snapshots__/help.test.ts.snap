@@ -186,60 +186,6 @@ Examples:
 "
 `;
 
-exports[`command surface of the built CLI > prints the help of cache get 2`] = `
-"Usage: currents cache get [options]
-
-Restore files from the cache
-
-Options:
-  -k, --key <record-key>   the record key from the Currents dashboard (required)
-                           (env: CURRENTS_RECORD_KEY)
-  --id <id>                the ID the files were saved under. Without it the ID
-                           comes from the CI job: on GitHub Actions the
-                           repository, the run ID and --matrix-index; on GitLab
-                           the pipeline ID and the job name; on other CI the
-                           variables that identify the pipeline and the job, and
-                           --matrix-index. When no CI job is detected the ID is
-                           random, so pass --id
-  --preset <preset-name>   "last-run" restores the saved .last-run.json files
-                           and writes the Playwright options for the rerun to
-                           --preset-output (choices: "last-run")
-  --output-dir <folder>    the folder to restore the files to; by default the
-                           current folder
-  --preset-output <path>   the file the "last-run" preset writes, relative to
-                           the current folder. On GitHub Actions and CircleCI it
-                           holds options for "playwright test"; on GitLab the
-                           shell variables EXTRA_PW_FLAGS, EXTRA_PWCP_FLAGS and
-                           RUN_ATTEMPT, to source. Nothing is written on other
-                           CI (default: ".currents_env")
-  --debug                  print debug logs; keys are hidden in them (default:
-                           false, env: CURRENTS_DEBUG)
-  --matrix-index <number>  the index of this job among parallel jobs, from 1;
-                           each job has its own cache. Pass it when the CI does
-                           not tell the jobs apart, as in a GitHub Actions
-                           matrix (default: 1)
-  --matrix-total <number>  GitHub Actions only: the number of jobs in the
-                           matrix, for the shards that the last-run preset
-                           writes (default: 1)
-  --continue               exit with 0 when the cache is not found (default:
-                           false)
-  -h, --help               display help for command
-
-Examples:
-  # Restore the files saved in the cache under an ID
-  currents cache get --key <record-key> --id <id>
-
-  # Restore Playwright's .last-run.json from the cache, to rerun only the failed
-  # tests
-  currents cache get --key <record-key> --preset last-run
-
-  # Restore Playwright's .last-run.json to another folder
-  currents cache get --key <record-key> --preset last-run \\
-      --output-dir <output-dir>
-
-"
-`;
-
 exports[`command surface of the built CLI > prints the help of cache set 1`] = `
 "Usage: currents cache set [options]
 
