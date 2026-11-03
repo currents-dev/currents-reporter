@@ -1,5 +1,5 @@
 import Archiver from 'archiver';
-import { pathExists } from '@lib/fs';
+import { limitOpenFiles, pathExists } from '@lib/fs';
 import { createWriteStream } from 'fs';
 import fs from 'fs/promises';
 import os from 'os';
@@ -63,7 +63,9 @@ async function readSorted(folder: string, pattern: RegExp) {
 
 export async function mergeTraceFiles(folder: string) {
   const parts = await Promise.all(
-    (await readSorted(folder, TRACE_FILE)).map((f) => fs.readFile(f, 'utf8'))
+    (await readSorted(folder, TRACE_FILE)).map((f) =>
+      limitOpenFiles(() => fs.readFile(f, 'utf8'))
+    )
   );
   return parts.map((p) => (p.endsWith('\n') ? p : p + '\n')).join('');
 }
