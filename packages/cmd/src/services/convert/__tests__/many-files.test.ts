@@ -1,14 +1,13 @@
-import { execFile } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cliPath } from '../../../test-utils/cli';
+import { runCli } from '../../../test-utils/cli';
 
 const FILES = 2000;
 
-// Each JUnit file is a spec with an artifact, so the conversion reads, copies
-// and writes a file per spec. The limit on open files is far
+// Each JUnit file is a spec with an attachment and stdout, so the conversion
+// reads, copies and writes files per spec. The limit on open files is far
 // below the number of specs.
 describe.skipIf(process.platform === 'win32')(
   'currents convert with more files than the open file limit',
@@ -28,6 +27,7 @@ describe.skipIf(process.platform === 'win32')(
 <properties>
 <property name="currents.artifact.test.path" value="files/a${i}.txt"/>
 <property name="currents.artifact.test.type" value="attachment"/>
+<property name="currents.artifact.test.contentType" value="text/plain"/>
 </properties>
 <system-out>out ${i}</system-out>
 </testcase></testsuite></testsuites>`
@@ -40,38 +40,25 @@ describe.skipIf(process.platform === 'win32')(
     });
 
     it('converts every file', async () => {
-      // bash sets the hard limit too; Node raises a lower soft limit to it
-      const result = await new Promise<{ code: number; output: string }>(
-        (resolve) => {
-          execFile(
-            'bash',
-            [
-              '-c',
-              'ulimit -n 256 && exec "$@"',
-              'bash',
-              process.execPath,
-              cliPath,
-              'convert',
-              '--input-format=junit',
-              '--input-file=junit/*.xml',
-              '--output-dir=out',
-              '--framework=vitest',
-            ],
-            { cwd: workDir },
-            (error, stdout, stderr) =>
-              resolve({
-                code: error ? Number(error.code ?? 1) : 0,
-                output: stdout + stderr,
-              })
-          );
-        }
+      const result = await runCli(
+        [
+          'convert',
+          '--input-format=junit',
+          '--input-file=junit/*.xml',
+          '--output-dir=out',
+          '--framework=vitest',
+        ],
+        { cwd: workDir, maxOpenFiles: 256 }
       );
 
-      expect(result.output).not.toMatch(/EMFILE/);
+      expect(result.stdout + result.stderr).not.toMatch(/EMFILE/);
       expect(result.code).toBe(0);
       const out = path.join(workDir, 'out');
       expect(fs.readdirSync(path.join(out, 'instances'))).toHaveLength(FILES);
-      expect(fs.readdirSync(path.join(out, 'artifacts'))).toHaveLength(FILES);
+      // A copy of the attachment and a stdout file per spec
+      expect(fs.readdirSync(path.join(out, 'artifacts'))).toHaveLength(
+        FILES * 2
+      );
     }, 60_000);
   }
 );
