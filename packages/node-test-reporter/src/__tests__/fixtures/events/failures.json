@@ -1,0 +1,1828 @@
+[
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "failures.fixture.mjs",
+      "type": "test",
+      "line": 1,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "failures.fixture.mjs",
+      "type": "test",
+      "line": 1,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "strictEqual numbers",
+      "type": "test",
+      "line": 4,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "strictEqual numbers",
+      "type": "test",
+      "line": 4,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "deepStrictEqual objects",
+      "type": "test",
+      "line": 7,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "assert.ok with message",
+      "type": "test",
+      "line": 13,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "multi-line message",
+      "type": "test",
+      "line": 16,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "error with custom props and cause",
+      "type": "test",
+      "line": 19,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "error with a multi-line stack",
+      "type": "test",
+      "line": 25,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "throws a string",
+      "type": "test",
+      "line": 37,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "throws a number",
+      "type": "test",
+      "line": 40,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "throws an object",
+      "type": "test",
+      "line": 43,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "throws null",
+      "type": "test",
+      "line": 46,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "throws undefined",
+      "type": "test",
+      "line": 49,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "rejects",
+      "type": "test",
+      "line": 52,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "times out",
+      "type": "test",
+      "line": 55,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "suite with failing hook",
+      "type": "suite",
+      "line": 58,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "suite with failing child",
+      "type": "suite",
+      "line": 64,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "parent passes, subtest fails",
+      "type": "test",
+      "line": 70,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "strictEqual numbers",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 1.130625,
+        "type": "test",
+        "error": {
+          "errorMessage": "Expected values to be strictly equal:\n\n1 !== 2\n",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": 1,
+              "expected": 2,
+              "operator": "strictEqual",
+              "diff": "simple"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 4,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "strictEqual numbers",
+      "line": 4,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "strictEqual numbers",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 1.130625,
+        "type": "test",
+        "error": {
+          "errorMessage": "Expected values to be strictly equal:\n\n1 !== 2\n",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": 1,
+              "expected": 2,
+              "operator": "strictEqual",
+              "diff": "simple"
+            }
+          }
+        }
+      },
+      "line": 4,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "deepStrictEqual objects",
+      "type": "test",
+      "line": 7,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "deepStrictEqual objects",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 0.587041,
+        "type": "test",
+        "error": {
+          "errorMessage": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    a: 1,\n    b: [\n      1,\n      2,\n+     3\n-     4\n    ],\n+   c: 'x'\n-   c: 'y'\n  }\n",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": {
+                "a": 1,
+                "b": [1, 2, 3],
+                "c": "x"
+              },
+              "expected": {
+                "a": 1,
+                "b": [1, 2, 4],
+                "c": "y"
+              },
+              "operator": "deepStrictEqual",
+              "diff": "simple"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 7,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "deepStrictEqual objects",
+      "line": 7,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "deepStrictEqual objects",
+      "nesting": 0,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 0.587041,
+        "type": "test",
+        "error": {
+          "errorMessage": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    a: 1,\n    b: [\n      1,\n      2,\n+     3\n-     4\n    ],\n+   c: 'x'\n-   c: 'y'\n  }\n",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": {
+                "a": 1,
+                "b": [1, 2, 3],
+                "c": "x"
+              },
+              "expected": {
+                "a": 1,
+                "b": [1, 2, 4],
+                "c": "y"
+              },
+              "operator": "deepStrictEqual",
+              "diff": "simple"
+            }
+          }
+        }
+      },
+      "line": 7,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "assert.ok with message",
+      "type": "test",
+      "line": 13,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "assert.ok with message",
+      "nesting": 0,
+      "testNumber": 3,
+      "details": {
+        "duration_ms": 0.06925,
+        "type": "test",
+        "error": {
+          "errorMessage": "custom & <message>",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": false,
+              "code": "ERR_ASSERTION",
+              "actual": false,
+              "expected": true,
+              "operator": "==",
+              "diff": "simple"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 13,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "assert.ok with message",
+      "line": 13,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "assert.ok with message",
+      "nesting": 0,
+      "testNumber": 3,
+      "details": {
+        "duration_ms": 0.06925,
+        "type": "test",
+        "error": {
+          "errorMessage": "custom & <message>",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": false,
+              "code": "ERR_ASSERTION",
+              "actual": false,
+              "expected": true,
+              "operator": "==",
+              "diff": "simple"
+            }
+          }
+        }
+      },
+      "line": 13,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "multi-line message",
+      "type": "test",
+      "line": 16,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "multi-line message",
+      "nesting": 0,
+      "testNumber": 4,
+      "details": {
+        "duration_ms": 0.033791,
+        "type": "test",
+        "error": {
+          "errorMessage": "line one\nline two\n  line three",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {}
+          }
+        },
+        "passed": false
+      },
+      "line": 16,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "multi-line message",
+      "line": 16,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "multi-line message",
+      "nesting": 0,
+      "testNumber": 4,
+      "details": {
+        "duration_ms": 0.033791,
+        "type": "test",
+        "error": {
+          "errorMessage": "line one\nline two\n  line three",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {}
+          }
+        }
+      },
+      "line": 16,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "error with custom props and cause",
+      "type": "test",
+      "line": 19,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "error with custom props and cause",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 0.038709,
+        "type": "test",
+        "error": {
+          "errorMessage": "outer",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "code": "E_CUSTOM",
+              "details": {
+                "nested": [1, "two", null]
+              }
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 19,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "error with custom props and cause",
+      "line": 19,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "error with custom props and cause",
+      "nesting": 0,
+      "testNumber": 5,
+      "details": {
+        "duration_ms": 0.038709,
+        "type": "test",
+        "error": {
+          "errorMessage": "outer",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "code": "E_CUSTOM",
+              "details": {
+                "nested": [1, "two", null]
+              }
+            }
+          }
+        }
+      },
+      "line": 19,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "error with a multi-line stack",
+      "type": "test",
+      "line": 25,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "error with a multi-line stack",
+      "nesting": 0,
+      "testNumber": 6,
+      "details": {
+        "duration_ms": 0.038667,
+        "type": "test",
+        "error": {
+          "errorMessage": "has stack",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "stack": "Error: has stack\n    at fn (file:///project/test.mjs:10:11)\n    at next (node:internal/test_runner/test:1:1)"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 25,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "error with a multi-line stack",
+      "line": 25,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "error with a multi-line stack",
+      "nesting": 0,
+      "testNumber": 6,
+      "details": {
+        "duration_ms": 0.038667,
+        "type": "test",
+        "error": {
+          "errorMessage": "has stack",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "stack": "Error: has stack\n    at fn (file:///project/test.mjs:10:11)\n    at next (node:internal/test_runner/test:1:1)"
+            }
+          }
+        }
+      },
+      "line": 25,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "throws a string",
+      "type": "test",
+      "line": 37,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "throws a string",
+      "nesting": 0,
+      "testNumber": 7,
+      "details": {
+        "duration_ms": 0.027417,
+        "type": "test",
+        "error": {
+          "errorMessage": "plain string",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": "plain string"
+          }
+        },
+        "passed": false
+      },
+      "line": 37,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "throws a string",
+      "line": 37,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "throws a string",
+      "nesting": 0,
+      "testNumber": 7,
+      "details": {
+        "duration_ms": 0.027417,
+        "type": "test",
+        "error": {
+          "errorMessage": "plain string",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": "plain string"
+          }
+        }
+      },
+      "line": 37,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "throws a number",
+      "type": "test",
+      "line": 40,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "throws a number",
+      "nesting": 0,
+      "testNumber": 8,
+      "details": {
+        "duration_ms": 0.035583,
+        "type": "test",
+        "error": {
+          "errorMessage": "42",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": 42
+          }
+        },
+        "passed": false
+      },
+      "line": 40,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "throws a number",
+      "line": 40,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "throws a number",
+      "nesting": 0,
+      "testNumber": 8,
+      "details": {
+        "duration_ms": 0.035583,
+        "type": "test",
+        "error": {
+          "errorMessage": "42",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": 42
+          }
+        }
+      },
+      "line": 40,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "throws an object",
+      "type": "test",
+      "line": 43,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "throws an object",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 0.04925,
+        "type": "test",
+        "error": {
+          "errorMessage": "{ reason: 'object', n: 1 }",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "reason": "object",
+              "n": 1
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 43,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "throws an object",
+      "line": 43,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "throws an object",
+      "nesting": 0,
+      "testNumber": 9,
+      "details": {
+        "duration_ms": 0.04925,
+        "type": "test",
+        "error": {
+          "errorMessage": "{ reason: 'object', n: 1 }",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "reason": "object",
+              "n": 1
+            }
+          }
+        }
+      },
+      "line": 43,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "throws null",
+      "type": "test",
+      "line": 46,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "throws null",
+      "nesting": 0,
+      "testNumber": 10,
+      "details": {
+        "duration_ms": 0.058417,
+        "type": "test",
+        "error": {
+          "errorMessage": "null",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": null
+          }
+        },
+        "passed": false
+      },
+      "line": 46,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "throws null",
+      "line": 46,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "throws null",
+      "nesting": 0,
+      "testNumber": 10,
+      "details": {
+        "duration_ms": 0.058417,
+        "type": "test",
+        "error": {
+          "errorMessage": "null",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": null
+          }
+        }
+      },
+      "line": 46,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "throws undefined",
+      "type": "test",
+      "line": 49,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "throws undefined",
+      "nesting": 0,
+      "testNumber": 11,
+      "details": {
+        "duration_ms": 0.0325,
+        "type": "test",
+        "error": {
+          "errorMessage": "undefined",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure"
+          }
+        },
+        "passed": false
+      },
+      "line": 49,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "throws undefined",
+      "line": 49,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "throws undefined",
+      "nesting": 0,
+      "testNumber": 11,
+      "details": {
+        "duration_ms": 0.0325,
+        "type": "test",
+        "error": {
+          "errorMessage": "undefined",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure"
+          }
+        }
+      },
+      "line": 49,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "rejects",
+      "type": "test",
+      "line": 52,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "rejects",
+      "nesting": 0,
+      "testNumber": 12,
+      "details": {
+        "duration_ms": 0.06775,
+        "type": "test",
+        "error": {
+          "errorMessage": "rejected",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {}
+          }
+        },
+        "passed": false
+      },
+      "line": 52,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "rejects",
+      "line": 52,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "rejects",
+      "nesting": 0,
+      "testNumber": 12,
+      "details": {
+        "duration_ms": 0.06775,
+        "type": "test",
+        "error": {
+          "errorMessage": "rejected",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {}
+          }
+        }
+      },
+      "line": 52,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "times out",
+      "type": "test",
+      "line": 55,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "times out",
+      "nesting": 0,
+      "testNumber": 13,
+      "details": {
+        "duration_ms": 21.499375,
+        "type": "test",
+        "error": {
+          "errorMessage": "test timed out after 20ms",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testTimeoutFailure",
+            "cause": "test timed out after 20ms"
+          }
+        },
+        "passed": false
+      },
+      "line": 55,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "times out",
+      "line": 55,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "times out",
+      "nesting": 0,
+      "testNumber": 13,
+      "details": {
+        "duration_ms": 21.499375,
+        "type": "test",
+        "error": {
+          "errorMessage": "test timed out after 20ms",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testTimeoutFailure",
+            "cause": "test timed out after 20ms"
+          }
+        }
+      },
+      "line": 55,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "suite with failing hook",
+      "type": "test",
+      "line": 58,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "not run because the hook failed",
+      "nesting": 1,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0,
+        "type": "test",
+        "error": {
+          "errorMessage": "test did not finish before its parent and was cancelled",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "cancelledByParent",
+            "cause": "test did not finish before its parent and was cancelled"
+          }
+        },
+        "passed": false
+      },
+      "line": 62,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "suite with failing hook",
+      "line": 58,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 1,
+      "name": "not run because the hook failed",
+      "line": 62,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "not run because the hook failed",
+      "nesting": 1,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0,
+        "type": "test",
+        "error": {
+          "errorMessage": "test did not finish before its parent and was cancelled",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "cancelledByParent",
+            "cause": "test did not finish before its parent and was cancelled"
+          }
+        }
+      },
+      "line": 62,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "suite with failing hook",
+      "nesting": 0,
+      "testNumber": 14,
+      "details": {
+        "duration_ms": 0.203041,
+        "type": "suite",
+        "error": {
+          "errorMessage": "failed running before hook",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "hookFailed",
+            "cause": {}
+          }
+        },
+        "passed": false
+      },
+      "line": 58,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:plan",
+    "data": {
+      "nesting": 1,
+      "count": 1,
+      "line": 58,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "suite with failing hook",
+      "nesting": 0,
+      "testNumber": 14,
+      "details": {
+        "duration_ms": 0.203041,
+        "type": "suite",
+        "error": {
+          "errorMessage": "failed running before hook",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "hookFailed",
+            "cause": {}
+          }
+        }
+      },
+      "line": 58,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "suite with failing child",
+      "type": "test",
+      "line": 64,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 1,
+      "name": "child fails",
+      "type": "test",
+      "line": 65,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 1,
+      "name": "child fails",
+      "type": "test",
+      "line": 65,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 1,
+      "name": "child passes",
+      "type": "test",
+      "line": 68,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "child fails",
+      "nesting": 1,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0.173542,
+        "type": "test",
+        "error": {
+          "errorMessage": "'a' == 'b'",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": "a",
+              "expected": "b",
+              "operator": "==",
+              "diff": "simple"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 65,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "suite with failing child",
+      "line": 64,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 1,
+      "name": "child fails",
+      "line": 65,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "child fails",
+      "nesting": 1,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0.173542,
+        "type": "test",
+        "error": {
+          "errorMessage": "'a' == 'b'",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": "a",
+              "expected": "b",
+              "operator": "==",
+              "diff": "simple"
+            }
+          }
+        }
+      },
+      "line": 65,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 1,
+      "name": "child passes",
+      "type": "suite",
+      "line": 68,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "child passes",
+      "nesting": 1,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 0.036667,
+        "type": "test",
+        "passed": true
+      },
+      "line": 68,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 1,
+      "name": "child passes",
+      "line": 68,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:pass",
+    "data": {
+      "name": "child passes",
+      "nesting": 1,
+      "testNumber": 2,
+      "details": {
+        "duration_ms": 0.036667,
+        "type": "test"
+      },
+      "line": 68,
+      "column": 3,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "suite with failing child",
+      "nesting": 0,
+      "testNumber": 15,
+      "details": {
+        "duration_ms": 0.292375,
+        "type": "suite",
+        "error": {
+          "errorMessage": "1 subtest failed",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "subtestsFailed",
+            "cause": "1 subtest failed"
+          }
+        },
+        "passed": false
+      },
+      "line": 64,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:plan",
+    "data": {
+      "nesting": 1,
+      "count": 2,
+      "line": 64,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "suite with failing child",
+      "nesting": 0,
+      "testNumber": 15,
+      "details": {
+        "duration_ms": 0.292375,
+        "type": "suite",
+        "error": {
+          "errorMessage": "1 subtest failed",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "subtestsFailed",
+            "cause": "1 subtest failed"
+          }
+        }
+      },
+      "line": 64,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "parent passes, subtest fails",
+      "type": "test",
+      "line": 70,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 1,
+      "name": "failing subtest",
+      "type": "test",
+      "line": 71,
+      "column": 11,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 1,
+      "name": "failing subtest",
+      "type": "test",
+      "line": 71,
+      "column": 11,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "failing subtest",
+      "nesting": 1,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0.076834,
+        "type": "test",
+        "error": {
+          "errorMessage": "subtest failure",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": false,
+              "code": "ERR_ASSERTION",
+              "operator": "fail",
+              "diff": "simple"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 71,
+      "column": 11,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "parent passes, subtest fails",
+      "line": 70,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 1,
+      "name": "failing subtest",
+      "line": 71,
+      "column": 11,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "failing subtest",
+      "nesting": 1,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0.076834,
+        "type": "test",
+        "error": {
+          "errorMessage": "subtest failure",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": false,
+              "code": "ERR_ASSERTION",
+              "operator": "fail",
+              "diff": "simple"
+            }
+          }
+        }
+      },
+      "line": 71,
+      "column": 11,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "parent passes, subtest fails",
+      "nesting": 0,
+      "testNumber": 16,
+      "details": {
+        "duration_ms": 0.1745,
+        "type": "test",
+        "error": {
+          "errorMessage": "1 subtest failed",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "subtestsFailed",
+            "cause": "1 subtest failed"
+          }
+        },
+        "passed": false
+      },
+      "line": 70,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:plan",
+    "data": {
+      "nesting": 1,
+      "count": 1,
+      "line": 70,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "parent passes, subtest fails",
+      "nesting": 0,
+      "testNumber": 16,
+      "details": {
+        "duration_ms": 0.1745,
+        "type": "test",
+        "error": {
+          "errorMessage": "1 subtest failed",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "subtestsFailed",
+            "cause": "1 subtest failed"
+          }
+        }
+      },
+      "line": 70,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:summary",
+    "data": {
+      "success": false,
+      "counts": {
+        "tests": 18,
+        "failed": 15,
+        "passed": 1,
+        "cancelled": 2,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 16,
+        "suites": 2
+      },
+      "duration_ms": 205.735667,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "failures.fixture.mjs",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 237.663042,
+        "type": "test",
+        "error": {
+          "errorMessage": "test failed",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "subtestsFailed",
+            "cause": "test failed",
+            "exitCode": 1,
+            "signal": null
+          }
+        },
+        "passed": false
+      },
+      "line": 1,
+      "column": 1,
+      "file": "failures.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:plan",
+    "data": {
+      "nesting": 0,
+      "count": 16
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "tests 18",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "suites 2",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "pass 1",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "fail 15",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "cancelled 2",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "skipped 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "todo 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "duration_ms 270.699417",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:summary",
+    "data": {
+      "success": false,
+      "counts": {
+        "tests": 18,
+        "failed": 15,
+        "passed": 1,
+        "cancelled": 2,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 16,
+        "suites": 2
+      },
+      "duration_ms": 270.699417
+    }
+  }
+]

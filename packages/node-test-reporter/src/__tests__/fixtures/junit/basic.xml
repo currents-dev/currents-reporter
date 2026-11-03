@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="root" success="true" time="0.064947">
+  <testsuite name="basic.fixture.mjs" timestamp="2025-01-02T03:04:05.678Z" hostname="test-host" success="true" time="0.006418" failures="0" skipped="9">
+    <testcase name="passes" time="0.000301"/>
+    <testcase name="skipped with reason" time="0.000357">
+      <skipped/>
+    </testcase>
+    <testcase name="skipped" time="0.000028">
+      <skipped/>
+    </testcase>
+    <testcase name="todo with reason" time="0.000034">
+      <skipped type="todo"/>
+    </testcase>
+    <testcase name="todo" time="0.000043">
+      <skipped type="todo"/>
+    </testcase>
+    <testcase name="with diagnostics" time="0.000041"/>
+    <testcase name="outer suite &gt; outer test" time="0.000036"/>
+    <testcase name="outer suite &gt; inner suite &gt; inner test" time="0.000046"/>
+    <testcase name="outer suite &gt; inner suite &gt; inner skipped" time="0.000031">
+      <skipped/>
+    </testcase>
+    <testcase name="outer suite &gt; inner suite &gt; inner todo" time="0.000059">
+      <skipped type="todo"/>
+    </testcase>
+    <testcase name="skipped suite" time="0.000018" testNumber="8">
+      <skipped/>
+    </testcase>
+    <testcase name="todo suite" time="0.000062" testNumber="9">
+      <skipped type="todo"/>
+    </testcase>
+    <testcase name="todo suite &gt; runs inside todo suite" time="0.000038">
+      <skipped type="todo"/>
+    </testcase>
+    <testcase name="parent with subtests" time="0.000331"/>
+    <testcase name="parent with subtests &gt; subtest one" time="0.000112"/>
+    <testcase name="parent with subtests &gt; subtest two" time="0.000099"/>
+    <testcase name="parent with subtests &gt; subtest two &gt; sub-subtest" time="0.000026"/>
+  </testsuite>
+</testsuites>

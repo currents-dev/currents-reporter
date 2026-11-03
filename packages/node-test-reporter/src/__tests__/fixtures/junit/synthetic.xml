@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="root">
+  <testsuite name="dir/&quot;quoted&quot; &amp; &lt;file&gt;.test.mjs" timestamp="2025-01-02T03:04:05.678Z" hostname="test-host" failures="3" skipped="1" time="0.5">
+    <testcase name="string stack" time="0.1">
+      <failure type="Custom &amp; &lt;type&gt;" message="text &amp; &lt;markup&gt; ]]&gt; &quot;quotes&quot;
+&quot;text &amp; &lt;markup&gt; ]]&gt; \&quot;quotes\&quot;\n  at line two&quot;
+">text &amp; &lt;markup&gt; ]]&gt; "quotes"
+  at line two</failure>
+    </testcase>
+    <testcase name="null stack">
+      <failure message="null
+"/>
+    </testcase>
+    <testcase name="no failure details">
+      <failure message="undefined
+"/>
+    </testcase>
+    <testcase name="passed suite &gt; child"/>
+    <testcase name="skipped suite" testNumber="4">
+      <skipped/>
+    </testcase>
+    <testcase name="skipped suite &gt; child">
+      <skipped/>
+    </testcase>
+    <testcase name="pending"/>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="root" success="true" time="0.061466">
+  <testsuite name="empty.fixture.mjs" timestamp="2025-01-02T03:04:05.678Z" hostname="test-host" failures="0" skipped="0" time="0.032066">
+    <testcase name="empty.fixture.mjs" time="0.032066"/>
+  </testsuite>
+</testsuites>

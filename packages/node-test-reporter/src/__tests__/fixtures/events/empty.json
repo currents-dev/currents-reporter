@@ -1,0 +1,153 @@
+[
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "empty.fixture.mjs",
+      "type": "test",
+      "line": 1,
+      "column": 1,
+      "file": "empty.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "empty.fixture.mjs",
+      "type": "test",
+      "line": 1,
+      "column": 1,
+      "file": "empty.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "empty.fixture.mjs",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 32.065708,
+        "type": "test",
+        "passed": true
+      },
+      "line": 1,
+      "column": 1,
+      "file": "empty.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "empty.fixture.mjs",
+      "line": 1,
+      "column": 1,
+      "file": "empty.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:pass",
+    "data": {
+      "name": "empty.fixture.mjs",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 32.065708,
+        "type": "test"
+      },
+      "line": 1,
+      "column": 1,
+      "file": "empty.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:plan",
+    "data": {
+      "nesting": 0,
+      "count": 1
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "tests 1",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "suites 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "pass 1",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "fail 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "cancelled 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "skipped 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "todo 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "duration_ms 61.466084",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:summary",
+    "data": {
+      "success": true,
+      "counts": {
+        "tests": 1,
+        "failed": 0,
+        "passed": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 1,
+        "suites": 0
+      },
+      "duration_ms": 61.466084
+    }
+  }
+]
