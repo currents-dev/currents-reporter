@@ -1,7 +1,7 @@
 import { error } from '@logger';
+import { randomUUID } from 'crypto';
 import fs from 'fs-extra';
 import { dirname, join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { debug } from '../debug';
 
 export async function readJsonFile<T>(filePath: string): Promise<T> {
@@ -57,7 +57,7 @@ export async function ensurePathExists(
 
 export function generateUniqueDirName(): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const uniqueId = uuidv4();
+  const uniqueId = randomUUID();
   return `${timestamp}-${uniqueId}`;
 }
 
