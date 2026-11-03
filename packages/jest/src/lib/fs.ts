@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { join } from 'path';
 import { error } from '../logger';
 import { debug } from './debug';
@@ -22,7 +22,7 @@ export async function createUniqueFolder(
 
 export async function createFolder(folderPath: string) {
   try {
-    await fs.ensureDir(folderPath);
+    await fs.mkdir(folderPath, { recursive: true });
     debug('Folder created', folderPath);
     return folderPath;
   } catch (err) {
@@ -48,11 +48,17 @@ export async function writeFileAsync(
   }
 }
 
+/** Like fs-extra's readJson: drops a byte order mark before parsing. */
+export async function readJson(filePath: string) {
+  const text = await fs.readFile(filePath, 'utf8');
+  return JSON.parse(text.replace(/^\uFEFF/, ''));
+}
+
 export async function readInstanceReport<T>(
   filePath: string
 ): Promise<T | undefined> {
   try {
-    return await fs.readJson(filePath);
+    return await readJson(filePath);
   } catch {
     debug('No previous report at %s', filePath);
     return undefined;

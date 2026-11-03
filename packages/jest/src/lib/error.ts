@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { codeFrameColumns } from '@babel/code-frame';
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 import StackUtils from 'stack-utils';
 import url from 'url';
