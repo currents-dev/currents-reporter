@@ -1,8 +1,8 @@
 import fs from 'fs-extra';
 import os from 'os';
 import { join } from 'path';
-import unzipper from 'unzipper';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { listZipEntries } from '../../../lib/zip';
 import {
   ApiServer,
   RecordedRequest,
@@ -95,11 +95,8 @@ class FakeCache {
 }
 
 async function archiveFiles(archive: Buffer) {
-  const directory = await unzipper.Open.buffer(archive);
-  return directory.files
-    .filter((file) => file.type === 'File')
-    .map((file) => file.path)
-    .sort();
+  const names = await listZipEntries(archive);
+  return names.filter((name) => !name.endsWith('/')).sort();
 }
 
 describe('currents cache with the built CLI', () => {

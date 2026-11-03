@@ -1,9 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { Readable } from 'stream';
-import unzipper from 'unzipper';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { zipFilesToBuffer } from '../fs';
+import { listZipEntries } from '../../../lib/zip';
+import { unzipBuffer, zipFilesToBuffer } from '../fs';
 
 describe('zipFilesToBuffer', () => {
   const testDir = path.join(__dirname, 'test-files');
@@ -27,33 +26,31 @@ describe('zipFilesToBuffer', () => {
 
   it('should zip a single file', async () => {
     const buffer = await zipFilesToBuffer([file1Path]);
-    const entries = await unzipBuffer(buffer);
+    const entries = await listZipEntries(buffer);
     expect(entries.length).toBe(1);
   });
 
   it('should zip multiple files', async () => {
     const buffer = await zipFilesToBuffer([file1Path, file2Path]);
-    const entries = await unzipBuffer(buffer);
+    const entries = await listZipEntries(buffer);
     expect(entries.length).toBe(2);
   });
 
   it('should zip a directory', async () => {
     const buffer = await zipFilesToBuffer([testDir]);
-    const entries = await unzipBuffer(buffer);
-    const entryNames = entries.map((entry) => entry.path);
+    const entryNames = await listZipEntries(buffer);
 
     expect(entryNames).toContain(path.relative(process.cwd(), file1Path));
     expect(entryNames).toContain(path.relative(process.cwd(), file2Path));
     expect(entryNames).toContain(path.relative(process.cwd(), file3Path));
     expect(entryNames).toContain(
       path.relative(process.cwd(), subdirPath) + '/'
-    ); // "/" is added by archiver for directories
+    );
   });
 
   it('should zip mixed files and directories', async () => {
     const buffer = await zipFilesToBuffer([file1Path, subdirPath]);
-    const entries = await unzipBuffer(buffer);
-    const entryNames = entries.map((entry) => entry.path);
+    const entryNames = await listZipEntries(buffer);
 
     expect(entryNames).toContain(path.relative(process.cwd(), file1Path));
     expect(entryNames).toContain(path.relative(process.cwd(), file3Path)); // inside subdir
@@ -62,13 +59,7 @@ describe('zipFilesToBuffer', () => {
   it('should handle empty input', async () => {
     const buffer = await zipFilesToBuffer([]);
     expect(buffer).toBeDefined();
-    const zip = Readable.from(buffer).pipe(unzipper.Parse());
-    const entries = [];
-    await new Promise((resolve) => {
-      zip.on('entry', (entry) => entries.push(entry));
-      zip.on('close', resolve);
-    });
-    expect(entries.length).toBe(0);
+    expect(await listZipEntries(buffer)).toEqual([]);
   });
 
   it('should throw an error for non-existing paths', async () => {
@@ -84,17 +75,30 @@ describe('zipFilesToBuffer', () => {
   });
 });
 
-const unzipBuffer = async (buffer: Buffer) => {
-  const entries: any[] = [];
-  const zip = Readable.from(buffer).pipe(unzipper.Parse());
+describe('unzipBuffer', () => {
+  const testDir = path.join(__dirname, 'unzip-files');
 
-  zip.on('entry', (entry) => {
-    entries.push(entry);
+  afterAll(async () => {
+    await fs.remove(testDir);
   });
 
-  await new Promise<void>((resolve) => {
-    zip.on('close', resolve);
-  });
+  it('restores the zipped files and folders', async () => {
+    const source = path.join(testDir, 'source');
+    await fs.outputFile(path.join(source, 'a.txt'), 'a');
+    await fs.outputFile(path.join(source, 'sub', 'b.txt'), 'b');
+    await fs.ensureDir(path.join(source, 'empty'));
 
-  return entries;
-};
+    const buffer = await zipFilesToBuffer([source]);
+    const output = path.join(testDir, 'output');
+    await unzipBuffer(buffer, output);
+
+    const restored = path.join(output, path.relative(process.cwd(), source));
+    expect(await fs.readFile(path.join(restored, 'a.txt'), 'utf8')).toBe('a');
+    expect(await fs.readFile(path.join(restored, 'sub', 'b.txt'), 'utf8')).toBe(
+      'b'
+    );
+    expect((await fs.stat(path.join(restored, 'empty'))).isDirectory()).toBe(
+      true
+    );
+  });
+});

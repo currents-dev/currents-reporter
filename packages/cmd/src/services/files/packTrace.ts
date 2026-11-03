@@ -1,8 +1,9 @@
-import Archiver from 'archiver';
 import fs from 'fs-extra';
 import path from 'path';
-import unzipper from 'unzipper';
+import { pipeline } from 'stream/promises';
 import { dir as tmpDir } from 'tmp-promise';
+import yazl from 'yazl';
+import { addPath, finishZip, listZipEntries } from '../../lib/zip';
 
 /**
  * A zip is a trace when it holds, at its top, `trace.trace` (the zip packed
@@ -12,10 +13,8 @@ import { dir as tmpDir } from 'tmp-promise';
  */
 export async function isTraceZip(zipPath: string) {
   try {
-    const archive = await unzipper.Open.file(zipPath);
-    return archive.files.some((file) =>
-      /^(trace|test|\d+-trace)\.trace$/.test(file.path)
-    );
+    const names = await listZipEntries(zipPath);
+    return names.some((name) => /^(trace|test|\d+-trace)\.trace$/.test(name));
   } catch {
     return false;
   }
@@ -85,23 +84,17 @@ export async function packTraceFolder(folder: string) {
   const zipPath = path.join(tmp, 'trace.zip');
 
   try {
-    const archive = Archiver('zip', { zlib: { level: 9 } });
-    const output = fs.createWriteStream(zipPath);
-    const done = new Promise<void>((resolve, reject) => {
-      output.on('close', () => resolve());
-      output.on('error', reject);
-      archive.on('error', reject);
-    });
-    archive.pipe(output);
-
-    archive.append(await mergeTraceFiles(folder), { name: 'trace.trace' });
-    archive.append(await mergeNetworkFiles(folder), { name: 'trace.network' });
+    const zip = new yazl.ZipFile();
+    zip.addBuffer(Buffer.from(await mergeTraceFiles(folder)), 'trace.trace');
+    zip.addBuffer(
+      Buffer.from(await mergeNetworkFiles(folder)),
+      'trace.network'
+    );
     for (const sub of ['screencast', 'resources']) {
       const subPath = path.join(folder, sub);
-      if (await fs.pathExists(subPath)) archive.directory(subPath, sub);
+      if (await fs.pathExists(subPath)) await addPath(zip, subPath, sub);
     }
-    await archive.finalize();
-    await done;
+    await pipeline(finishZip(zip), fs.createWriteStream(zipPath));
   } catch (e) {
     await cleanup();
     throw e;
