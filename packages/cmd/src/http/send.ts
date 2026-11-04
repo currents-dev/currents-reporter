@@ -211,13 +211,21 @@ const unzip = promisify(zlib.unzip);
 const inflateRaw = promisify(zlib.inflateRaw);
 const brotliDecompress = promisify(zlib.brotliDecompress);
 
+// Node.js has zstd from 22.15. axios decompressed it where Node.js had it.
+const zstdDecompress =
+  typeof zlib.zstdDecompress === 'function'
+    ? promisify(zlib.zstdDecompress)
+    : undefined;
+
 const isKnownEncoding = (encoding: string) =>
   ['gzip', 'x-gzip', 'compress', 'x-compress', 'deflate', 'br'].includes(
     encoding
-  );
+  ) ||
+  (encoding === 'zstd' && zstdDecompress !== undefined);
 
 function decompress(body: Buffer, encoding: string) {
   if (encoding === 'br') return brotliDecompress(body);
+  if (encoding === 'zstd' && zstdDecompress) return zstdDecompress(body);
   // A deflate body may come without the zlib header.
   if (encoding === 'deflate') return unzip(body).catch(() => inflateRaw(body));
   return unzip(body);

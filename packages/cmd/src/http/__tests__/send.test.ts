@@ -111,6 +111,10 @@ describe('sendRequest', () => {
     ['deflate', zlib.deflateSync],
     ['deflate', zlib.deflateRawSync],
     ['br', zlib.brotliCompressSync],
+    // zstd only on the Node.js versions that have it, 22.15 and later.
+    ...(zlib.zstdCompressSync
+      ? [['zstd', zlib.zstdCompressSync] as [string, (b: Buffer) => Buffer]]
+      : []),
   ])(
     'decompresses a %s body and drops content-encoding',
     async (encoding, compress) => {
