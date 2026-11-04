@@ -55,6 +55,7 @@ artifacts
 
 *.xml
 !packages/cmd/src/**/fixtures/**/*.xml
+!packages/node-test-reporter/src/**/fixtures/**/*.xml
 
 # Allow artifacts and xml in examples/junit
 !examples/junit/artifacts/

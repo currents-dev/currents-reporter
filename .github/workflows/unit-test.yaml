@@ -39,7 +39,7 @@ jobs:
       # The upload and reporter tests run the built packages.
       - name: Build
         run: |
-          npx turbo run build --filter=@currents/cmd --filter=@currents/jest
+          npx turbo run build --filter=@currents/cmd --filter=@currents/jest --filter=@currents/node-test-reporter
 
       - name: Run Rules Tests
         working-directory: ./packages/rules
@@ -58,6 +58,12 @@ jobs:
         working-directory: ./packages/jest
         env:
           CURRENTS_REPORT_DIR: ${{ github.workspace }}/test-results/jest-report
+        run: |
+          npm run test
+
+      - name: Run Node Test Reporter Tests
+        if: ${{ !cancelled() }}
+        working-directory: ./packages/node-test-reporter
         run: |
           npm run test
 

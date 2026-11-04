@@ -1,0 +1,249 @@
+[
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "cdata.fixture.mjs",
+      "type": "test",
+      "line": 1,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "cdata.fixture.mjs",
+      "type": "test",
+      "line": 1,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:enqueue",
+    "data": {
+      "nesting": 0,
+      "name": "cdata end ]]> in name and actual value",
+      "type": "test",
+      "line": 4,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:dequeue",
+    "data": {
+      "nesting": 0,
+      "name": "cdata end ]]> in name and actual value",
+      "type": "test",
+      "line": 4,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "cdata end ]]> in name and actual value",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0.585917,
+        "type": "test",
+        "error": {
+          "errorMessage": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'before ]]> after ]]>'\n- ']]>'\n",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": "before ]]> after ]]>",
+              "expected": "]]>",
+              "operator": "strictEqual",
+              "diff": "simple"
+            }
+          }
+        },
+        "passed": false
+      },
+      "line": 4,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:start",
+    "data": {
+      "nesting": 0,
+      "name": "cdata end ]]> in name and actual value",
+      "line": 4,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:fail",
+    "data": {
+      "name": "cdata end ]]> in name and actual value",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 0.585917,
+        "type": "test",
+        "error": {
+          "errorMessage": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'before ]]> after ]]>'\n- ']]>'\n",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "testCodeFailure",
+            "cause": {
+              "generatedMessage": true,
+              "code": "ERR_ASSERTION",
+              "actual": "before ]]> after ]]>",
+              "expected": "]]>",
+              "operator": "strictEqual",
+              "diff": "simple"
+            }
+          }
+        }
+      },
+      "line": 4,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:summary",
+    "data": {
+      "success": false,
+      "counts": {
+        "tests": 1,
+        "failed": 1,
+        "passed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 1,
+        "suites": 0
+      },
+      "duration_ms": 3.398709,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:complete",
+    "data": {
+      "name": "cdata.fixture.mjs",
+      "nesting": 0,
+      "testNumber": 1,
+      "details": {
+        "duration_ms": 37.860542,
+        "type": "test",
+        "error": {
+          "errorMessage": "test failed",
+          "errorJSON": {
+            "code": "ERR_TEST_FAILURE",
+            "failureType": "subtestsFailed",
+            "cause": "test failed",
+            "exitCode": 1,
+            "signal": null
+          }
+        },
+        "passed": false
+      },
+      "line": 1,
+      "column": 1,
+      "file": "cdata.fixture.mjs"
+    }
+  },
+  {
+    "type": "test:plan",
+    "data": {
+      "nesting": 0,
+      "count": 1
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "tests 1",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "suites 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "pass 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "fail 1",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "cancelled 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "skipped 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "todo 0",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:diagnostic",
+    "data": {
+      "nesting": 0,
+      "message": "duration_ms 67.3375",
+      "level": "info"
+    }
+  },
+  {
+    "type": "test:summary",
+    "data": {
+      "success": false,
+      "counts": {
+        "tests": 1,
+        "failed": 1,
+        "passed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "topLevel": 1,
+        "suites": 0
+      },
+      "duration_ms": 67.3375
+    }
+  }
+]

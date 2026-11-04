@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="root" success="false" time="0.270699">
+  <testsuite name="failures.fixture.mjs" timestamp="2025-01-02T03:04:05.678Z" hostname="test-host" success="false" time="0.205736" failures="19" skipped="0">
+    <testcase name="strictEqual numbers" time="0.001131">
+      <failure type="testCodeFailure" message="Expected values to be strictly equal:
+
+1 !== 2
+
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;generatedMessage&quot;: true,
+    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
+    &quot;actual&quot;: 1,
+    &quot;expected&quot;: 2,
+    &quot;operator&quot;: &quot;strictEqual&quot;,
+    &quot;diff&quot;: &quot;simple&quot;
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "generatedMessage": true,
+    "code": "ERR_ASSERTION",
+    "actual": 1,
+    "expected": 2,
+    "operator": "strictEqual",
+    "diff": "simple"
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="deepStrictEqual objects" time="0.000587">
+      <failure type="testCodeFailure" message="Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    a: 1,
+    b: [
+      1,
+      2,
++     3
+-     4
+    ],
++   c: 'x'
+-   c: 'y'
+  }
+
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;generatedMessage&quot;: true,
+    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
+    &quot;actual&quot;: {
+      &quot;a&quot;: 1,
+      &quot;b&quot;: [
+        1,
+        2,
+        3
+      ],
+      &quot;c&quot;: &quot;x&quot;
+    },
+    &quot;expected&quot;: {
+      &quot;a&quot;: 1,
+      &quot;b&quot;: [
+        1,
+        2,
+        4
+      ],
+      &quot;c&quot;: &quot;y&quot;
+    },
+    &quot;operator&quot;: &quot;deepStrictEqual&quot;,
+    &quot;diff&quot;: &quot;simple&quot;
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "generatedMessage": true,
+    "code": "ERR_ASSERTION",
+    "actual": {
+      "a": 1,
+      "b": [
+        1,
+        2,
+        3
+      ],
+      "c": "x"
+    },
+    "expected": {
+      "a": 1,
+      "b": [
+        1,
+        2,
+        4
+      ],
+      "c": "y"
+    },
+    "operator": "deepStrictEqual",
+    "diff": "simple"
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="assert.ok with message" time="0.000069">
+      <failure type="testCodeFailure" message="custom &amp; &lt;message&gt;
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;generatedMessage&quot;: false,
+    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
+    &quot;actual&quot;: false,
+    &quot;expected&quot;: true,
+    &quot;operator&quot;: &quot;==&quot;,
+    &quot;diff&quot;: &quot;simple&quot;
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "generatedMessage": false,
+    "code": "ERR_ASSERTION",
+    "actual": false,
+    "expected": true,
+    "operator": "==",
+    "diff": "simple"
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="multi-line message" time="0.000034">
+      <failure type="testCodeFailure" message="line one
+line two
+  line three
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {}
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {}
+}
+]]></failure>
+    </testcase>
+    <testcase name="error with custom props and cause" time="0.000039">
+      <failure type="testCodeFailure" message="outer
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;code&quot;: &quot;E_CUSTOM&quot;,
+    &quot;details&quot;: {
+      &quot;nested&quot;: [
+        1,
+        &quot;two&quot;,
+        null
+      ]
+    }
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "code": "E_CUSTOM",
+    "details": {
+      "nested": [
+        1,
+        "two",
+        null
+      ]
+    }
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="error with a multi-line stack" time="0.000039">
+      <failure type="testCodeFailure" message="has stack
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;stack&quot;: &quot;Error: has stack\n    at fn (file:///project/test.mjs:10:11)\n    at next (node:internal/test_runner/test:1:1)&quot;
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "stack": "Error: has stack\n    at fn (file:///project/test.mjs:10:11)\n    at next (node:internal/test_runner/test:1:1)"
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="throws a string" time="0.000027">
+      <failure type="testCodeFailure" message="plain string
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: &quot;plain string&quot;
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": "plain string"
+}
+]]></failure>
+    </testcase>
+    <testcase name="throws a number" time="0.000036">
+      <failure type="testCodeFailure" message="42
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: 42
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": 42
+}
+]]></failure>
+    </testcase>
+    <testcase name="throws an object" time="0.000049">
+      <failure type="testCodeFailure" message="{ reason: 'object', n: 1 }
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;reason&quot;: &quot;object&quot;,
+    &quot;n&quot;: 1
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "reason": "object",
+    "n": 1
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="throws null" time="0.000058">
+      <failure type="testCodeFailure" message="null
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: null
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": null
+}
+]]></failure>
+    </testcase>
+    <testcase name="throws undefined" time="0.000033">
+      <failure type="testCodeFailure" message="undefined
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure"
+}
+]]></failure>
+    </testcase>
+    <testcase name="rejects" time="0.000068">
+      <failure type="testCodeFailure" message="rejected
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {}
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {}
+}
+]]></failure>
+    </testcase>
+    <testcase name="times out" time="0.021499">
+      <failure type="testTimeoutFailure" message="test timed out after 20ms
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testTimeoutFailure&quot;,
+  &quot;cause&quot;: &quot;test timed out after 20ms&quot;
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testTimeoutFailure",
+  "cause": "test timed out after 20ms"
+}
+]]></failure>
+    </testcase>
+    <testcase name="suite with failing hook &gt; not run because the hook failed">
+      <failure type="cancelledByParent" message="test did not finish before its parent and was cancelled
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;cancelledByParent&quot;,
+  &quot;cause&quot;: &quot;test did not finish before its parent and was cancelled&quot;
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "cancelledByParent",
+  "cause": "test did not finish before its parent and was cancelled"
+}
+]]></failure>
+    </testcase>
+    <testcase name="suite with failing child &gt; child fails" time="0.000174">
+      <failure type="testCodeFailure" message="'a' == 'b'
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;generatedMessage&quot;: true,
+    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
+    &quot;actual&quot;: &quot;a&quot;,
+    &quot;expected&quot;: &quot;b&quot;,
+    &quot;operator&quot;: &quot;==&quot;,
+    &quot;diff&quot;: &quot;simple&quot;
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "generatedMessage": true,
+    "code": "ERR_ASSERTION",
+    "actual": "a",
+    "expected": "b",
+    "operator": "==",
+    "diff": "simple"
+  }
+}
+]]></failure>
+    </testcase>
+    <testcase name="suite with failing child &gt; child passes" time="0.000037"/>
+    <testcase name="parent passes, subtest fails" time="0.000174">
+      <failure type="subtestsFailed" message="1 subtest failed
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;subtestsFailed&quot;,
+  &quot;cause&quot;: &quot;1 subtest failed&quot;
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "subtestsFailed",
+  "cause": "1 subtest failed"
+}
+]]></failure>
+    </testcase>
+    <testcase name="parent passes, subtest fails &gt; failing subtest" time="0.000077">
+      <failure type="testCodeFailure" message="subtest failure
+{
+  &quot;code&quot;: &quot;ERR_TEST_FAILURE&quot;,
+  &quot;failureType&quot;: &quot;testCodeFailure&quot;,
+  &quot;cause&quot;: {
+    &quot;generatedMessage&quot;: false,
+    &quot;code&quot;: &quot;ERR_ASSERTION&quot;,
+    &quot;operator&quot;: &quot;fail&quot;,
+    &quot;diff&quot;: &quot;simple&quot;
+  }
+}
+"><![CDATA[{
+  "code": "ERR_TEST_FAILURE",
+  "failureType": "testCodeFailure",
+  "cause": {
+    "generatedMessage": false,
+    "code": "ERR_ASSERTION",
+    "operator": "fail",
+    "diff": "simple"
+  }
+}
+]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>
