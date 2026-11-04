@@ -42,7 +42,7 @@
     "@babel/code-frame": "^7.26.2",
     "debug": "^4.4.0",
     "stack-utils": "^2.0.3",
-    "yargs": "^17.7.2"
+    "yargs": "^18.2.0"
   },
   "peerDependencies": {
     "jest": ">=29.5.0"
