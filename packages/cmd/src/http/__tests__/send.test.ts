@@ -1,5 +1,5 @@
 import http from 'http';
-import { AddressInfo } from 'net';
+import net, { AddressInfo } from 'net';
 import { Readable } from 'stream';
 import { setTimeout as sleep } from 'timers/promises';
 import zlib from 'zlib';
@@ -386,6 +386,27 @@ describe('sendRequest', () => {
       expect(received[0].headers['proxy-authorization']).toBe(
         `Basic ${Buffer.from('user:p@ss').toString('base64')}`
       );
+    });
+
+    it('times out a request whose proxy never answers CONNECT', async () => {
+      const proxy = net.createServer((socket) => socket.on('error', () => {}));
+      await new Promise<void>((resolve) =>
+        proxy.listen(0, '127.0.0.1', resolve)
+      );
+      vi.stubEnv(
+        'HTTPS_PROXY',
+        `http://127.0.0.1:${(proxy.address() as AddressInfo).port}`
+      );
+      vi.stubEnv('NO_PROXY', undefined);
+      vi.stubEnv('no_proxy', undefined);
+
+      await expect(
+        sendRequest({ method: 'GET', url: 'https://api.example', timeout: 200 })
+      ).rejects.toMatchObject({
+        message: 'timeout of 200ms exceeded',
+        code: 'ETIMEDOUT',
+      });
+      proxy.close();
     });
 
     it('sends the request directly to a host of NO_PROXY', async () => {

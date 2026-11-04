@@ -105,18 +105,27 @@ export async function sendRequest<T = any>(
 async function receiveHeaders(req: HttpRequest, failed: FailedRequest) {
   const timeout = req.timeout ?? 0;
   const controller = new AbortController();
-  const timer =
-    timeout > 0 ? setTimeout(() => controller.abort(), timeout) : undefined;
-  try {
-    return await sendFollowingRedirects(req, controller.signal, timeout);
-  } catch (e) {
-    if (controller.signal.aborted) {
-      throw new HttpError(
-        `timeout of ${timeout}ms exceeded`,
-        'ETIMEDOUT',
-        failed
+  const sent = sendFollowingRedirects(req, controller.signal, timeout);
+  let timer: NodeJS.Timeout | undefined;
+  // undici does not end a request on abort while it connects, to the server
+  // or through a proxy tunnel, so the timeout does not wait for it.
+  const timedOut = new Promise<never>((_resolve, reject) => {
+    if (timeout <= 0) return;
+    timer = setTimeout(() => {
+      reject(
+        new HttpError(`timeout of ${timeout}ms exceeded`, 'ETIMEDOUT', failed)
       );
-    }
+      controller.abort();
+      sent.then(
+        ({ res }) => res.body.destroy(),
+        () => {}
+      );
+    }, timeout);
+  });
+  try {
+    return await Promise.race([sent, timedOut]);
+  } catch (e) {
+    if (e instanceof HttpError) throw e;
     throw toNetworkError(e, failed);
   } finally {
     clearTimeout(timer);
