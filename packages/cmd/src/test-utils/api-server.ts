@@ -15,7 +15,13 @@ export type RecordedRequest = {
 export type Response =
   | { status: number; json?: unknown; body?: Buffer | string }
   // Closes the connection without answering.
-  | { destroy: true };
+  | { destroy: true }
+  // Sends the headers and a part of the body, then closes the connection.
+  | { cutOff: true }
+  // Sends the headers and a part of the body, then nothing.
+  | { stall: true }
+  // Sends nothing.
+  | { hang: true };
 
 export type Responder = (
   request: RecordedRequest
@@ -52,6 +58,14 @@ export async function startApiServer(
     const response = await responder(request);
     if ('destroy' in response) {
       req.socket.destroy();
+      return;
+    }
+    if ('hang' in response) return;
+    if ('cutOff' in response || 'stall' in response) {
+      res.writeHead(200, { 'Content-Length': '100' });
+      res.write('{"status":', () => {
+        if ('cutOff' in response) req.socket.destroy();
+      });
       return;
     }
     if (response.json !== undefined) {

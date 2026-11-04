@@ -15,6 +15,11 @@ vi.mock('../httpRetry', async (importOriginal) => ({
   getDelay: () => 1,
 }));
 vi.mock('../../logger');
+// The real timeout is 30 seconds.
+vi.mock('../httpConfig', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../httpConfig')>()),
+  getTimeout: () => 200,
+}));
 
 describe('retries of requests to the API', () => {
   let api: ApiServer;
@@ -88,6 +93,38 @@ describe('retries of requests to the API', () => {
     await request('GET');
 
     expect(api.requests).toHaveLength(3);
+  });
+
+  it.each(['GET', 'POST'] as const)(
+    'does not repeat a %s whose answer was cut off after the headers',
+    async (method) => {
+      answers.push({ cutOff: true }, { status: 200 });
+
+      await expect(request(method)).rejects.toMatchObject({
+        message: 'stream has been aborted',
+        response: { status: 200 },
+      });
+      expect(api.requests).toHaveLength(1);
+    }
+  );
+
+  it('does not repeat a request whose answer stopped after the headers', async () => {
+    answers.push({ stall: true }, { status: 200 });
+
+    await expect(request('GET')).rejects.toMatchObject({
+      message: 'stream has been aborted',
+      response: { status: 200 },
+    });
+    expect(api.requests).toHaveLength(1);
+  });
+
+  it('retries a request that got no headers before the timeout', async () => {
+    answers.push({ hang: true }, { status: 200, json: { ok: true } });
+
+    const response = await request('POST');
+
+    expect(response.data).toEqual({ ok: true });
+    expect(api.requests).toHaveLength(2);
   });
 
   it.each(['GET', 'POST'] as const)(

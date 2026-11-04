@@ -14,7 +14,10 @@ export type HttpRequest = {
   url: string;
   headers?: Record<string, string>;
   body?: RequestBody;
-  /** Milliseconds for the whole request, redirects included. 0 is no limit. */
+  /**
+   * Milliseconds until the headers of the response, redirects included, and
+   * then between two parts of its body. 0 is no limit.
+   */
   timeout?: number;
   /** `json` parses a body that is JSON and keeps any other as text. */
   responseType?: ResponseType;
@@ -76,24 +79,37 @@ export async function sendRequest<T = any>(
     url: req.url,
     data: req.body,
   };
+  const { res, method } = await receiveHeaders(req, failed);
+  const response = await readResponse<T>(
+    res,
+    method,
+    req.responseType ?? 'json',
+    failed
+  );
+  if (response.status < 200 || response.status >= 300) {
+    throw new HttpError(
+      `Request failed with status code ${response.status}`,
+      response.status < 500 ? 'ERR_BAD_REQUEST' : 'ERR_BAD_RESPONSE',
+      failed,
+      response
+    );
+  }
+  return response;
+}
+
+/**
+ * The timeout runs until the headers of the response arrive. After that it is
+ * the longest wait for the next part of the body, as the socket timeout of
+ * axios was.
+ */
+async function receiveHeaders(req: HttpRequest, failed: FailedRequest) {
   const timeout = req.timeout ?? 0;
   const controller = new AbortController();
   const timer =
     timeout > 0 ? setTimeout(() => controller.abort(), timeout) : undefined;
-
   try {
-    const response = await sendFollowingRedirects(req, controller.signal);
-    if (response.status < 200 || response.status >= 300) {
-      throw new HttpError(
-        `Request failed with status code ${response.status}`,
-        response.status < 500 ? 'ERR_BAD_REQUEST' : 'ERR_BAD_RESPONSE',
-        failed,
-        response
-      );
-    }
-    return response;
+    return await sendFollowingRedirects(req, controller.signal, timeout);
   } catch (e) {
-    if (e instanceof HttpError) throw e;
     if (controller.signal.aborted) {
       throw new HttpError(
         `timeout of ${timeout}ms exceeded`,
@@ -107,7 +123,11 @@ export async function sendRequest<T = any>(
   }
 }
 
-async function sendFollowingRedirects(req: HttpRequest, signal: AbortSignal) {
+async function sendFollowingRedirects(
+  req: HttpRequest,
+  signal: AbortSignal,
+  bodyTimeout: number
+) {
   let { url, body } = req;
   let method = req.method.toUpperCase();
   let headers = withDefaultHeaders(req.headers ?? {}, body);
@@ -118,6 +138,7 @@ async function sendFollowingRedirects(req: HttpRequest, signal: AbortSignal) {
       headers,
       body,
       signal,
+      bodyTimeout,
       dispatcher: getDispatcher(url),
       // undici closes the connection after a HEAD unless told not to.
       reset: false,
@@ -129,7 +150,7 @@ async function sendFollowingRedirects(req: HttpRequest, signal: AbortSignal) {
       typeof location !== 'string' ||
       body instanceof Readable
     ) {
-      return readResponse<any>(res, method, req.responseType ?? 'json');
+      return { res, method };
     }
 
     await res.body.dump();
@@ -190,47 +211,62 @@ const unzip = promisify(zlib.unzip);
 const inflateRaw = promisify(zlib.inflateRaw);
 const brotliDecompress = promisify(zlib.brotliDecompress);
 
-async function decompress(body: Buffer, encoding: string) {
-  switch (encoding) {
-    case 'gzip':
-    case 'x-gzip':
-    case 'compress':
-    case 'x-compress':
-      return unzip(body);
-    case 'deflate':
-      // A deflate body may come without the zlib header.
-      return unzip(body).catch(() => inflateRaw(body));
-    case 'br':
-      return brotliDecompress(body);
-    default:
-      return undefined;
-  }
+const isKnownEncoding = (encoding: string) =>
+  ['gzip', 'x-gzip', 'compress', 'x-compress', 'deflate', 'br'].includes(
+    encoding
+  );
+
+function decompress(body: Buffer, encoding: string) {
+  if (encoding === 'br') return brotliDecompress(body);
+  // A deflate body may come without the zlib header.
+  if (encoding === 'deflate') return unzip(body).catch(() => inflateRaw(body));
+  return unzip(body);
 }
 
+/**
+ * A failure after the headers arrived has the response, as with axios: it is
+ * not retried, and the messages name its status.
+ */
 async function readResponse<T>(
   res: Awaited<ReturnType<typeof request>>,
   method: string,
-  responseType: ResponseType
+  responseType: ResponseType,
+  failed: FailedRequest
 ): Promise<HttpResponse<T>> {
   const headers = { ...res.headers };
-  let body = Buffer.from(await res.body.arrayBuffer());
   const encoding = String(headers['content-encoding'] ?? '').toLowerCase();
-  if (encoding && (method === 'HEAD' || res.statusCode === 204)) {
+  if (encoding && isKnownEncoding(encoding)) delete headers['content-encoding'];
+  const head = { status: res.statusCode, statusText: res.statusText, headers };
+
+  // No body, whatever Content-Length says.
+  if (method === 'HEAD' || res.statusCode === 204 || res.statusCode === 304) {
     delete headers['content-encoding'];
-  } else if (encoding && body.length > 0) {
-    const decoded = await decompress(body, encoding);
-    if (decoded) {
-      body = decoded;
-      delete headers['content-encoding'];
-    }
+    await res.body.dump();
+    return { ...head, data: parseBody(Buffer.alloc(0), responseType) as T };
   }
 
-  return {
-    status: res.statusCode,
-    statusText: res.statusText,
-    headers,
-    data: parseBody(body, responseType) as T,
-  };
+  let body: Buffer;
+  try {
+    body = Buffer.from(await res.body.arrayBuffer());
+  } catch {
+    // The body was cut off or stopped for longer than the timeout.
+    throw new HttpError('stream has been aborted', 'ERR_BAD_RESPONSE', failed, {
+      ...head,
+      data: undefined,
+    });
+  }
+  if (encoding && isKnownEncoding(encoding) && body.length > 0) {
+    try {
+      body = await decompress(body, encoding);
+    } catch (e) {
+      const error = e as Error & { code?: string };
+      throw new HttpError(error.message, error.code, failed, {
+        ...head,
+        data: undefined,
+      });
+    }
+  }
+  return { ...head, data: parseBody(body, responseType) as T };
 }
 
 function parseBody(body: Buffer, responseType: ResponseType) {

@@ -1,6 +1,7 @@
 import http from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
+import { setTimeout as sleep } from 'timers/promises';
 import zlib from 'zlib';
 import {
   afterAll,
@@ -20,7 +21,7 @@ type Received = {
   body: string;
 };
 
-type Handler = (req: Received, res: http.ServerResponse) => void;
+type Handler = (req: Received, res: http.ServerResponse) => unknown;
 
 let server: http.Server;
 let origin: string;
@@ -105,7 +106,7 @@ describe('sendRequest', () => {
     ).toBe('{"ok":true}');
   });
 
-  it.each([
+  it.each<[string, (body: Buffer) => Buffer]>([
     ['gzip', zlib.gzipSync],
     ['deflate', zlib.deflateSync],
     ['deflate', zlib.deflateRawSync],
@@ -250,7 +251,7 @@ describe('sendRequest', () => {
     expect(received).toHaveLength(1);
   });
 
-  it('times out the whole request as axios did', async () => {
+  it('times out a request without headers as axios did', async () => {
     handler = () => {};
 
     await expect(
@@ -258,6 +259,94 @@ describe('sendRequest', () => {
     ).rejects.toMatchObject({
       message: 'timeout of 50ms exceeded',
       code: 'ETIMEDOUT',
+      response: undefined,
+    });
+  });
+
+  it('waits the timeout for the headers, then for each part of the body', async () => {
+    handler = async (_req, res) => {
+      await sleep(150);
+      res.writeHead(200, { 'content-type': 'application/json' });
+      for (const part of ['[1,', '2,', '3,', '4]']) {
+        res.write(part);
+        await sleep(100);
+      }
+      res.end();
+    };
+
+    const response = await sendRequest({
+      method: 'GET',
+      url: origin,
+      timeout: 200,
+    });
+
+    expect(response.data).toEqual([1, 2, 3, 4]);
+  });
+
+  it('fails a body that stops for longer than the timeout, with the response', async () => {
+    handler = (_req, res) => {
+      res.writeHead(200, { 'content-length': '100' });
+      res.write('x'.repeat(10));
+    };
+
+    await expect(
+      sendRequest({ method: 'GET', url: origin, timeout: 100 })
+    ).rejects.toMatchObject({
+      message: 'stream has been aborted',
+      code: 'ERR_BAD_RESPONSE',
+      response: { status: 200, data: undefined },
+    });
+  });
+
+  it('fails a body cut off by the server, with the response', async () => {
+    handler = (_req, res) => {
+      res.writeHead(200, { 'content-length': '100' });
+      res.write('x'.repeat(10), () => res.socket?.destroy());
+    };
+
+    await expect(
+      sendRequest({ method: 'POST', url: origin, body: '{}' })
+    ).rejects.toMatchObject({
+      message: 'stream has been aborted',
+      code: 'ERR_BAD_RESPONSE',
+      response: { status: 200 },
+    });
+  });
+
+  it('fails a body that does not decompress with the error of zlib and the response', async () => {
+    handler = (_req, res) =>
+      res.writeHead(200, { 'content-encoding': 'gzip' }).end('not gzip');
+
+    const error = await sendRequest({ method: 'GET', url: origin }).catch(
+      (e) => e
+    );
+
+    expect(error).toMatchObject({
+      message: 'incorrect header check',
+      code: 'Z_DATA_ERROR',
+      response: { status: 200 },
+    });
+    expect(error.response.headers['content-encoding']).toBeUndefined();
+  });
+
+  it('reads no body of a 204 or a 304, whatever Content-Length says', async () => {
+    // Node's server sends the header but no body for these statuses.
+    const answer =
+      (status: number) => (_req: Received, res: http.ServerResponse) =>
+        res.writeHead(status, { 'content-length': '10' }).end('x'.repeat(10));
+
+    handler = answer(204);
+    expect(await sendRequest({ method: 'GET', url: origin })).toMatchObject({
+      status: 204,
+      data: '',
+    });
+
+    handler = answer(304);
+    await expect(
+      sendRequest({ method: 'GET', url: origin })
+    ).rejects.toMatchObject({
+      message: 'Request failed with status code 304',
+      response: { status: 304, data: '' },
     });
   });
 

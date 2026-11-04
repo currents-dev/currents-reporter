@@ -55,6 +55,11 @@ describe('currents api', () => {
           req.socket.destroy();
           return;
         }
+        if (req.url?.startsWith('/v1/cut')) {
+          res.writeHead(200, { 'content-length': '100' });
+          res.write('{"status":', () => req.socket.destroy());
+          return;
+        }
         if (req.url?.startsWith('/v1/runs/missing')) {
           res.writeHead(404, { 'content-type': 'application/json' });
           res.end('{"status":"FAILED","message":"Run not found"}');
@@ -361,6 +366,14 @@ describe('currents api', () => {
     expect(stderr).toContain(
       'Could not reach the REST API at http://127.0.0.1'
     );
+  });
+
+  it('exits with 1 and names the status when the body is cut off', async () => {
+    expect(await api('/v1/cut', '-i')).toBe(1);
+
+    expect(stdout).toBe('');
+    expect(stderr).toMatch(/^HTTP\/1\.1 200 OK\n/);
+    expect(stderr).toContain('GET v1/cut failed: the REST API answered 200 OK');
   });
 
   it('prefers --api-key over CURRENTS_API_KEY', async () => {
