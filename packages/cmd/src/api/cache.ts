@@ -49,14 +49,11 @@ export async function createCache(params: CacheRequestParams) {
   try {
     debug('Request params: %o', maskKeys(params));
 
-    return makeRequest<CacheCreationResponse, CacheRequestParams>(
-      ClientType.API,
-      {
-        url: 'cache/upload',
-        method: 'POST',
-        data: params,
-      }
-    ).then((res) => res.data);
+    return makeRequest<CacheCreationResponse>(ClientType.API, {
+      url: 'cache/upload',
+      method: 'POST',
+      data: params,
+    }).then((res) => res.data);
   } catch (err) {
     debug('Failed to create cache:', err);
     throw err;
@@ -67,14 +64,11 @@ export async function retrieveCache(params: CacheRetrievalParams) {
   try {
     debug('Request params: %o', maskKeys(params));
 
-    return makeRequest<CacheRetrievalResponse, CacheRetrievalParams>(
-      ClientType.API,
-      {
-        url: 'cache/v2/download',
-        method: 'POST',
-        data: params,
-      }
-    ).then((res) => res.data);
+    return makeRequest<CacheRetrievalResponse>(ClientType.API, {
+      url: 'cache/v2/download',
+      method: 'POST',
+      data: params,
+    }).then((res) => res.data);
   } catch (err) {
     debug('Failed to retrieve cache:', err);
     throw err;
@@ -85,7 +79,7 @@ export async function getRefCacheMeta(params: CacheRequestParams) {
   try {
     debug('Request params: %o', maskKeys(params));
 
-    return makeRequest<CacheMetaResponse, CacheRequestParams>(ClientType.API, {
+    return makeRequest<CacheMetaResponse>(ClientType.API, {
       url: 'cache/meta',
       method: 'POST',
       data: params,

@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ApiServer,
@@ -8,6 +7,7 @@ import {
 import { ClientType, createClient } from '../client';
 import { makeRequest } from '../http';
 import { getMaxRetries, isRetriableError } from '../httpRetry';
+import { HttpError } from '../send';
 
 // The real delays are 3, 15 and 30 seconds.
 vi.mock('../httpRetry', async (importOriginal) => ({
@@ -15,6 +15,11 @@ vi.mock('../httpRetry', async (importOriginal) => ({
   getDelay: () => 1,
 }));
 vi.mock('../../logger');
+// The real timeout is 30 seconds.
+vi.mock('../httpConfig', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../httpConfig')>()),
+  getTimeout: () => 200,
+}));
 
 describe('retries of requests to the API', () => {
   let api: ApiServer;
@@ -91,6 +96,38 @@ describe('retries of requests to the API', () => {
   });
 
   it.each(['GET', 'POST'] as const)(
+    'does not repeat a %s whose answer was cut off after the headers',
+    async (method) => {
+      answers.push({ cutOff: true }, { status: 200 });
+
+      await expect(request(method)).rejects.toMatchObject({
+        message: 'stream has been aborted',
+        response: { status: 200 },
+      });
+      expect(api.requests).toHaveLength(1);
+    }
+  );
+
+  it('does not repeat a request whose answer stopped after the headers', async () => {
+    answers.push({ stall: true }, { status: 200 });
+
+    await expect(request('GET')).rejects.toMatchObject({
+      message: 'stream has been aborted',
+      response: { status: 200 },
+    });
+    expect(api.requests).toHaveLength(1);
+  });
+
+  it('retries a request that got no headers before the timeout', async () => {
+    answers.push({ hang: true }, { status: 200, json: { ok: true } });
+
+    const response = await request('POST');
+
+    expect(response.data).toEqual({ ok: true });
+    expect(api.requests).toHaveLength(2);
+  });
+
+  it.each(['GET', 'POST'] as const)(
     'does not repeat a %s that got 500',
     async (method) => {
       answers.push({ status: 500 }, { status: 200 });
@@ -128,7 +165,7 @@ describe('retry settings', () => {
 
   it('retries POST and GET alike, the condition ignores the method', () => {
     const error = (method: string, status: number) =>
-      new AxiosError('failed', undefined, { method } as never, undefined, {
+      new HttpError('failed', undefined, { method, url: 'v1/runs' }, {
         status,
       } as never);
 

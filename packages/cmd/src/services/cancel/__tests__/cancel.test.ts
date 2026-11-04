@@ -1,7 +1,7 @@
-import { AxiosError, AxiosResponse } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cancelRun } from '../../../api';
 import { setCancelCommandConfig } from '../../../config/cancel';
+import { HttpError, HttpResponse } from '../../../http/send';
 import { handleCancelRun } from '../index';
 
 vi.mock('../../../api', () => ({
@@ -104,10 +104,12 @@ describe('handleCancelRun', () => {
   // must not be mistaken for it.
   it('propagates a 404', async () => {
     mockCancelRun.mockRejectedValue(
-      new AxiosError('Not found', undefined, undefined, undefined, {
-        status: 404,
-        data: 'Not found',
-      } as AxiosResponse)
+      new HttpError(
+        'Not found',
+        undefined,
+        { method: 'post', url: 'v1/runs/cancel' },
+        { status: 404, data: 'Not found' } as HttpResponse
+      )
     );
 
     setCancelCommandConfig({

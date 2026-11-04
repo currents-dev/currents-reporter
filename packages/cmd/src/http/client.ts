@@ -1,5 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
-import axiosRetry from 'axios-retry';
+import { setTimeout as sleep } from 'node:timers/promises';
 import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
@@ -13,6 +12,13 @@ import {
   isRetriableRestError,
   onRetry,
 } from './httpRetry';
+import {
+  HttpError,
+  HttpResponse,
+  RequestBody,
+  ResponseType,
+  sendRequest,
+} from './send';
 
 const debug = _debug.extend('http');
 
@@ -21,80 +27,154 @@ export enum ClientType {
   REST_API = 'restApi',
 }
 
-let _clients: Record<ClientType, AxiosInstance | null> = {
+export type QueryParams =
+  | URLSearchParams
+  | Record<string, string | number | boolean | null | undefined | string[]>;
+
+export type RequestConfig = {
+  method: string;
+  /** Relative to the base URL of the client. */
+  url: string;
+  params?: QueryParams;
+  /** A string or a Buffer is sent as it is, anything else as JSON. */
+  data?: unknown;
+  headers?: Record<string, string>;
+  responseType?: ResponseType;
+};
+
+export type Client = {
+  request<T = any>(config: RequestConfig): Promise<HttpResponse<T>>;
+};
+
+let _clients: Record<ClientType, Client | null> = {
   [ClientType.API]: null,
   [ClientType.REST_API]: null,
 };
 
-export function createClient(type: ClientType) {
+export function createClient(type: ClientType): Client {
   const baseURL =
     type === ClientType.API ? getAPIBaseUrl() : getRestAPIBaseUrl();
   debug('client base url: %s', baseURL);
 
-  const client = axios.create({
-    baseURL,
-    // Setting no timeout means axios will wait forever for a response
-    // and the actual timeout will be handled by the underlying network
-    // stack
-    timeout: getTimeout(),
-    transitional: {
-      // throw ETIMEDOUT error instead of generic ECONNABORTED on request timeouts
-      clarifyTimeoutError: true,
+  const retries = getMaxRetries();
+  const retryCondition =
+    type === ClientType.REST_API ? isRetriableRestError : isRetriableError;
+
+  return {
+    async request(config) {
+      const headers: Record<string, string> = {
+        'content-type': 'application/json',
+        ..._.mapKeys(config.headers ?? {}, (_value, name) =>
+          name.toLowerCase()
+        ),
+        'x-cmd-version': reporterVersion,
+      };
+      const body = toBody(config.data);
+      const url = buildURL(baseURL, config.url, config.params);
+
+      for (let retryCount = 0; ; retryCount++) {
+        logRequest(baseURL, config, headers, retryCount > 0);
+        try {
+          return await sendRequest({
+            method: config.method,
+            url,
+            headers,
+            body,
+            timeout: getTimeout(),
+            responseType: config.responseType,
+          });
+        } catch (e) {
+          // Messages for users name the path, not the full URL.
+          if (e instanceof HttpError) e.config.url = config.url;
+          if (!(retryCount < retries && retryCondition(e as Error))) throw e;
+          onRetry(retryCount + 1, e as HttpError, config);
+          await sleep(getDelay(retryCount + 1, e as HttpError));
+        }
+      }
     },
-  });
-
-  client.interceptors.request.use((config) => {
-    // @ts-ignore
-    const retry = config['axios-retry']?.retryCount ?? 0;
-
-    config.headers.set({
-      'x-cmd-version': reporterVersion,
-    });
-
-    if (!config.headers.get('Content-Type')) {
-      config.headers.set('Content-Type', 'application/json');
-    }
-
-    const args = {
-      ..._.pick(config, 'method', 'url', 'headers'),
-      baseURL,
-      data: Buffer.isBuffer(config.data) ? 'buffer' : (config.data as unknown),
-      params: config.params,
-    };
-
-    if (!retry) {
-      debug('network request: %o', getNetworkRequestDebugData(args));
-    } else {
-      debug(
-        'network request retry: %o',
-        getNetworkRequestDebugData({
-          ...args,
-          baseURL,
-          isRetry: true,
-        })
-      );
-    }
-    return config;
-  });
-
-  axiosRetry(client, {
-    retries: getMaxRetries(),
-    retryCondition:
-      type === ClientType.REST_API ? isRetriableRestError : isRetriableError,
-    retryDelay: (count, err) => getDelay(count, err),
-    shouldResetTimeout: true,
-    onRetry,
-  });
-
-  return client;
+  };
 }
 
-export function getClient(type: ClientType): AxiosInstance {
+export function getClient(type: ClientType): Client {
   if (_clients[type] === null) {
     _clients[type] = createClient(type);
   }
 
-  return _clients[type] as AxiosInstance;
+  return _clients[type] as Client;
+}
+
+function toBody(data: unknown): RequestBody | undefined {
+  if (data === undefined) return undefined;
+  if (typeof data === 'string' || Buffer.isBuffer(data)) return data;
+  return JSON.stringify(data);
+}
+
+// How axios joined a base URL, a path and query parameters.
+function buildURL(baseURL: string, path: string, params?: QueryParams) {
+  const url = new URL(
+    `${baseURL.replace(/\/?\/$/, '')}/${path.replace(/^\/+/, '')}`
+  );
+  const query =
+    params instanceof URLSearchParams
+      ? params.toString()
+      : params
+        ? serializeParams(params)
+        : '';
+  if (!query) return url.href;
+  return `${url.origin}${url.pathname}${url.search}${url.search ? '&' : '?'}${query}`;
+}
+
+/**
+ * `a=1&tag[]=x&tag[]=y` with the brackets encoded, without the parameters
+ * that are undefined or null.
+ */
+function serializeParams(params: Exclude<QueryParams, URLSearchParams>) {
+  const pairs: [string, string][] = [];
+  for (const [name, value] of Object.entries(params)) {
+    if (value === undefined || value === null) continue;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item !== undefined && item !== null) {
+          pairs.push([`${name.trim()}[]`, String(item)]);
+        }
+      }
+    } else {
+      pairs.push([name.trim(), String(value)]);
+    }
+  }
+  return pairs
+    .map(([name, value]) => `${encode(name)}=${encode(value)}`)
+    .join('&');
+}
+
+function encode(value: string) {
+  return encodeURIComponent(value)
+    .replace(/%3A/gi, ':')
+    .replace(/%24/g, '$')
+    .replace(/%2C/gi, ',')
+    .replace(/%20/g, '+');
+}
+
+function logRequest(
+  baseURL: string,
+  config: RequestConfig,
+  headers: Record<string, string>,
+  isRetry: boolean
+) {
+  const data = {
+    method: config.method.toLowerCase(),
+    baseURL,
+    url: config.url,
+    headers,
+    data: Buffer.isBuffer(config.data) ? 'buffer' : config.data,
+    params: config.params,
+    isRetry,
+  };
+  if (!isRetry) {
+    debug('network request: %o', getNetworkRequestDebugData(data));
+  } else {
+    debug('network request retry: %o', getNetworkRequestDebugData(data));
+  }
 }
 
 function getNetworkRequestDebugData(data: {
@@ -114,8 +194,8 @@ function getNetworkRequestDebugData(data: {
     params: data.isRetry ? '<retry>' : data.params,
     headers: {
       ...data.headers,
-      Authorization: 'Bearer ***',
-      ['x-currents-key']: '***',
+      authorization: 'Bearer ***',
+      'x-currents-key': '***',
     },
   };
 }

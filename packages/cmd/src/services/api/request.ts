@@ -1,11 +1,11 @@
 import { debug as _debug } from '@debug';
 import { maskKeys } from '@lib';
-import { AxiosResponse, isAxiosError } from 'axios';
 import fs from 'fs/promises';
 import { requestRestApi } from '../../api';
 import { sharedConfigKeys } from '../../config/keys';
 import { getValidatedConfig } from '../../config/utils';
 import { getRestAPIBaseUrl } from '../../http/httpConfig';
+import { HttpResponse, isHttpError, isRefusedRequest } from '../../http/send';
 
 const debug = _debug.extend('api');
 
@@ -104,8 +104,6 @@ export async function buildRequest(path: string, options: ApiRequestOptions) {
     url: restApiPath(path),
     params:
       fieldsInQuery && fields.length > 0 ? toSearchParams(fields) : undefined,
-    // Sent as text: axios copies an object body key by key, which drops a
-    // `__proto__` key.
     data: hasInput
       ? JSON.stringify(await readInput(options.input as string))
       : !fieldsInQuery && fields.length > 0
@@ -115,7 +113,7 @@ export async function buildRequest(path: string, options: ApiRequestOptions) {
   };
 }
 
-function statusAndHeaders(response: AxiosResponse) {
+function statusAndHeaders(response: HttpResponse) {
   const headers = Object.entries(response.headers).map(
     ([name, value]) =>
       `${name}: ${Array.isArray(value) ? value.join(', ') : value}`
@@ -130,7 +128,7 @@ function statusAndHeaders(response: AxiosResponse) {
 
 // JSON is indented for a terminal. A pipe or a file gets the body the server
 // sent, unchanged.
-function formatBody(response: AxiosResponse<string>, isTTY: boolean) {
+function formatBody(response: HttpResponse<string>, isTTY: boolean) {
   const body = response.data ?? '';
   const isJSON = String(response.headers['content-type'] ?? '')
     .toLowerCase()
@@ -169,8 +167,11 @@ export async function handleApiRequest(
     if (options.include) process.stdout.write(statusAndHeaders(response));
     process.stdout.write(formatBody(response, !!process.stdout.isTTY));
   } catch (e) {
-    if (!isAxiosError(e)) throw e;
-    const response = e.response as AxiosResponse<string> | undefined;
+    if (!isHttpError(e)) throw e;
+    const response = e.response as HttpResponse<string> | undefined;
+    if (!response && isRefusedRequest(e)) {
+      throw new Error(`The request was not sent: ${e.message}`);
+    }
     if (!response) {
       throw new Error(
         `Could not reach the REST API at ${getRestAPIBaseUrl()}: ${e.message}`

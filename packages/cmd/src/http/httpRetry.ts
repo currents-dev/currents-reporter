@@ -1,8 +1,7 @@
-import { AxiosError, AxiosRequestConfig, isAxiosError } from 'axios';
-import prettyMilliseconds from 'pretty-ms';
-
 import { warn } from '@logger';
 import { debug as _debug } from '../debug';
+import type { RequestConfig } from './client';
+import { HttpError, isHttpError } from './send';
 
 const debug = _debug.extend('http');
 
@@ -15,7 +14,7 @@ export const MAX_RETRY_AFTER_MS = 60 * 1000;
  * `Retry-After` as milliseconds, from seconds or an HTTP date. Undefined when
  * the header is absent or unreadable.
  */
-export function getRetryAfterMs(err?: AxiosError, now = Date.now()) {
+export function getRetryAfterMs(err?: HttpError, now = Date.now()) {
   const value = err?.response?.headers?.['retry-after'];
   if (value === undefined || value === null || value === '') return undefined;
   const seconds = Number(value);
@@ -29,21 +28,21 @@ export function getRetryAfterMs(err?: AxiosError, now = Date.now()) {
  * `MAX_RETRY_AFTER_MS`. A proxy that answers `Retry-After: 3600` must not hold
  * a CI job for hours, and `Retry-After: 0` must not retry at once.
  */
-export const getDelay = (i: number, err?: AxiosError) => {
+export const getDelay = (i: number, err?: HttpError) => {
   const defaultDelay = DEFAULT_DELAYS[Math.min(i, DEFAULT_DELAYS.length) - 1];
   const retryAfter = getRetryAfterMs(err);
   if (retryAfter === undefined) return defaultDelay;
   return Math.min(Math.max(retryAfter, defaultDelay), MAX_RETRY_AFTER_MS);
 };
 
-export const isRetriableError = (err: AxiosError | Error): boolean => {
+export const isRetriableError = (err: HttpError | Error): boolean => {
   debug('isRetriableError: %o', {
     message: err.message,
     code: 'code' in err ? err.code : undefined,
     status: 'response' in err ? err.response?.status : undefined,
     headers: 'response' in err ? err.response?.headers : undefined,
     data: 'response' in err ? err.response?.data : undefined,
-    isAxiosError: isAxiosError(err),
+    isHttpError: isHttpError(err),
   });
 
   if (
@@ -61,7 +60,7 @@ export const isRetriableError = (err: AxiosError | Error): boolean => {
     return true;
   }
 
-  if (!isAxiosError(err)) {
+  if (!isHttpError(err)) {
     return false;
   }
 
@@ -78,8 +77,8 @@ const IDEMPOTENT_METHODS = ['get', 'head', 'options', 'put', 'delete'];
  * (429) or never got all of it (408, connection refused). A `Retry-After` longer than a
  * minute stops the retries; the error says how long.
  */
-export const isRetriableRestError = (err: AxiosError | Error): boolean => {
-  if (!isAxiosError(err)) return false;
+export const isRetriableRestError = (err: HttpError | Error): boolean => {
+  if (!isHttpError(err)) return false;
   const status = err.response?.status;
 
   if (status === 429) {
@@ -96,16 +95,34 @@ export const isRetriableRestError = (err: AxiosError | Error): boolean => {
 
 export const getMaxRetries = () => 3;
 
+/** A duration below a day as pretty-ms 7 wrote it, for example `7.5s` or `1m`. */
+export function formatDuration(ms: number) {
+  const parts: string[] = [];
+  const hours = Math.trunc(ms / 3_600_000);
+  const minutes = Math.trunc(ms / 60_000) % 60;
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  if (ms < 1000) {
+    const rounded = ms >= 1 ? Math.round(ms) : Math.ceil(ms);
+    if (rounded) parts.push(`${rounded}ms`);
+  } else {
+    // Rounded down to a tenth of a second.
+    const seconds = Math.floor(((ms / 1000) % 60) * 10 + 1e-7) / 10;
+    if (seconds) parts.push(`${seconds}s`);
+  }
+  return parts.join(' ') || '0ms';
+}
+
 export function onRetry(
   retryCount: number,
-  err: AxiosError,
-  _config: AxiosRequestConfig
+  err: HttpError,
+  _config: RequestConfig
 ) {
   debug(
     "Network request '%s' failed: '%s'. Next attempt is in %s (%d/%d).",
     `${_config.method?.toUpperCase()} ${_config.url}`,
     err.message,
-    prettyMilliseconds(getDelay(retryCount, err) ?? 0),
+    formatDuration(getDelay(retryCount, err) ?? 0),
     retryCount,
     getMaxRetries()
   );
@@ -113,7 +130,7 @@ export function onRetry(
     "Network request '%s' failed: '%s'. Next attempt is in %s (%d/%d).",
     `${_config.method?.toUpperCase()} ${_config.url}`,
     err.message,
-    prettyMilliseconds(getDelay(retryCount, err) ?? 0),
+    formatDuration(getDelay(retryCount, err) ?? 0),
     retryCount,
     getMaxRetries()
   );

@@ -1,10 +1,10 @@
-import { AxiosError } from 'axios';
 import { describe, expect, it } from 'vitest';
+import { HttpError } from '../../http/send';
 import { getAuthHeaders } from '../auth';
 import { toApiError } from '../session';
 
-const axiosError = (status: number, data: unknown) =>
-  new AxiosError('failed', 'ERR', undefined, undefined, {
+const httpError = (status: number, data: unknown) =>
+  new HttpError('failed', 'ERR', { method: 'post', url: 'v1/share' }, {
     status,
     data,
   } as never);
@@ -23,7 +23,7 @@ describe('getAuthHeaders', () => {
 describe('toApiError', () => {
   it('uses the API message and code', () => {
     const error = toApiError(
-      axiosError(403, {
+      httpError(403, {
         status: 'FAILED',
         error: 'sharing is off',
         code: 'sharingDisabled',
@@ -34,7 +34,7 @@ describe('toApiError', () => {
 
   it('lists the candidates of an ambiguous target', () => {
     const error = toApiError(
-      axiosError(409, {
+      httpError(409, {
         error: 'More than one spec matches',
         code: 'ambiguous_target',
         candidates: [
@@ -57,7 +57,7 @@ describe('toApiError', () => {
 
   it('lists the runs a CI environment matches', () => {
     const error = toApiError(
-      axiosError(409, {
+      httpError(409, {
         error: 'More than one run matches',
         code: 'ambiguous_target',
         candidates: [{ runId: 'r1', ciBuildId: 'b1' }],

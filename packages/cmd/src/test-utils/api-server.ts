@@ -1,4 +1,5 @@
 import http from 'http';
+import https from 'https';
 import { AddressInfo } from 'net';
 import zlib from 'zlib';
 
@@ -14,7 +15,13 @@ export type RecordedRequest = {
 export type Response =
   | { status: number; json?: unknown; body?: Buffer | string }
   // Closes the connection without answering.
-  | { destroy: true };
+  | { destroy: true }
+  // Sends the headers and a part of the body, then closes the connection.
+  | { cutOff: true }
+  // Sends the headers and a part of the body, then nothing.
+  | { stall: true }
+  // Sends nothing.
+  | { hang: true };
 
 export type Responder = (
   request: RecordedRequest
@@ -26,10 +33,14 @@ export type ApiServer = {
   close: () => Promise<void>;
 };
 
-export async function startApiServer(responder: Responder): Promise<ApiServer> {
+/** With `tls`, the server answers https on the same `localhost` address. */
+export async function startApiServer(
+  responder: Responder,
+  tls?: { key: string; cert: string }
+): Promise<ApiServer> {
   const requests: RecordedRequest[] = [];
 
-  const server = http.createServer(async (req, res) => {
+  const listener: http.RequestListener = async (req, res) => {
     const chunks: Buffer[] = [];
     for await (const chunk of req) {
       chunks.push(chunk);
@@ -49,6 +60,14 @@ export async function startApiServer(responder: Responder): Promise<ApiServer> {
       req.socket.destroy();
       return;
     }
+    if ('hang' in response) return;
+    if ('cutOff' in response || 'stall' in response) {
+      res.writeHead(200, { 'Content-Length': '100' });
+      res.write('{"status":', () => {
+        if ('cutOff' in response) req.socket.destroy();
+      });
+      return;
+    }
     if (response.json !== undefined) {
       res
         .writeHead(response.status, { 'Content-Type': 'application/json' })
@@ -56,10 +75,13 @@ export async function startApiServer(responder: Responder): Promise<ApiServer> {
     } else {
       res.writeHead(response.status).end(response.body);
     }
-  });
+  };
+  const server = tls
+    ? https.createServer(tls, listener)
+    : http.createServer(listener);
 
   await new Promise<void>((resolve) => server.listen(0, resolve));
-  const url = `http://localhost:${(server.address() as AddressInfo).port}`;
+  const url = `${tls ? 'https' : 'http'}://localhost:${(server.address() as AddressInfo).port}`;
 
   return {
     url,

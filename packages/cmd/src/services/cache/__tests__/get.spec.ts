@@ -1,4 +1,3 @@
-import { isAxiosError } from 'axios';
 import path from 'path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getRefCacheMeta, retrieveCache } from '../../../api';
@@ -12,6 +11,7 @@ import { getCI } from '../../../env/ciProvider';
 import { success, warnOnStderr, warnWithNoTrace } from '../../../logger';
 import { unzipBuffer } from '../fs';
 import { handleGetCache } from '../get';
+import { HttpError, HttpResponse } from '../../../http/send';
 import { download } from '../../../http/storage';
 import { handlePostLastRunPreset, handlePreLastRunPreset } from '../presets';
 
@@ -64,7 +64,6 @@ vi.mock('../../../api');
 vi.mock('../../../http/storage');
 vi.mock('../fs');
 vi.mock('../presets');
-vi.mock('axios');
 vi.mock('../../../logger');
 
 describe('handleGetCache', () => {
@@ -172,10 +171,14 @@ describe('handleGetCache', () => {
   const testCacheNotFoundError = async (continueOnCacheMiss: boolean) => {
     (mockConfig.values as CacheCommandConfig & CacheGetCommandConfig).continue =
       continueOnCacheMiss;
-    const axiosError = { response: { status: 404 } };
-    vi.mocked(isAxiosError).mockReturnValue(true);
+    const httpError = new HttpError(
+      'Request failed with status code 404',
+      'ERR_BAD_REQUEST',
+      { method: 'get', url: 'http://cache.url' },
+      { status: 404 } as HttpResponse
+    );
     vi.mocked(retrieveCache).mockResolvedValueOnce(mockedCacheResponse);
-    vi.mocked(download).mockRejectedValue(axiosError);
+    vi.mocked(download).mockRejectedValue(httpError);
 
     if (continueOnCacheMiss) {
       await handleGetCache();
@@ -198,7 +201,7 @@ describe('handleGetCache', () => {
     await testCacheNotFoundError(true);
   });
 
-  it('should throw an unknown error if it is not an Axios error', async () => {
+  it('should throw an unknown error if it is not an HTTP error', async () => {
     const unknownError = new Error('Unknown error');
     vi.mocked(download).mockRejectedValue(unknownError);
     await expect(handleGetCache()).rejects.toThrow(unknownError);

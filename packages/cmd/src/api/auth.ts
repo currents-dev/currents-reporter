@@ -5,7 +5,10 @@ export type ApiCredentials = { apiKey?: string; recordKey?: string };
  * attach to sessions and runs, and share a session, accept it. It wins when
  * both are set, as in `currents run upload`.
  */
-export function getAuthHeaders({ apiKey, recordKey }: ApiCredentials) {
+export function getAuthHeaders({
+  apiKey,
+  recordKey,
+}: ApiCredentials): Record<string, string> {
   if (recordKey) return { 'x-currents-key': recordKey };
   if (apiKey) return { Authorization: `Bearer ${apiKey}` };
   return {};
