@@ -116,19 +116,20 @@ describe('unzipBuffer', () => {
   }
 
   it.each([
-    '../evil.txt',
-    'a/../../evil.txt',
-    '/evil.txt',
-    'C:/evil.txt',
-    'a\\..\\..\\evil.txt',
-  ])('rejects the entry name %s and writes nothing', async (name) => {
+    ['../evil.txt', 'invalid relative path: ../evil.txt'],
+    ['a/../../evil.txt', 'invalid relative path: a/../../evil.txt'],
+    ['/evil.txt', 'absolute path: /evil.txt'],
+    ['C:/evil.txt', 'absolute path: C:/evil.txt'],
+    // yauzl turns backslashes into slashes before it checks the name
+    ['a\\..\\..\\evil.txt', 'invalid relative path: a/../../evil.txt'],
+  ])('rejects the entry name %s and writes nothing', async (name, error) => {
     const root = path.join(testDir, 'rejected');
     const output = path.join(root, 'a', 'b');
     await fs.ensureDir(output);
 
     await expect(
       unzipBuffer(await zipWithEntryName(name), output)
-    ).rejects.toThrow(/invalid relative path|absolute path/);
+    ).rejects.toThrow(error);
     expect(await fs.readdir(root, { recursive: true })).toEqual(['a', 'a/b']);
 
     await fs.remove(root);
