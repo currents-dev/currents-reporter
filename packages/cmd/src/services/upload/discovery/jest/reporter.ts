@@ -6,7 +6,7 @@ import {
   TestContext,
   TestResult,
 } from '@jest/reporters';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import {
   getDefaultProjectId,
   getProjectId,

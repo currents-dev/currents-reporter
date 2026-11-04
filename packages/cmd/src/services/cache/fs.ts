@@ -1,5 +1,5 @@
 import Archiver from 'archiver';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path from 'path';
 import unzipper from 'unzipper';
 import { warn } from '../../logger';

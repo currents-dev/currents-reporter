@@ -1,4 +1,5 @@
-import fs from 'fs-extra';
+import { pathExists, readJson } from '@lib/fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 export type SessionState = {
@@ -22,20 +23,20 @@ export const getSessionStatePath = () =>
  */
 async function ignoreSessionFolder(folder: string) {
   const file = path.join(folder, '.gitignore');
-  if (!(await fs.pathExists(file))) await fs.writeFile(file, '*\n');
+  if (!(await pathExists(file))) await fs.writeFile(file, '*\n');
 }
 
 export async function saveSessionState(state: SessionState) {
   const file = getSessionStatePath();
-  await fs.ensureDir(path.dirname(file));
+  await fs.mkdir(path.dirname(file), { recursive: true });
   await ignoreSessionFolder(path.dirname(file));
-  await fs.writeJson(file, state, { spaces: 2 });
+  await fs.writeFile(file, JSON.stringify(state, null, 2) + '\n');
 }
 
 export async function readSessionState(): Promise<SessionState | null> {
   const file = getSessionStatePath();
-  if (!(await fs.pathExists(file))) return null;
-  const saved = await fs.readJson(file);
+  if (!(await pathExists(file))) return null;
+  const saved = await readJson(file);
   // A session saved before sessions had their own ID kept its run ID, and that
   // run ID is the session ID.
   const sessionId = saved?.sessionId || saved?.runId;
