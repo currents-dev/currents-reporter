@@ -1,5 +1,5 @@
 import { debug as _debug } from '@debug';
-import fs from 'fs-extra';
+import { readJson } from '@lib/fs';
 import { join } from 'path';
 import { Step } from '../../../types';
 
@@ -46,7 +46,7 @@ export async function readDetoxTrace(
 
   let events: TraceEvent[];
   try {
-    events = await fs.readJson(filePath);
+    events = await readJson(filePath);
   } catch {
     debug('No Detox trace at %s', filePath);
     return byFullName;

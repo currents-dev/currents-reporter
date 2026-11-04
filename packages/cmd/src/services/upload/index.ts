@@ -3,10 +3,17 @@ import { getCI } from '@env/ciProvider';
 import { getGitInfo } from '@env/gitInfo';
 import { getPlatformInfo } from '@env/platform';
 import { reporterVersion } from '@env/versions';
-import { maskKeys, nanoid, readJsonFile, writeFileAsync } from '@lib';
+import {
+  maskKeys,
+  nanoid,
+  pathExists,
+  readJsonFile,
+  writeFileAsync,
+} from '@lib';
+import { createLimit } from '@lib/limit';
 import { info, warn } from '@logger';
 import axios from 'axios';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path from 'path';
 import semver from 'semver';
 import {
@@ -34,6 +41,10 @@ import { ReportConfig, UploadMarkerInfo } from './types';
 import { splitArrayIntoChunks } from './utils';
 
 const UPLOAD_TIMEOUT_MS = 30000;
+// Each artifact upload holds a socket and the file contents until the storage
+// answers. Without a limit, thousands of artifacts run out of file
+// descriptors and the uploads that fail with EMFILE are lost.
+const limitArtifactUploads = createLimit(64);
 
 export async function handleCurrentsReport() {
   const currentsConfig = getCurrentsConfig();
@@ -436,7 +447,9 @@ async function uploadArtifacts(
       const filePath = path.join(reportDir, instruction.path);
       const contentType =
         contentTypeMap.get(instruction.path) || 'application/octet-stream';
-      return uploadArtifact(filePath, contentType, instruction.uploadUrl);
+      return limitArtifactUploads(() =>
+        uploadArtifact(filePath, contentType, instruction.uploadUrl)
+      );
     })
   );
 }
@@ -447,7 +460,7 @@ const uploadArtifact = async (
   uploadUrl: string
 ) => {
   try {
-    if (!(await fs.pathExists(filePath))) {
+    if (!(await pathExists(filePath))) {
       warn('Artifact file not found: %s', filePath);
       return;
     }

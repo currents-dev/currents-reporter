@@ -1,6 +1,7 @@
 import { debug } from '@debug';
+import { limitOpenFiles } from '@lib/fs';
 import { warn } from '@logger';
-import { readFile } from 'fs-extra';
+import { readFile } from 'fs/promises';
 import { parseStringPromise } from 'xml2js';
 import { TestSuites } from './types';
 
@@ -8,7 +9,7 @@ export async function getParsedXMLArray(
   inputFiles: string[]
 ): Promise<TestSuites[]> {
   const filesData: string[] = await Promise.all(
-    inputFiles.map((item) => readFile(item, 'utf-8'))
+    inputFiles.map((item) => limitOpenFiles(() => readFile(item, 'utf-8')))
   );
 
   const parsedXMLInputs = (

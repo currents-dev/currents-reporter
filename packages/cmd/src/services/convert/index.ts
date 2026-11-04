@@ -3,10 +3,12 @@ import {
   createFolder,
   createUniqueFolder,
   generateShortHash,
+  limitOpenFiles,
+  pathExists,
   writeFileAsyncIfNotExists,
 } from '@lib';
 import { info } from '@logger';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { join, resolve, sep } from 'path';
 import {
   REPORT_FRAMEWORKS,
@@ -62,62 +64,66 @@ export async function handleConvert() {
     const workspaceRoot = process.cwd();
 
     await Promise.all(
-      Array.from(instances.values()).map(async (report) => {
-        // Spec-level artifacts
-        await processArtifacts(
-          report.artifacts,
-          report.spec,
-          artifactsDir,
-          workspaceRoot
-        );
-
-        if (report._stdout) {
-          const fileName = `${generateShortHash(report.spec)}.stdout.txt`;
-          await writeFileAsyncIfNotExists(
-            join(artifactsDir, fileName),
-            report._stdout
-          );
-
-          if (!report.artifacts) {
-            report.artifacts = [];
-          }
-
-          report.artifacts.push({
-            path: join('artifacts', fileName),
-            type: 'stdout',
-            contentType: 'text/plain',
-            level: 'spec',
-          });
-          delete report._stdout;
-        }
-
-        for (const test of report.results.tests) {
-          // Test-level artifacts
+      Array.from(instances.values()).map((report) =>
+        limitOpenFiles(async () => {
+          // Spec-level artifacts
           await processArtifacts(
-            test.artifacts,
-            test.testId,
+            report.artifacts,
+            report.spec,
             artifactsDir,
             workspaceRoot
           );
 
-          for (const attempt of test.attempts) {
-            // Attempt-level artifacts
+          if (report._stdout) {
+            const fileName = `${generateShortHash(report.spec)}.stdout.txt`;
+            await writeFileAsyncIfNotExists(
+              join(artifactsDir, fileName),
+              report._stdout
+            );
+
+            if (!report.artifacts) {
+              report.artifacts = [];
+            }
+
+            report.artifacts.push({
+              path: join('artifacts', fileName),
+              type: 'stdout',
+              contentType: 'text/plain',
+              level: 'spec',
+            });
+            delete report._stdout;
+          }
+
+          for (const test of report.results.tests) {
+            // Test-level artifacts
             await processArtifacts(
-              attempt.artifacts,
-              test.testId + attempt.attempt,
+              test.artifacts,
+              test.testId,
               artifactsDir,
               workspaceRoot
             );
+
+            for (const attempt of test.attempts) {
+              // Attempt-level artifacts
+              await processArtifacts(
+                attempt.artifacts,
+                test.testId + attempt.attempt,
+                artifactsDir,
+                workspaceRoot
+              );
+            }
           }
-        }
-      })
+        })
+      )
     );
 
     await Promise.all(
       Array.from(instances.entries()).map(([name, report]) =>
-        writeFileAsyncIfNotExists(
-          join(instancesDir, `${generateShortHash(name)}.json`),
-          JSON.stringify(report)
+        limitOpenFiles(() =>
+          writeFileAsyncIfNotExists(
+            join(instancesDir, `${generateShortHash(name)}.json`),
+            JSON.stringify(report)
+          )
         )
       )
     );
@@ -222,7 +228,7 @@ async function assertFolderEmpty(folder: string, inputFiles: string[]) {
       `The report "${inGeneratedPath}" is where the conversion writes its own files. Move the reports out of "${folder}", or leave out --output-dir to convert into a new folder in .currents.`
     );
   }
-  const other = (await fs.pathExists(root))
+  const other = (await pathExists(root))
     ? await findOtherFile(root, inputs)
     : undefined;
   if (other) {

@@ -1,8 +1,10 @@
 import Archiver from 'archiver';
-import fs from 'fs-extra';
+import { limitOpenFiles, pathExists } from '@lib/fs';
+import { createWriteStream } from 'fs';
+import fs from 'fs/promises';
+import os from 'os';
 import path from 'path';
 import unzipper from 'unzipper';
-import { dir as tmpDir } from 'tmp-promise';
 
 /**
  * A zip is a trace when it holds, at its top, `trace.trace` (the zip packed
@@ -61,7 +63,9 @@ async function readSorted(folder: string, pattern: RegExp) {
 
 export async function mergeTraceFiles(folder: string) {
   const parts = await Promise.all(
-    (await readSorted(folder, TRACE_FILE)).map((f) => fs.readFile(f, 'utf8'))
+    (await readSorted(folder, TRACE_FILE)).map((f) =>
+      limitOpenFiles(() => fs.readFile(f, 'utf8'))
+    )
   );
   return parts.map((p) => (p.endsWith('\n') ? p : p + '\n')).join('');
 }
@@ -81,12 +85,13 @@ export async function mergeNetworkFiles(folder: string) {
  * are) and `resources/`. The zip goes to a temp directory; `cleanup` removes it.
  */
 export async function packTraceFolder(folder: string) {
-  const { path: tmp, cleanup } = await tmpDir({ unsafeCleanup: true });
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'currents-trace-'));
+  const cleanup = () => fs.rm(tmp, { recursive: true, force: true });
   const zipPath = path.join(tmp, 'trace.zip');
 
   try {
     const archive = Archiver('zip', { zlib: { level: 9 } });
-    const output = fs.createWriteStream(zipPath);
+    const output = createWriteStream(zipPath);
     const done = new Promise<void>((resolve, reject) => {
       output.on('close', () => resolve());
       output.on('error', reject);
@@ -98,7 +103,7 @@ export async function packTraceFolder(folder: string) {
     archive.append(await mergeNetworkFiles(folder), { name: 'trace.network' });
     for (const sub of ['screencast', 'resources']) {
       const subPath = path.join(folder, sub);
-      if (await fs.pathExists(subPath)) archive.directory(subPath, sub);
+      if (await pathExists(subPath)) archive.directory(subPath, sub);
     }
     await archive.finalize();
     await done;

@@ -1,6 +1,6 @@
 // @ts-ignore
 import { debug as Debug, Debugger } from 'debug';
-import fs from 'fs-extra';
+import fs from 'fs';
 
 // @ts-ignore
 export const debug = Debug('currents');
