@@ -246,4 +246,29 @@ describe('the built CLI behind an HTTPS proxy', { timeout: 15_000 }, () => {
     expect(proxy.tunnels).toEqual([]);
     expect(api.requests).toHaveLength(4);
   });
+
+  it.each([
+    ['127.0.0.0/8', 'https://127.0.0.1'],
+    ['127.0.0.1', 'https://localhost'],
+    ['localhost', 'https://127.0.0.1'],
+  ])(
+    'sends API requests directly with NO_PROXY=%s to %s',
+    async (noProxy, origin) => {
+      const { port } = new URL(api.url);
+
+      const result = await run(
+        ['session', 'start', '-p', 'project', '--title', 't'],
+        {
+          HTTPS_PROXY: proxy.url,
+          CURRENTS_REST_API_URL: `${origin}:${port}`,
+          CURRENTS_API_KEY: 'k',
+          NO_PROXY: noProxy,
+        }
+      );
+
+      expect(result).toMatchObject({ code: 0 });
+      expect(proxy.tunnels).toEqual([]);
+      expect(api.requests.map((r) => r.url)).toEqual(['/v1/sessions']);
+    }
+  );
 });

@@ -1,6 +1,7 @@
 import { Agent, Dispatcher, Pool, ProxyAgent } from 'undici';
 import { debug as _debug } from '../debug';
 import { urlForLog } from '../lib/url';
+import { shouldBypassProxy } from './noProxy';
 
 const debug = _debug.extend('http');
 
@@ -18,10 +19,10 @@ function getEnv(key: string) {
 }
 
 /**
- * The proxy for a URL from the environment, or an empty string. The rules of
- * proxy-from-env 1.1.0: `<protocol>_proxy`, then `all_proxy`, the lowercase
- * name before the uppercase one, the `npm_config_` variables that npm sets for
- * the commands it runs, and the hosts and ports of `no_proxy`.
+ * The proxy for a URL from the environment, or an empty string, as axios chose
+ * it for requests to the API: proxy-from-env 2.1.0 (`<protocol>_proxy`, then
+ * `all_proxy`, the lowercase name before the uppercase one, and the hosts and
+ * ports of `no_proxy`), and then the NO_PROXY rules of axios.
  */
 export function getProxyForUrl(url: string) {
   let parsed: URL;
@@ -36,21 +37,15 @@ export function getProxyForUrl(url: string) {
     return '';
   }
 
-  const proxy =
-    getEnv(`npm_config_${protocol}_proxy`) ||
-    getEnv(`${protocol}_proxy`) ||
-    getEnv('npm_config_proxy') ||
-    getEnv('all_proxy');
-  if (proxy && !proxy.includes('://')) {
-    return `${protocol}://${proxy}`;
-  }
+  let proxy = getEnv(`${protocol}_proxy`) || getEnv('all_proxy');
+  if (!proxy || shouldBypassProxy(url, getEnv('no_proxy'))) return '';
+  if (!proxy.includes('://')) proxy = `${protocol}://${proxy}`;
   return proxy;
 }
 
+// The NO_PROXY check of proxy-from-env.
 function shouldProxy(hostname: string, port: number) {
-  const noProxy = (
-    getEnv('npm_config_no_proxy') || getEnv('no_proxy')
-  ).toLowerCase();
+  const noProxy = getEnv('no_proxy').toLowerCase();
   if (!noProxy) return true;
   if (noProxy === '*') return false;
 

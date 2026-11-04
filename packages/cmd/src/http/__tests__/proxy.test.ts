@@ -57,17 +57,16 @@ describe('getProxyForUrl', () => {
     );
   });
 
-  it('reads the variables npm sets for the commands it runs first', () => {
-    vi.stubEnv('HTTPS_PROXY', 'http://env:1');
+  it('does not read the proxy variables npm sets for the commands it runs', () => {
     vi.stubEnv('npm_config_https_proxy', 'http://npm:2');
-
-    expect(getProxyForUrl('https://cy.currents.dev')).toBe('http://npm:2');
-
-    vi.stubEnv('npm_config_https_proxy', undefined);
-    vi.stubEnv('HTTPS_PROXY', undefined);
     vi.stubEnv('npm_config_proxy', 'http://npm-any:3');
 
-    expect(getProxyForUrl('https://cy.currents.dev')).toBe('http://npm-any:3');
+    expect(getProxyForUrl('https://cy.currents.dev')).toBe('');
+
+    vi.stubEnv('HTTPS_PROXY', 'http://env:1');
+    vi.stubEnv('npm_config_no_proxy', 'cy.currents.dev');
+
+    expect(getProxyForUrl('https://cy.currents.dev')).toBe('http://env:1');
   });
 
   it.each([
@@ -83,13 +82,31 @@ describe('getProxyForUrl', () => {
     ['cy.currents.dev:443', 'https://cy.currents.dev', ''],
     ['cy.currents.dev:8443', 'https://cy.currents.dev', 'http://proxy:1'],
     ['cy.currents.dev:8443', 'https://cy.currents.dev:8443', ''],
-    ['localhost', 'https://127.0.0.1', 'http://proxy:1'],
+    ['localhost', 'https://127.0.0.1', ''],
+    ['127.0.0.1', 'https://localhost', ''],
+    ['::1', 'https://localhost', ''],
+    ['localhost', 'https://[::1]', ''],
+    ['127.0.0.0/8', 'https://127.0.0.1:8443', ''],
+    ['10.0.0.0/8', 'https://10.1.2.3', ''],
+    ['10.0.0.0/8', 'https://11.1.2.3', 'http://proxy:1'],
+    ['192.168.1.5', 'https://[::ffff:192.168.1.5]', ''],
+    ['127.1', 'https://127.0.0.1', ''],
+    ['cy.currents.dev.', 'https://cy.currents.dev', ''],
+    ['*currents.dev', 'https://xcurrents.dev', ''],
     ['', 'https://cy.currents.dev', 'http://proxy:1'],
   ])('NO_PROXY=%j and %s give %j', (noProxy, url, proxy) => {
     vi.stubEnv('HTTPS_PROXY', 'http://proxy:1');
     vi.stubEnv('NO_PROXY', noProxy);
 
     expect(getProxyForUrl(url)).toBe(proxy);
+  });
+
+  it('reads NO_PROXY, not npm_config_no_proxy, when both are set', () => {
+    vi.stubEnv('HTTPS_PROXY', 'http://proxy:1');
+    vi.stubEnv('NO_PROXY', '.corp.test');
+    vi.stubEnv('npm_config_no_proxy', 'x.test');
+
+    expect(getProxyForUrl('https://api.corp.test')).toBe('');
   });
 
   it('reads the lowercase no_proxy before NO_PROXY', () => {
