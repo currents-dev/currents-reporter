@@ -283,6 +283,39 @@ describe('the built CLI behind an HTTPS proxy', { timeout: 15_000 }, () => {
     }
   );
 
+  // With 2.3.0, storage requests also read the npm_config_ variables and
+  // knew neither CIDR ranges nor localhost and 127.0.0.1 as one host.
+  it.each([
+    ['npm_config_https_proxy alone', { npm_config_https_proxy: 'PROXY' }],
+    ['npm_config_proxy alone', { npm_config_proxy: 'PROXY' }],
+    [
+      'NO_PROXY with an npm_config_no_proxy that does not match',
+      { HTTPS_PROXY: 'PROXY', NO_PROXY: '127.0.0.1', npm_config_no_proxy: 'x' },
+    ],
+    ['NO_PROXY=127.0.0.0/8', { HTTPS_PROXY: 'PROXY', NO_PROXY: '127.0.0.0/8' }],
+    ['NO_PROXY=localhost', { HTTPS_PROXY: 'PROXY', NO_PROXY: 'localhost' }],
+  ])(
+    'sends storage requests to 127.0.0.1 directly with %s',
+    async (_name, variables) => {
+      storageUrl = `https://127.0.0.1:${new URL(api.url).port}`;
+      const env = Object.fromEntries(
+        Object.entries(variables).map(([k, v]) => [
+          k,
+          v === 'PROXY' ? proxy.url : v,
+        ])
+      );
+
+      const result = await run([...cacheSet, '--path', 'cached.txt'], {
+        ...env,
+        CURRENTS_API_URL: storageUrl,
+      });
+
+      expect(result).toMatchObject({ code: 0 });
+      expect(proxy.tunnels).toEqual([]);
+      expect(api.requests).toHaveLength(4);
+    }
+  );
+
   it('fails at once with the status of a proxy that refuses CONNECT to the API', async () => {
     proxy.settings.refuse = 407;
 

@@ -55,6 +55,7 @@
     "debug": "^4.4.0",
     "dotenv": "17.4.2",
     "lodash": "^4.18.1",
+    "proxy-from-env": "2.1.0",
     "semver": "^7.8.5",
     "tinyglobby": "^0.2.17",
     "undici": "7.30.1",
