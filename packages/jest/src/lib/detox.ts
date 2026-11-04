@@ -1,4 +1,5 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
+import { readJson } from './fs';
 import { join } from 'path';
 import { debug } from './debug';
 
@@ -49,7 +50,7 @@ export async function getDetoxSession(): Promise<DetoxSession | undefined> {
   }
 
   try {
-    const session = await fs.readJson(sessionFilePath);
+    const session = await readJson(sessionFilePath);
     const artifactsRootDir = session?.detoxConfig?.artifacts?.rootDir;
 
     if (!artifactsRootDir) {
@@ -162,7 +163,7 @@ async function readDetoxManifest(
   filePath: string
 ): Promise<DetoxManifest | undefined> {
   try {
-    return await fs.readJson(filePath);
+    return await readJson(filePath);
   } catch {
     return undefined;
   }

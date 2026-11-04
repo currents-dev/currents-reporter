@@ -1,7 +1,9 @@
-import fs from 'fs-extra';
+import { limitOpenFiles, pathExists } from '@lib/fs';
+import { createWriteStream } from 'fs';
+import fs from 'fs/promises';
+import os from 'os';
 import path from 'path';
 import { pipeline } from 'stream/promises';
-import { dir as tmpDir } from 'tmp-promise';
 import yazl from 'yazl';
 import { addPath, finishZip, listZipEntries } from '../../lib/zip';
 
@@ -60,7 +62,9 @@ async function readSorted(folder: string, pattern: RegExp) {
 
 export async function mergeTraceFiles(folder: string) {
   const parts = await Promise.all(
-    (await readSorted(folder, TRACE_FILE)).map((f) => fs.readFile(f, 'utf8'))
+    (await readSorted(folder, TRACE_FILE)).map((f) =>
+      limitOpenFiles(() => fs.readFile(f, 'utf8'))
+    )
   );
   return parts.map((p) => (p.endsWith('\n') ? p : p + '\n')).join('');
 }
@@ -80,7 +84,8 @@ export async function mergeNetworkFiles(folder: string) {
  * are) and `resources/`. The zip goes to a temp directory; `cleanup` removes it.
  */
 export async function packTraceFolder(folder: string) {
-  const { path: tmp, cleanup } = await tmpDir({ unsafeCleanup: true });
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'currents-trace-'));
+  const cleanup = () => fs.rm(tmp, { recursive: true, force: true });
   const zipPath = path.join(tmp, 'trace.zip');
 
   try {
@@ -92,9 +97,9 @@ export async function packTraceFolder(folder: string) {
     );
     for (const sub of ['screencast', 'resources']) {
       const subPath = path.join(folder, sub);
-      if (await fs.pathExists(subPath)) await addPath(zip, subPath, sub);
+      if (await pathExists(subPath)) await addPath(zip, subPath, sub);
     }
-    await pipeline(finishZip(zip), fs.createWriteStream(zipPath));
+    await pipeline(finishZip(zip), createWriteStream(zipPath));
   } catch (e) {
     await cleanup();
     throw e;

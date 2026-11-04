@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { join } from 'path';
 import { debug } from './debug';
 import { getDefaultProjectId } from './test';
@@ -41,7 +41,10 @@ export async function writeFullTestSuite(
 // A report directory set by `reportDir` or CURRENTS_REPORT_DIR is reused, so
 // a run that does not write the file removes the one an earlier run wrote.
 export async function removeFullTestSuite(reportDir: string) {
-  await fs.remove(join(reportDir, FULL_TEST_SUITE_FILE));
+  await fs.rm(join(reportDir, FULL_TEST_SUITE_FILE), {
+    recursive: true,
+    force: true,
+  });
 }
 
 // The check `currents run upload` makes on the suite that discovery returns.

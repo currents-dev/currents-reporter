@@ -1,6 +1,7 @@
-import { customAlphabet } from 'nanoid';
+import { randomInt } from 'crypto';
 
 const alphabet =
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-export const getNanoid = (length = 16) => customAlphabet(alphabet, length)();
-export const userFacingNanoid = customAlphabet(alphabet, 12);
+export const getNanoid = (length = 16) =>
+  Array.from({ length }, () => alphabet[randomInt(alphabet.length)]).join('');
+export const userFacingNanoid = () => getNanoid(12);

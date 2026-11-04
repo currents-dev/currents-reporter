@@ -1,12 +1,43 @@
 import { error } from '@logger';
-import fs from 'fs-extra';
+import { randomUUID } from 'crypto';
+import { existsSync } from 'fs';
+import fs from 'fs/promises';
+import { tmpdir } from 'os';
 import { dirname, join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { debug } from '../debug';
+import { createLimit } from './limit';
+
+/**
+ * For file operations that run once per report, test or artifact, so that
+ * thousands of files don't fail with EMFILE. A task must not call
+ * limitOpenFiles itself: it would wait for a slot that it holds.
+ */
+export const limitOpenFiles = createLimit(32);
+
+/**
+ * Like fs-extra's readJson: drops a byte order mark, and a parse error starts
+ * with the file path.
+ */
+export async function readJson(filePath: string): Promise<any> {
+  const text = await fs.readFile(filePath, 'utf8');
+  try {
+    return JSON.parse(text.replace(/^\uFEFF/, ''));
+  } catch (err) {
+    (err as Error).message = `${filePath}: ${(err as Error).message}`;
+    throw err;
+  }
+}
+
+export function pathExists(filePath: string) {
+  return fs.access(filePath).then(
+    () => true,
+    () => false
+  );
+}
 
 export async function readJsonFile<T>(filePath: string): Promise<T> {
   try {
-    const data = await fs.readJson(filePath);
+    const data = await readJson(filePath);
     return data as T;
   } catch (err) {
     error('Error while reading JSON file: %s', filePath, err);
@@ -47,17 +78,24 @@ export async function ensurePathExists(
   isDirectory?: boolean
 ): Promise<void> {
   if (isDirectory) {
-    await fs.ensureDir(filePath);
+    await fs.mkdir(filePath, { recursive: true });
     return;
   }
 
   const dir = dirname(filePath);
-  await fs.ensureDir(dir);
+  await fs.mkdir(dir, { recursive: true });
+}
+
+/** Creates an empty file, readable only by the owner, in the OS temp folder. */
+export async function createTempFile(suffix = '') {
+  const filePath = join(tmpdir(), `currents-${randomUUID()}${suffix}`);
+  await fs.writeFile(filePath, '', { flag: 'wx', mode: 0o600 });
+  return filePath;
 }
 
 export function generateUniqueDirName(): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const uniqueId = uuidv4();
+  const uniqueId = randomUUID();
   return `${timestamp}-${uniqueId}`;
 }
 
@@ -73,7 +111,7 @@ export async function createUniqueFolder(
 
 export async function createFolder(folderPath: string) {
   try {
-    await fs.ensureDir(folderPath);
+    await fs.mkdir(folderPath, { recursive: true });
     debug('Folder created', folderPath);
     return folderPath;
   } catch (err) {
@@ -87,8 +125,8 @@ export async function copyFileAsync(
   destPath: string
 ): Promise<string> {
   try {
-    await fs.ensureDir(dirname(destPath));
-    await fs.copy(srcPath, destPath);
+    await fs.mkdir(dirname(destPath), { recursive: true });
+    await fs.cp(srcPath, destPath, { recursive: true, verbatimSymlinks: true });
     debug('File copied from %s to %s', srcPath, destPath);
     return destPath;
   } catch (err) {
@@ -103,7 +141,7 @@ export async function copyFileAsync(
  */
 export function findUp(name: string, from: string) {
   let dir = from;
-  while (!fs.existsSync(join(dir, name))) {
+  while (!existsSync(join(dir, name))) {
     const parent = dirname(dir);
     if (parent === dir) return undefined;
     dir = parent;

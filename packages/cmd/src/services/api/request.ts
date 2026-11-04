@@ -1,7 +1,7 @@
 import { debug as _debug } from '@debug';
 import { maskKeys } from '@lib';
 import { AxiosResponse, isAxiosError } from 'axios';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { requestRestApi } from '../../api';
 import { sharedConfigKeys } from '../../config/keys';
 import { getValidatedConfig } from '../../config/utils';

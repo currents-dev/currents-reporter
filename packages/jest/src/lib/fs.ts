@@ -1,12 +1,12 @@
-import fs from 'fs-extra';
+import { randomUUID } from 'crypto';
+import fs from 'fs/promises';
 import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { error } from '../logger';
 import { debug } from './debug';
 
 export function generateUniqueDirName(): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const uniqueId = uuidv4();
+  const uniqueId = randomUUID();
   return `${timestamp}-${uniqueId}`;
 }
 
@@ -22,7 +22,7 @@ export async function createUniqueFolder(
 
 export async function createFolder(folderPath: string) {
   try {
-    await fs.ensureDir(folderPath);
+    await fs.mkdir(folderPath, { recursive: true });
     debug('Folder created', folderPath);
     return folderPath;
   } catch (err) {
@@ -48,11 +48,17 @@ export async function writeFileAsync(
   }
 }
 
+/** Like fs-extra's readJson: drops a byte order mark before parsing. */
+export async function readJson(filePath: string) {
+  const text = await fs.readFile(filePath, 'utf8');
+  return JSON.parse(text.replace(/^\uFEFF/, ''));
+}
+
 export async function readInstanceReport<T>(
   filePath: string
 ): Promise<T | undefined> {
   try {
-    return await fs.readJson(filePath);
+    return await readJson(filePath);
   } catch {
     debug('No previous report at %s', filePath);
     return undefined;
