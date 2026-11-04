@@ -1,9 +1,10 @@
-import Archiver from 'archiver';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import unzipper from 'unzipper';
+import { pipeline } from 'stream/promises';
+import yazl from 'yazl';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { extractZip, finishZip, listZipEntries } from '../../../lib/zip';
 import { collectFiles } from '../collect';
 import { ALLOWED_TYPES, getFileLevel, SESSION_ALLOWED_TYPES } from '../levels';
 import { assertTypeMatchesFile, getContentType, getFileType } from '../detect';
@@ -127,14 +128,14 @@ describe('collectFiles', () => {
     for (const test of ['login-chromium', 'login-firefox']) {
       await fs.outputFile(path.join(results, test, 'test-failed-1.png'), 'png');
       await fs.outputFile(path.join(results, test, 'video.webm'), 'webm');
-      const archive = Archiver('zip');
-      const out = fs.createWriteStream(path.join(results, test, 'trace.zip'));
-      archive.pipe(out);
-      archive.append('{}', { name: 'test.trace' });
-      archive.append('{}', { name: '0-trace.trace' });
-      archive.append('x', { name: 'resources/r1' });
-      await archive.finalize();
-      await new Promise((resolve) => out.on('close', resolve));
+      const zip = new yazl.ZipFile();
+      zip.addBuffer(Buffer.from('{}'), 'test.trace');
+      zip.addBuffer(Buffer.from('{}'), '0-trace.trace');
+      zip.addBuffer(Buffer.from('x'), 'resources/r1');
+      await pipeline(
+        finishZip(zip),
+        fs.createWriteStream(path.join(results, test, 'trace.zip'))
+      );
     }
     await fs.outputFile(path.join(results, '.last-run.json'), '{}');
 
@@ -186,8 +187,7 @@ describe('collectFiles', () => {
       contentType: 'application/zip',
     });
 
-    const archive = await unzipper.Open.file(files[0].path);
-    const names = archive.files.map((f) => f.path).sort();
+    const names = await listZipEntries(files[0].path);
     expect(names).toEqual(
       expect.arrayContaining([
         'trace.trace',
@@ -196,10 +196,16 @@ describe('collectFiles', () => {
         'resources/r1',
       ])
     );
-    const trace = archive.files.find((f) => f.path === 'trace.trace')!;
-    expect((await trace.buffer()).toString()).toBe('{"a":1}\n{"b":2}\n');
-    const network = archive.files.find((f) => f.path === 'trace.network')!;
-    expect((await network.buffer()).toString().split('\n')).toHaveLength(1);
+    const extracted = path.join(dir, 'extracted');
+    await extractZip(await fs.readFile(files[0].path), extracted);
+    expect(await fs.readFile(path.join(extracted, 'trace.trace'), 'utf8')).toBe(
+      '{"a":1}\n{"b":2}\n'
+    );
+    const network = await fs.readFile(
+      path.join(extracted, 'trace.network'),
+      'utf8'
+    );
+    expect(network.split('\n')).toHaveLength(1);
 
     const zipPath = files[0].path;
     await cleanup();
@@ -301,12 +307,12 @@ describe('collectFiles', () => {
 
   it('makes a zip a trace only when it holds a Playwright trace file at its top', async () => {
     const zip = async (name: string, entry: string) => {
-      const archive = Archiver('zip');
-      const out = fs.createWriteStream(path.join(dir, name));
-      archive.pipe(out);
-      archive.append('x', { name: entry });
-      await archive.finalize();
-      await new Promise((resolve) => out.on('close', resolve));
+      const zip = new yazl.ZipFile();
+      zip.addBuffer(Buffer.from('x'), entry);
+      await pipeline(
+        finishZip(zip),
+        fs.createWriteStream(path.join(dir, name))
+      );
       return path.join(dir, name);
     };
     const { files, cleanup } = await collectFiles(
