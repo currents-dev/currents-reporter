@@ -1,7 +1,8 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { listZipEntries } from '../../../lib/zip';
+import yazl from 'yazl';
+import { finishZip, listZipEntries } from '../../../lib/zip';
 import { unzipBuffer, zipFilesToBuffer } from '../fs';
 
 describe('zipFilesToBuffer', () => {
@@ -100,5 +101,36 @@ describe('unzipBuffer', () => {
     expect((await fs.stat(path.join(restored, 'empty'))).isDirectory()).toBe(
       true
     );
+  });
+
+  // yazl refuses these names, so the zip is made with a name of the same
+  // length, which is then replaced in the bytes.
+  async function zipWithEntryName(name: string) {
+    const placeholder = 'x'.repeat(name.length);
+    const zip = new yazl.ZipFile();
+    zip.addBuffer(Buffer.from('evil'), placeholder, { compress: false });
+    const chunks: Buffer[] = [];
+    for await (const chunk of finishZip(zip)) chunks.push(chunk);
+    const bytes = Buffer.concat(chunks).toString('latin1');
+    return Buffer.from(bytes.split(placeholder).join(name), 'latin1');
+  }
+
+  it.each([
+    '../evil.txt',
+    'a/../../evil.txt',
+    '/evil.txt',
+    'C:/evil.txt',
+    'a\\..\\..\\evil.txt',
+  ])('rejects the entry name %s and writes nothing', async (name) => {
+    const root = path.join(testDir, 'rejected');
+    const output = path.join(root, 'a', 'b');
+    await fs.ensureDir(output);
+
+    await expect(
+      unzipBuffer(await zipWithEntryName(name), output)
+    ).rejects.toThrow(/invalid relative path|absolute path/);
+    expect(await fs.readdir(root, { recursive: true })).toEqual(['a', 'a/b']);
+
+    await fs.remove(root);
   });
 });
