@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
-    "@currents/commit-info": "2.0.0",
+    "@currents/commit-info": "3.0.0",
     "@currents/rules": "0.1.0",
     "commander": "^14.0.0",
     "debug": "^4.4.0",
