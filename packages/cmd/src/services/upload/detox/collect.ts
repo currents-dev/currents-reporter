@@ -1,6 +1,11 @@
 import { debug as _debug } from '@debug';
-import { copyFileAsync, createFolder, generateShortHash } from '@lib';
-import fs from 'fs-extra';
+import {
+  copyFileAsync,
+  createFolder,
+  generateShortHash,
+  pathExists,
+} from '@lib';
+import fs from 'fs/promises';
 import { extname, join } from 'path';
 import { ARTIFACT_BY_EXTENSION } from '@lib/artifactTypes';
 import { Artifact, InstanceReport, InstanceReportTest } from '../../../types';
@@ -103,7 +108,7 @@ async function attachTraceFile({
   rootDir: string;
   artifactsDir: string;
 }) {
-  if (!(await fs.pathExists(join(rootDir, DETOX_TRACE_FILE)))) {
+  if (!(await pathExists(join(rootDir, DETOX_TRACE_FILE)))) {
     return 0;
   }
 

@@ -1,5 +1,6 @@
+import { pathExists } from '@lib/fs';
 import { error } from '@logger';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path, { join, resolve } from 'path';
 import { ReportOptions } from './types';
 
@@ -17,7 +18,7 @@ export async function resolveReportOptions(
 
 async function findReportDir(reportDir?: string): Promise<string> {
   if (reportDir) {
-    if (!(await fs.pathExists(reportDir))) {
+    if (!(await pathExists(reportDir))) {
       throw new Error(
         `No reports found: the folder "${reportDir}" does not exist.`
       );
@@ -26,7 +27,7 @@ async function findReportDir(reportDir?: string): Promise<string> {
   }
 
   const defaultDir = join(process.cwd(), '.currents');
-  const latestDir = (await fs.pathExists(defaultDir))
+  const latestDir = (await pathExists(defaultDir))
     ? await getLastCreatedDirectory(defaultDir)
     : null;
   if (!latestDir) {
@@ -57,7 +58,7 @@ async function getLastCreatedDirectory(dir: string): Promise<string | null> {
 
 export async function checkPathExists(path: string): Promise<boolean> {
   try {
-    const exists = await fs.pathExists(path);
+    const exists = await pathExists(path);
     return exists;
   } catch (err) {
     error('Error checking if path exists:', error);

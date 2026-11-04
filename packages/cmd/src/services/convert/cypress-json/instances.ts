@@ -1,5 +1,5 @@
 import { warn } from '@logger';
-import { readJson } from 'fs-extra';
+import { limitOpenFiles, readJson } from '@lib/fs';
 import { basename, relative } from 'path';
 import {
   Artifact,
@@ -23,7 +23,7 @@ export async function readCypressResults(
 ): Promise<CypressRunResult[]> {
   return Promise.all(
     inputFiles.map(async (file) => {
-      const result = await readJson(file);
+      const result = await limitOpenFiles(() => readJson(file));
       if (!Array.isArray(result?.runs)) {
         throw new Error(
           `${file} is not a Cypress run result: it has no "runs" list. Save the results of the "after:run" event or of cypress.run().`

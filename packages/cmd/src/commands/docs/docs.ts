@@ -1,5 +1,5 @@
 import { findUp } from '@lib/fs';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path from 'path';
 import { writeStdout } from '../utils';
 

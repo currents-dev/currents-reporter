@@ -23,7 +23,7 @@
     "publish:npm": "npm run rm  && npm run build && ./publish.js"
   },
   "engines": {
-    "node": ">=18.20.4"
+    "node": ">=22.13"
   },
   "files": [
     "dist",

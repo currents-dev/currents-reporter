@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import path from 'path';
 import { getNanoid } from '../../lib/nano';
 import { warn } from '../../logger';

@@ -1,5 +1,5 @@
 import { debug as _debug } from '@debug';
-import fs from 'fs-extra';
+import { readJson } from '@lib/fs';
 import { join } from 'path';
 
 const debug = _debug.extend('detox');
@@ -48,7 +48,7 @@ export async function readDetoxManifest(
   const filePath = join(reportDir, DETOX_MANIFEST_FILE);
 
   try {
-    const manifest = await fs.readJson(filePath);
+    const manifest = await readJson(filePath);
     if (
       typeof manifest?.artifactsRootDir !== 'string' ||
       !Array.isArray(manifest?.tests)

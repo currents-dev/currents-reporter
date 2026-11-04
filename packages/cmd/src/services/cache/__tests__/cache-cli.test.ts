@@ -142,6 +142,62 @@ describe('currents cache with the built CLI', () => {
     await fs.outputFile(join(setDir, 'other/file.txt'), 'other');
   }
 
+  describe('.env in the current folder', () => {
+    const setWithoutKey = (env: Record<string, string> = {}) =>
+      runCli(['cache', 'set', '--path', 'other/*.txt'], {
+        cwd: setDir,
+        env: { CURRENTS_API_URL: cache.server.url, ...env },
+      });
+
+    beforeEach(async () => {
+      await fs.outputFile(join(setDir, 'other/file.txt'), 'other');
+      await fs.outputFile(
+        join(setDir, '.env'),
+        'CURRENTS_RECORD_KEY=key-from-dotenv\n'
+      );
+    });
+
+    it('provides the record key', async () => {
+      const result = await setWithoutKey();
+
+      expect(result.code).toBe(0);
+      expect(cache.requestsTo('/cache/upload')[0].json).toMatchObject({
+        recordKey: 'key-from-dotenv',
+      });
+    });
+
+    it('does not replace a variable that is already set', async () => {
+      await setWithoutKey({ CURRENTS_RECORD_KEY: 'key-from-environment' });
+
+      expect(cache.requestsTo('/cache/upload')[0].json).toMatchObject({
+        recordKey: 'key-from-environment',
+      });
+    });
+
+    // process.loadEnvFile reads these files differently: it keeps the BOM in
+    // the first name, and Node.js 22.13 joins the line after an indented
+    // comment to the comment.
+    it.each([
+      [
+        'starts with a byte order mark',
+        '\uFEFFCURRENTS_RECORD_KEY=key-from-dotenv\n',
+      ],
+      [
+        'has an indented comment before the key',
+        'A=1\n  # comment\nCURRENTS_RECORD_KEY=key-from-dotenv\n',
+      ],
+    ])('reads a file that %s', async (_, content) => {
+      await fs.outputFile(join(setDir, '.env'), content);
+
+      const result = await setWithoutKey();
+
+      expect(result.code).toBe(0);
+      expect(cache.requestsTo('/cache/upload')[0].json).toMatchObject({
+        recordKey: 'key-from-dotenv',
+      });
+    });
+  });
+
   describe('cache set --preset last-run', () => {
     it('archives only the .last-run.json files of the Playwright output directory', async () => {
       await writeTestResults();

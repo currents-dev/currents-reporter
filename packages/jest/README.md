@@ -13,7 +13,7 @@ A [Jest](https://github.com/facebook/jest) reporter for [Currents](https://curre
 ## Requirements
 
 - Jest version 29.5.0+
-- NodeJS 18.20.4+
+- Node.js 22.13+
 
 ## Setup
 

@@ -2,6 +2,8 @@
 
 This reporter generates a JUnit XML file compatible with the Currents API. It ensures the output contains sufficient information for seamless conversion into the Currents format, enabling smooth integration and reporting to the Currents API.
 
+Requires Node.js 22.13 or later.
+
 ## Nesting Approach
 
 The Node.js test runner operates based on test events. Each event provides the necessary data to reconstruct the test structure but does not explicitly differentiate between a test and a suite.

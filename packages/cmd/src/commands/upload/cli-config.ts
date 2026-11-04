@@ -5,8 +5,7 @@ import {
   cliOptionsToConfig,
   CurrentsConfig,
 } from '../../config/upload';
-import { maskKeys } from '../../lib';
-import { createTempFile } from './tmp-file';
+import { createTempFile, maskKeys } from '../../lib';
 
 const debug = _debug.extend('cli');
 
