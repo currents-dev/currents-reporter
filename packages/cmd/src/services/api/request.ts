@@ -5,7 +5,7 @@ import { requestRestApi } from '../../api';
 import { sharedConfigKeys } from '../../config/keys';
 import { getValidatedConfig } from '../../config/utils';
 import { getRestAPIBaseUrl } from '../../http/httpConfig';
-import { HttpResponse, isHttpError } from '../../http/send';
+import { HttpResponse, isHttpError, isRefusedRequest } from '../../http/send';
 
 const debug = _debug.extend('api');
 
@@ -169,6 +169,9 @@ export async function handleApiRequest(
   } catch (e) {
     if (!isHttpError(e)) throw e;
     const response = e.response as HttpResponse<string> | undefined;
+    if (!response && isRefusedRequest(e)) {
+      throw new Error(`The request was not sent: ${e.message}`);
+    }
     if (!response) {
       throw new Error(
         `Could not reach the REST API at ${getRestAPIBaseUrl()}: ${e.message}`

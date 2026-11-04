@@ -296,3 +296,16 @@ function toNetworkError(e: unknown, failed: FailedRequest) {
       : error.message;
   return new HttpError(message, error.code, failed);
 }
+
+/**
+ * undici checked the request and did not send it, for example for a header it
+ * does not allow such as Keep-Alive, or a Content-Length that the body does not
+ * have.
+ */
+export function isRefusedRequest(e: HttpError) {
+  return [
+    'UND_ERR_INVALID_ARG',
+    'UND_ERR_NOT_SUPPORTED',
+    'UND_ERR_REQ_CONTENT_LENGTH_MISMATCH',
+  ].includes(e.code ?? '');
+}

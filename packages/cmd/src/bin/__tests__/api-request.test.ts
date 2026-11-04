@@ -376,6 +376,15 @@ describe('currents api', () => {
     expect(stderr).toContain('GET v1/cut failed: the REST API answered 200 OK');
   });
 
+  it('says that a header undici refuses was not sent', async () => {
+    expect(await api('/v1/runs/r1', '-H', 'Keep-Alive: timeout=5')).toBe(1);
+
+    expect(received).toEqual([]);
+    expect(stderr).toContain(
+      'The request was not sent: invalid keep-alive header'
+    );
+  });
+
   it('prefers --api-key over CURRENTS_API_KEY', async () => {
     expect(await api('/v1/runs/r1', '--api-key', 'cli-key')).toBe(0);
 
