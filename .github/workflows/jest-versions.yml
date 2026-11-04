@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - main
+      - 'release/**'
   schedule:
     # Also tests jest@latest, to find a new major before customers do.
     - cron: '0 6 * * 1'
@@ -19,14 +20,16 @@ permissions:
 
 jobs:
   jest:
-    name: Jest ${{ matrix.jest }}
+    name: Jest ${{ matrix.jest }} on Node.js ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         jest: ${{ fromJSON(github.event_name == 'schedule' && '["29.5.0", "29.7.0", "30", "latest"]' || '["29.5.0", "29.7.0", "30"]') }}
+        # 26 loads yargs/yargs from yargs 17.7.2 as an ES module
+        node: [20, 26]
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.jest }}
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.jest }}-${{ matrix.node }}
       cancel-in-progress: true
 
     steps:
@@ -35,7 +38,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node }}
           cache: npm
 
       - run: npm ci

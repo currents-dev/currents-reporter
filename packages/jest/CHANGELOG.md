@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.2](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.5.1...%40currents%2Fjest-v1.5.2) (2026-11-04)
+
+The reporter loads on Node.js 26 when the project has yargs 17.7.2. Before, Jest failed to add the reporter. Projects with yargs 17.7.3 or later were not affected.
+
+### Bug Fixes
+
+* load yargs from its main entry so the reporter runs on Node.js 26 ([f9637b0](https://github.com/currents-dev/currents-reporter/commit/f9637b082de3a2a4e4fc1ed283b58b3c39d622c5))
+
 ## [1.5.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.5.0...%40currents%2Fjest-v1.5.1) (2026-10-07)
 
 The reporter writes `fullTestSuite.json` for every run that is not sharded. Runs filtered by test name, test path or project, and runs stopped by `--bail`, get the tests of the files that ran. Uploading those runs with `@currents/cmd` 2.0.1 or earlier no longer runs Jest again, which under Detox booted a device. A Detox rerun (`detox test --retries`) keeps the `config.json` of the first run of the session, so the upload of a sharded Detox run with retries sees the shard and lists every test of the suite.
