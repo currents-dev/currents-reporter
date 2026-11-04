@@ -1,0 +1,4 @@
+# Recorded by fixtures/record-events.mjs and written by junit.test.ts with
+# UPDATE_JUNIT_FIXTURES=1
+packages/node-test-reporter/src/__tests__/fixtures/events/*.json linguist-generated
+packages/node-test-reporter/src/__tests__/fixtures/junit/*.xml linguist-generated
