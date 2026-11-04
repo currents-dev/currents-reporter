@@ -1,4 +1,4 @@
-import { IncomingHttpHeaders } from 'node:http';
+import { IncomingHttpHeaders, STATUS_CODES } from 'node:http';
 import { Readable } from 'node:stream';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
@@ -294,6 +294,20 @@ function parseBody(body: Buffer, responseType: ResponseType) {
  */
 function toNetworkError(e: unknown, failed: FailedRequest) {
   const error = e as Error & { code?: string; errors?: Error[] };
+  const proxyStatus = getProxyRefusal(error);
+  if (proxyStatus) {
+    return new HttpError(
+      `Request failed with status code ${proxyStatus}`,
+      proxyStatus < 500 ? 'ERR_BAD_REQUEST' : 'ERR_BAD_RESPONSE',
+      failed,
+      {
+        status: proxyStatus,
+        statusText: STATUS_CODES[proxyStatus] ?? '',
+        headers: {},
+        data: '',
+      }
+    );
+  }
   if (error.code === 'UND_ERR_SOCKET') {
     return new HttpError('socket hang up', 'ECONNRESET', failed);
   }
@@ -303,6 +317,19 @@ function toNetworkError(e: unknown, failed: FailedRequest) {
       ? error.errors.map((e) => e.message).join('; ')
       : error.message;
   return new HttpError(message, error.code, failed);
+}
+
+/**
+ * The status a proxy refused the request with. undici puts it only in the
+ * message. With axios the answer of the proxy was the response, so it was not
+ * retried and the messages named its status.
+ */
+function getProxyRefusal(error: Error) {
+  const match =
+    error.message?.match(
+      /^Proxy response \((\d{3})\) !== 200 when HTTP Tunneling$/
+    ) ?? error.message?.match(/^Proxy Authentication Required \((407)\)$/);
+  return match ? Number(match[1]) : undefined;
 }
 
 /**

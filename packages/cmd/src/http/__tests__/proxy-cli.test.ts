@@ -17,15 +17,25 @@ const tls = createTestCertificate(['api.test', 'storage.test']);
 type Tunnel = { target: string; auth?: string };
 
 // Answers CONNECT only. The .test names resolve here and nowhere else, so a
-// request to api.test that arrives went through the proxy.
+// request to api.test that arrives went through the proxy. `refuse` is the
+// status it answers every CONNECT with.
 async function startProxy() {
   const tunnels: Tunnel[] = [];
+  const settings: { refuse?: number } = {};
   const server = http.createServer((_req, res) => res.writeHead(405).end());
   server.on('connect', (req, socket, head) => {
+    // The CLI may reset the connection, also after a refusal.
+    socket.on('error', () => {});
     tunnels.push({
       target: req.url ?? '',
       auth: req.headers['proxy-authorization'],
     });
+    if (settings.refuse) {
+      socket.end(
+        `HTTP/1.1 ${settings.refuse} ${http.STATUS_CODES[settings.refuse]}\r\nContent-Length: 0\r\n\r\n`
+      );
+      return;
+    }
     const [host, port] = (req.url ?? '').split(':');
     const upstream = connect(
       Number(port),
@@ -37,12 +47,13 @@ async function startProxy() {
       }
     );
     upstream.on('error', () => socket.destroy());
-    socket.on('error', () => upstream.destroy());
+    socket.on('close', () => upstream.destroy());
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   return {
     url: `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
     tunnels,
+    settings,
     close: () => {
       server.close();
       server.closeAllConnections();
@@ -271,4 +282,34 @@ describe('the built CLI behind an HTTPS proxy', { timeout: 15_000 }, () => {
       expect(api.requests.map((r) => r.url)).toEqual(['/v1/sessions']);
     }
   );
+
+  it('fails at once with the status of a proxy that refuses CONNECT to the API', async () => {
+    proxy.settings.refuse = 407;
+
+    const result = await run([...cacheSet, '--path', 'cached.txt'], {
+      HTTPS_PROXY: proxy.url,
+    });
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain(
+      'Unexpected network response: Request failed with status code 407'
+    );
+    expect(result.stderr).toContain('Request failed with status code 407');
+    expect(proxy.tunnels).toHaveLength(1);
+  });
+
+  it('does not retry an upload to storage that the proxy refuses', async () => {
+    proxy.settings.refuse = 403;
+
+    const result = await run([...cacheSet, '--path', 'cached.txt'], {
+      HTTPS_PROXY: proxy.url,
+      CURRENTS_API_URL: api.url,
+      NO_PROXY: 'localhost',
+    });
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('storage answered 403');
+    expect(result.stdout + result.stderr).not.toContain('Upload failed');
+    expect(api.requests.map((r) => r.url)).toEqual(['/cache/upload']);
+  });
 });
