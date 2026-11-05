@@ -1,5 +1,24 @@
 # Changelog
 
+# [2.0.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.5.1...%40currents%2Fjest-v2.0.0) (2026-11-04)
+
+The reporter requires Node.js 22.13 or later, and now runs on Node.js 26. On an older Node.js, Jest fails to load the reporter with a message that says to upgrade Node.js or to use `@currents/jest@1`. The colors of its output follow Node.js: `NO_COLOR` and `NODE_DISABLE_COLORS` turn them off, `FORCE_COLOR=4` and `FORCE_COLOR=yes` no longer turn them on, and Jest's `--color` and `--colors` are no longer read. The reporter installs fewer packages, and declares `stack-utils`, which it uses, so it works with strict installers such as pnpm.
+
+### Bug Fixes
+
+* declare stack-utils as a dependency, and replace uuid and lodash with Node.js built-ins ([#479](https://github.com/currents-dev/currents-reporter/issues/479)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+* load yargs from its main entry so the reporter runs on Node.js 26 ([#477](https://github.com/currents-dev/currents-reporter/issues/477)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+* remove unused dependencies ([#475](https://github.com/currents-dev/currents-reporter/issues/475)) ([7d8ec62](https://github.com/currents-dev/currents-reporter/commit/7d8ec6232f42469c5f6087dd9a8042a167497397))
+* replace fs-extra with fs and fs/promises ([#480](https://github.com/currents-dev/currents-reporter/issues/480)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+
+### Features
+
+* require Node.js 22.13 or later ([#477](https://github.com/currents-dev/currents-reporter/issues/477)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+
+### BREAKING CHANGES
+
+* @currents/jest requires Node.js 22.13 or later. Upgrade Node.js, or stay on @currents/jest 1.x.
+
 ## [1.5.1](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fjest-v1.5.0...%40currents%2Fjest-v1.5.1) (2026-10-07)
 
 The reporter writes `fullTestSuite.json` for every run that is not sharded. Runs filtered by test name, test path or project, and runs stopped by `--bail`, get the tests of the files that ran. Uploading those runs with `@currents/cmd` 2.0.1 or earlier no longer runs Jest again, which under Detox booted a device. A Detox rerun (`detox test --retries`) keeps the `config.json` of the first run of the session, so the upload of a sharded Detox run with retries sees the shard and lists every test of the suite.
