@@ -188,13 +188,12 @@ Leave it, and tell the operator.
      pipeline: <slug>,
      releases: [<release id>],
      title: '@currents/<package> <version>',
-     content: <the CHANGELOG paragraph, then the issues, then links>
+     content: <the Linear release notes below>
    })
    ```
 
-   End the content with the issues, each with a few words on what it is, and
-   links to the GitHub release and the package's CHANGELOG. The note for
-   `@currents/cmd 2.3.0` shows the format.
+   You don't need the operator's approval for the note, but it must follow
+   the structure in "Release notes structure" below.
 
 ## 7. Notion release page
 
@@ -216,24 +215,9 @@ Match the title exactly. Then create the page with `notion-create-pages`:
 | Released by  | the operator                                           |
 | Impact       | `Major Changes`, `Fixes`, or `Fixes and Small Changes` |
 
-The content has three sections. Copy the checklist from the page of the
-previous version of the package, as it is:
-
-```markdown
-### Release Notes
-
-<the CHANGELOG section without its heading>
-
-### Checklist
-
-<the checklist>
-
-### Public Changelog Items to Publish
-
-<one line per change that users of the package notice, or nothing>
-```
-
-Keep the page URL for the Slack messages.
+The content follows the Notion page structure in "Release notes structure"
+below. You don't need the operator's approval for the page. Keep the page URL
+for the Slack messages.
 
 ## 8. Announce the release in Slack
 
@@ -331,3 +315,82 @@ End with a table of the steps — release commit, PR, tag, GitHub release,
 Linear release, Notion page, Slack announcement, merge, publish run, npm dist-
 tag, check from npm, Slack reply — each linked to its PR, run, release,
 message or npm page, with the evidence you checked.
+
+## Release notes structure
+
+The Linear release notes and the Notion page use the same parts, in the same
+order, every time. Write each part once, from the CHANGELOG section of the
+release commit, and use it in both places. Leave out a part that has nothing
+in it; never leave an empty heading.
+
+- Summary: one paragraph, at most four sentences, on what users of the
+  package notice. The CHANGELOG paragraph under the version heading.
+- Breaking changes: one bullet per change, each with what users have to
+  change.
+- Features and Bug fixes: the CHANGELOG entries, one bullet each, with the PR
+  link. Only entries that change the package (step 2).
+- Issues: one bullet per ticket, with a few words on what it is.
+- Links: the GitHub release and the package's CHANGELOG.
+
+Linear release notes, in Markdown:
+
+```markdown
+<Summary>
+
+**Breaking changes**
+
+- <change>: <what users have to change>
+
+**Features**
+
+- <entry> ([#NNN](<PR url>))
+
+**Bug fixes**
+
+- <entry> ([#NNN](<PR url>))
+
+**Issues**
+
+- [ENG-NNN](<Linear issue url>): <what it is>
+
+[GitHub release](<GitHub release url>) · [CHANGELOG](<CHANGELOG url>)
+```
+
+Notion page. Copy the checklist from the page of the previous version of the
+package, as it is:
+
+```markdown
+### Release Notes
+
+<Summary>
+
+#### Breaking changes
+
+- <change>: <what users have to change>
+
+#### Features
+
+- <entry> ([#NNN](<PR url>))
+
+#### Bug fixes
+
+- <entry> ([#NNN](<PR url>))
+
+#### Issues
+
+- [ENG-NNN](<Linear issue url>): <what it is>
+
+[GitHub release](<GitHub release url>) · [CHANGELOG](<CHANGELOG url>)
+
+### Checklist
+
+<the checklist>
+
+### Public Changelog Items to Publish
+
+- <one bullet per change that users of the package notice>
+```
+
+After you write either one, read it back (`get_release` with release notes,
+or `notion-fetch`) and check that the headings are there, in this order, and
+that no heading is empty.
