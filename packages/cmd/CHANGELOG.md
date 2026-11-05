@@ -1,5 +1,32 @@
 # Changelog
 
+## [3.0.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.3.0...%40currents%2Fcmd-v3.0.0) (2026-11-04)
+
+The CLI requires Node.js 22.13 or later, and on an older Node.js it stops at start with a message that says to upgrade or to use `@currents/cmd@2`. `currents run share` creates a public link to a run, a spec file or a test. The CLI installs far fewer packages, and none of the `braces`, `glob` and `minimatch` versions that security scanners flagged. Values in `.env`, such as `CURRENTS_RECORD_KEY`, now apply to the options, and cache and session uploads choose their proxy the way API requests do.
+
+### ⚠ BREAKING CHANGES
+
+* Requires Node.js 22.13 or later. Upgrade Node.js, or stay on `@currents/cmd@2`.
+* Cache and session storage requests no longer read `npm_config_https_proxy`, `npm_config_http_proxy`, `npm_config_proxy` and `npm_config_no_proxy`. Set `HTTPS_PROXY`, `HTTP_PROXY` and `NO_PROXY` instead. An `http` storage URL now goes through `HTTP_PROXY`.
+* In `--input-file` and `cache set --path`, a `!pattern` now excludes files from every pattern, and a folder whose name it matches. An empty pattern, such as one after a trailing comma, matches nothing instead of every file in the current folder.
+
+### Features
+
+* **cmd:** add run share command ([#473](https://github.com/currents-dev/currents-reporter/issues/473)) ([abe8923](https://github.com/currents-dev/currents-reporter/commit/abe8923bdb299514879751e4652c1e6034a6cae5))
+* require Node.js 22.13 or later ([#477](https://github.com/currents-dev/currents-reporter/issues/477)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+
+### Bug Fixes
+
+* **cmd:** convert and upload thousands of files under a low open file limit ([#480](https://github.com/currents-dev/currents-reporter/issues/480)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+* **cmd:** load `.env` before reading the options, so its values apply to them ([#477](https://github.com/currents-dev/currents-reporter/issues/477)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+* **cmd:** replace archiver and unzipper with yazl and yauzl ([#476](https://github.com/currents-dev/currents-reporter/issues/476)) ([2299a20](https://github.com/currents-dev/currents-reporter/commit/2299a20b5915e3d7f90cc4e7505d54b8908249ed))
+* **cmd:** replace axios with undici, and choose the proxy of every request the same way ([#481](https://github.com/currents-dev/currents-reporter/issues/481)) ([0018bfa](https://github.com/currents-dev/currents-reporter/commit/0018bfa584a40b3ebbf1047dfb3e5cd7bc4120c0))
+* **cmd:** replace globby with tinyglobby to drop braces, and expand numeric brace ranges as globby did ([#469](https://github.com/currents-dev/currents-reporter/issues/469)) ([1bf812f](https://github.com/currents-dev/currents-reporter/commit/1bf812f693a35ccf45be18329982b28765934845))
+* **cmd:** replace uuid, tmp, nanoid and getos with Node.js built-ins ([#479](https://github.com/currents-dev/currents-reporter/issues/479)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+* **cmd:** use @currents/commit-info 3.0.0 ([#490](https://github.com/currents-dev/currents-reporter/issues/490)) ([932a9d3](https://github.com/currents-dev/currents-reporter/commit/932a9d343542b7c1fb76b3698874ccae88f46917))
+* pin @currents/rules to 0.1.0 [ENG-1981] ([#470](https://github.com/currents-dev/currents-reporter/issues/470)) ([fc6861d](https://github.com/currents-dev/currents-reporter/commit/fc6861dc516903d2cbe69500a0c04d7bb62e8dd4))
+* remove unused dependencies ([#475](https://github.com/currents-dev/currents-reporter/issues/475)) ([7d8ec62](https://github.com/currents-dev/currents-reporter/commit/7d8ec6232f42469c5f6087dd9a8042a167497397))
+
 ## [2.3.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.2.0...%40currents%2Fcmd-v2.3.0) (2026-10-16)
 
 `currents run upload` uploads Cypress 13+ results without a Currents package in the Cypress project. `--input-format cypress-json` reads Cypress's run results, saved by an `after:run` handler or returned by `cypress.run()`: every attempt of a test, the screenshots of each attempt and the spec video, and a test that passed on a retry is flaky. `--input-format junit --framework cypress` reads the reports of Cypress's built-in `junit` reporter, with the last attempt of each test only. Both show the run as Cypress, and a test has the same ID in both. Reports without any test now fail with `No test results found in <files>` instead of `Failed to discover the full test suite!`. [`examples/cypress`](https://github.com/currents-dev/currents-reporter/tree/main/examples/cypress) runs Cypress on GitLab CI and uploads the results from a later job.
