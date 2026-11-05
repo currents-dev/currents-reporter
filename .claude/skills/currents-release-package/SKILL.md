@@ -1,15 +1,23 @@
 ---
 name: currents-release-package
-description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the Linear release with its issues and release notes, the Notion release page, the #releases announcement in Slack, the publish workflow, and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line.
+description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the Linear release with its issues and release notes, the Notion release page, the #releases announcement in Slack, the publish workflow, and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line (the oldversion channel).
 argument-hint: <package> <version> [channel]
 ---
 
 # Release a package to npm
 
-Arguments: the package (`cmd`, `jest`, `node-test-reporter`, `rules`, or the
-full `@currents/...` name), the version, and the npm channel. Without a
-channel, a version like `2.4.0` goes to `latest` and `2.4.0-beta.0` goes to
-`beta`. Ask for anything missing.
+Arguments: the package, the version, and the npm channel. Ask for anything
+missing.
+
+- Package: remove a leading `@currents/`. The rest must be `cmd`, `jest`,
+  `node-test-reporter` or `rules`; stop if it is not. In this skill,
+  `<package>` is this short name, and the npm name is `@currents/<package>`.
+- Channel, when none is given:
+  - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`.
+  - `2.4.0` goes to `latest` only when it is higher than
+    `npm view @currents/<package> dist-tags.latest`. Otherwise it goes to
+    `oldversion`: a fix to an older version line must not move `latest` back.
+  - Tell the operator the channel before step 1.
 
 A release changes these things outside the repo: a git tag, a GitHub release,
 the npm package and its dist-tag, the Linear release, the Notion release page,
@@ -127,9 +135,9 @@ For an alpha or beta, add `--prerelease` to `gh release create`.
 
 ## 6. Linear release
 
-Skip this step for `@currents/rules`, which has no pipeline, and for alpha
-and beta versions: the publish workflow completes a Linear release only for
-`latest`.
+Skip this step for `@currents/rules`, which has no pipeline, and for every
+channel except `latest`: the publish workflow completes a Linear release only
+for `latest`.
 
 The pipelines are `@currents/cmd` (slug `currentscmd`), `@currents/jest`
 (`currentsjest`) and `@currents/node-test-reporter`
@@ -201,7 +209,7 @@ Package releases have a page in the Releases database, the same database as
 the platform releases: data source
 `collection://197be2b5-c1d5-80fb-90e2-000bdd6ed896`. The page is named
 `@currents/<package>@<version>`, for example `@currents/cmd@1.9.9`. Skip this
-step for alpha and beta versions and for `@currents/rules`.
+step for `@currents/rules` and for every channel except `latest`.
 
 Check that no page has the name, with `notion-search` on that data source.
 Match the title exactly. Then create the page with `notion-create-pages`:
@@ -241,7 +249,8 @@ links do not render.
 • <breaking changes, a new minimum Node.js version, a new channel>
 ```
 
-Leave out a heading that has nothing under it. For alpha and beta, leave out
+Leave out a heading that has nothing under it. For channels other than
+`latest`, leave out
 the Notion and Linear links. Keep the message's `ts` for step 10: it is the
 `p<digits>` part of the permalink, with a decimal point before the last six
 digits (`p1787270016651819` → `1787270016.651819`).
@@ -296,7 +305,8 @@ Still open, moved to the next release:
 <npm url|npm> · <Notion page url|Release document> · <Linear release url|Release notes>
 ```
 
-Leave out "Still open" when no ticket moved. For alpha and beta, post the
+Leave out "Still open" when no ticket moved. For channels other than
+`latest`, post the
 reply without `reply_broadcast`.
 
 If the published version is broken, give the operator the commands to move
