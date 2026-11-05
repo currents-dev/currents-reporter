@@ -1,6 +1,6 @@
 ---
 name: currents-release-package
-description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the publish workflow and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line.
+description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the Linear release with its issues and release notes, the #releases announcement in Slack, the publish workflow, and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line.
 argument-hint: <package> <version> [channel]
 ---
 
@@ -11,11 +11,13 @@ full `@currents/...` name), the version, and the npm channel. Without a
 channel, a version like `2.4.0` goes to `latest` and `2.4.0-beta.0` goes to
 `beta`. Ask for anything missing.
 
-A release changes four things outside the repo: a git tag, a GitHub release,
-the npm package and its dist-tag, and, for `latest`, the Linear release and a
-Slack message. The operator runs the commands that create them. Give each
-command ready to run with `!`. You prepare the release commit, open the PR,
-merge it when approved, and check the result.
+A release changes these things outside the repo: a git tag, a GitHub
+release, the npm package and its dist-tag, the Linear release, and messages in
+`#releases`. The operator runs the commands that create the tag, the GitHub
+release and the npm package; give each command ready to run with `!`. You
+prepare the release commit, open the PR, merge it when approved, update the
+Linear release, post the Slack messages after the operator approves each
+draft, and check the result.
 
 ## How releases work here
 
@@ -27,10 +29,10 @@ merge it when approved, and check the result.
   package and a channel (`alpha`, `beta`, `latest`, `oldversion`). It
   publishes the version in `packages/<package>/package.json` of the ref it
   runs on. It does not check that the version fits the channel: you check.
-- For `latest`, the publish workflow also completes the package's Linear
-  release and posts to Slack. `@currents/rules` has no Linear pipeline.
 - Pushing a tag runs `.github/workflows/linear-release.yaml`, which syncs the
-  tag to the package's Linear release pipeline.
+  tag to the package's Linear release pipeline. For `latest`, the publish
+  workflow completes the Linear release that has the version, and posts a
+  short message to `#releases`. `@currents/rules` has no Linear pipeline.
 - Release PRs are merged with a merge commit, so the tagged commit is on the
   base branch. Other PRs are squashed.
 
@@ -109,10 +111,10 @@ From the release branch:
 Wait for CI and an approval. Fix review findings on the branch. If the
 release commit changes, the tag in step 5 goes on the new commit.
 
-## 5. Tag, release, merge, publish
+## 5. Tag and GitHub release
 
 Write the release notes to a file in the scratchpad: the CHANGELOG section
-without its heading. Then give the operator these commands, in this order:
+without its heading. Then give the operator these commands:
 
 ```bash
 git tag -a '@currents/<package>-v<version>' <release commit> -m 'Release <version>'
@@ -123,6 +125,105 @@ gh release create '@currents/<package>-v<version>' --verify-tag \
 
 For an alpha or beta, add `--prerelease` to `gh release create`.
 
+## 6. Linear release
+
+Skip this step for `@currents/rules`, which has no pipeline, and for alpha
+and beta versions: the publish workflow completes a Linear release only for
+`latest`.
+
+The pipelines are `@currents/cmd` (slug `currentscmd`), `@currents/jest`
+(`currentsjest`) and `@currents/node-test-reporter`
+(`currentsnode-test-reporter`). Each push to `main` adds commits to the
+pipeline's started release, usually named "New release". The tag push gives a
+release the version, and the publish to `latest` completes the release that
+has the version. Linear does not reliably attach the issues, and it writes no
+release notes, so you do both.
+
+A prerelease tag can give its version to the started release too: the
+started release of `@currents/cmd` has the version `2.0.0-beta.0`.
+Leave it, and tell the operator.
+
+1. Find the release that the tag push gave the version:
+   `list_releases({ pipeline: <slug>, version: <version> })`.
+
+   | Result                                                  | Action                                                                                                                       |
+   | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+   | One release                                             | Use it.                                                                                                                      |
+   | None, after the Linear Release run for the tag finished | `save_release({ pipeline: <slug>, name: '@currents/<package> <version>', version: <version>, commitSha: <release commit> })` |
+   | More than one                                           | Stop and ask the operator.                                                                                                   |
+
+   If the release is the pipeline's started release and its issues include
+   work that is not in this version, stop and ask. This happens when a fix
+   from a `release/<package>-<major>.<minor>.x` branch takes the release that
+   collects the next version from `main`.
+
+2. Name it `@currents/<package> <version>`, and give it a one-line
+   description of what changed:
+   `save_release({ id, name, description, commitSha: <release commit> })`.
+
+3. List the tickets of the release:
+   - Ticket IDs (`ENG-NNN`) in the commits since the last tag that change
+     the package: `git log <last tag>..<release commit> -- packages/<package>`.
+   - Ticket IDs in the titles and descriptions of those commits' PRs.
+     `CSR-0` means "no ticket".
+   - A ticket named only in a PR description, or only for context ("as in
+     ENG-1680"), is not attached until the operator confirms it.
+
+   Attach each one: `save_issue({ id, addReleases: [<release id>] })`. If a
+   ticket is on the pipeline's started release, also remove it there with
+   `removeReleases`.
+
+4. Settle each ticket before the publish. Completing the release marks every
+   attached ticket Done. A ticket with more work to come, for example more
+   PRs or a customer reply, moves to the started release:
+   `save_issue({ id, addReleases: [<started release id>], removeReleases: [<this release id>] })`.
+   Ask the operator which tickets have more work to come.
+
+5. Write the release notes. Check
+   `list_release_notes({ pipeline: <slug>, release: <release id> })` first
+   and update the note if one exists.
+
+   ```
+   save_release_note({
+     pipeline: <slug>,
+     releases: [<release id>],
+     title: '@currents/<package> <version>',
+     content: <the CHANGELOG paragraph, then the issues, then links>
+   })
+   ```
+
+   End the content with the issues, each with a few words on what it is, and
+   links to the GitHub release and the package's CHANGELOG. The note for
+   `@currents/cmd 2.3.0` shows the format.
+
+## 7. Announce the release in Slack
+
+Channel: `#releases` (`C075P0RFGAW`). Draft the message, show it to the
+operator, and post it with `slack_send_message` only after they approve. Use
+Slack formatting: `*bold*`, `<url|label>` links and `•` bullets. Markdown
+links do not render.
+
+```text
+:rocket: Release: `@currents/<package> <version>` (npm `<channel>`)
+
+<GitHub release url|GitHub release> · <Linear release url|Release notes> · <compare url|Diff>
+
+<the CHANGELOG paragraph: what users of the package notice>
+
+*Changes*
+• *<change>* (<PR url|#NNN>) — @author, <Linear issue url|ENG-NNN>
+
+*Needs attention*
+• <breaking changes, a new minimum Node.js version, a new channel>
+```
+
+Leave out a heading that has nothing under it. For alpha and beta, leave out
+the Linear link. Keep the message's `ts` for step 9: it is the `p<digits>`
+part of the permalink, with a decimal point before the last six digits
+(`p1787270016651819` → `1787270016.651819`).
+
+## 8. Merge and publish
+
 When the PR is approved and CI passes, merge it with a merge commit:
 `gh pr merge <n> --merge`. Then give the operator the publish command, with
 the base branch as the ref:
@@ -132,18 +233,47 @@ gh workflow run publish.yaml --ref <base branch> \
   -f package=@currents/<package> -f channel=<channel>
 ```
 
-## 6. Check the published package
+## 9. Check the published package and complete
 
 - Watch the publish run to the end: `gh run watch <run id> --exit-status`.
-  For `latest`, the Linear and Slack steps must pass too.
+  For `latest`, the steps "Mark Linear release as complete" and "Post to
+  Slack" must pass. The second one posts its own short message to
+  `#releases`.
 - `npm view @currents/<package> dist-tags` shows the new version on the
   channel. `npm view @currents/<package>@<version> dist.attestations` shows
   the provenance.
 - Install the version from npm in an empty folder and repeat the checks from
   step 3.
+- For `latest`: `get_release` shows the stage `Released`, and the tickets
+  from step 6 are Done, except the ones you moved.
+
+Then reply to the announcement from step 7. Show the draft first, as before.
+
+```
+slack_send_message({
+  channel_id: 'C075P0RFGAW',
+  thread_ts: <ts from step 7>,
+  reply_broadcast: true,
+  message: ...
+})
+```
+
+```text
+*@currents/<package> <version>* is on npm `<channel>`.
+
+Checked from npm: <one line per check from step 3>
+
+Still open, moved to the next release:
+• ENG-NNN: <why>
+
+<npm url|npm> · <Linear release url|Release notes>
+```
+
+Leave out "Still open" when no ticket moved. For alpha and beta, post the
+reply without `reply_broadcast`.
 
 If the published version is broken, give the operator the commands to move
-the channel back and mark the version:
+the channel back and mark the version, and post in the thread what happened:
 
 ```bash
 npm dist-tag add @currents/<package>@<previous version> <channel>
@@ -155,5 +285,6 @@ Do not unpublish: lockfiles that already have the version stop installing.
 ## Report
 
 End with a table of the steps — release commit, PR, tag, GitHub release,
-merge, publish run, npm dist-tag, check from npm — each linked to its PR,
-run, release or npm page, with the evidence you checked.
+Linear release, Slack announcement, merge, publish run, npm dist-tag, check
+from npm, Slack reply — each linked to its PR, run, release, message or npm
+page, with the evidence you checked.
