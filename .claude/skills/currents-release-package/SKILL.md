@@ -92,8 +92,10 @@ uses. In `packages/<package>`:
    - Otherwise, continue without asking.
 4. Pick the channel. These rules decide it when none is given, and check it
    when the operator gives one:
-   - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`. A
-     prerelease never goes to `latest` or `oldversion`.
+   - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`: the
+     channel is the version's prerelease name. A prerelease never goes to
+     `latest` or `oldversion`. The workflow has no channel for other names,
+     such as `rc`: stop and propose an `alpha` or `beta` version instead.
    - `2.4.0` goes to `latest` only when it is higher than
      `npm view @currents/<package> dist-tags.latest`. Otherwise it goes to
      `oldversion`: a fix to an older version line must not move `latest`
