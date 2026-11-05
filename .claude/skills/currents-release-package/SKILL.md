@@ -1,68 +1,114 @@
 ---
 name: currents-release-package
-description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the Linear release with its issues and release notes, the Notion release page, the #releases announcement in Slack, the publish workflow, and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line (the oldversion channel).
-argument-hint: <package> <version> [channel]
+description: Release one package of this repo to npm, end to end — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the version check, the release branch, the version and CHANGELOG commit, the release PR, the merge, the tag, the GitHub release, the publish workflow, the check of the published package, the Linear release with its issues and release notes, the Notion release page, and the #releases messages in Slack. Use for latest releases, alpha and beta prereleases, and fixes to an older version line (the oldversion channel).
+argument-hint: <package> [version] [channel]
 ---
 
 # Release a package to npm
 
-Arguments: the package, the version, and the npm channel. Ask for anything
-missing.
+You do every step. The operator only:
+
+1. Confirms the version and channel, when you propose a different one than
+   they asked for, or when the release is a new major version (step 2).
+2. Approves the release PR on GitHub (step 5).
+3. Approves the two Slack messages, shown together after the publish is
+   verified (step 10). Messages posted as the operator always need their
+   approval.
+
+Between these, do not stop to ask. If the harness blocks a command, such as
+the tag push, the GitHub release or the publish run, give the operator the
+exact command to run with `!`, and continue when it has run.
+
+## How releases work here
+
+- Each package has a `release-it` config in its `package.json`:
+  - The tag is `@currents/<package>-v<version>`.
+  - The CHANGELOG section lists only commits that change
+    `packages/<package>`, and the recommended version is based on the same
+    commits.
+  - A hook sets the package's version in the root `package-lock.json`
+    (`scripts/set-lockfile-version.js`).
+  - The release commit message is
+    `chore: release @currents/<package> v<version>`.
+  - The GitHub release is named `@currents/<package> v<version>`.
+- `.github/workflows/publish.yaml` publishes the version in
+  `packages/<package>/package.json` of the ref it runs on, to the channel you
+  give it (`alpha`, `beta`, `latest`, `oldversion`). It does not check that
+  the version fits the channel: you check, in step 2. For `latest`, it also
+  completes the Linear release that has the version, and posts its own short
+  message to `#releases`. For `@currents/rules`, which has no Linear pipeline,
+  it skips both.
+- Pushing a tag runs `.github/workflows/linear-release.yaml`, which syncs the
+  tag to the package's Linear release pipeline, whatever the channel.
+- Release PRs are merged with a merge commit, so the tagged commit is on the
+  base branch. Other PRs are squashed.
+- Dates in the CHANGELOG are UTC: release-it writes the UTC date. Leave it.
+
+Never move `latest` back, never unpublish, and tag only the commit the
+operator approved in the PR.
+
+## 1. Arguments and base branch
 
 - Package: remove a leading `@currents/`. The rest must be `cmd`, `jest`,
   `node-test-reporter` or `rules`; stop if it is not. In this skill,
   `<package>` is this short name, and the npm name is `@currents/<package>`.
-- Channel, when none is given:
-  - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`.
-  - `2.4.0` goes to `latest` only when it is higher than
-    `npm view @currents/<package> dist-tags.latest`. Otherwise it goes to
-    `oldversion`: a fix to an older version line must not move `latest` back.
-  - Tell the operator the channel before step 1.
-
-A release changes these things outside the repo: a git tag, a GitHub release,
-the npm package and its dist-tag, the Linear release, the Notion release page,
-and messages in `#releases`. The operator runs the commands that create the
-tag, the GitHub release and the npm package; give each command ready to run
-with `!`. You prepare the release commit, open the PR, merge it when approved,
-update the Linear release and the Notion page, post the Slack messages after
-the operator approves each draft, and check the result.
-
-## How releases work here
-
-- Each package has a `release-it` config in its `package.json`. The tag is
-  `@currents/<package>-v<version>`. The release commit message is
-  `chore: release @currents/<package> v<version>`. The GitHub release is
-  named `@currents/<package> v<version>`.
-- `.github/workflows/publish.yaml` publishes. It is started by hand with a
-  package and a channel (`alpha`, `beta`, `latest`, `oldversion`). It
-  publishes the version in `packages/<package>/package.json` of the ref it
-  runs on. It does not check that the version fits the channel: you check.
-- Pushing a tag runs `.github/workflows/linear-release.yaml`, which syncs the
-  tag to the package's Linear release pipeline. For `latest`, the publish
-  workflow completes the Linear release that has the version, and posts a
-  short message to `#releases`. `@currents/rules` has no Linear pipeline.
-- Release PRs are merged with a merge commit, so the tagged commit is on the
-  base branch. Other PRs are squashed.
-
-## 1. Pick the base branch
-
-- A release of the current major: base on `main`.
-- A fix to an older version line, for example 1.5.x when `main` has 2.0.0:
-  base on `release/<package>-<major>.<minor>.x`. Create it from the commit the
-  last version of that line was published from, which is the tag
-  `@currents/<package>-v<version>`. Check the workflows on it: their
-  `pull_request` branches must include `release/**`, or the PR gets no CI.
-  Add it in the PR if it is missing.
-
-Before you start:
-
+- Base branch:
+  - A release of the current major: `main`.
+  - A fix to an older version line, for example 1.5.x when `latest` is
+    2.0.0: `release/<package>-<major>.<minor>.x`. Create it from the tag of
+    the last version of that line. Its workflows' `pull_request` branches must
+    include `release/**`, or the PR gets no CI; add it in the PR if it is
+    missing.
 - Check that nobody else is releasing the package: open PRs from `release/`
   branches (`gh pr list --search 'head:release/'`) and publish runs in
   progress (`gh run list --workflow publish.yaml`).
-- `npm view @currents/<package> dist-tags` shows what each channel has now.
-  The new version must be higher than the channel's current version.
 
-## 2. Make the release commit
+## 2. Check the version
+
+Work in a new worktree of the base branch, not in a checkout someone else
+uses. In `packages/<package>`:
+
+1. List the commits since the package's last tag that change it:
+   `git log --format='%h %s' <last tag>..HEAD -- .`. If there are none, there
+   is nothing to release: stop and say so.
+2. Ask release-it for the version the commits call for:
+
+   ```bash
+   npx release-it --ci --release-version --no-github.release --no-git.requireUpstream
+   ```
+
+   For an alpha or beta, add `--preRelease=<alpha|beta>`. A commit with `!`
+   after its type, or a `BREAKING CHANGE:` footer, makes it a major version;
+   a `feat` makes it a minor one.
+
+3. Compare with what the operator asked for:
+   - No version given: propose release-it's version.
+   - The requested version is lower than release-it's, for example a patch
+     when a commit is breaking: propose release-it's version, and name the
+     commits that make the difference. A breaking change released as a patch
+     breaks every user on the old major.
+   - The version is a new major: ask the operator to confirm it, with the
+     breaking commits.
+   - Otherwise, continue without asking.
+4. Pick the channel. These rules decide it when none is given, and check it
+   when the operator gives one:
+   - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`: the
+     channel is the version's prerelease name. A prerelease never goes to
+     `latest` or `oldversion`. The workflow has no channel for other names,
+     such as `rc`: stop and propose an `alpha` or `beta` version instead.
+   - `2.4.0` goes to `latest` only when it is higher than
+     `npm view @currents/<package> dist-tags.latest`. Otherwise it goes to
+     `oldversion`: a fix to an older version line must not move `latest`
+     back. A version without a prerelease part never goes to `alpha` or
+     `beta`.
+   - If a channel the operator gave breaks one of these rules, stop and
+     propose the channel the rules give. Do not tag or publish until the
+     version and the channel agree.
+
+Show the version, the channel and the base branch in one message. Wait for
+the operator only in the cases above.
+
+## 3. Make the release commit
 
 Branch `release/<package>-<version>` from the base, then in
 `packages/<package>`:
@@ -72,26 +118,23 @@ npx release-it <version> --ci --no-git.commit --no-git.tag --no-git.push \
   --no-github.release --no-git.requireUpstream
 ```
 
-This sets the version in `package.json` and adds a CHANGELOG section. It
-does not commit, tag or push. Then fix what it gets wrong:
+This sets the version in `package.json` and in the root `package-lock.json`,
+and adds the CHANGELOG section. Then:
 
-- The compare link in the heading ends in `%24%7Bnpm.name%7D-v<version>`.
-  Replace that part with `%40currents%2F<package>-v<version>`.
-- It lists every `feat` and `fix` commit in the repo since the package's last
-  tag, including commits for other packages. Keep an entry only if the commit
-  changes `packages/<package>` or the package's runtime dependencies in
-  `package-lock.json`. `git log <last tag>..HEAD -- packages/<package>` lists
-  the first kind.
-- Under the heading, write a short paragraph on what users of the package
-  notice: what works now that did not, what they have to change. The earlier
-  sections in the CHANGELOG show the style.
-- Set the version of the `packages/<package>` entry in the root
-  `package-lock.json`. release-it does not change it. Change only that line,
-  then check that `npm ci --dry-run` works.
+- Write a short paragraph under the heading on what users of the package
+  notice: what works now that did not, and what they have to change. The
+  earlier sections in the CHANGELOG show the style.
+- A squash commit can contain other PRs, listed in its body
+  (`git show -s --format=%B <sha>`). For example, #477 contained #478 to
+  #480. When the change to this package came from one of them, link that PR
+  in the entry too. `gh pr view <n> --json files` shows which PR changed the
+  package.
+- `npm ci --dry-run` must pass.
 
-Commit with `chore: release @currents/<package> v<version>`.
+Commit `packages/<package>` and `package-lock.json` with
+`chore: release @currents/<package> v<version>`.
 
-## 3. Check the package before the PR
+## 4. Check the package
 
 From the release branch:
 
@@ -104,28 +147,34 @@ From the release branch:
   - jest: a small Jest project with the reporter runs and writes its report.
   - node-test-reporter: `node --test` with the reporter writes its report.
 - For each fix in the release, reproduce the failure with the previous
-  version and check that the packed version does not have it.
+  version and check that the packed version does not have it. When the
+  failure depends on the version of a dependency of a dependency, pin that
+  version with `overrides` in the test project: a fresh install can get a
+  newer version without the failure. For example, the Node.js 26 failure of
+  @currents/jest 1.5.1 needs yargs 17.7.2; yargs 17.7.3 does not fail. Say
+  which version you pinned in the PR.
 
-## 4. Open the release PR
+## 5. Open the release PR and merge it
 
-- Title: the release commit message.
-- Base: the base branch from step 1.
-- Body: what the release contains with PR links, the checks from step 3 with
-  their results, and that the PR is merged with a merge commit. Start with an
-  `Owner: @<login>` line naming the operator.
-- Load the `writing-voice` skill if it is available, and show the body to the
-  operator before you open the PR.
+- Title: the release commit message. Base: the base branch.
+- Body: start with an `Owner: @<login>` line naming the operator. Then what
+  the release contains, with PR links; the version check from step 2; the
+  checks from step 4 with their results; and that the PR is merged with a
+  merge commit.
+- Load the `writing-voice` skill if it is available.
 
-Wait for CI and an approval. Fix review findings on the branch. If the
-release commit changes, the tag in step 5 goes on the new commit.
+Wait for CI and the operator's approval. Fix review findings on the branch,
+and run the checks from step 4 again if the package changed. When the PR is
+approved and CI passes, merge it: `gh pr merge <n> --merge`.
 
-## 5. Tag and GitHub release
+## 6. Tag and GitHub release
+
+Tag the release commit that was approved, not the merge commit. Before you
+push the tag, note the releases in the package's Linear pipeline (step 7),
+with their versions: `list_releases({ pipeline: <slug>, limit: 5 })`.
 
 Write the release notes to a file in the scratchpad: the CHANGELOG section
-without its heading. For a package with a Linear pipeline (step 6), note the
-releases the pipeline has now, with their versions:
-`list_releases({ pipeline: <slug>, limit: 5 })`. Then give the operator these
-commands:
+without its heading. Then:
 
 ```bash
 git tag -a '@currents/<package>-v<version>' <release commit> -m 'Release <version>'
@@ -136,20 +185,9 @@ gh release create '@currents/<package>-v<version>' --verify-tag \
 
 For an alpha or beta, add `--prerelease` to `gh release create`.
 
-## 6. Linear release
+## 7. Linear release
 
 Skip this step for `@currents/rules`, which has no pipeline.
-
-For every channel except `latest`, only check what the tag did, and change
-nothing else in Linear: the publish workflow completes a Linear release only
-for `latest`. The Linear Release workflow syncs every tag, whatever the
-channel. When its run for the tag has finished, list the releases again and
-compare with what you noted in step 5. If the tag gave its version to an
-existing release, for example the started release that collects `main`, or
-created a new release, tell the operator what changed and ask whether to put
-the old version back (`save_release({ id, version: <old version> })`) or to
-cancel the new release. The started release of `@currents/cmd` has the
-version `2.0.0-beta.0`, most likely from such a tag.
 
 The pipelines are `@currents/cmd` (slug `currentscmd`), `@currents/jest`
 (`currentsjest`) and `@currents/node-test-reporter`
@@ -157,16 +195,27 @@ The pipelines are `@currents/cmd` (slug `currentscmd`), `@currents/jest`
 pipeline's started release, usually named "New release". The tag push gives a
 release the version, and the publish to `latest` completes the release that
 has the version. Linear does not reliably attach the issues, and it writes no
-release notes, so you do both.
+release notes, so you do both. Do this step before the publish: for
+`latest`, the publish completes the Linear release and marks its tickets
+Done.
 
-1. Find the release that the tag push gave the version:
+For every channel except `latest`, only check what the tag did, and change
+nothing else in Linear. When the Linear Release run for the tag has finished,
+list the releases again and compare with what you noted in step 6. If the tag
+gave its version to an existing release, for example the started release that
+collects `main`, or created a new release, tell the operator what changed and
+ask whether to put the old version back
+(`save_release({ id, version: <old version> })`) or to cancel the new
+release.
+
+For `latest`:
+
+1. Find the release that the tag gave the version:
    `list_releases({ pipeline: <slug>, version: <version> })`.
-
-   | Result                                                  | Action                                                                                                                       |
-   | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-   | One release                                             | Use it.                                                                                                                      |
-   | None, after the Linear Release run for the tag finished | `save_release({ pipeline: <slug>, name: '@currents/<package> <version>', version: <version>, commitSha: <release commit> })` |
-   | More than one                                           | Stop and ask the operator.                                                                                                   |
+   - One release: use it.
+   - None, after the Linear Release run for the tag finished: create it with
+     `save_release({ pipeline: <slug>, name: '@currents/<package> <version>', version: <version>, commitSha: <release commit> })`.
+   - More than one: stop and ask the operator.
 
    If the release is the pipeline's started release and its issues include
    work that is not in this version, stop and ask. This happens when a fix
@@ -177,25 +226,25 @@ release notes, so you do both.
    description of what changed:
    `save_release({ id, name, description, commitSha: <release commit> })`.
 
-3. List the tickets of the release:
-   - Ticket IDs (`ENG-NNN`) in the commits since the last tag that change
-     the package: `git log <last tag>..<release commit> -- packages/<package>`.
-   - Ticket IDs in the titles and descriptions of those commits' PRs.
-     `CSR-0` means "no ticket".
-   - A ticket named only in a PR description, or only for context ("as in
-     ENG-1680"), is not attached until the operator confirms it.
+3. List the tickets of the release: ticket IDs (`ENG-NNN`) in the commits
+   from step 2, and in the titles and descriptions of their PRs, including
+   the PRs inside squash commits. `CSR-0` means "no ticket". A ticket named
+   only in a PR description, or only for context ("as in ENG-1680"), is not
+   attached until the operator confirms it. When no commit or PR names a
+   ticket, steps 3 and 4 have nothing to do: continue without asking.
 
-   Attach each one: `save_issue({ id, addReleases: [<release id>] })`. If a
-   ticket is on the pipeline's started release, also remove it there with
+   Attach each ticket: `save_issue({ id, addReleases: [<release id>] })`. If
+   a ticket is on the pipeline's started release, also remove it there with
    `removeReleases`.
 
-4. Settle each ticket before the publish. Completing the release marks every
-   attached ticket Done. A ticket with more work to come, for example more PRs or
-   a customer reply, moves to the started release: `save_issue({ id, addReleases:
-[<started release id>], removeReleases: [<this release id>] })`. Ask the
-   operator which tickets have more work to come.
+4. Completing the release marks every attached ticket Done. A ticket with
+   more work to come, for example more PRs or a customer reply, moves to the
+   started release:
+   `save_issue({ id, addReleases: [<started release id>], removeReleases: [<this release id>] })`.
+   Ask the operator which tickets have more work to come, only when there are
+   tickets.
 
-5. Write the release notes. Check
+5. Write the release notes, in the structure below. Check
    `list_release_notes({ pipeline: <slug>, release: <release id> })` first
    and update the note if one exists.
 
@@ -204,43 +253,87 @@ release notes, so you do both.
      pipeline: <slug>,
      releases: [<release id>],
      title: '@currents/<package> <version>',
-     content: <the Linear release notes below>
+     content: <the Linear release notes>
    })
    ```
 
-   You don't need the operator's approval for the note, but it must follow
-   the structure in "Release notes structure" below.
+6. After the publish (step 8): `get_release` shows the stage `Released`, and the
+   tickets are Done, except the ones you moved.
 
-## 7. Notion release page
+## 8. Publish and check
+
+Run the publish on the tag from step 6, not on the base branch: the workflow
+builds the ref it runs on, and the branch can have moved since the merge.
+
+```bash
+gh workflow run publish.yaml --ref '@currents/<package>-v<version>' \
+  -f package=@currents/<package> -f channel=<channel>
+gh run watch <run id> --exit-status
+```
+
+For `latest`, the steps "Mark Linear release as complete" and "Post to Slack"
+must pass too, except for `@currents/rules`: the workflow skips both for it,
+and skipped is the expected result.
+
+Then check the registry. npm can show the old version for a few minutes after
+the run, so poll every 15 seconds for up to 5 minutes before you call it a
+failure:
+
+```bash
+npm view @currents/<package> dist-tags --json --prefer-online
+npm view @currents/<package>@<version> dist.attestations --prefer-online
+```
+
+The channel has the new version, and the version has provenance. Install the
+version from npm in an empty folder and repeat the checks from step 4.
+
+If the published version is broken, move the channel back and mark the
+version:
+
+```bash
+npm dist-tag add @currents/<package>@<previous version> <channel>
+npm deprecate @currents/<package>@<version> "<what is broken>; use <previous version>"
+```
+
+Do not unpublish: lockfiles that already have the version stop installing.
+
+## 9. Notion release page
+
+Skip this step for `@currents/rules` and for every channel except `latest`.
 
 Package releases have a page in the Releases database, the same database as
 the platform releases: data source
 `collection://197be2b5-c1d5-80fb-90e2-000bdd6ed896`. The page is named
-`@currents/<package>@<version>`, for example `@currents/cmd@1.9.9`. Skip this
-step for `@currents/rules` and for every channel except `latest`.
+`@currents/<package>@<version>`, for example `@currents/cmd@1.9.9`.
 
 Check that no page has the name, with `notion-search` on that data source.
 Match the title exactly. Then create the page with `notion-create-pages`:
 
-| Property     | Value                                                  |
-| ------------ | ------------------------------------------------------ |
-| Name         | `@currents/<package>@<version>`                        |
-| Release Date | today                                                  |
-| Diff Link    | the compare URL from the CHANGELOG heading             |
-| Services     | `@currents/<package>`                                  |
-| Released by  | the operator                                           |
-| Impact       | `Major Changes`, `Fixes`, or `Fixes and Small Changes` |
+| Property                     | Value                                                  |
+| ---------------------------- | ------------------------------------------------------ |
+| Name                         | `@currents/<package>@<version>`                        |
+| Release Date                 | the date in the CHANGELOG heading                      |
+| Diff Link                    | the compare URL from the CHANGELOG heading             |
+| Services                     | `@currents/<package>`                                  |
+| Released by                  | the operator                                           |
+| Impact                       | `Major Changes`, `Fixes`, or `Fixes and Small Changes` |
+| Production deployed & tested | yes, after the checks from npm in step 8 pass          |
 
-The content follows the Notion page structure in "Release notes structure"
-below. You don't need the operator's approval for the page. Keep the page URL
-for the Slack messages.
+The content follows the Notion page structure below. Tick "Notify team about
+the release" when the Slack messages are posted.
 
-## 8. Announce the release in Slack
+## 10. Slack
 
-Channel: `#releases` (`C075P0RFGAW`). Draft the message, show it to the
-operator, and post it with `slack_send_message` only after they approve. Use
-Slack formatting: `*bold*`, `<url|label>` links and `•` bullets. Markdown
-links do not render.
+Write both messages after the publish is verified, show them to the operator
+together, and post both after one approval. Channel: `#releases`
+(`C075P0RFGAW`). Use Slack formatting: `*bold*`, `<url|label>` links and `•`
+bullets. Markdown links do not render.
+
+The publish workflow already posted "🚀 Release:
+@currents/<package>@<version> has been marked as complete in Linear" for
+`latest`. Use the same version and channel, so the messages agree.
+
+The announcement:
 
 ```text
 :rocket: Release: `@currents/<package> <version>` (npm `<channel>`)
@@ -257,83 +350,31 @@ links do not render.
 • <breaking changes, a new minimum Node.js version, a new channel>
 ```
 
-Leave out a heading that has nothing under it. For channels other than
-`latest`, leave out
-the Notion and Linear links. Keep the message's `ts` for step 10: it is the
-`p<digits>` part of the permalink, with a decimal point before the last six
-digits (`p1787270016651819` → `1787270016.651819`).
-
-## 9. Merge and publish
-
-When the PR is approved and CI passes, merge it with a merge commit:
-`gh pr merge <n> --merge`. Then give the operator the publish command, with
-the base branch as the ref:
-
-```bash
-gh workflow run publish.yaml --ref <base branch> \
-  -f package=@currents/<package> -f channel=<channel>
-```
-
-## 10. Check the published package and complete
-
-- Watch the publish run to the end: `gh run watch <run id> --exit-status`.
-  For `latest`, the steps "Mark Linear release as complete" and "Post to
-  Slack" must pass. The second one posts its own short message to
-  `#releases`.
-- `npm view @currents/<package> dist-tags` shows the new version on the
-  channel. `npm view @currents/<package>@<version> dist.attestations` shows
-  the provenance.
-- Install the version from npm in an empty folder and repeat the checks from
-  step 3.
-- For `latest`: `get_release` shows the stage `Released`, and the tickets
-  from step 6 are Done, except the ones you moved.
-- For `latest`: set `Production deployed & tested` on the Notion page from
-  step 7, and tick "Notify team about the release" when the reply below is
-  posted.
-
-Then reply to the announcement from step 8. Show the draft first, as before.
-
-```
-slack_send_message({
-  channel_id: 'C075P0RFGAW',
-  thread_ts: <ts from step 8>,
-  reply_broadcast: true,
-  message: ...
-})
-```
+The reply in its thread, posted with `thread_ts` set to the announcement's
+`ts` and `reply_broadcast: true`:
 
 ```text
 *@currents/<package> <version>* is on npm `<channel>`.
 
-Checked from npm: <one line per check from step 3>
+Checked from npm: <one line per check from step 8>
 
 Still open, moved to the next release:
 • ENG-NNN: <why>
 
-<npm url|npm> · <Notion page url|Release document> · <Linear release url|Release notes>
+<npm url|npm> · <publish run url|Publish run>
 ```
 
-Leave out "Still open" when no ticket moved. For channels other than
-`latest`, leave out "Still open" and the Notion and Linear links, because
-steps 6 and 7 made no release or page, and post the reply without
-`reply_broadcast`.
-
-If the published version is broken, give the operator the commands to move
-the channel back and mark the version, and post in the thread what happened:
-
-```bash
-npm dist-tag add @currents/<package>@<previous version> <channel>
-npm deprecate @currents/<package>@<version> "<what is broken>; use <previous version>"
-```
-
-Do not unpublish: lockfiles that already have the version stop installing.
+Leave out a heading or line that has nothing in it. For channels other than
+`latest`, leave out the Notion and Linear links and "Still open", because
+steps 7 and 9 made no release or page, and post the reply without
+`reply_broadcast`. If you rolled the version back, say so in the reply.
 
 ## Report
 
-End with a table of the steps — release commit, PR, tag, GitHub release,
-Linear release, Notion page, Slack announcement, merge, publish run, npm dist-
-tag, check from npm, Slack reply — each linked to its PR, run, release,
-message or npm page, with the evidence you checked.
+End with a table of the steps — version check, release commit, PR, merge,
+tag, GitHub release, publish run, npm dist-tag, check from npm, Linear
+release, Notion page, Slack messages — each linked to its PR, run, release,
+page, message or npm page, with the evidence you checked.
 
 ## Release notes structure
 
@@ -347,7 +388,7 @@ in it; never leave an empty heading.
 - Breaking changes: one bullet per change, each with what users have to
   change.
 - Features and Bug fixes: the CHANGELOG entries, one bullet each, with the PR
-  link. Only entries that change the package (step 2).
+  link.
 - Issues: one bullet per ticket, with a few words on what it is.
 - Links: the GitHub release and the package's CHANGELOG.
 
@@ -375,8 +416,8 @@ Linear release notes, in Markdown:
 [GitHub release](<GitHub release url>) · [CHANGELOG](<CHANGELOG url>)
 ```
 
-Notion page. Copy the checklist from the page of the previous version of the
-package, as it is:
+Notion page. Copy the checklist items from the page of the previous version
+of the package, all unticked:
 
 ```markdown
 ### Release Notes
@@ -403,7 +444,7 @@ package, as it is:
 
 ### Checklist
 
-<the checklist>
+- [ ] <each item of the previous page's checklist>
 
 ### Public Changelog Items to Publish
 
