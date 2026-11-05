@@ -1,6 +1,6 @@
 ---
 name: currents-release-package
-description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the Linear release with its issues and release notes, the #releases announcement in Slack, the publish workflow, and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line.
+description: Release one package of this repo to npm — @currents/cmd, @currents/jest, @currents/node-test-reporter or @currents/rules. Covers the release branch, the version and CHANGELOG commit, the release PR, the tag, the GitHub release, the Linear release with its issues and release notes, the Notion release page, the #releases announcement in Slack, the publish workflow, and the check of the published package. Use for latest releases, alpha and beta prereleases, and fixes to an older version line.
 argument-hint: <package> <version> [channel]
 ---
 
@@ -11,13 +11,13 @@ full `@currents/...` name), the version, and the npm channel. Without a
 channel, a version like `2.4.0` goes to `latest` and `2.4.0-beta.0` goes to
 `beta`. Ask for anything missing.
 
-A release changes these things outside the repo: a git tag, a GitHub
-release, the npm package and its dist-tag, the Linear release, and messages in
-`#releases`. The operator runs the commands that create the tag, the GitHub
-release and the npm package; give each command ready to run with `!`. You
-prepare the release commit, open the PR, merge it when approved, update the
-Linear release, post the Slack messages after the operator approves each
-draft, and check the result.
+A release changes these things outside the repo: a git tag, a GitHub release,
+the npm package and its dist-tag, the Linear release, the Notion release page,
+and messages in `#releases`. The operator runs the commands that create the
+tag, the GitHub release and the npm package; give each command ready to run
+with `!`. You prepare the release commit, open the PR, merge it when approved,
+update the Linear release and the Notion page, post the Slack messages after
+the operator approves each draft, and check the result.
 
 ## How releases work here
 
@@ -174,10 +174,10 @@ Leave it, and tell the operator.
    `removeReleases`.
 
 4. Settle each ticket before the publish. Completing the release marks every
-   attached ticket Done. A ticket with more work to come, for example more
-   PRs or a customer reply, moves to the started release:
-   `save_issue({ id, addReleases: [<started release id>], removeReleases: [<this release id>] })`.
-   Ask the operator which tickets have more work to come.
+   attached ticket Done. A ticket with more work to come, for example more PRs or
+   a customer reply, moves to the started release: `save_issue({ id, addReleases:
+[<started release id>], removeReleases: [<this release id>] })`. Ask the
+   operator which tickets have more work to come.
 
 5. Write the release notes. Check
    `list_release_notes({ pipeline: <slug>, release: <release id> })` first
@@ -196,7 +196,46 @@ Leave it, and tell the operator.
    links to the GitHub release and the package's CHANGELOG. The note for
    `@currents/cmd 2.3.0` shows the format.
 
-## 7. Announce the release in Slack
+## 7. Notion release page
+
+Package releases have a page in the Releases database, the same database as
+the platform releases: data source
+`collection://197be2b5-c1d5-80fb-90e2-000bdd6ed896`. The page is named
+`@currents/<package>@<version>`, for example `@currents/cmd@1.9.9`. Skip this
+step for alpha and beta versions and for `@currents/rules`.
+
+Check that no page has the name, with `notion-search` on that data source.
+Match the title exactly. Then create the page with `notion-create-pages`:
+
+| Property     | Value                                                  |
+| ------------ | ------------------------------------------------------ |
+| Name         | `@currents/<package>@<version>`                        |
+| Release Date | today                                                  |
+| Diff Link    | the compare URL from the CHANGELOG heading             |
+| Services     | `@currents/<package>`                                  |
+| Released by  | the operator                                           |
+| Impact       | `Major Changes`, `Fixes`, or `Fixes and Small Changes` |
+
+The content has three sections. Copy the checklist from the page of the
+previous version of the package, as it is:
+
+```markdown
+### Release Notes
+
+<the CHANGELOG section without its heading>
+
+### Checklist
+
+<the checklist>
+
+### Public Changelog Items to Publish
+
+<one line per change that users of the package notice, or nothing>
+```
+
+Keep the page URL for the Slack messages.
+
+## 8. Announce the release in Slack
 
 Channel: `#releases` (`C075P0RFGAW`). Draft the message, show it to the
 operator, and post it with `slack_send_message` only after they approve. Use
@@ -206,7 +245,8 @@ links do not render.
 ```text
 :rocket: Release: `@currents/<package> <version>` (npm `<channel>`)
 
-<GitHub release url|GitHub release> · <Linear release url|Release notes> · <compare url|Diff>
+<Notion page url|Release document> · <GitHub release url|GitHub release> ·
+<Linear release url|Release notes> · <compare url|Diff>
 
 <the CHANGELOG paragraph: what users of the package notice>
 
@@ -218,11 +258,11 @@ links do not render.
 ```
 
 Leave out a heading that has nothing under it. For alpha and beta, leave out
-the Linear link. Keep the message's `ts` for step 9: it is the `p<digits>`
-part of the permalink, with a decimal point before the last six digits
-(`p1787270016651819` → `1787270016.651819`).
+the Notion and Linear links. Keep the message's `ts` for step 10: it is the
+`p<digits>` part of the permalink, with a decimal point before the last six
+digits (`p1787270016651819` → `1787270016.651819`).
 
-## 8. Merge and publish
+## 9. Merge and publish
 
 When the PR is approved and CI passes, merge it with a merge commit:
 `gh pr merge <n> --merge`. Then give the operator the publish command, with
@@ -233,7 +273,7 @@ gh workflow run publish.yaml --ref <base branch> \
   -f package=@currents/<package> -f channel=<channel>
 ```
 
-## 9. Check the published package and complete
+## 10. Check the published package and complete
 
 - Watch the publish run to the end: `gh run watch <run id> --exit-status`.
   For `latest`, the steps "Mark Linear release as complete" and "Post to
@@ -246,13 +286,16 @@ gh workflow run publish.yaml --ref <base branch> \
   step 3.
 - For `latest`: `get_release` shows the stage `Released`, and the tickets
   from step 6 are Done, except the ones you moved.
+- For `latest`: set `Production deployed & tested` on the Notion page from
+  step 7, and tick "Notify team about the release" when the reply below is
+  posted.
 
-Then reply to the announcement from step 7. Show the draft first, as before.
+Then reply to the announcement from step 8. Show the draft first, as before.
 
 ```
 slack_send_message({
   channel_id: 'C075P0RFGAW',
-  thread_ts: <ts from step 7>,
+  thread_ts: <ts from step 8>,
   reply_broadcast: true,
   message: ...
 })
@@ -266,7 +309,7 @@ Checked from npm: <one line per check from step 3>
 Still open, moved to the next release:
 • ENG-NNN: <why>
 
-<npm url|npm> · <Linear release url|Release notes>
+<npm url|npm> · <Notion page url|Release document> · <Linear release url|Release notes>
 ```
 
 Leave out "Still open" when no ticket moved. For alpha and beta, post the
@@ -285,6 +328,6 @@ Do not unpublish: lockfiles that already have the version stop installing.
 ## Report
 
 End with a table of the steps — release commit, PR, tag, GitHub release,
-Linear release, Slack announcement, merge, publish run, npm dist-tag, check
-from npm, Slack reply — each linked to its PR, run, release, message or npm
-page, with the evidence you checked.
+Linear release, Notion page, Slack announcement, merge, publish run, npm dist-
+tag, check from npm, Slack reply — each linked to its PR, run, release,
+message or npm page, with the evidence you checked.
