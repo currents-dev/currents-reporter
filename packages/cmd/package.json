@@ -109,12 +109,21 @@
         },
         "header": "# Changelog",
         "ignoreVersion": true,
-        "infile": "./CHANGELOG.md"
+        "infile": "./CHANGELOG.md",
+        "gitRawCommitsOpts": {
+          "path": "."
+        },
+        "commitsOpts": {
+          "path": "."
+        }
       }
     },
     "git": {
       "commitMessage": "chore: release ${npm.name} v${version}",
-      "tagName": "${npm.name}-v${version}"
+      "tagName": "@currents/cmd-v${version}"
+    },
+    "hooks": {
+      "after:bump": "node ../../scripts/set-lockfile-version.js ${version}"
     }
   }
 }
