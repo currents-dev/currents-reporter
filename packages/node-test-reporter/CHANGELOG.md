@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.0.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fnode-test-reporter-v1.1.0...%40currents%2Fnode-test-reporter-v2.0.0) (2026-11-05)
+
+The reporter requires Node.js 22.13 or later. On an older Node.js, `node --test` fails to load the reporter with a message that says to upgrade Node.js or to use `@currents/node-test-reporter@1`. It uses xmlbuilder2 4, which writes the same JUnit XML as before and no longer installs js-yaml 3, so `npm audit` reports no findings for the reporter.
+
+### ⚠ BREAKING CHANGES
+
+* @currents/node-test-reporter requires Node.js 22.13 or later. Upgrade Node.js, or stay on @currents/node-test-reporter 1.x.
+
+### Features
+
+* require Node.js 22.13 or later ([#477](https://github.com/currents-dev/currents-reporter/issues/477)) ([ea0c07a](https://github.com/currents-dev/currents-reporter/commit/ea0c07acfe4d930996093a53991eea9dff8414b9))
+
+### Bug Fixes
+
+* update xmlbuilder2 to 4.0.3 ([#393](https://github.com/currents-dev/currents-reporter/issues/393)) ([d9d645a](https://github.com/currents-dev/currents-reporter/commit/d9d645a83267d9474d394699c94d6226f6e45cc9))
+
 # 1.1.0 (2025-04-16)
 
 
