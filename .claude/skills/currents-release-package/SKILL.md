@@ -122,7 +122,10 @@ release commit changes, the tag in step 5 goes on the new commit.
 ## 5. Tag and GitHub release
 
 Write the release notes to a file in the scratchpad: the CHANGELOG section
-without its heading. Then give the operator these commands:
+without its heading. For a package with a Linear pipeline (step 6), note the
+releases the pipeline has now, with their versions:
+`list_releases({ pipeline: <slug>, limit: 5 })`. Then give the operator these
+commands:
 
 ```bash
 git tag -a '@currents/<package>-v<version>' <release commit> -m 'Release <version>'
@@ -135,9 +138,18 @@ For an alpha or beta, add `--prerelease` to `gh release create`.
 
 ## 6. Linear release
 
-Skip this step for `@currents/rules`, which has no pipeline, and for every
-channel except `latest`: the publish workflow completes a Linear release only
-for `latest`.
+Skip this step for `@currents/rules`, which has no pipeline.
+
+For every channel except `latest`, only check what the tag did, and change
+nothing else in Linear: the publish workflow completes a Linear release only
+for `latest`. The Linear Release workflow syncs every tag, whatever the
+channel. When its run for the tag has finished, list the releases again and
+compare with what you noted in step 5. If the tag gave its version to an
+existing release, for example the started release that collects `main`, or
+created a new release, tell the operator what changed and ask whether to put
+the old version back (`save_release({ id, version: <old version> })`) or to
+cancel the new release. The started release of `@currents/cmd` has the
+version `2.0.0-beta.0`, most likely from such a tag.
 
 The pipelines are `@currents/cmd` (slug `currentscmd`), `@currents/jest`
 (`currentsjest`) and `@currents/node-test-reporter`
@@ -146,10 +158,6 @@ pipeline's started release, usually named "New release". The tag push gives a
 release the version, and the publish to `latest` completes the release that
 has the version. Linear does not reliably attach the issues, and it writes no
 release notes, so you do both.
-
-A prerelease tag can give its version to the started release too: the
-started release of `@currents/cmd` has the version `2.0.0-beta.0`.
-Leave it, and tell the operator.
 
 1. Find the release that the tag push gave the version:
    `list_releases({ pipeline: <slug>, version: <version> })`.
@@ -306,8 +314,9 @@ Still open, moved to the next release:
 ```
 
 Leave out "Still open" when no ticket moved. For channels other than
-`latest`, post the
-reply without `reply_broadcast`.
+`latest`, leave out "Still open" and the Notion and Linear links, because
+steps 6 and 7 made no release or page, and post the reply without
+`reply_broadcast`.
 
 If the published version is broken, give the operator the commands to move
 the channel back and mark the version, and post in the thread what happened:
