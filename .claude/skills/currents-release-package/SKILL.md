@@ -28,15 +28,16 @@ exact command to run with `!`, and continue when it has run.
     commits.
   - A hook sets the package's version in the root `package-lock.json`
     (`scripts/set-lockfile-version.js`).
-  - The release commit message is `chore: release @currents/<package>
-v<version>`, and the GitHub release is named `@currents/<package>
-v<version>`.
+  - The release commit message is
+    `chore: release @currents/<package> v<version>`.
+  - The GitHub release is named `@currents/<package> v<version>`.
 - `.github/workflows/publish.yaml` publishes the version in
   `packages/<package>/package.json` of the ref it runs on, to the channel you
   give it (`alpha`, `beta`, `latest`, `oldversion`). It does not check that
-  the version fits the channel: you check. For `latest`, it also completes
-  the Linear release that has the version, and posts its own short message to
-  `#releases`.
+  the version fits the channel: you check, in step 2. For `latest`, it also
+  completes the Linear release that has the version, and posts its own short
+  message to `#releases`. For `@currents/rules`, which has no Linear pipeline,
+  it skips both.
 - Pushing a tag runs `.github/workflows/linear-release.yaml`, which syncs the
   tag to the package's Linear release pipeline, whatever the channel.
 - Release PRs are merged with a merge commit, so the tagged commit is on the
@@ -89,12 +90,18 @@ uses. In `packages/<package>`:
    - The version is a new major: ask the operator to confirm it, with the
      breaking commits.
    - Otherwise, continue without asking.
-4. Pick the channel, when none is given:
-   - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`.
+4. Pick the channel. These rules decide it when none is given, and check it
+   when the operator gives one:
+   - `2.4.0-beta.0` goes to `beta`, and `2.4.0-alpha.0` goes to `alpha`. A
+     prerelease never goes to `latest` or `oldversion`.
    - `2.4.0` goes to `latest` only when it is higher than
      `npm view @currents/<package> dist-tags.latest`. Otherwise it goes to
      `oldversion`: a fix to an older version line must not move `latest`
-     back.
+     back. A version without a prerelease part never goes to `alpha` or
+     `beta`.
+   - If a channel the operator gave breaks one of these rules, stop and
+     propose the channel the rules give. Do not tag or publish until the
+     version and the channel agree.
 
 Show the version, the channel and the base branch in one message. Wait for
 the operator only in the cases above.
@@ -253,14 +260,18 @@ For `latest`:
 
 ## 8. Publish and check
 
+Run the publish on the tag from step 6, not on the base branch: the workflow
+builds the ref it runs on, and the branch can have moved since the merge.
+
 ```bash
-gh workflow run publish.yaml --ref <base branch> \
+gh workflow run publish.yaml --ref '@currents/<package>-v<version>' \
   -f package=@currents/<package> -f channel=<channel>
 gh run watch <run id> --exit-status
 ```
 
 For `latest`, the steps "Mark Linear release as complete" and "Post to Slack"
-must pass too.
+must pass too, except for `@currents/rules`: the workflow skips both for it,
+and skipped is the expected result.
 
 Then check the registry. npm can show the old version for a few minutes after
 the run, so poll every 15 seconds for up to 5 minutes before you call it a
