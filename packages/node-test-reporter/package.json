@@ -15,6 +15,7 @@
   "description": "Currents reporter for Node Test",
   "scripts": {
     "test": "vitest --run --passWithNoTests",
+    "lint": "TIMING=1 eslint \"**/*.ts*\"",
     "rm": "rimraf dist",
     "types": "tsc --noEmit",
     "build": "tsup-node --minify --dts",
