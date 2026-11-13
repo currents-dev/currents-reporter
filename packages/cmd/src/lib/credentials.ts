@@ -1,6 +1,13 @@
 import _ from 'lodash';
 
-const KEY_FIELDS = ['apiKey', 'recordKey', 'key', 'subject_token', 'token'];
+const KEY_FIELDS = [
+  'apiKey',
+  'recordKey',
+  'key',
+  'subject_token',
+  'token',
+  'oidcToken',
+];
 
 /**
  * A copy of the payload with the fields replaced by '*****', in nested

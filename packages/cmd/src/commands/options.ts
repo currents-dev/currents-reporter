@@ -8,13 +8,19 @@ import { parseCommaSeparatedList } from './utils';
 const REQUIRED = '(required)';
 
 const OIDC =
-  'the CI job has an OIDC token: id-token: write on GitHub Actions, or CURRENTS_OIDC_TOKEN with the Currents URL as its audience';
+  'the CI job has an OIDC token: id-token: write on GitHub Actions, or --oidc-token with the Currents URL as its audience';
 
 export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
   new Option(
     '-k, --key <record-key>',
     `the record key from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.recordKey.env);
+
+export const oidcTokenOption = () =>
+  new Option(
+    '--oidc-token <token>',
+    'an OIDC token of the CI job, to get a record key without a stored secret; its audience is the Currents URL. Used when no record key is set'
+  ).env('CURRENTS_OIDC_TOKEN');
 
 export const apiKeyOption = (note = REQUIRED) =>
   new Option(

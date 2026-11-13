@@ -44,9 +44,6 @@ type TokenSource = {
 const isSet = (env: NodeJS.ProcessEnv, name: string) =>
   Boolean(env[name]?.trim());
 
-const readVariable = (name: string) => async (env: NodeJS.ProcessEnv) =>
-  (env[name] as string).trim();
-
 /**
  * Retries as the Currents API client does. The warning does not name the URL
  * of the request.
@@ -91,16 +88,17 @@ async function getGitHubToken(env: NodeJS.ProcessEnv) {
 }
 
 /**
- * In the order they are tried. The first one that is available is used.
- * CURRENTS_OIDC_TOKEN is for a token the job gets itself, on any provider, for
- * example GitLab CI `id_tokens`.
+ * A token the job gets itself, on any provider (for example GitLab CI
+ * `id_tokens`), from --oidc-token or CURRENTS_OIDC_TOKEN.
  */
+const providedTokenSource = (token: string): TokenSource => ({
+  name: 'token in --oidc-token or CURRENTS_OIDC_TOKEN',
+  isAvailable: () => true,
+  getToken: async () => token,
+});
+
+/** The sources the CLI finds by itself, in the order they are tried. */
 const tokenSources: TokenSource[] = [
-  {
-    name: 'token in CURRENTS_OIDC_TOKEN',
-    isAvailable: (env) => isSet(env, 'CURRENTS_OIDC_TOKEN'),
-    getToken: readVariable('CURRENTS_OIDC_TOKEN'),
-  },
   {
     name: 'GitHub Actions OIDC token',
     // GitHub sets both variables only for a job with `id-token: write`.
@@ -208,12 +206,19 @@ export function resetOidcExchange() {
 
 /**
  * A command with `--key` that got no record key, and no API key to use
- * instead, gets one from the OIDC token of the job. The commands that take
+ * instead, gets one from an OIDC token: --oidc-token, CURRENTS_OIDC_TOKEN, or
+ * GitHub Actions. The commands that take
  * only an API key have no `--key` option and are not affected.
  */
 export async function useOidcRecordKey(command: CommandUnknownOpts) {
   const hasOption = (long: string) =>
     command.options.some((o) => o.long === long);
+  const oidcToken = String(command.getOptionValue('oidcToken') ?? '').trim();
+  // The value is not kept in the options, which commands copy into their
+  // config and print with --debug.
+  if (hasOption('--oidc-token')) {
+    command.setOptionValueWithSource('oidcToken', undefined, 'config');
+  }
   if (
     !hasOption('--key') ||
     command.getOptionValue('key') ||
@@ -221,7 +226,7 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   ) {
     return;
   }
-  const source = findTokenSource();
+  const source = oidcToken ? providedTokenSource(oidcToken) : findTokenSource();
   if (!source) return;
   // The command handler enables debug later, after the exchange.
   if (command.getOptionValue('debug')) enableDebug();

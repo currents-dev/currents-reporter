@@ -52,5 +52,5 @@ export const getOidcHint = () => {
   } catch {
     invalidUrl = ' CURRENTS_API_URL is not a valid URL.';
   }
-  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token in CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`): https://docs.currents.dev${invalidUrl}`;
+  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token in --oidc-token or CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`): https://docs.currents.dev${invalidUrl}`;
 };

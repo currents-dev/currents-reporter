@@ -13,6 +13,7 @@ import { disable as disableDebug } from 'debug';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCurrentsConfig } from '../../config/upload';
 import { handleSetCache } from '../../services';
+import { handleSessionStart } from '../../services/session';
 import { getOidcAudience } from '../../http/httpConfig';
 import { findTokenSource, resetOidcExchange } from '../../lib/oidc';
 import {
@@ -558,74 +559,224 @@ describe('record key from an OIDC token', () => {
     const sentTokens = () =>
       oidcRequests().map((r) => formBody(r).get('subject_token'));
 
-    describe.each([['CURRENTS_OIDC_TOKEN', 'token in CURRENTS_OIDC_TOKEN']])(
-      '%s',
-      (variable, name) => {
-        it('is exchanged and its provider is logged', async () => {
-          vi.stubEnv(variable, ' provider-token \n');
+    describe.each([
+      ['CURRENTS_OIDC_TOKEN', 'token in --oidc-token or CURRENTS_OIDC_TOKEN'],
+    ])('%s', (variable, name) => {
+      it('is exchanged and its provider is logged', async () => {
+        vi.stubEnv(variable, ' provider-token \n');
 
-          await run(['cache', 'set']);
+        await run(['cache', 'set']);
 
-          expect(sentTokens()).toEqual(['provider-token']);
-          expect(getCacheCommandConfig().values?.recordKey).toBe(
-            'oidc-record-key'
-          );
-          expect(stderr).toContain(`from the ${name}, valid until`);
-          expect(stderr + consoleErrors).not.toContain('provider-token');
-        });
+        expect(sentTokens()).toEqual(['provider-token']);
+        expect(getCacheCommandConfig().values?.recordKey).toBe(
+          'oidc-record-key'
+        );
+        expect(stderr).toContain(`from the ${name}, valid until`);
+        expect(stderr + consoleErrors).not.toContain('provider-token');
+      });
 
-        it('is skipped when it is absent', async () => {
-          await run(['cache', 'set']);
+      it('is skipped when it is absent', async () => {
+        await run(['cache', 'set']);
 
-          expect(server.requests).toEqual([]);
-        });
+        expect(server.requests).toEqual([]);
+      });
 
-        it('is skipped when a key is configured', async () => {
-          vi.stubEnv(variable, 'provider-token');
+      it('is skipped when a key is configured', async () => {
+        vi.stubEnv(variable, 'provider-token');
 
-          await run(['cache', 'set', '--key', 'static-key']);
+        await run(['cache', 'set', '--key', 'static-key']);
 
-          expect(server.requests).toEqual([]);
-        });
+        expect(server.requests).toEqual([]);
+      });
 
-        it('is skipped for a command with an API key', async () => {
-          vi.stubEnv(variable, 'provider-token');
+      it('is skipped for a command with an API key', async () => {
+        vi.stubEnv(variable, 'provider-token');
 
-          await run([
-            'run',
-            'get',
-            '--api-key',
-            'a',
-            '-p',
-            'p',
-            '--ci-build-id',
-            'b',
-          ]);
-          await run([
-            'session',
-            'start',
-            '--title',
-            't',
-            '-p',
-            'p',
-            '--api-key',
-            'a',
-          ]);
+        await run([
+          'run',
+          'get',
+          '--api-key',
+          'a',
+          '-p',
+          'p',
+          '--ci-build-id',
+          'b',
+        ]);
+        await run([
+          'session',
+          'start',
+          '--title',
+          't',
+          '-p',
+          'p',
+          '--api-key',
+          'a',
+        ]);
 
-          expect(server.requests).toEqual([]);
-        });
+        expect(server.requests).toEqual([]);
+      });
 
-        it('is not printed with --debug', async () => {
-          vi.stubEnv(variable, 'provider-token');
+      it('is not printed with --debug', async () => {
+        vi.stubEnv(variable, 'provider-token');
 
-          await run(['cache', 'set', '--debug']);
+        await run(['cache', 'set', '--debug']);
 
-          expect(stderr).toContain('oidc/token');
-          expect(stderr + consoleErrors).not.toContain('provider-token');
-          expect(stderr + consoleErrors).not.toContain('oidc-record-key');
-        });
-      }
-    );
+        expect(stderr).toContain('oidc/token');
+        expect(stderr + consoleErrors).not.toContain('provider-token');
+        expect(stderr + consoleErrors).not.toContain('oidc-record-key');
+      });
+    });
+
+    describe('--oidc-token', () => {
+      it('is exchanged and its provider is logged', async () => {
+        await run(['cache', 'set', '--oidc-token', ' cli-token ']);
+
+        expect(sentTokens()).toEqual(['cli-token']);
+        expect(getCacheCommandConfig().values?.recordKey).toBe(
+          'oidc-record-key'
+        );
+        expect(stderr).toContain(
+          'from the token in --oidc-token or CURRENTS_OIDC_TOKEN, valid until'
+        );
+      });
+
+      it.each([
+        ['run upload', ['run', 'upload', '-p', 'p']],
+        ['run cancel', ['run', 'cancel', '-p', 'p', '--run-id', 'r']],
+        ['cache get', ['cache', 'get']],
+        ['run attach', ['run', 'attach', 'a.png', '-p', 'p']],
+        ['session start', ['session', 'start', '--title', 't', '-p', 'p']],
+        ['session attach', ['session', 'attach', 'a.png']],
+        ['session share', ['session', 'share']],
+      ])('is accepted by %s', async (_name, args) => {
+        await run([...args, '--oidc-token', 'cli-token']);
+
+        expect(sentTokens()).toEqual(['cli-token']);
+      });
+
+      it('loses to --key', async () => {
+        await run(['cache', 'set', '--key', 'static-key', '--oidc-token', 't']);
+
+        expect(server.requests).toEqual([]);
+        expect(getCacheCommandConfig().values?.recordKey).toBe('static-key');
+      });
+
+      it('loses to CURRENTS_RECORD_KEY', async () => {
+        vi.stubEnv('CURRENTS_RECORD_KEY', 'env-key');
+
+        await run(['cache', 'set', '--oidc-token', 't']);
+
+        expect(server.requests).toEqual([]);
+        expect(getCacheCommandConfig().values?.recordKey).toBe('env-key');
+      });
+
+      it('wins over CURRENTS_OIDC_TOKEN and GitHub Actions', async () => {
+        setGitHubEnv();
+        vi.stubEnv('CURRENTS_OIDC_TOKEN', 'env-token');
+
+        await run(['cache', 'set', '--oidc-token', 'cli-token']);
+
+        expect(sentTokens()).toEqual(['cli-token']);
+        expect(githubRequests()).toEqual([]);
+      });
+
+      it('is skipped for a command with an API key', async () => {
+        await run([
+          'session',
+          'start',
+          '--title',
+          't',
+          '-p',
+          'p',
+          '--api-key',
+          'a',
+          '--oidc-token',
+          'cli-token',
+        ]);
+
+        expect(server.requests).toEqual([]);
+      });
+
+      it.each([
+        ['an empty --oidc-token', ['--oidc-token', '']],
+        ['a blank --oidc-token', ['--oidc-token', '  ']],
+      ])('is unset with %s', async (_name, flags) => {
+        setGitHubEnv();
+
+        await run(['cache', 'set', ...flags]);
+
+        expect(sentTokens()).toEqual([GITHUB_TOKEN]);
+      });
+
+      it('is unset with an empty CURRENTS_OIDC_TOKEN', async () => {
+        vi.stubEnv('CURRENTS_OIDC_TOKEN', '');
+        setGitHubEnv();
+
+        await run(['cache', 'set']);
+
+        expect(sentTokens()).toEqual([GITHUB_TOKEN]);
+      });
+
+      it('with nothing else gives the missing-key error', async () => {
+        const code = await run(['cache', 'set', '--oidc-token', '']);
+
+        expect(code).toBe(1);
+        expect(consoleErrors).toContain('Record key is required');
+        expect(consoleErrors).toContain('--oidc-token or CURRENTS_OIDC_TOKEN');
+      });
+
+      it('is not printed with --debug, nor in the config dump', async () => {
+        await run(['cache', 'set', '--debug', '--oidc-token', 'cli-token']);
+        await run([
+          'session',
+          'start',
+          '--title',
+          't',
+          '-p',
+          'p',
+          '--debug',
+          '--oidc-token',
+          'cli-token',
+        ]);
+        await run([
+          'session',
+          'start',
+          '--title',
+          't',
+          '-p',
+          'p',
+          '--debug',
+          '--key',
+          'static-key',
+          '--oidc-token',
+          'cli-token',
+        ]);
+
+        expect(stderr).toContain('oidc/token');
+        expect(stderr).toContain('Resolved config');
+        expect(stderr + consoleErrors).not.toContain('cli-token');
+        expect(stderr + consoleErrors).not.toContain('oidc-record-key');
+      });
+
+      it('is not kept in the config of the command', async () => {
+        await run([
+          'session',
+          'start',
+          '--title',
+          't',
+          '-p',
+          'p',
+          '--oidc-token',
+          'cli-token',
+        ]);
+
+        const [config] = vi.mocked(handleSessionStart).mock.lastCall as [
+          object,
+        ];
+        expect(JSON.stringify(config)).not.toContain('cli-token');
+        expect(config).not.toHaveProperty('oidcToken');
+      });
+    });
 
     it('prefers CURRENTS_OIDC_TOKEN to GitHub Actions', async () => {
       setGitHubEnv();
@@ -649,7 +800,7 @@ describe('record key from an OIDC token', () => {
 
       expect(code).toBe(1);
       expect(consoleErrors).toContain(
-        'Could not exchange the token in CURRENTS_OIDC_TOKEN for a record key: unknown issuer'
+        'Could not exchange the token in --oidc-token or CURRENTS_OIDC_TOKEN for a record key: unknown issuer'
       );
       expect(sentTokens()).toEqual(['own-token']);
     });
