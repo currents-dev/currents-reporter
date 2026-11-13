@@ -15,6 +15,7 @@ import { getSessionCommand, getSessionExamples } from '../commands/session';
 import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
 import { parseFlagsFromEnv, warnOnOverriddenEnv } from '../commands/utils';
+import { useOidcRecordKey } from '../lib/oidc';
 
 const NAME = 'currents';
 export const getProgram = () => {
@@ -28,9 +29,10 @@ export const getProgram = () => {
     // Without it, the options after "api get-run" go to api, which has the
     // same --api-key option, and get-run never sees them.
     .enablePositionalOptions()
-    .hook('preAction', (_program, actionCommand) => {
+    .hook('preAction', async (_program, actionCommand) => {
       parseFlagsFromEnv(actionCommand);
       warnOnOverriddenEnv(actionCommand);
+      await useOidcRecordKey(actionCommand);
     })
     .addCommand(uploadCommand, { hidden: true })
     .addCommand(getConvertCommand(NAME), { hidden: true })

@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
-import { maskKeys } from '../lib/credentials';
+import { maskFormBody, maskKeys } from '../lib/credentials';
 import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from './httpConfig';
 import {
   getDelay,
@@ -40,6 +40,10 @@ export type RequestConfig = {
   data?: unknown;
   headers?: Record<string, string>;
   responseType?: ResponseType;
+  /** Milliseconds; the default is `getTimeout()`. */
+  timeout?: number;
+  /** The default is `getMaxRetries()`. */
+  maxRetries?: number;
 };
 
 export type Client = {
@@ -80,13 +84,19 @@ export function createClient(type: ClientType): Client {
             url,
             headers,
             body,
-            timeout: getTimeout(),
+            timeout: config.timeout ?? getTimeout(),
             responseType: config.responseType,
           });
         } catch (e) {
           // Messages for users name the path, not the full URL.
           if (e instanceof HttpError) e.config.url = config.url;
-          if (!(retryCount < retries && retryCondition(e as Error))) throw e;
+          if (
+            !(
+              retryCount < (config.maxRetries ?? retries) &&
+              retryCondition(e as Error)
+            )
+          )
+            throw e;
           onRetry(retryCount + 1, e as HttpError, config);
           await sleep(getDelay(retryCount + 1, e as HttpError));
         }
@@ -216,7 +226,7 @@ function getPayloadDebugData(data: any) {
     try {
       return maskKeys(JSON.parse(data));
     } catch {
-      return data;
+      return maskFormBody(data);
     }
   }
   return _.isPlainObject(data) ? maskKeys(data) : data;

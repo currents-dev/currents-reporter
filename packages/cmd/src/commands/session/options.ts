@@ -6,7 +6,8 @@ import { recordedCiBuildIdOption, tagOption } from '../options';
 const env = (key: keyof typeof configKeys) =>
   getEnvironmentVariableName(configKeys, key);
 
-export const RECORD_KEY_NOTE = '(required unless --api-key is set)';
+export const RECORD_KEY_NOTE =
+  '(required unless --api-key is set or the CI job has an OIDC token: id-token: write on GitHub Actions, or CURRENTS_OIDC_TOKEN with the Currents URL as its audience)';
 export const API_KEY_NOTE = '(used when --key is not set; needs write access)';
 
 export const ciBuildIdOption = recordedCiBuildIdOption(

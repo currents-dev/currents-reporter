@@ -7,7 +7,10 @@ import { parseCommaSeparatedList } from './utils';
 
 const REQUIRED = '(required)';
 
-export const recordKeyOption = (note = REQUIRED) =>
+const OIDC =
+  'the CI job has an OIDC token: id-token: write on GitHub Actions, or CURRENTS_OIDC_TOKEN with the Currents URL as its audience';
+
+export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
   new Option(
     '-k, --key <record-key>',
     `the record key from the Currents dashboard ${note}`
