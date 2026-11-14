@@ -1,6 +1,7 @@
 import { debug as _debug } from '@debug';
 import { ValidationError } from '@lib/error';
 import { dim, error } from '@logger';
+import { getOidcHint } from './keys';
 
 type ConfigKeys = Record<
   string,
@@ -77,7 +78,9 @@ export function getValidatedConfig<T extends ConfigKeys, R>(
       error(
         `${getConfigName(configKeys, key)} is required: pass ${dim(
           getCLIOptionName(configKeys, key)
-        )}${env ? ` or set ${dim(env)}` : ''}`
+        )}${env ? ` or set ${dim(env)}` : ''}${
+          key === 'recordKey' ? `. ${getOidcHint()}` : ''
+        }`
       );
       throw new ValidationError('Missing required config variable');
     }

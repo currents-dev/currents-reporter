@@ -15,7 +15,13 @@ import {
   presetOutputOption,
   pwOutputDirOption,
 } from './options';
-import { debugOption, recordKeyOption } from '../options';
+import {
+  debugOption,
+  OIDC_PROJECT_NOTE,
+  oidcTokenOption,
+  projectOption,
+  recordKeyOption,
+} from '../options';
 import { getCacheSetHandler } from './set';
 
 const COMMAND_NAME = 'cache';
@@ -83,6 +89,8 @@ export const getCacheSetCommand = (name: string) => {
     .addHelpText('after', formatExamples(getCacheSetExamples(name)))
     .allowUnknownOption()
     .addOption(recordKeyOption())
+    .addOption(oidcTokenOption())
+    .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(idSetOption)
     .addOption(presetSetOption)
     .addOption(pathOption)
@@ -103,6 +111,8 @@ export const getCacheGetCommand = (name: string) => {
     .addHelpText('after', formatExamples(getCacheGetExamples(name)))
     .allowUnknownOption()
     .addOption(recordKeyOption())
+    .addOption(oidcTokenOption())
+    .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(idGetOption)
     .addOption(presetGetOption)
     .addOption(outputDirOption)

@@ -138,8 +138,19 @@ exports[`command surface of the built CLI > prints the help of cache get 1`] = `
 Restore files from the cache
 
 Options:
-  -k, --key <record-key>   the record key from the Currents dashboard (required)
-                           (env: CURRENTS_RECORD_KEY)
+  -k, --key <record-key>   the record key from the Currents dashboard (required
+                           unless the CI job has an OIDC token: id-token: write
+                           on GitHub Actions, or --oidc-token with the Currents
+                           URL as its audience) (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>     an OIDC token of the CI job, to get a record key
+                           without a stored secret; its audience is the Currents
+                           URL. Used when no record key is set. Prefer the
+                           environment variable: a flag is visible in the
+                           process list and in logs that echo commands (env:
+                           CURRENTS_OIDC_TOKEN)
+  -p, --project-id <id>    the project ID from the Currents dashboard (required
+                           to get a record key from an OIDC token) (env:
+                           CURRENTS_PROJECT_ID)
   --id <id>                the ID the files were saved under. Without it the ID
                            comes from the CI job: on GitHub Actions the
                            repository, the run ID and --matrix-index; on GitLab
@@ -192,8 +203,19 @@ exports[`command surface of the built CLI > prints the help of cache set 1`] = `
 Save files to the cache
 
 Options:
-  -k, --key <record-key>    the record key from the Currents dashboard
-                            (required) (env: CURRENTS_RECORD_KEY)
+  -k, --key <record-key>    the record key from the Currents dashboard (required
+                            unless the CI job has an OIDC token: id-token: write
+                            on GitHub Actions, or --oidc-token with the Currents
+                            URL as its audience) (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>      an OIDC token of the CI job, to get a record key
+                            without a stored secret; its audience is the
+                            Currents URL. Used when no record key is set. Prefer
+                            the environment variable: a flag is visible in the
+                            process list and in logs that echo commands (env:
+                            CURRENTS_OIDC_TOKEN)
+  -p, --project-id <id>     the project ID from the Currents dashboard (required
+                            to get a record key from an OIDC token) (env:
+                            CURRENTS_PROJECT_ID)
   --id <id>                 the ID to save the files under. Without it the ID
                             comes from the CI job: on GitHub Actions the
                             repository, the run ID and --matrix-index; on GitLab
@@ -239,8 +261,16 @@ exports[`command surface of the built CLI > prints the help of cancel 1`] = `
 Cancel a run in progress, e.g. when the CI job it belongs to is cancelled
 
 Options:
-  -k, --key <record-key>  the record key from the Currents dashboard (required)
-                          (env: CURRENTS_RECORD_KEY)
+  -k, --key <record-key>  the record key from the Currents dashboard (required
+                          unless the CI job has an OIDC token: id-token: write
+                          on GitHub Actions, or --oidc-token with the Currents
+                          URL as its audience) (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>    an OIDC token of the CI job, to get a record key
+                          without a stored secret; its audience is the Currents
+                          URL. Used when no record key is set. Prefer the
+                          environment variable: a flag is visible in the process
+                          list and in logs that echo commands (env:
+                          CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>   the project ID from the Currents dashboard (required)
                           (env: CURRENTS_PROJECT_ID)
   --ci-build-id <id>      the CI build ID the run was recorded with (required
@@ -389,7 +419,16 @@ Arguments:
 
 Options:
   -k, --key <record-key>  the record key from the Currents dashboard (required
-                          unless --api-key is set) (env: CURRENTS_RECORD_KEY)
+                          unless --api-key is set or the CI job has an OIDC
+                          token: id-token: write on GitHub Actions, or
+                          --oidc-token with the Currents URL as its audience)
+                          (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>    an OIDC token of the CI job, to get a record key
+                          without a stored secret; its audience is the Currents
+                          URL. Used when no record key is set. Prefer the
+                          environment variable: a flag is visible in the process
+                          list and in logs that echo commands (env:
+                          CURRENTS_OIDC_TOKEN)
   --api-key <api-key>     an API key from the Currents dashboard (used when
                           --key is not set; needs write access) (env:
                           CURRENTS_API_KEY)
@@ -444,8 +483,16 @@ exports[`command surface of the built CLI > prints the help of run cancel 1`] = 
 Cancel a run in progress, e.g. when the CI job it belongs to is cancelled
 
 Options:
-  -k, --key <record-key>  the record key from the Currents dashboard (required)
-                          (env: CURRENTS_RECORD_KEY)
+  -k, --key <record-key>  the record key from the Currents dashboard (required
+                          unless the CI job has an OIDC token: id-token: write
+                          on GitHub Actions, or --oidc-token with the Currents
+                          URL as its audience) (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>    an OIDC token of the CI job, to get a record key
+                          without a stored secret; its audience is the Currents
+                          URL. Used when no record key is set. Prefer the
+                          environment variable: a flag is visible in the process
+                          list and in logs that echo commands (env:
+                          CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>   the project ID from the Currents dashboard (required)
                           (env: CURRENTS_PROJECT_ID)
   --ci-build-id <id>      the CI build ID the run was recorded with (required
@@ -582,7 +629,16 @@ Options:
                                  default taken from the CI environment, or a
                                  random value (env: CURRENTS_CI_BUILD_ID)
   -k, --key <record-key>         the record key from the Currents dashboard
-                                 (required) (env: CURRENTS_RECORD_KEY)
+                                 (required unless the CI job has an OIDC token:
+                                 id-token: write on GitHub Actions, or
+                                 --oidc-token with the Currents URL as its
+                                 audience) (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>           an OIDC token of the CI job, to get a record
+                                 key without a stored secret; its audience is
+                                 the Currents URL. Used when no record key is
+                                 set. Prefer the environment variable: a flag is
+                                 visible in the process list and in logs that
+                                 echo commands (env: CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or
@@ -697,7 +753,16 @@ Options:
                                  default taken from the CI environment, or a
                                  random value (env: CURRENTS_CI_BUILD_ID)
   -k, --key <record-key>         the record key from the Currents dashboard
-                                 (required) (env: CURRENTS_RECORD_KEY)
+                                 (required unless the CI job has an OIDC token:
+                                 id-token: write on GitHub Actions, or
+                                 --oidc-token with the Currents URL as its
+                                 audience) (env: CURRENTS_RECORD_KEY)
+  --oidc-token <token>           an OIDC token of the CI job, to get a record
+                                 key without a stored secret; its audience is
+                                 the Currents URL. Used when no record key is
+                                 set. Prefer the environment variable: a flag is
+                                 visible in the process list and in logs that
+                                 echo commands (env: CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or

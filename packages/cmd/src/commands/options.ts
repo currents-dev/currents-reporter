@@ -7,11 +7,24 @@ import { parseCommaSeparatedList } from './utils';
 
 const REQUIRED = '(required)';
 
-export const recordKeyOption = (note = REQUIRED) =>
+const OIDC =
+  'the CI job has an OIDC token: id-token: write on GitHub Actions, or --oidc-token with the Currents URL as its audience';
+
+export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
   new Option(
     '-k, --key <record-key>',
     `the record key from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.recordKey.env);
+
+/** For the commands that need the project only to get a record key from OIDC. */
+export const OIDC_PROJECT_NOTE =
+  '(required to get a record key from an OIDC token)';
+
+export const oidcTokenOption = () =>
+  new Option(
+    '--oidc-token <token>',
+    'an OIDC token of the CI job, to get a record key without a stored secret; its audience is the Currents URL. Used when no record key is set. Prefer the environment variable: a flag is visible in the process list and in logs that echo commands'
+  ).env('CURRENTS_OIDC_TOKEN');
 
 export const apiKeyOption = (note = REQUIRED) =>
   new Option(
@@ -19,10 +32,10 @@ export const apiKeyOption = (note = REQUIRED) =>
     `an API key from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.apiKey.env);
 
-export const projectOption = () =>
+export const projectOption = (note = REQUIRED) =>
   new Option(
     '-p, --project-id <id>',
-    `the project ID from the Currents dashboard ${REQUIRED}`
+    `the project ID from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.projectId.env);
 
 /** For the commands that find a run recorded earlier. */
