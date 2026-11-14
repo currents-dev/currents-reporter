@@ -144,7 +144,9 @@ Options:
                            URL as its audience) (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>     an OIDC token of the CI job, to get a record key
                            without a stored secret; its audience is the Currents
-                           URL. Used when no record key is set (env:
+                           URL. Used when no record key is set. Prefer the
+                           environment variable: a flag is visible in the
+                           process list and in logs that echo commands (env:
                            CURRENTS_OIDC_TOKEN)
   --id <id>                the ID the files were saved under. Without it the ID
                            comes from the CI job: on GitHub Actions the
@@ -204,7 +206,9 @@ Options:
                             URL as its audience) (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>      an OIDC token of the CI job, to get a record key
                             without a stored secret; its audience is the
-                            Currents URL. Used when no record key is set (env:
+                            Currents URL. Used when no record key is set. Prefer
+                            the environment variable: a flag is visible in the
+                            process list and in logs that echo commands (env:
                             CURRENTS_OIDC_TOKEN)
   --id <id>                 the ID to save the files under. Without it the ID
                             comes from the CI job: on GitHub Actions the
@@ -257,7 +261,9 @@ Options:
                           URL as its audience) (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>    an OIDC token of the CI job, to get a record key
                           without a stored secret; its audience is the Currents
-                          URL. Used when no record key is set (env:
+                          URL. Used when no record key is set. Prefer the
+                          environment variable: a flag is visible in the process
+                          list and in logs that echo commands (env:
                           CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>   the project ID from the Currents dashboard (required)
                           (env: CURRENTS_PROJECT_ID)
@@ -413,7 +419,9 @@ Options:
                           (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>    an OIDC token of the CI job, to get a record key
                           without a stored secret; its audience is the Currents
-                          URL. Used when no record key is set (env:
+                          URL. Used when no record key is set. Prefer the
+                          environment variable: a flag is visible in the process
+                          list and in logs that echo commands (env:
                           CURRENTS_OIDC_TOKEN)
   --api-key <api-key>     an API key from the Currents dashboard (used when
                           --key is not set; needs write access) (env:
@@ -475,7 +483,9 @@ Options:
                           URL as its audience) (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>    an OIDC token of the CI job, to get a record key
                           without a stored secret; its audience is the Currents
-                          URL. Used when no record key is set (env:
+                          URL. Used when no record key is set. Prefer the
+                          environment variable: a flag is visible in the process
+                          list and in logs that echo commands (env:
                           CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>   the project ID from the Currents dashboard (required)
                           (env: CURRENTS_PROJECT_ID)
@@ -620,7 +630,9 @@ Options:
   --oidc-token <token>           an OIDC token of the CI job, to get a record
                                  key without a stored secret; its audience is
                                  the Currents URL. Used when no record key is
-                                 set (env: CURRENTS_OIDC_TOKEN)
+                                 set. Prefer the environment variable: a flag is
+                                 visible in the process list and in logs that
+                                 echo commands (env: CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or
@@ -742,7 +754,9 @@ Options:
   --oidc-token <token>           an OIDC token of the CI job, to get a record
                                  key without a stored secret; its audience is
                                  the Currents URL. Used when no record key is
-                                 set (env: CURRENTS_OIDC_TOKEN)
+                                 set. Prefer the environment variable: a flag is
+                                 visible in the process list and in logs that
+                                 echo commands (env: CURRENTS_OIDC_TOKEN)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or

@@ -121,6 +121,7 @@ describe('record key from an OIDC token', () => {
       'ACTIONS_ID_TOKEN_REQUEST_URL',
       'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
       'CURRENTS_OIDC_TOKEN',
+      'GITHUB_ACTIONS',
     ]) {
       vi.stubEnv(name, undefined);
     }
@@ -419,6 +420,76 @@ describe('record key from an OIDC token', () => {
     ]);
 
     expect(server.requests).toEqual([]);
+  });
+
+  describe('session start --json', () => {
+    it('writes the retry warnings of the exchange to stderr', async () => {
+      setGitHubEnv();
+      githubFailures = 1;
+      const log = console.log as unknown as {
+        mock: { calls: unknown[][] };
+      };
+
+      await run(['session', 'start', '--title', 't', '-p', 'p', '--json']);
+
+      expect(githubRequests()).toHaveLength(2);
+      expect(consoleErrors).toContain('Next attempt is in');
+      expect(log.mock.calls.flat().join(' ')).not.toContain('Next attempt');
+    });
+
+    it('leaves the warnings on stdout without --json', async () => {
+      setGitHubEnv();
+      githubFailures = 1;
+      const log = console.log as unknown as {
+        mock: { calls: unknown[][] };
+      };
+
+      await run(['session', 'start', '--title', 't', '-p', 'p']);
+
+      expect(log.mock.calls.flat().join(' ')).toContain('Next attempt is in');
+    });
+  });
+
+  describe('masking the key in GitHub Actions logs', () => {
+    it('asks the runner to mask the issued key, once, before the key line', async () => {
+      setGitHubEnv();
+      vi.stubEnv('GITHUB_ACTIONS', 'true');
+
+      await run(['cache', 'set']);
+
+      const mask = '::add-mask::oidc-record-key\n';
+      expect(stderr.split(mask)).toHaveLength(2);
+      expect(stderr.indexOf(mask)).toBeLessThan(
+        stderr.indexOf('Using a record key')
+      );
+    });
+
+    it('prints the key nowhere else with --debug', async () => {
+      setGitHubEnv();
+      vi.stubEnv('GITHUB_ACTIONS', 'true');
+
+      await run(['cache', 'set', '--debug']);
+
+      const rest = stderr.replace('::add-mask::oidc-record-key\n', '');
+      expect(rest + consoleErrors).not.toContain('oidc-record-key');
+    });
+
+    it('does not mask outside GitHub Actions', async () => {
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', 'own-token');
+
+      await run(['cache', 'set']);
+
+      expect(stderr).not.toContain('::add-mask::');
+    });
+
+    it('does not mask a key that was not issued by the exchange', async () => {
+      setGitHubEnv();
+      vi.stubEnv('GITHUB_ACTIONS', 'true');
+
+      await run(['cache', 'set', '--key', 'static-key']);
+
+      expect(stderr).not.toContain('::add-mask::');
+    });
   });
 
   describe('revoking the key', () => {

@@ -2,6 +2,7 @@ import { CommandUnknownOpts } from '@commander-js/extra-typings';
 import { error, warn } from '@logger';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { debug as _debug, enableDebug } from '../debug';
+import { printLogsToStderr } from '../commands/utils';
 import { addExitHook } from './exitHooks';
 import { ClientType, getClient } from '../http/client';
 import { getOidcAudience, getTimeout } from '../http/httpConfig';
@@ -40,6 +41,9 @@ type TokenSource = {
   isAvailable: (env: NodeJS.ProcessEnv) => boolean;
   getToken: (env: NodeJS.ProcessEnv) => Promise<string>;
 };
+
+const isGitHubActions = (env: NodeJS.ProcessEnv) =>
+  env.GITHUB_ACTIONS === 'true';
 
 const isSet = (env: NodeJS.ProcessEnv, name: string) =>
   Boolean(env[name]?.trim());
@@ -230,9 +234,16 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   if (!source) return;
   // The command handler enables debug later, after the exchange.
   if (command.getOptionValue('debug')) enableDebug();
+  // The retry warnings of the exchange would come before the JSON output.
+  if (command.getOptionValue('json')) printLogsToStderr();
   try {
     const { recordKey, expiresAt } = await getRecordKeyFromOidc(source);
     command.setOptionValueWithSource('key', recordKey, 'config');
+    // GitHub masks a secret in the log only when it knows it: a key from the
+    // exchange is not one. The runner reads the command from stderr too.
+    if (isGitHubActions(process.env)) {
+      process.stderr.write(`::add-mask::${recordKey}\n`);
+    }
     // stderr: `session start --json` prints JSON on stdout.
     process.stderr.write(
       `Using a record key from the ${source.name}, valid until ${expiresAt}\n`

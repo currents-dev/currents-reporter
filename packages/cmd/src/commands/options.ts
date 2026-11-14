@@ -19,7 +19,7 @@ export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
 export const oidcTokenOption = () =>
   new Option(
     '--oidc-token <token>',
-    'an OIDC token of the CI job, to get a record key without a stored secret; its audience is the Currents URL. Used when no record key is set'
+    'an OIDC token of the CI job, to get a record key without a stored secret; its audience is the Currents URL. Used when no record key is set. Prefer the environment variable: a flag is visible in the process list and in logs that echo commands'
   ).env('CURRENTS_OIDC_TOKEN');
 
 export const apiKeyOption = (note = REQUIRED) =>
