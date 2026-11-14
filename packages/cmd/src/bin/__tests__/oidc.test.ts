@@ -65,6 +65,9 @@ describe('record key from an OIDC token', () => {
   let server: ApiServer;
   let oidcResponse: Response;
   let revokeResponse: Response;
+  let githubResponse: Response | undefined;
+  // Receives what a redirect would send on.
+  let redirectTarget: ApiServer;
   // Requests answered with 503 before the real answer.
   let githubFailures: number;
   let oidcFailures: number;
@@ -81,6 +84,7 @@ describe('record key from an OIDC token', () => {
   beforeAll(async () => {
     server = await startApiServer((request: RecordedRequest) => {
       if (request.url.startsWith('/github-token')) {
+        if (githubResponse) return githubResponse;
         if (githubFailures-- > 0) return { status: 503 };
         return { status: 200, json: { value: GITHUB_TOKEN } };
       }
@@ -92,11 +96,13 @@ describe('record key from an OIDC token', () => {
     });
     // The HTTP client reads the base URL once, when it is first used.
     process.env.CURRENTS_API_URL = server.url;
+    redirectTarget = await startApiServer(() => ({ status: 200 }));
   });
 
   afterAll(async () => {
     delete process.env.CURRENTS_API_URL;
     await server.close();
+    await redirectTarget.close();
   });
 
   beforeEach(() => {
@@ -104,6 +110,8 @@ describe('record key from an OIDC token', () => {
     vi.mocked(handleSetCache).mockReset();
     resetOidcExchange();
     githubFailures = 0;
+    githubResponse = undefined;
+    redirectTarget.requests.length = 0;
     revokeResponse = { status: 200 };
     oidcFailures = 0;
     oidcResponse = {
@@ -426,6 +434,53 @@ describe('record key from an OIDC token', () => {
     ]);
 
     expect(server.requests).toEqual([]);
+  });
+
+  describe.each([307, 308])('a %d redirect', (status) => {
+    const redirect = (): Response => ({
+      status,
+      headers: { location: `${redirectTarget.url}/stolen` },
+    });
+
+    it('is refused by the exchange, which sends nothing on', async () => {
+      setGitHubEnv();
+      oidcResponse = redirect();
+
+      const code = await run(['cache', 'set']);
+
+      expect(code).toBe(1);
+      expect(consoleErrors).toContain('redirect');
+      expect(oidcRequests()).toHaveLength(1);
+      expect(redirectTarget.requests).toEqual([]);
+      expect(handleSetCache).not.toHaveBeenCalled();
+    });
+
+    it('is refused by the revoke, which sends nothing on and keeps the exit code', async () => {
+      setGitHubEnv();
+      revokeResponse = redirect();
+
+      const code = await run(['cache', 'set']);
+
+      expect(code).toBe(0);
+      expect(revokeRequests()).toHaveLength(1);
+      expect(redirectTarget.requests).toEqual([]);
+    });
+
+    it('is refused by the GitHub token request, which sends nothing on', async () => {
+      setGitHubEnv();
+      githubResponse = redirect();
+
+      const code = await run(['cache', 'set']);
+
+      expect(code).toBe(1);
+      expect(consoleErrors).toContain(
+        'Could not get the GitHub Actions OIDC token'
+      );
+      expect(consoleErrors).toContain('redirect');
+      expect(githubRequests()).toHaveLength(1);
+      expect(oidcRequests()).toEqual([]);
+      expect(redirectTarget.requests).toEqual([]);
+    });
   });
 
   describe('project ID', () => {

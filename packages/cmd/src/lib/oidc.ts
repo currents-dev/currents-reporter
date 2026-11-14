@@ -62,6 +62,7 @@ async function requestGitHubToken(url: string, requestToken: string) {
         headers: { authorization: `bearer ${requestToken}` },
         timeout: getTimeout(),
         responseType: 'json',
+        followRedirects: false,
       });
     } catch (e) {
       if (retryCount >= getMaxRetries() || !isRetriableError(e as Error)) {
@@ -134,6 +135,7 @@ async function revokeRecordKey(recordKey: string) {
       }).toString(),
       timeout: REVOKE_TIMEOUT_MS,
       maxRetries: 0,
+      followRedirects: false,
     });
     debug('Revoked the record key from OIDC');
   } catch (e) {
@@ -186,6 +188,7 @@ export function getRecordKeyFromOidc(
           subject_token_type: SUBJECT_TOKEN_TYPE,
           project_id: projectId,
         }).toString(),
+        followRedirects: false,
       });
       const { access_token, expires_in } = res.data ?? {};
       if (!access_token || !Number.isFinite(expires_in)) {

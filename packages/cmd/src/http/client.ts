@@ -44,6 +44,8 @@ export type RequestConfig = {
   timeout?: number;
   /** The default is `getMaxRetries()`. */
   maxRetries?: number;
+  /** Default true. See `HttpRequest.followRedirects`. */
+  followRedirects?: boolean;
 };
 
 export type Client = {
@@ -86,6 +88,7 @@ export function createClient(type: ClientType): Client {
             body,
             timeout: config.timeout ?? getTimeout(),
             responseType: config.responseType,
+            followRedirects: config.followRedirects,
           });
         } catch (e) {
           // Messages for users name the path, not the full URL.

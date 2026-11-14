@@ -21,6 +21,12 @@ export type HttpRequest = {
   timeout?: number;
   /** `json` parses a body that is JSON and keeps any other as text. */
   responseType?: ResponseType;
+  /**
+   * Default true. A request with a credential in its body or headers sets it
+   * to false: a redirect answer is then an error, and nothing is sent to the
+   * address it names.
+   */
+  followRedirects?: boolean;
 };
 
 export type HttpResponse<T = any> = {
@@ -86,6 +92,19 @@ export async function sendRequest<T = any>(
     req.responseType ?? 'json',
     failed
   );
+  if (
+    req.followRedirects === false &&
+    response.status >= 300 &&
+    response.status < 400 &&
+    response.headers.location
+  ) {
+    throw new HttpError(
+      `The server answered with a redirect (status ${response.status}); redirects are not followed for this request`,
+      'ERR_BAD_REQUEST',
+      failed,
+      response
+    );
+  }
   if (response.status < 200 || response.status >= 300) {
     throw new HttpError(
       `Request failed with status code ${response.status}`,
@@ -154,6 +173,7 @@ async function sendFollowingRedirects(
     });
     const location = res.headers.location;
     if (
+      req.followRedirects === false ||
       res.statusCode < 300 ||
       res.statusCode >= 400 ||
       typeof location !== 'string' ||

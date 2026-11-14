@@ -13,7 +13,12 @@ export type RecordedRequest = {
 };
 
 export type Response =
-  | { status: number; json?: unknown; body?: Buffer | string }
+  | {
+      status: number;
+      json?: unknown;
+      body?: Buffer | string;
+      headers?: Record<string, string>;
+    }
   // Closes the connection without answering.
   | { destroy: true }
   // Sends the headers and a part of the body, then closes the connection.
@@ -70,10 +75,13 @@ export async function startApiServer(
     }
     if (response.json !== undefined) {
       res
-        .writeHead(response.status, { 'Content-Type': 'application/json' })
+        .writeHead(response.status, {
+          'Content-Type': 'application/json',
+          ...response.headers,
+        })
         .end(JSON.stringify(response.json));
     } else {
-      res.writeHead(response.status).end(response.body);
+      res.writeHead(response.status, response.headers).end(response.body);
     }
   };
   const server = tls
