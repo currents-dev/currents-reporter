@@ -148,6 +148,9 @@ Options:
                            environment variable: a flag is visible in the
                            process list and in logs that echo commands (env:
                            CURRENTS_OIDC_TOKEN)
+  -p, --project-id <id>    the project ID from the Currents dashboard (required
+                           to get a record key from an OIDC token) (env:
+                           CURRENTS_PROJECT_ID)
   --id <id>                the ID the files were saved under. Without it the ID
                            comes from the CI job: on GitHub Actions the
                            repository, the run ID and --matrix-index; on GitLab
@@ -210,6 +213,9 @@ Options:
                             the environment variable: a flag is visible in the
                             process list and in logs that echo commands (env:
                             CURRENTS_OIDC_TOKEN)
+  -p, --project-id <id>     the project ID from the Currents dashboard (required
+                            to get a record key from an OIDC token) (env:
+                            CURRENTS_PROJECT_ID)
   --id <id>                 the ID to save the files under. Without it the ID
                             comes from the CI job: on GitHub Actions the
                             repository, the run ID and --matrix-index; on GitLab

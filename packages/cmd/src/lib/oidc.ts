@@ -2,6 +2,7 @@ import { CommandUnknownOpts } from '@commander-js/extra-typings';
 import { error, warn } from '@logger';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { debug as _debug, enableDebug } from '../debug';
+import { sharedConfigKeys } from '../config/keys';
 import { printLogsToStderr } from '../commands/utils';
 import { addExitHook } from './exitHooks';
 import { ClientType, getClient } from '../http/client';
@@ -162,6 +163,7 @@ let exchange: Promise<OidcRecordKey> | undefined;
 
 export function getRecordKeyFromOidc(
   source: TokenSource,
+  projectId: string,
   env: NodeJS.ProcessEnv = process.env
 ) {
   exchange ??= (async () => {
@@ -182,6 +184,7 @@ export function getRecordKeyFromOidc(
           grant_type: GRANT_TYPE,
           subject_token: token,
           subject_token_type: SUBJECT_TOKEN_TYPE,
+          project_id: projectId,
         }).toString(),
       });
       const { access_token, expires_in } = res.data ?? {};
@@ -234,10 +237,22 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   if (!source) return;
   // The command handler enables debug later, after the exchange.
   if (command.getOptionValue('debug')) enableDebug();
+  // The project is read only for the exchange: the key it gives is for it.
+  const projectId = String(command.getOptionValue('projectId') ?? '').trim();
+  if (!projectId) {
+    const { cli, env } = sharedConfigKeys.projectId;
+    error(
+      `Project ID is required to get a record key from an OIDC token: pass ${cli} or set ${env}`
+    );
+    process.exit(1);
+  }
   // The retry warnings of the exchange would come before the JSON output.
   if (command.getOptionValue('json')) printLogsToStderr();
   try {
-    const { recordKey, expiresAt } = await getRecordKeyFromOidc(source);
+    const { recordKey, expiresAt } = await getRecordKeyFromOidc(
+      source,
+      projectId
+    );
     command.setOptionValueWithSource('key', recordKey, 'config');
     // GitHub masks a secret in the log only when it knows it: a key from the
     // exchange is not one. The runner reads the command from stderr too.

@@ -13,7 +13,11 @@ import { disable as disableDebug } from 'debug';
 import { getCacheCommandConfig } from '../../config/cache';
 import { getCurrentsConfig } from '../../config/upload';
 import { handleSetCache } from '../../services';
-import { handleSessionStart } from '../../services/session';
+import {
+  handleSessionAttach,
+  handleSessionShare,
+  handleSessionStart,
+} from '../../services/session';
 import { getOidcAudience } from '../../http/httpConfig';
 import { findTokenSource, resetOidcExchange } from '../../lib/oidc';
 import {
@@ -125,6 +129,7 @@ describe('record key from an OIDC token', () => {
     ]) {
       vi.stubEnv(name, undefined);
     }
+    vi.stubEnv('CURRENTS_PROJECT_ID', 'test-project');
     vi.spyOn(process.stdout, 'write').mockReturnValue(true);
     vi.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
       stderr += String(chunk);
@@ -228,6 +233,7 @@ describe('record key from an OIDC token', () => {
       grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
       subject_token: GITHUB_TOKEN,
       subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+      project_id: 'test-project',
     });
   });
 
@@ -420,6 +426,101 @@ describe('record key from an OIDC token', () => {
     ]);
 
     expect(server.requests).toEqual([]);
+  });
+
+  describe('project ID', () => {
+    it('is sent in the exchange, from --project-id over CURRENTS_PROJECT_ID', async () => {
+      setGitHubEnv();
+
+      await run(['cache', 'set', '--project-id', 'flag-project']);
+      resetOidcExchange();
+      await run(['cache', 'set']);
+
+      expect(oidcRequests().map((r) => formBody(r).get('project_id'))).toEqual([
+        'flag-project',
+        'test-project',
+      ]);
+    });
+
+    it.each([
+      ['cache set', ['cache', 'set']],
+      ['cache get', ['cache', 'get']],
+      ['session attach', ['session', 'attach', 'a.png']],
+      ['session share', ['session', 'share']],
+      ['run upload', ['run', 'upload']],
+    ])('is accepted by %s', async (_name, args) => {
+      setGitHubEnv();
+
+      await run([...args, '--project-id', 'flag-project']);
+
+      expect(oidcRequests()).toHaveLength(1);
+      expect(formBody(oidcRequests()[0]).get('project_id')).toBe(
+        'flag-project'
+      );
+    });
+
+    it.each([
+      ['cache set', ['cache', 'set']],
+      ['session attach', ['session', 'attach', 'a.png']],
+      ['run upload', ['run', 'upload']],
+    ])('is required for the exchange: %s', async (_name, args) => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+
+      const code = await run(args);
+
+      expect(code).toBe(1);
+      expect(consoleErrors).toContain('--project-id');
+      expect(consoleErrors).toContain('CURRENTS_PROJECT_ID');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('is required for the exchange with --oidc-token too', async () => {
+      vi.stubEnv('CURRENTS_PROJECT_ID', '  ');
+
+      const code = await run(['cache', 'set', '--oidc-token', 't']);
+
+      expect(code).toBe(1);
+      expect(consoleErrors).toContain('--project-id');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('is not required with a record key or an API key', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+
+      expect(await run(['cache', 'set', '--key', 'static-key'])).toBe(0);
+      expect(await run(['session', 'attach', 'a.png', '--api-key', 'a'])).toBe(
+        0
+      );
+
+      expect(consoleErrors).toBe('');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('is not kept in the config of session attach and share', async () => {
+      setGitHubEnv();
+
+      await run(['session', 'attach', 'a.png']);
+      await run(['session', 'share']);
+
+      const configs = [
+        vi.mocked(handleSessionAttach).mock.lastCall?.[0],
+        vi.mocked(handleSessionShare).mock.lastCall?.[0],
+      ];
+      for (const config of configs) {
+        expect(config).not.toHaveProperty('projectId');
+      }
+    });
+
+    it('is not masked with --debug', async () => {
+      setGitHubEnv();
+
+      await run(['cache', 'set', '--debug']);
+
+      expect(stderr).toContain('project_id=test-project');
+      expect(stderr).toContain('subject_token=*****');
+    });
   });
 
   describe('session start --json', () => {

@@ -15,6 +15,7 @@ import {
   apiKeyOption,
   debugOption,
   projectOption,
+  OIDC_PROJECT_NOTE,
   oidcTokenOption,
   recordKeyOption,
 } from '../options';
@@ -105,6 +106,7 @@ const getAttachCommand = (name: string) =>
     .argument('<paths...>', PATHS_DESCRIPTION)
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
     .addOption(oidcTokenOption())
+    .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
     .addOption(sessionTypeOption)
@@ -112,7 +114,7 @@ const getAttachCommand = (name: string) =>
     .addOption(metaOption)
     .addOption(debugOption())
     .action(async (paths, options) => {
-      await commandHandler(async ({ key, ...opts }) => {
+      await commandHandler(async ({ key, projectId, ...opts }) => {
         await handleSessionAttach(
           getSessionAttachConfig({ ...opts, recordKey: key }),
           paths
@@ -130,12 +132,13 @@ const getShareCommand = (name: string) =>
     )
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
     .addOption(oidcTokenOption())
+    .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
     .addOption(expiresInDaysOption)
     .addOption(debugOption())
     .action(async (options) => {
-      await commandHandler(async ({ key, ...opts }) => {
+      await commandHandler(async ({ key, projectId, ...opts }) => {
         await handleSessionShare(
           getSessionShareConfig({ ...opts, recordKey: key })
         );

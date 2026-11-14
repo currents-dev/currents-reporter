@@ -16,6 +16,10 @@ export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
     `the record key from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.recordKey.env);
 
+/** For the commands that need the project only to get a record key from OIDC. */
+export const OIDC_PROJECT_NOTE =
+  '(required to get a record key from an OIDC token)';
+
 export const oidcTokenOption = () =>
   new Option(
     '--oidc-token <token>',
@@ -28,10 +32,10 @@ export const apiKeyOption = (note = REQUIRED) =>
     `an API key from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.apiKey.env);
 
-export const projectOption = () =>
+export const projectOption = (note = REQUIRED) =>
   new Option(
     '-p, --project-id <id>',
-    `the project ID from the Currents dashboard ${REQUIRED}`
+    `the project ID from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.projectId.env);
 
 /** For the commands that find a run recorded earlier. */
