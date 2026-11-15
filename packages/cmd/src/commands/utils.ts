@@ -5,6 +5,7 @@ import {
 import { error, warnOnStderr } from '@logger';
 import { parseBooleanEnv } from '../config/utils';
 import { enableDebug } from '../debug';
+import { runExitHooks } from '../lib/exitHooks';
 
 export function parseCommaSeparatedList(
   value: string,
@@ -91,17 +92,18 @@ export async function commandHandler<T extends Record<string, unknown>>(
   action: (options: T) => Promise<void>,
   commandOptions: T
 ) {
+  let exitCode = 0;
   try {
     if (commandOptions.debug) {
       enableDebug();
     }
     await action(commandOptions);
-    process.exit(0);
   } catch (e) {
     error((e as Error).message);
-    const exitCode = e instanceof CommanderError ? e.exitCode : 1;
-    process.exit(exitCode);
+    exitCode = e instanceof CommanderError ? e.exitCode : 1;
   }
+  await runExitHooks();
+  process.exit(exitCode);
 }
 
 // commandHandler calls process.exit, which can cut off a write to a pipe that

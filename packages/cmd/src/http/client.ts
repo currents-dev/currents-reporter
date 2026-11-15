@@ -3,8 +3,8 @@ import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
-import { maskKeys } from '../lib/credentials';
-import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from './httpConfig';
+import { maskFormBody, maskKeys } from '../lib/credentials';
+import { getAPIBaseUrl, getTimeout, requireRestAPIBaseUrl } from './httpConfig';
 import {
   getDelay,
   getMaxRetries,
@@ -40,6 +40,12 @@ export type RequestConfig = {
   data?: unknown;
   headers?: Record<string, string>;
   responseType?: ResponseType;
+  /** Milliseconds; the default is `getTimeout()`. */
+  timeout?: number;
+  /** The default is `getMaxRetries()`. */
+  maxRetries?: number;
+  /** Default true. See `HttpRequest.followRedirects`. */
+  followRedirects?: boolean;
 };
 
 export type Client = {
@@ -53,7 +59,7 @@ let _clients: Record<ClientType, Client | null> = {
 
 export function createClient(type: ClientType): Client {
   const baseURL =
-    type === ClientType.API ? getAPIBaseUrl() : getRestAPIBaseUrl();
+    type === ClientType.API ? getAPIBaseUrl() : requireRestAPIBaseUrl();
   debug('client base url: %s', baseURL);
 
   const retries = getMaxRetries();
@@ -71,6 +77,14 @@ export function createClient(type: ClientType): Client {
       };
       const body = toBody(config.data);
       const url = buildURL(baseURL, config.url, config.params);
+      // A redirect would send the record key, in the body or in x-currents-key, or the
+      // API key in Authorization, to the address it names. The transport keeps
+      // Authorization for the subdomains of the original host. Every request to the
+      // director carries a record key.
+      const carriesCredential =
+        type === ClientType.API ||
+        'x-currents-key' in headers ||
+        'authorization' in headers;
 
       for (let retryCount = 0; ; retryCount++) {
         logRequest(baseURL, config, headers, retryCount > 0);
@@ -80,13 +94,20 @@ export function createClient(type: ClientType): Client {
             url,
             headers,
             body,
-            timeout: getTimeout(),
+            timeout: config.timeout ?? getTimeout(),
             responseType: config.responseType,
+            followRedirects: config.followRedirects ?? !carriesCredential,
           });
         } catch (e) {
           // Messages for users name the path, not the full URL.
           if (e instanceof HttpError) e.config.url = config.url;
-          if (!(retryCount < retries && retryCondition(e as Error))) throw e;
+          if (
+            !(
+              retryCount < (config.maxRetries ?? retries) &&
+              retryCondition(e as Error)
+            )
+          )
+            throw e;
           onRetry(retryCount + 1, e as HttpError, config);
           await sleep(getDelay(retryCount + 1, e as HttpError));
         }
@@ -216,7 +237,7 @@ function getPayloadDebugData(data: any) {
     try {
       return maskKeys(JSON.parse(data));
     } catch {
-      return data;
+      return maskFormBody(data);
     }
   }
   return _.isPlainObject(data) ? maskKeys(data) : data;

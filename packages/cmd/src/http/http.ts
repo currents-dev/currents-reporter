@@ -1,4 +1,5 @@
 import { debug as _debug } from '../debug';
+import { maskSensitiveFields } from '../lib/credentials';
 import { ClientType, getClient, RequestConfig } from './client';
 import { handleHTTPError } from './httpErrors';
 import { HttpError } from './send';
@@ -10,10 +11,14 @@ export async function makeRequest<T = any>(
   config: RequestConfig,
   _getClient = getClient
 ) {
+  // Outside the try: a client that cannot be made is not a network error.
+  const client = _getClient(clientType);
   try {
-    const res = await _getClient(clientType).request<T>(config);
+    const res = await client.request<T>(config);
     debug('network response: %o', {
       ...res,
+      // The OIDC exchange answers with the record key.
+      data: maskSensitiveFields(res.data, ['access_token']),
       url: config.url,
       method: config.method.toLowerCase(),
     });

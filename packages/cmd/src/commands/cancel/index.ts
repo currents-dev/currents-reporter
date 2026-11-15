@@ -1,7 +1,13 @@
 import { Command } from '@commander-js/extra-typings';
 import { formatExamples, HelpExample } from '../help';
 import { cancelHandler } from './cancel';
-import { debugOption, projectOption, recordKeyOption } from '../options';
+import {
+  debugOption,
+  oidcAudienceOption,
+  oidcTokenOption,
+  projectOption,
+  recordKeyOption,
+} from '../options';
 import { ciBuildIdOption, runIdOption } from './options';
 
 const COMMAND_NAME = 'cancel';
@@ -42,6 +48,8 @@ export const getCancelCommand = (
     .addHelpText('after', formatExamples(getCancelExamples(name)))
     .allowUnknownOption()
     .addOption(recordKeyOption())
+    .addOption(oidcTokenOption())
+    .addOption(oidcAudienceOption())
     .addOption(projectOption())
     .addOption(ciBuildIdOption)
     .addOption(runIdOption)
