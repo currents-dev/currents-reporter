@@ -98,11 +98,14 @@ describe('requests that carry a record key', () => {
   });
 
   it('is refused when it names a subdomain of the same host and port, which the transport would trust', async () => {
-    redirectStatus = 307;
-    const subdomain = `http://child.localhost:${new URL(origin.url).port}/stolen`;
-    const sameHostOrigin = await startApiServer(() => ({
+    // The redirect names a subdomain on the port of the server that sends it,
+    // the case in which the transport keeps Authorization.
+    let sameHostOrigin: ApiServer;
+    sameHostOrigin = await startApiServer(() => ({
       status: 307,
-      headers: { location: subdomain },
+      headers: {
+        location: `http://child.localhost:${new URL(sameHostOrigin.url).port}/stolen`,
+      },
     }));
     vi.stubEnv(
       'CURRENTS_REST_API_URL',
