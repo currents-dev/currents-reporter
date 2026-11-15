@@ -82,18 +82,45 @@ describe('requests that carry a record key', () => {
       expect(elsewhere.requests).toEqual([]);
     });
 
-    it('keeps the transport rule for an API key: Authorization is dropped on another origin', async () => {
+    it('is refused for a REST request with only an API key', async () => {
       const client = createClient(ClientType.REST_API);
 
-      await client.request({
+      await expect(
+        client.request({
+          method: 'GET',
+          url: 'v1/runs/r',
+          headers: { Authorization: 'Bearer sentinel-api-key' },
+        })
+      ).rejects.toThrow('redirect');
+
+      expect(elsewhere.requests).toEqual([]);
+    });
+  });
+
+  it('is refused when it names a subdomain of the same host and port, which the transport would trust', async () => {
+    redirectStatus = 307;
+    const subdomain = `http://child.localhost:${new URL(origin.url).port}/stolen`;
+    const sameHostOrigin = await startApiServer(() => ({
+      status: 307,
+      headers: { location: subdomain },
+    }));
+    vi.stubEnv(
+      'CURRENTS_REST_API_URL',
+      sameHostOrigin.url.replace('127.0.0.1', 'localhost')
+    );
+    const client = createClient(ClientType.REST_API);
+
+    await expect(
+      client.request({
         method: 'GET',
         url: 'v1/runs/r',
         headers: { Authorization: 'Bearer sentinel-api-key' },
-      });
+      })
+    ).rejects.toThrow('redirect');
 
-      expect(elsewhere.requests).toHaveLength(1);
-      expect(elsewhere.requests[0].headers.authorization).toBeUndefined();
-    });
+    // The redirect is not followed, so nothing asks for the subdomain.
+    expect(sameHostOrigin.requests).toHaveLength(1);
+    await sameHostOrigin.close();
   });
 });
 
@@ -106,6 +133,13 @@ describe('the REST API address', () => {
     [undefined, undefined, 'https://api.currents.dev'],
     ['https://cy.currents.dev', undefined, 'https://api.currents.dev'],
     ['https://cy.currents.dev/', undefined, 'https://api.currents.dev'],
+    ['https://cy.currents.dev/api', undefined, 'https://api.currents.dev'],
+    ['https://cy.currents.dev/api/', undefined, 'https://api.currents.dev'],
+    ['https://CY.currents.dev:443/', undefined, 'https://api.currents.dev'],
+    ['https://cy-staging.currents.dev', undefined, undefined],
+    ['https://cy.currents.dev:8443', undefined, undefined],
+    ['http://cy.currents.dev', undefined, undefined],
+    ['not a url', undefined, undefined],
     ['https://currents.acme.internal', undefined, undefined],
     ['http://localhost:1234', undefined, undefined],
     [
@@ -130,6 +164,7 @@ describe('the REST API address', () => {
     vi.stubEnv('CURRENTS_REST_API_URL', undefined);
 
     expect(() => requireRestAPIBaseUrl()).toThrow('CURRENTS_REST_API_URL');
+    expect(() => requireRestAPIBaseUrl()).toThrow('Currents staging');
     expect(() => createClient(ClientType.REST_API)).toThrow(
       'CURRENTS_REST_API_URL'
     );

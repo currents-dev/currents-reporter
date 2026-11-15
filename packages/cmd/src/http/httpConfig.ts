@@ -36,17 +36,23 @@ export const getRestAPIBaseUrl = (): string | undefined => {
   if (restApiUrl) {
     return restApiUrl;
   }
-  if (getAPIBaseUrl().trim().replace(/\/+$/, '') !== CLOUD_API_URL) {
-    return undefined;
-  }
-  return CLOUD_REST_API_URL;
+  return isCloudDirector(getAPIBaseUrl()) ? CLOUD_REST_API_URL : undefined;
 };
+
+/** The address is compared by origin: a path or a trailing slash does not make it another server. */
+function isCloudDirector(apiUrl: string) {
+  try {
+    return new URL(apiUrl.trim()).origin === CLOUD_API_URL;
+  } catch {
+    return false;
+  }
+}
 
 export const requireRestAPIBaseUrl = () => {
   const url = getRestAPIBaseUrl();
   if (!url) {
     throw new Error(
-      'CURRENTS_API_URL is not Currents cloud, so CURRENTS_REST_API_URL is required for this command: set it to the REST API of the same installation. The CLI does not guess its address, because the cloud REST API would receive your keys.'
+      `CURRENTS_API_URL is not ${CLOUD_API_URL}, so CURRENTS_REST_API_URL is required for this command: set it to the REST API of the same installation, such as your on-prem server or Currents staging. The CLI does not guess its address, because the cloud REST API would receive your keys.`
     );
   }
   return url;

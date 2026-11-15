@@ -77,11 +77,14 @@ export function createClient(type: ClientType): Client {
       };
       const body = toBody(config.data);
       const url = buildURL(baseURL, config.url, config.params);
-      // A redirect would send the record key, in the body or in x-currents-key,
-      // to the address it names; the transport strips only Authorization.
-      // Every request to the director carries a record key.
-      const carriesRecordKey =
-        type === ClientType.API || 'x-currents-key' in headers;
+      // A redirect would send the record key, in the body or in x-currents-key, or the
+      // API key in Authorization, to the address it names. The transport keeps
+      // Authorization for the subdomains of the original host. Every request to the
+      // director carries a record key.
+      const carriesCredential =
+        type === ClientType.API ||
+        'x-currents-key' in headers ||
+        'authorization' in headers;
 
       for (let retryCount = 0; ; retryCount++) {
         logRequest(baseURL, config, headers, retryCount > 0);
@@ -93,7 +96,7 @@ export function createClient(type: ClientType): Client {
             body,
             timeout: config.timeout ?? getTimeout(),
             responseType: config.responseType,
-            followRedirects: config.followRedirects ?? !carriesRecordKey,
+            followRedirects: config.followRedirects ?? !carriesCredential,
           });
         } catch (e) {
           // Messages for users name the path, not the full URL.
