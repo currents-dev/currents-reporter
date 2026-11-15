@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
 import { maskFormBody, maskKeys } from '../lib/credentials';
-import { getAPIBaseUrl, getRestAPIBaseUrl, getTimeout } from './httpConfig';
+import { getAPIBaseUrl, getTimeout, requireRestAPIBaseUrl } from './httpConfig';
 import {
   getDelay,
   getMaxRetries,
@@ -59,7 +59,7 @@ let _clients: Record<ClientType, Client | null> = {
 
 export function createClient(type: ClientType): Client {
   const baseURL =
-    type === ClientType.API ? getAPIBaseUrl() : getRestAPIBaseUrl();
+    type === ClientType.API ? getAPIBaseUrl() : requireRestAPIBaseUrl();
   debug('client base url: %s', baseURL);
 
   const retries = getMaxRetries();
@@ -77,6 +77,11 @@ export function createClient(type: ClientType): Client {
       };
       const body = toBody(config.data);
       const url = buildURL(baseURL, config.url, config.params);
+      // A redirect would send the record key, in the body or in x-currents-key,
+      // to the address it names; the transport strips only Authorization.
+      // Every request to the director carries a record key.
+      const carriesRecordKey =
+        type === ClientType.API || 'x-currents-key' in headers;
 
       for (let retryCount = 0; ; retryCount++) {
         logRequest(baseURL, config, headers, retryCount > 0);
@@ -88,7 +93,7 @@ export function createClient(type: ClientType): Client {
             body,
             timeout: config.timeout ?? getTimeout(),
             responseType: config.responseType,
-            followRedirects: config.followRedirects,
+            followRedirects: config.followRedirects ?? !carriesRecordKey,
           });
         } catch (e) {
           // Messages for users name the path, not the full URL.

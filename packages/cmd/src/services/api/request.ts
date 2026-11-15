@@ -31,7 +31,7 @@ export function restApiPath(path: string) {
   // A full URL would send the API key to whatever host it names.
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(path)) {
     throw new Error(
-      `Pass a path such as /v1/runs/<run-id>, not a URL. The CLI sends requests to ${getRestAPIBaseUrl()}`
+      `Pass a path such as /v1/runs/<run-id>, not a URL. The CLI sends requests to ${getRestAPIBaseUrl() ?? 'the address in CURRENTS_REST_API_URL'}`
     );
   }
   const relative = path.replace(/^\/+/, '');
@@ -174,7 +174,7 @@ export async function handleApiRequest(
     }
     if (!response) {
       throw new Error(
-        `Could not reach the REST API at ${getRestAPIBaseUrl()}: ${e.message}`
+        `Could not reach the REST API at ${getRestAPIBaseUrl() ?? 'CURRENTS_REST_API_URL'}: ${e.message}`
       );
     }
     if (options.include) process.stderr.write(statusAndHeaders(response));

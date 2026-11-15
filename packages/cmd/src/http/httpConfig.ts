@@ -1,5 +1,8 @@
+const CLOUD_API_URL = 'https://cy.currents.dev';
+const CLOUD_REST_API_URL = 'https://api.currents.dev';
+
 export const getAPIBaseUrl = () =>
-  process.env.CURRENTS_API_URL ?? 'https://cy.currents.dev';
+  process.env.CURRENTS_API_URL ?? CLOUD_API_URL;
 
 export const DEFAULT_OIDC_AUDIENCE = 'currents:record-key';
 
@@ -21,7 +24,32 @@ export const getOidcAudience = () =>
   process.env.CURRENTS_OIDC_AUDIENCE?.trim() ||
   DEFAULT_OIDC_AUDIENCE;
 
-export const getRestAPIBaseUrl = () =>
-  process.env.CURRENTS_REST_API_URL ?? 'https://api.currents.dev';
+/**
+ * The REST API, for the requests the director does not serve.
+ *
+ * Undefined when `CURRENTS_API_URL` points at a director that is not Currents
+ * cloud and `CURRENTS_REST_API_URL` is not set: the cloud address would get the
+ * record key or API key of that installation.
+ */
+export const getRestAPIBaseUrl = (): string | undefined => {
+  const restApiUrl = process.env.CURRENTS_REST_API_URL?.trim();
+  if (restApiUrl) {
+    return restApiUrl;
+  }
+  if (getAPIBaseUrl().trim().replace(/\/+$/, '') !== CLOUD_API_URL) {
+    return undefined;
+  }
+  return CLOUD_REST_API_URL;
+};
+
+export const requireRestAPIBaseUrl = () => {
+  const url = getRestAPIBaseUrl();
+  if (!url) {
+    throw new Error(
+      'CURRENTS_API_URL is not Currents cloud, so CURRENTS_REST_API_URL is required for this command: set it to the REST API of the same installation. The CLI does not guess its address, because the cloud REST API would receive your keys.'
+    );
+  }
+  return url;
+};
 
 export const getTimeout = () => 30000;
