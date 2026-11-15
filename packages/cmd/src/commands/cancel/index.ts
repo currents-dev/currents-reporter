@@ -3,6 +3,7 @@ import { formatExamples, HelpExample } from '../help';
 import { cancelHandler } from './cancel';
 import {
   debugOption,
+  oidcAudienceOption,
   oidcTokenOption,
   projectOption,
   recordKeyOption,
@@ -48,6 +49,7 @@ export const getCancelCommand = (
     .allowUnknownOption()
     .addOption(recordKeyOption())
     .addOption(oidcTokenOption())
+    .addOption(oidcAudienceOption())
     .addOption(projectOption())
     .addOption(ciBuildIdOption)
     .addOption(runIdOption)

@@ -9,6 +9,7 @@ import {
   apiKeyOption,
   debugOption,
   projectOption,
+  oidcAudienceOption,
   oidcTokenOption,
   recordKeyOption,
 } from '../options';
@@ -59,6 +60,7 @@ const getAttachCommand = (name: string) =>
     .argument('<paths...>', PATHS_DESCRIPTION)
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
     .addOption(oidcTokenOption())
+    .addOption(oidcAudienceOption())
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(projectOption())
     .addOption(ciBuildIdOption)

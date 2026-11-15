@@ -9,6 +9,7 @@ import {
 import { formatExamples, HelpExample } from '../help';
 import {
   debugOption,
+  oidcAudienceOption,
   oidcTokenOption,
   projectOption,
   recordKeyOption,
@@ -84,6 +85,7 @@ reports being converted.`
     .addOption(ciBuildIdOption)
     .addOption(recordKeyOption())
     .addOption(oidcTokenOption())
+    .addOption(oidcAudienceOption())
     .addOption(projectOption())
     .addOption(runTagOption)
     .addOption(removeTagOption)

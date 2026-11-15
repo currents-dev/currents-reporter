@@ -18,6 +18,7 @@ import {
 import {
   debugOption,
   OIDC_PROJECT_NOTE,
+  oidcAudienceOption,
   oidcTokenOption,
   projectOption,
   recordKeyOption,
@@ -90,6 +91,7 @@ export const getCacheSetCommand = (name: string) => {
     .allowUnknownOption()
     .addOption(recordKeyOption())
     .addOption(oidcTokenOption())
+    .addOption(oidcAudienceOption())
     .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(idSetOption)
     .addOption(presetSetOption)
@@ -112,6 +114,7 @@ export const getCacheGetCommand = (name: string) => {
     .allowUnknownOption()
     .addOption(recordKeyOption())
     .addOption(oidcTokenOption())
+    .addOption(oidcAudienceOption())
     .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(idGetOption)
     .addOption(presetGetOption)

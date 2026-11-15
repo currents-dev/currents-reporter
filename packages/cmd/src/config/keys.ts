@@ -38,19 +38,8 @@ export const sharedConfigKeys = {
   },
 } as const;
 
-const CLOUD_URL = 'https://cy.currents.dev';
-
-/**
- * Added to the error for a missing record key. With an invalid
- * CURRENTS_API_URL the example uses the cloud URL and says what is wrong.
- */
+/** Added to the error for a missing record key. */
 export const getOidcHint = () => {
-  let audience = CLOUD_URL;
-  let invalidUrl = '';
-  try {
-    audience = getOidcAudience();
-  } catch {
-    invalidUrl = ' CURRENTS_API_URL is not a valid URL.';
-  }
-  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token in --oidc-token or CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`): https://docs.currents.dev${invalidUrl}`;
+  const audience = getOidcAudience();
+  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token in --oidc-token or CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`). Staging and on-prem installs use their own audience: set CURRENTS_OIDC_AUDIENCE to its value. https://docs.currents.dev`;
 };

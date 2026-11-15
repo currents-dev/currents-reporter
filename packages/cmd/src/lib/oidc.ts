@@ -6,7 +6,11 @@ import { sharedConfigKeys } from '../config/keys';
 import { printLogsToStderr } from '../commands/utils';
 import { addExitHook } from './exitHooks';
 import { ClientType, getClient } from '../http/client';
-import { getOidcAudience, getTimeout } from '../http/httpConfig';
+import {
+  getOidcAudience,
+  getTimeout,
+  setOidcAudienceOption,
+} from '../http/httpConfig';
 import {
   formatDuration,
   getDelay,
@@ -223,6 +227,10 @@ export function resetOidcExchange() {
 export async function useOidcRecordKey(command: CommandUnknownOpts) {
   const hasOption = (long: string) =>
     command.options.some((o) => o.long === long);
+  // Before any early return: the missing-key hint shows the audience too.
+  setOidcAudienceOption(
+    command.getOptionValue('oidcAudience') as string | undefined
+  );
   const oidcToken = String(command.getOptionValue('oidcToken') ?? '').trim();
   // The value is not kept in the options, which commands copy into their
   // config and print with --debug.

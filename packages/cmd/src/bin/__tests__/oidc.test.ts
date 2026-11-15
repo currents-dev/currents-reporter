@@ -18,7 +18,7 @@ import {
   handleSessionShare,
   handleSessionStart,
 } from '../../services/session';
-import { getOidcAudience } from '../../http/httpConfig';
+import { getOidcAudience, setOidcAudienceOption } from '../../http/httpConfig';
 import { findTokenSource, resetOidcExchange } from '../../lib/oidc';
 import {
   ApiServer,
@@ -109,6 +109,7 @@ describe('record key from an OIDC token', () => {
     server.requests.length = 0;
     vi.mocked(handleSetCache).mockReset();
     resetOidcExchange();
+    setOidcAudienceOption(undefined);
     githubFailures = 0;
     githubResponse = undefined;
     redirectTarget.requests.length = 0;
@@ -133,6 +134,7 @@ describe('record key from an OIDC token', () => {
       'ACTIONS_ID_TOKEN_REQUEST_URL',
       'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
       'CURRENTS_OIDC_TOKEN',
+      'CURRENTS_OIDC_AUDIENCE',
       'GITHUB_ACTIONS',
     ]) {
       vi.stubEnv(name, undefined);
@@ -222,7 +224,7 @@ describe('record key from an OIDC token', () => {
 
     const [githubRequest] = githubRequests();
     const url = new URL(githubRequest.url, server.url);
-    expect(url.searchParams.get('audience')).toBe(new URL(server.url).origin);
+    expect(url.searchParams.get('audience')).toBe('currents:record-key');
     expect(url.searchParams.get('api-version')).toBe('2.0');
     expect(githubRequest.headers.authorization).toBe(`bearer ${REQUEST_TOKEN}`);
   });
@@ -320,17 +322,6 @@ describe('record key from an OIDC token', () => {
     expect(consoleErrors).toContain('permissions: id-token: write');
     expect(consoleErrors).toContain('CURRENTS_OIDC_TOKEN');
     expect(server.requests).toEqual([]);
-  });
-
-  it('shows the hint with the cloud URL when CURRENTS_API_URL is not a valid URL', async () => {
-    vi.stubEnv('CURRENTS_API_URL', 'not a url');
-
-    const code = await run(['cache', 'set']);
-
-    expect(code).toBe(1);
-    expect(consoleErrors).toContain('Record key is required');
-    expect(consoleErrors).toContain('`aud: https://cy.currents.dev`');
-    expect(consoleErrors).toContain('CURRENTS_API_URL is not a valid URL.');
   });
 
   it('says how to get a key for session commands with no credentials', async () => {
@@ -739,46 +730,109 @@ describe('record key from an OIDC token', () => {
   });
 
   describe('audience', () => {
-    it.each([
-      ['https://cy.currents.dev', 'https://cy.currents.dev'],
-      ['https://cy.currents.dev/', 'https://cy.currents.dev'],
-      ['https://cy.currents.dev/v1/runs?a=1', 'https://cy.currents.dev'],
-      ['HTTPS://CY.Currents.DEV', 'https://cy.currents.dev'],
-      ['https://cy.currents.dev:443', 'https://cy.currents.dev'],
-      ['http://currents.example.com:80/', 'http://currents.example.com'],
-      [
-        'https://currents.example.com:8443/api/',
-        'https://currents.example.com:8443',
-      ],
-      ['http://localhost:1234', 'http://localhost:1234'],
-    ])('is the origin of %s', (url, expected) => {
-      expect(getOidcAudience(url)).toBe(expected);
+    const requestedAudience = () => {
+      const [last] = githubRequests().slice(-1);
+      return new URL(last.url, server.url).searchParams.get('audience');
+    };
+
+    it('is currents:record-key by default', () => {
+      expect(getOidcAudience()).toBe('currents:record-key');
     });
 
-    it('is the origin of CURRENTS_API_URL, https://cy.currents.dev by default', () => {
-      vi.stubEnv('CURRENTS_API_URL', 'https://Currents.example.com:8443/');
-      expect(getOidcAudience()).toBe('https://currents.example.com:8443');
+    it('is CURRENTS_OIDC_AUDIENCE, trimmed', () => {
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', '  currents:record-key:staging ');
 
-      vi.stubEnv('CURRENTS_API_URL', undefined);
-      expect(getOidcAudience()).toBe('https://cy.currents.dev');
+      expect(getOidcAudience()).toBe('currents:record-key:staging');
     });
 
-    it('is requested from GitHub for the default and a custom API URL', async () => {
-      setGitHubEnv();
-      const requestedAudience = async () => {
-        await findTokenSource(process.env)?.getToken(process.env);
-        const [last] = githubRequests().slice(-1);
-        return new URL(last.url, server.url).searchParams.get('audience');
-      };
+    it.each(['', '   '])('ignores a CURRENTS_OIDC_AUDIENCE of %j', (value) => {
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', value);
 
-      vi.stubEnv('CURRENTS_API_URL', undefined);
-      expect(await requestedAudience()).toBe('https://cy.currents.dev');
+      expect(getOidcAudience()).toBe('currents:record-key');
+    });
 
+    it('is the option, over the variable', () => {
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'currents:record-key:staging');
+      setOidcAudienceOption('currents:record-key:acme');
+
+      expect(getOidcAudience()).toBe('currents:record-key:acme');
+    });
+
+    it('does not depend on CURRENTS_API_URL', () => {
       vi.stubEnv('CURRENTS_API_URL', 'https://Currents.example.com:8443/api/');
-      expect(await requestedAudience()).toBe(
-        'https://currents.example.com:8443'
-      );
-      expect(githubRequests()).toHaveLength(2);
+      expect(getOidcAudience()).toBe('currents:record-key');
+
+      vi.stubEnv('CURRENTS_API_URL', 'not a url');
+      expect(getOidcAudience()).toBe('currents:record-key');
+    });
+
+    it('is requested from GitHub: the default, the variable, the option', async () => {
+      setGitHubEnv();
+
+      await run(['cache', 'set']);
+      expect(requestedAudience()).toBe('currents:record-key');
+
+      resetOidcExchange();
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'currents:record-key:staging');
+      await run(['cache', 'set']);
+      expect(requestedAudience()).toBe('currents:record-key:staging');
+
+      resetOidcExchange();
+      await run([
+        'cache',
+        'set',
+        '--oidc-audience',
+        'currents:record-key:acme',
+      ]);
+      expect(requestedAudience()).toBe('currents:record-key:acme');
+      expect(githubRequests()).toHaveLength(3);
+    });
+
+    it.each([
+      ['run upload', ['run', 'upload']],
+      ['run cancel', ['run', 'cancel', '--run-id', 'r']],
+      ['run attach', ['run', 'attach', 'a.png']],
+      ['cache get', ['cache', 'get']],
+      ['session start', ['session', 'start', '--title', 't']],
+      ['session attach', ['session', 'attach', 'a.png']],
+      ['session share', ['session', 'share']],
+    ])('--oidc-audience is accepted by %s', async (_name, args) => {
+      setGitHubEnv();
+
+      await run([...args, '--oidc-audience', 'currents:record-key:acme']);
+
+      expect(requestedAudience()).toBe('currents:record-key:acme');
+    });
+
+    it('is not needed by a command with a key or an API key', async () => {
+      setGitHubEnv();
+
+      await run(['cache', 'set', '--key', 'k', '--oidc-audience', 'x']);
+
+      expect(server.requests).toEqual([]);
+    });
+
+    it('is shown in the missing-key hint', async () => {
+      const code = await run(['cache', 'set']);
+
+      expect(code).toBe(1);
+      expect(consoleErrors).toContain('`aud: currents:record-key`');
+      expect(consoleErrors).toContain('CURRENTS_OIDC_AUDIENCE');
+    });
+
+    it('in the missing-key hint follows the option and the variable', async () => {
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'currents:record-key:staging');
+      await run(['cache', 'set']);
+      expect(consoleErrors).toContain('`aud: currents:record-key:staging`');
+
+      consoleErrors = '';
+      await run([
+        'cache',
+        'set',
+        '--oidc-audience',
+        'currents:record-key:acme',
+      ]);
+      expect(consoleErrors).toContain('`aud: currents:record-key:acme`');
     });
   });
 
