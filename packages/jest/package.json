@@ -29,7 +29,7 @@
     "release-it": "^21.0.2",
     "@types/babel__code-frame": "^7.0.6",
     "@types/fs-extra": "^11.0.4",
-    "@types/node": "^25.5.0",
+    "@types/node": "^26.6.6",
     "commander": "^13.1.0",
     "fs-extra": "^11.3.4",
     "jest": "^30.4.2",
