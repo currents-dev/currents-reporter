@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.0.0...%40currents%2Fcmd-v3.1.0) (2026-11-16)
+
+The CLI can record without a stored record key. When no `--key` or `CURRENTS_RECORD_KEY` is set, it exchanges an OIDC token from the CI job for a record key that expires after 6 hours, and revokes the key when the command ends. If the revoke fails, the key expires by itself. On GitHub Actions it gets the token itself when the job has `permissions: id-token: write`; on other CI providers, pass the token in `CURRENTS_OIDC_TOKEN`. The exchange needs the project ID (`--project-id` or `CURRENTS_PROJECT_ID`) and a trust policy for the repository in Currents. A configured record key still wins, so nothing changes for jobs that have one.
+
+### Features
+
+* **cmd:** get a record key from a CI OIDC token when none is set [ENG-2225] ([#511](https://github.com/currents-dev/currents-reporter/issues/511)) ([2295823](https://github.com/currents-dev/currents-reporter/commit/2295823043dc985b05e9bee667eecab4de0f0100))
+
 ## [3.0.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v2.3.0...%40currents%2Fcmd-v3.0.0) (2026-11-04)
 
 The CLI requires Node.js 22.13 or later, and on an older Node.js it stops at start with a message that says to upgrade or to use `@currents/cmd@2`. `currents run share` creates a public link to a run, a spec file or a test. The CLI installs far fewer packages, and none of the `braces`, `glob` and `minimatch` versions that security scanners flagged. Values in `.env`, such as `CURRENTS_RECORD_KEY`, now apply to the options, and cache and session uploads choose their proxy the way API requests do.
