@@ -2,7 +2,7 @@
 
 ## [3.1.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.0.0...%40currents%2Fcmd-v3.1.0) (2026-11-16)
 
-The CLI can record without a stored record key. When no `--key` or `CURRENTS_RECORD_KEY` is set, it exchanges an OIDC token from the CI job for a record key that expires after 6 hours, and revokes the key when the command ends. On GitHub Actions it gets the token itself when the job has `permissions: id-token: write`; on other CI providers, pass the token in `CURRENTS_OIDC_TOKEN`. The exchange needs the project ID (`--project-id` or `CURRENTS_PROJECT_ID`) and a trust policy for the repository in Currents. A configured record key still wins, so nothing changes for jobs that have one.
+The CLI can record without a stored record key. When no `--key` or `CURRENTS_RECORD_KEY` is set, it exchanges an OIDC token from the CI job for a record key that expires after 6 hours, and revokes the key when the command ends. If the revoke fails, the key expires by itself. On GitHub Actions it gets the token itself when the job has `permissions: id-token: write`; on other CI providers, pass the token in `CURRENTS_OIDC_TOKEN`. The exchange needs the project ID (`--project-id` or `CURRENTS_PROJECT_ID`) and a trust policy for the repository in Currents. A configured record key still wins, so nothing changes for jobs that have one.
 
 ### Features
 
