@@ -1,22 +1,66 @@
-import { Command, Option } from '@commander-js/extra-typings';
+import {
+  Command,
+  CommandUnknownOpts,
+  Option,
+} from '@commander-js/extra-typings';
 import {
   CiAuthOptions,
   CredentialFor,
   exchangeHandler,
   getCredentialHandler,
+  getOidcTokenHandler,
   revokeHandler,
 } from '../../services/ciAuth';
+import { statusHandler } from '../../services/ciAuth/status';
 import { formatExamples, HelpExample } from '../help';
-import { debugOption, oidcAudienceOption, projectOption } from '../options';
+import {
+  apiKeyOption,
+  debugOption,
+  oidcAudienceOption,
+  projectOption,
+  recordKeyOption,
+} from '../options';
 import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
 
-const forOption = () =>
-  new Option(
-    '--for <kind>',
-    'the credential to get: an API token or a record key'
-  )
+/**
+ * Commander repeats the value of a rejected option, choice or command in its
+ * error, which a CI log keeps: a token passed by mistake, such as
+ * `--oidc-token=<jwt>`, would be printed before any GitHub mask. The message
+ * is rebuilt from the error code and the command's own options. Nothing is
+ * cut out of the text: an unknown option name can be the token itself, and a
+ * value can hold any character.
+ */
+export function messageWithoutValues(
+  command: CommandUnknownOpts,
+  message: string,
+  code?: string
+) {
+  switch (code) {
+    case 'commander.unknownOption':
+      return 'error: unknown option (run with --help to see the options)';
+    case 'commander.invalidArgument': {
+      const option = command.options.find((o) =>
+        message.startsWith(`error: option '${o.flags}' argument `)
+      );
+      if (!option) return 'error: an option argument is invalid';
+      const choices = option.argChoices
+        ? ` Allowed choices are ${option.argChoices.join(', ')}.`
+        : '';
+      return `error: option '${option.flags}' argument is invalid.${choices}`;
+    }
+    case 'commander.unknownCommand':
+      return 'error: unknown command';
+    default:
+      return message;
+  }
+}
+
+const forOption = (
+  description = 'the credential to get: an API token or a record key'
+) =>
+  new Option('--for <kind>', description)
     .choices(['api', 'record'] as const)
     .makeOptionMandatory();
 
@@ -53,6 +97,11 @@ export const getCiAuthExamples = (name: string): HelpExample[] => [
       `${name} api /v1/runs/<run-id>`,
       `${name} ${PARENT_NAME} revoke`,
     ],
+  },
+  {
+    comment:
+      'Say which credentials the Currents commands of this job would use',
+    commands: [`${name} ${PARENT_NAME} status`],
   },
   {
     comment:
@@ -98,6 +147,47 @@ export const getCiCommand = (name: string) => {
     .addCommand(getCredentialCommand('record'))
     .addCommand(
       new Command()
+        .name('get-oidc-token')
+        .summary('Print the OIDC token of the CI job')
+        .description(
+          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On GitHub Actions the CLI requests it with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is. The audience options do not change a token from those variables: the job requests it with the audience it needs.'
+        )
+        .addOption(forOption('the audience: for an API token or a record key'))
+        .addOption(oidcApiAudienceOption())
+        .addOption(oidcAudienceOption())
+        .addOption(debugOption())
+        .action(
+          ciAuthAction((options) => getOidcTokenHandler(options.for, options))
+        )
+    )
+    .addCommand(
+      new Command()
+        .name('status')
+        .summary('Say which credentials the Currents commands would use')
+        .description(
+          'Say which credential API requests and recording would use, the project, and the OIDC audiences. It names the flags and variables, not their values, and requests, exchanges or checks no token.'
+        )
+        .addOption(apiKeyOption('(its source is reported)'))
+        .addOption(recordKeyOption('(its source is reported)'))
+        .addOption(projectOption('(reported)'))
+        .addOption(oidcApiAudienceOption())
+        .addOption(oidcAudienceOption())
+        .addOption(debugOption())
+        .action((options, command) =>
+          commandHandler(async () => {
+            printLogsToStderr();
+            await statusHandler(options, {
+              apiKey: command.getOptionValueSource('apiKey'),
+              key: command.getOptionValueSource('key'),
+              projectId: command.getOptionValueSource('projectId'),
+              oidcApiAudience: command.getOptionValueSource('oidcApiAudience'),
+              oidcAudience: command.getOptionValueSource('oidcAudience'),
+            });
+          }, options)
+        )
+    )
+    .addCommand(
+      new Command()
         .name('exchange')
         .summary('Exchange an OIDC token from the environment or stdin')
         .description(
@@ -124,9 +214,15 @@ export const getCiCommand = (name: string) => {
         .action(ciAuthAction(revokeHandler))
     );
 
-  return new Command()
+  const ci = new Command()
     .name('ci')
     .summary('Commands for CI jobs')
     .helpCommand(false)
     .addCommand(auth);
+  for (const command of [ci, auth, ...auth.commands] as CommandUnknownOpts[]) {
+    const error = command.error.bind(command);
+    command.error = (message, options) =>
+      error(messageWithoutValues(command, message, options?.code), options);
+  }
+  return ci;
 };

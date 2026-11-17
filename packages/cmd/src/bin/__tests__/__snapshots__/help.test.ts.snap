@@ -332,6 +332,9 @@ Options:
 Commands:
   get-api-token [options]   Print an API token from the OIDC token of the CI job
   get-record-key [options]  Print a record key from the OIDC token of the CI job
+  get-oidc-token [options]  Print the OIDC token of the CI job
+  status [options]          Say which credentials the Currents commands would
+                            use
   exchange [options]        Exchange an OIDC token from the environment or stdin
   revoke [options]          Revoke an API token or record key from an OIDC
                             exchange
@@ -342,6 +345,9 @@ Examples:
       --project-id <project-id>)
   currents api /v1/runs/<run-id>
   currents ci auth revoke
+
+  # Say which credentials the Currents commands of this job would use
+  currents ci auth status
 
   # Exchange the GitLab id_token in CURRENTS_OIDC_TOKEN for a record key
   currents ci auth exchange --for record --project-id <project-id>
@@ -391,6 +397,32 @@ Options:
 "
 `;
 
+exports[`command surface of the built CLI > prints the help of ci auth get-oidc-token 1`] = `
+"Usage: currents ci auth get-oidc-token [options]
+
+Print the OIDC token of the CI job for an API token (--for api) or a record key
+(--for record), without exchanging it. On GitHub Actions the CLI requests it
+with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN
+or CURRENTS_OIDC_TOKEN as it is. The audience options do not change a token from
+those variables: the job requests it with the audience it needs.
+
+Options:
+  --for <kind>                    the audience: for an API token or a record key
+                                  (choices: "api", "record")
+  --oidc-api-audience <audience>  the audience of the OIDC token for an API
+                                  token; the default is currents:api. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_API_AUDIENCE)
+  --oidc-audience <audience>      the audience of the OIDC token of the CI job;
+                                  the default is currents:record-key. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_AUDIENCE)
+  --debug                         print debug logs; keys are hidden in them
+                                  (default: false, env: CURRENTS_DEBUG)
+  -h, --help                      display help for command
+"
+`;
+
 exports[`command surface of the built CLI > prints the help of ci auth get-record-key 1`] = `
 "Usage: currents ci auth get-record-key [options]
 
@@ -425,6 +457,35 @@ Options:
   --debug     print debug logs; keys are hidden in them (default: false, env:
               CURRENTS_DEBUG)
   -h, --help  display help for command
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of ci auth status 1`] = `
+"Usage: currents ci auth status [options]
+
+Say which credential API requests and recording would use, the project, and the
+OIDC audiences. It names the flags and variables, not their values, and
+requests, exchanges or checks no token.
+
+Options:
+  --api-key <api-key>             an API key from the Currents dashboard (its
+                                  source is reported) (env: CURRENTS_API_KEY)
+  -k, --key <record-key>          the record key from the Currents dashboard
+                                  (its source is reported) (env:
+                                  CURRENTS_RECORD_KEY)
+  -p, --project-id <id>           the project ID from the Currents dashboard
+                                  (reported) (env: CURRENTS_PROJECT_ID)
+  --oidc-api-audience <audience>  the audience of the OIDC token for an API
+                                  token; the default is currents:api. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_API_AUDIENCE)
+  --oidc-audience <audience>      the audience of the OIDC token of the CI job;
+                                  the default is currents:record-key. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_AUDIENCE)
+  --debug                         print debug logs; keys are hidden in them
+                                  (default: false, env: CURRENTS_DEBUG)
+  -h, --help                      display help for command
 "
 `;
 

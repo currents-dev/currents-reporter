@@ -679,7 +679,7 @@ export function isCiBuildIdDetectable(ciProvider: string | null) {
   return ciProvider && detectableCiBuildIdProviders().includes(ciProvider);
 }
 
-function getCiProvider(): CiProvider {
+export function getCiProvider(): CiProvider {
   const providerName = _detectProviderName();
   debug('detected CI provider name: %s', providerName);
   return providerName || null;

@@ -322,10 +322,11 @@ export function resetOidcExchange() {
 }
 
 /**
- * A command with `--key` that got no record key, and no API key to use
- * instead, gets one from an OIDC token: --oidc-token, CURRENTS_OIDC_TOKEN, or
- * GitHub Actions. The commands that take
- * only an API key have no `--key` option and are not affected.
+ * A command with `--key` and `--oidc-token` that got no record key, and no API
+ * key to use instead, gets one from an OIDC token: --oidc-token,
+ * CURRENTS_OIDC_TOKEN, or GitHub Actions. The commands that take only an API
+ * key are not affected, and neither is `ci auth status`, which has `--key`
+ * only to report it.
  */
 export async function useOidcRecordKey(command: CommandUnknownOpts) {
   const hasOption = (long: string) =>
@@ -342,6 +343,7 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   }
   if (
     !hasOption('--key') ||
+    !hasOption('--oidc-token') ||
     command.getOptionValue('key') ||
     (hasOption('--api-key') && command.getOptionValue('apiKey'))
   ) {
