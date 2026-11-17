@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { maskKeys, maskSensitiveFields } from '../credentials';
+import {
+  maskKeys,
+  maskSensitiveFields,
+  redactSecret,
+  redactSecretsDeep,
+} from '../credentials';
 
 describe('maskSensitiveFields', () => {
   it.each([
@@ -55,6 +60,40 @@ describe('maskKeys', () => {
       oidcToken: '*****',
       oidcApiToken: '*****',
       response: { access_token: '*****', expires_in: 600 },
+    });
+  });
+});
+
+describe('redactSecret', () => {
+  const SECRET = 'crnts_ciapi_x+1';
+
+  it.each([
+    ['as it is', `bad ${SECRET}.`],
+    ['URL-encoded', `bad ${encodeURIComponent(SECRET)}.`],
+    ['with a percent-encoded character', 'bad %63rnts%5fciapi_x%2B1.'],
+    ['with a JSON \\u escape', 'bad \\u0063rnts_ciapi_x\\u002b1.'],
+    ['in another case', `bad ${SECRET.toUpperCase()}.`],
+  ])('replaces the secret %s', (_name, text) => {
+    expect(redactSecret(text, SECRET)).toBe('bad *****.');
+  });
+
+  it('keeps other text and an empty secret', () => {
+    expect(redactSecret('crnts_ciapi_y', SECRET)).toBe('crnts_ciapi_y');
+    expect(redactSecret('text', '')).toBe('text');
+  });
+});
+
+describe('redactSecretsDeep', () => {
+  it('redacts the keys, values and items of nested values, and keeps the rest', () => {
+    expect(
+      redactSecretsDeep({ a: ['k1', 1, { k2: 'x k2 y' }], b: null, k1: true }, [
+        'k1',
+        'k2',
+      ])
+    ).toEqual({
+      a: ['*****', 1, { '*****': 'x ***** y' }],
+      b: null,
+      '*****': true,
     });
   });
 });

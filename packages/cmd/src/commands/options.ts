@@ -32,6 +32,12 @@ export const oidcAudienceOption = () =>
     'the audience of the OIDC token of the CI job; the default is currents:record-key. A Currents staging or on-prem install has its own'
   ).env('CURRENTS_OIDC_AUDIENCE');
 
+export const oidcApiAudienceOption = () =>
+  new Option(
+    '--oidc-api-audience <audience>',
+    'the audience of the OIDC token for an API token; the default is currents:api. A Currents staging or on-prem install has its own'
+  ).env('CURRENTS_OIDC_API_AUDIENCE');
+
 export const apiKeyOption = (note = REQUIRED) =>
   new Option(
     '--api-key <api-key>',

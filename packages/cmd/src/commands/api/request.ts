@@ -1,4 +1,12 @@
-import { InvalidArgumentError, Option } from '@commander-js/extra-typings';
+import {
+  CommandUnknownOpts,
+  InvalidArgumentError,
+  Option,
+} from '@commander-js/extra-typings';
+import {
+  getApiKeyOrOidcToken,
+  rejectBlankApiKeyFlag,
+} from '../../services/ciAuth';
 import {
   ApiRequestOptions,
   Field,
@@ -87,10 +95,20 @@ export const includeOption = new Option(
 
 export async function apiRequestHandler(
   path: string,
-  options: ApiRequestOptions
+  options: ApiRequestOptions,
+  command: CommandUnknownOpts
 ) {
   await commandHandler(async (opts) => {
     printLogsToStderr();
-    await handleApiRequest(path, opts);
+    const apiKeySource = command.getOptionValueSource('apiKey');
+    rejectBlankApiKeyFlag(opts.apiKey, apiKeySource);
+    // The header replaces the one the API key would set.
+    const hasAuthorization = opts.header?.some(
+      ([name]) => name.toLowerCase() === 'authorization'
+    );
+    const apiKey = hasAuthorization
+      ? opts.apiKey
+      : await getApiKeyOrOidcToken(opts, apiKeySource);
+    await handleApiRequest(path, { ...opts, apiKey });
   }, options);
 }

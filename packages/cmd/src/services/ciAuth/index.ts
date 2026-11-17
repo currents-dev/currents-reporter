@@ -1,5 +1,9 @@
 import { sharedConfigKeys } from '../../config/keys';
-import { getOidcApiAudience, getOidcAudience } from '../../http/httpConfig';
+import {
+  getOidcApiAudience,
+  getOidcAudience,
+  requireRestAPIBaseUrl,
+} from '../../http/httpConfig';
 import { writeStdout } from '../../commands/utils';
 import { getCiProvider } from '../../env/ciProvider';
 import {
@@ -13,6 +17,7 @@ import {
   providedTokenSource,
   RECORD_KEY_KIND,
   revokeOidcCredential,
+  revokeOnExit,
   TokenSource,
 } from '../../lib/oidc';
 
@@ -127,16 +132,69 @@ export function findCiTokenSource(credentialFor: CredentialFor) {
   return getCiProvider() === 'githubActions' ? findTokenSource() : undefined;
 }
 
+function noOidcTokenHint(credentialFor: CredentialFor, options: CiAuthOptions) {
+  const { tokenEnv, getAudience } = credentialSettings[credentialFor];
+  return `set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token with the audience ${getAudience(options)} in ${tokenEnv}`;
+}
+
 function requireCiTokenSource(
   credentialFor: CredentialFor,
   options: CiAuthOptions
 ) {
   const source = findCiTokenSource(credentialFor);
   if (source) return source;
-  const { kind, tokenEnv, getAudience } = credentialSettings[credentialFor];
   throw new Error(
-    `No OIDC token for a ${kind.name}: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token with the audience ${getAudience(options)} in ${tokenEnv}`
+    `No OIDC token for a ${credentialSettings[credentialFor].kind.name}: ${noOidcTokenHint(credentialFor, options)}`
   );
+}
+
+/** A blank --api-key fails: it is not sent, and starts no exchange. */
+export function rejectBlankApiKeyFlag(
+  apiKey: string | undefined,
+  apiKeySource: string | undefined
+) {
+  if (apiKeySource === 'cli' && !apiKey?.trim()) {
+    throw new Error(
+      `${sharedConfigKeys.apiKey.cli} is blank: pass the key, or leave the flag out`
+    );
+  }
+}
+
+/**
+ * The API key of a command that calls the REST API: --api-key or
+ * CURRENTS_API_KEY, or else an API token from the OIDC token of the CI job,
+ * revoked when the command ends. A configured key is used even when the API
+ * refuses it.
+ */
+export async function getApiKeyOrOidcToken(
+  options: CiAuthOptions & { apiKey?: string },
+  apiKeySource: string | undefined
+) {
+  rejectBlankApiKeyFlag(options.apiKey, apiKeySource);
+  if (options.apiKey?.trim()) return options.apiKey;
+  const source = findCiTokenSource('api');
+  if (!source) {
+    const { cli, env } = sharedConfigKeys.apiKey;
+    throw new Error(
+      `API key is required: pass ${cli} or set ${env}. Without a stored key, a CI job can use its OIDC token: ${noOidcTokenHint('api', options)}, and pass --project-id`
+    );
+  }
+  // Checked before the exchange: a token is not issued for a request that
+  // cannot be sent.
+  const projectId = requireProjectId(options);
+  requireRestAPIBaseUrl();
+  const { credential, expiresAt } = await exchangeOidcToken({
+    kind: API_TOKEN_KIND,
+    source: maskedSource(source),
+    audience: credentialSettings.api.getAudience(options),
+    projectId,
+  });
+  maskInGitHubLog(credential);
+  revokeOnExit(API_TOKEN_KIND, credential);
+  process.stderr.write(
+    `Using an API token from the ${source.name}, valid until ${expiresAt}\n`
+  );
+  return credential;
 }
 
 export async function getCredentialHandler(

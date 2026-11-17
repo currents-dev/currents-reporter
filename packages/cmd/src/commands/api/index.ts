@@ -10,7 +10,12 @@ import {
   methodOption,
   rawFieldOption,
 } from './request';
-import { apiKeyOption, debugOption, projectOption } from '../options';
+import {
+  apiKeyOption,
+  debugOption,
+  oidcApiAudienceOption,
+  projectOption,
+} from '../options';
 import {
   branchOption,
   ciBuildIdOption,
@@ -21,6 +26,8 @@ import {
 
 const COMMAND_NAME = 'get';
 const PARENT_NAME = 'run';
+const API_KEY_NOTE =
+  '(required unless the CI job has an OIDC token: id-token: write on GitHub Actions, or CURRENTS_OIDC_API_TOKEN with the audience currents:api)';
 export const getRunGetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Get the data of the run recorded under a CI build ID',
@@ -83,7 +90,11 @@ The REST API routes: https://docs.currents.dev/resources/api/api-resources`
     .argument('<path>', 'the REST API route, such as /v1/runs/<run-id>')
     .enablePositionalOptions()
     .helpCommand(false)
-    .addOption(apiKeyOption())
+    .addOption(apiKeyOption(API_KEY_NOTE))
+    .addOption(
+      projectOption('(required to get an API token from an OIDC token)')
+    )
+    .addOption(oidcApiAudienceOption())
     .addOption(methodOption)
     .addOption(fieldOption)
     .addOption(rawFieldOption)
@@ -97,7 +108,9 @@ The REST API routes: https://docs.currents.dev/resources/api/api-resources`
     // The implicit help command is off, so it is not listed next to the
     // hidden get-run; `api help` still prints the help instead of a request.
     .action((path, options, command) =>
-      path === 'help' ? command.help() : apiRequestHandler(path, options)
+      path === 'help'
+        ? command.help()
+        : apiRequestHandler(path, options, command)
     );
 
   return command;
@@ -112,10 +125,11 @@ export const getRunGetCommand = (name: string) => {
     )
     .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .allowUnknownOption()
-    .addOption(apiKeyOption())
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(debugOption())
     .addOption(ciBuildIdOption)
     .addOption(projectOption())
+    .addOption(oidcApiAudienceOption())
     .addOption(branchOption)
     .addOption(runTagOption)
     .addOption(outputOption)

@@ -70,7 +70,7 @@ const mandatoryConfigKeys: MandatoryAPICommandConfigKeys[] = [
 ];
 
 export const apiGetRunCustomValidation = (
-  config: APICommandConfig & APIGetRunCommandConfig
+  config: Pick<APIGetRunCommandConfig, 'ciBuildId' | 'tag' | 'branch'>
 ) => {
   const { ciBuildId, tag, branch } = config;
   const count = [ciBuildId, tag, branch].filter(Boolean).length;

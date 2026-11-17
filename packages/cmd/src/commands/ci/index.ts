@@ -16,6 +16,7 @@ import { formatExamples, HelpExample } from '../help';
 import {
   apiKeyOption,
   debugOption,
+  oidcApiAudienceOption,
   oidcAudienceOption,
   projectOption,
   recordKeyOption,
@@ -72,12 +73,6 @@ const jsonOption = () =>
 
 const stdinOption = (what: string) =>
   new Option('--stdin', `read the ${what} from stdin`);
-
-const oidcApiAudienceOption = () =>
-  new Option(
-    '--oidc-api-audience <audience>',
-    'the audience of the OIDC token for an API token; the default is currents:api. A Currents staging or on-prem install has its own'
-  ).env('CURRENTS_OIDC_API_AUDIENCE');
 
 // stdout holds only the credential: logs, such as a retried request, go to stderr.
 const ciAuthAction =

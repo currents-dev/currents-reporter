@@ -217,7 +217,7 @@ describe('exit codes and error output of the built CLI', () => {
       ],
       ['cache get', ['cache', 'get'], 'Record key'],
       ['cache set', ['cache', 'set'], 'Record key'],
-      ['run get', ['run', 'get'], 'API key'],
+      ['run get', ['run', 'get', '--ci-build-id', 'b1'], 'API key'],
     ])(
       'exits with 1 when %s misses a required value (%j)',
       async (_name, args, missing) => {
