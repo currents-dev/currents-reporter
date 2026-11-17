@@ -1187,6 +1187,16 @@ describe('currents ci auth', () => {
         ?.trim();
     };
 
+    /** Every line of a section, such as "Recording:", that starts with label. */
+    const sectionLines = (heading: string, label: string) => {
+      const lines = stdout.split('\n');
+      const section = lines.slice(lines.indexOf(heading) + 1);
+      return section
+        .slice(0, section.indexOf(''))
+        .map((line) => line.trim())
+        .filter((line) => line.startsWith(label));
+    };
+
     it('reports an empty environment, exits 0 and sends nothing', async () => {
       vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
 
@@ -1325,16 +1335,19 @@ describe('currents ci auth', () => {
       expect(lineOf('Project:')).toBe('Project: flag-project (--project-id)');
     });
 
-    it('reports the keys by flag or variable, the record key first for recording', async () => {
+    it('reports the keys by flag or variable, the record key first for recording, and the API key only for the recording commands with --api-key', async () => {
       setGitHubEnv();
       vi.stubEnv('CURRENTS_API_KEY', 'sentinel-api-key');
       await run(['status']);
       expect(sectionLine('API requests:', 'Credential:')).toBe(
         'Credential: CURRENTS_API_KEY'
       );
-      expect(sectionLine('Recording:', 'Credential:')).toBe(
-        'Credential: CURRENTS_API_KEY'
-      );
+      // Only the recording commands with --api-key use it; the others get a
+      // record key from the GitHub Actions token.
+      expect(sectionLines('Recording:', 'Credential:')).toEqual([
+        'Credential: OIDC, GitHub Actions OIDC token (run upload, run cancel, cache set, cache get)',
+        'Credential: CURRENTS_API_KEY (run attach, session start, session attach, session share)',
+      ]);
 
       stdout = '';
       vi.stubEnv('CURRENTS_RECORD_KEY', 'sentinel-record-key');

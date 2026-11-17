@@ -1,3 +1,4 @@
+import { CommandUnknownOpts } from '@commander-js/extra-typings';
 import { writeStdout } from '../../commands/utils';
 import { sharedConfigKeys } from '../../config/keys';
 import { getCiProvider } from '../../env/ciProvider';
@@ -6,7 +7,11 @@ import {
   DEFAULT_OIDC_AUDIENCE,
   OIDC_API_AUDIENCE_ENV,
 } from '../../http/httpConfig';
-import { findTokenSource } from '../../lib/oidc';
+import {
+  findTokenSource,
+  recordsWithApiKey,
+  recordsWithOidc,
+} from '../../lib/oidc';
 import { findCiTokenSource } from '.';
 
 /** Where commander took an option from: 'cli', 'env', or undefined for none. */
@@ -67,13 +72,33 @@ function describeAudience(
   return `${fallback} (default)`;
 }
 
+/** The visible commands of the program that record, by full name, such as "run upload". */
+function recordingCommands(program: CommandUnknownOpts) {
+  const help = program.createHelp();
+  const walk = (
+    command: CommandUnknownOpts,
+    prefix: string[]
+  ): { name: string; withApiKey: boolean }[] =>
+    help.visibleCommands(command).flatMap((sub) => {
+      const path = [...prefix, sub.name()];
+      return [
+        ...(recordsWithOidc(sub)
+          ? [{ name: path.join(' '), withApiKey: recordsWithApiKey(sub) }]
+          : []),
+        ...walk(sub, path),
+      ];
+    });
+  return walk(program, []);
+}
+
 /**
  * Says which credential each kind of request would use, without reading or
  * sending any token: no OIDC token request, exchange or check of a key.
  */
 export async function statusHandler(
   options: StatusOptions,
-  sources: StatusSources
+  sources: StatusSources,
+  program: CommandUnknownOpts
 ) {
   // A blank flag would hide the variable and make OIDC look like the source.
   for (const [name, flag] of [
@@ -130,6 +155,23 @@ export async function statusHandler(
       ? ['  The exchange needs --project-id or CURRENTS_PROJECT_ID']
       : [];
 
+  // The order of useOidcRecordKey and getAuthHeaders: record key, then the
+  // API key for the commands that have --api-key, then an OIDC token.
+  const recordingKeys = new Map<string | undefined, string[]>();
+  for (const { name, withApiKey } of recordingCommands(program)) {
+    const key = recordKey ?? (withApiKey ? apiKey : undefined);
+    recordingKeys.set(key, [...(recordingKeys.get(key) ?? []), name]);
+  }
+  const recordingCredential = (key: string | undefined) =>
+    key ?? (recordOidc ? `OIDC, ${recordOidc}` : 'none');
+  const recordingCredentialLines =
+    recordingKeys.size === 1
+      ? [`  Credential: ${recordingCredential([...recordingKeys.keys()][0])}`]
+      : [...recordingKeys].map(
+          ([key, names]) =>
+            `  Credential: ${recordingCredential(key)} (${names.join(', ')})`
+        );
+
   const lines = [
     `CI provider: ${provider ?? 'none'}`,
     `Project: ${project ? `${options.projectId?.trim()} (${project})` : 'not set'}`,
@@ -149,9 +191,10 @@ export async function statusHandler(
     ...oidcNote(apiOidc?.name, apiKey),
     '',
     'Recording:',
-    `  Credential: ${recordKey ?? apiKey ?? (recordOidc ? `OIDC, ${recordOidc}` : 'none')}`,
+    ...recordingCredentialLines,
     `  OIDC audience: ${recordAudience}`,
-    ...oidcNote(recordOidc, recordKey ?? apiKey),
+    // Commands without a key exchange the OIDC token.
+    ...(recordingKeys.has(undefined) ? oidcNote(recordOidc, undefined) : []),
     '',
     'Environment:',
     ...STATUS_ENV_INPUTS.map((name) => `  ${name}: ${envInputState(name)}`),
