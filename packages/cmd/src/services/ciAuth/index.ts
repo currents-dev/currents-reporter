@@ -148,22 +148,30 @@ function requireCiTokenSource(
   );
 }
 
+/** A blank --api-key fails: it is not sent, and starts no exchange. */
+export function rejectBlankApiKeyFlag(
+  apiKey: string | undefined,
+  apiKeySource: string | undefined
+) {
+  if (apiKeySource === 'cli' && !apiKey?.trim()) {
+    throw new Error(
+      `${sharedConfigKeys.apiKey.cli} is blank: pass the key, or leave the flag out`
+    );
+  }
+}
+
 /**
  * The API key of a command that calls the REST API: --api-key or
  * CURRENTS_API_KEY, or else an API token from the OIDC token of the CI job,
  * revoked when the command ends. A configured key is used even when the API
- * refuses it. A blank --api-key fails instead of starting an exchange.
+ * refuses it.
  */
 export async function getApiKeyOrOidcToken(
   options: CiAuthOptions & { apiKey?: string },
   apiKeySource: string | undefined
 ) {
+  rejectBlankApiKeyFlag(options.apiKey, apiKeySource);
   if (options.apiKey?.trim()) return options.apiKey;
-  if (apiKeySource === 'cli') {
-    throw new Error(
-      `${sharedConfigKeys.apiKey.cli} is blank: pass the key, or leave the flag out`
-    );
-  }
   const source = findCiTokenSource('api');
   if (!source) {
     const { cli, env } = sharedConfigKeys.apiKey;

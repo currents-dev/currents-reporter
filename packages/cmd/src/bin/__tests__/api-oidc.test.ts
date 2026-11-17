@@ -623,6 +623,20 @@ describe('API commands with an API token from OIDC', () => {
       expect(director.requests).toEqual([]);
     });
 
+    it.each(['', '   '])(
+      'fails on the blank --api-key %j with an Authorization header, without a request',
+      async (key) => {
+        setGitHubEnv();
+
+        expectStopped(
+          await run([...API, '--api-key', key, '-H', 'Authorization: Bearer x'])
+        );
+
+        expect(director.requests).toEqual([]);
+        expect(diagnostics()).toContain('--api-key is blank');
+      }
+    );
+
     it('needs no project when a key is set', async () => {
       vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
 
