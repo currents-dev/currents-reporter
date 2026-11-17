@@ -1,5 +1,9 @@
 import { sharedConfigKeys } from '../../config/keys';
-import { getOidcApiAudience, getOidcAudience } from '../../http/httpConfig';
+import {
+  getOidcApiAudience,
+  getOidcAudience,
+  requireRestAPIBaseUrl,
+} from '../../http/httpConfig';
 import { writeStdout } from '../../commands/utils';
 import { getCiProvider } from '../../env/ciProvider';
 import {
@@ -163,11 +167,15 @@ export async function getApiKeyOrOidcToken(
       `API key is required: pass ${cli} or set ${env}. Without a stored key, a CI job can use its OIDC token: ${noOidcTokenHint('api', options)}, and pass --project-id`
     );
   }
+  // Checked before the exchange: a token is not issued for a request that
+  // cannot be sent.
+  const projectId = requireProjectId(options);
+  requireRestAPIBaseUrl();
   const { credential, expiresAt } = await exchangeOidcToken({
     kind: API_TOKEN_KIND,
     source: maskedSource(source),
     audience: credentialSettings.api.getAudience(options),
-    projectId: requireProjectId(options),
+    projectId,
   });
   maskInGitHubLog(credential);
   revokeOnExit(API_TOKEN_KIND, credential);

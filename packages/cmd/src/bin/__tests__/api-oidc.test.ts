@@ -593,6 +593,27 @@ describe('API commands with an API token from OIDC', () => {
   });
 
   describe('run get', () => {
+    it.each([
+      [
+        'run get with --ci-build-id and --branch',
+        [...RUN_GET, '--branch', 'main'],
+      ],
+      [
+        'api get-run with --ci-build-id and --branch',
+        [...API_GET_RUN, '--branch', 'main'],
+      ],
+      ['run get without a selector', ['run', 'get']],
+    ])('gets no token for %s', async (_name, args) => {
+      setGitHubEnv();
+
+      expectStopped(await run(args));
+
+      expect(director.requests).toEqual([]);
+      expect(diagnostics()).toContain(
+        'Pass --ci-build-id, or --branch, --tag or both'
+      );
+    });
+
     it('writes only the run to --output and revokes the token', async () => {
       setGitHubEnv();
       const dir = await mkdtemp(join(tmpdir(), 'api-oidc-'));
@@ -775,18 +796,21 @@ describe('currents api in a process', () => {
     expect(Date.now() - start).toBeLessThan(8000);
   }, 15_000);
 
-  it('does not send the token to the cloud REST API for another director, and revokes it', async () => {
-    const result = await runCli(API, {
-      cwd: dir,
-      env: { ...env(), CURRENTS_REST_API_URL: '' },
-    });
+  it.each([
+    ['api', API],
+    ['run get', RUN_GET],
+  ])(
+    '%s gets no token for another director without CURRENTS_REST_API_URL',
+    async (_name, args) => {
+      const result = await runCli(args, {
+        cwd: dir,
+        env: { ...env(), CURRENTS_REST_API_URL: '' },
+      });
 
-    expect(result.code).toBe(1);
-    expect(result.stderr).toContain('CURRENTS_REST_API_URL is required');
-    expect(rest.requests).toEqual([]);
-    expect(director.requests.map(pathOf)).toEqual([
-      '/oidc/api/token',
-      '/oidc/api/revoke',
-    ]);
-  });
+      expect(result.code).toBe(1);
+      expect(result.stderr).toContain('CURRENTS_REST_API_URL is required');
+      expect(rest.requests).toEqual([]);
+      expect(director.requests).toEqual([]);
+    }
+  );
 });
