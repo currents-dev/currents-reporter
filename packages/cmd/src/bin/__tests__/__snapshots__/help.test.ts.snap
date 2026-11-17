@@ -11,28 +11,38 @@ on stderr and exits with 1.
 The REST API routes: https://docs.currents.dev/resources/api/api-resources
 
 Arguments:
-  path                         the REST API route, such as /v1/runs/<run-id>
+  path                            the REST API route, such as /v1/runs/<run-id>
 
 Options:
-  --api-key <api-key>          an API key from the Currents dashboard (required)
-                               (env: CURRENTS_API_KEY)
-  -X, --method <method>        the HTTP method; GET by default, POST when
-                               --field, --raw-field or --input is given
-  -f, --field <key=value>      a request parameter; repeat for more. Sent in the
-                               query string of a GET and in the JSON body
-                               otherwise. true, false, null and numbers are sent
-                               as JSON values; in a JSON body, key[]=value adds
-                               the value to an array
-  -F, --raw-field <key=value>  like --field, but the value is always a string
-  --input <file>               send the JSON in this file as the body, or the
-                               JSON from stdin with "-"; fields then go to the
-                               query string
-  -H, --header <key:value>     an HTTP header to send; repeat for more
-  -i, --include                print the HTTP status line and the response
-                               headers before the body
-  --debug                      print debug logs; keys are hidden in them
-                               (default: false, env: CURRENTS_DEBUG)
-  -h, --help                   display help for command
+  --api-key <api-key>             an API key from the Currents dashboard
+                                  (required unless the CI job has an OIDC token:
+                                  id-token: write on GitHub Actions, or
+                                  CURRENTS_OIDC_API_TOKEN with the audience
+                                  currents:api) (env: CURRENTS_API_KEY)
+  -p, --project-id <id>           the project ID from the Currents dashboard
+                                  (required to get an API token from an OIDC
+                                  token) (env: CURRENTS_PROJECT_ID)
+  --oidc-api-audience <audience>  the audience of the OIDC token for an API
+                                  token; the default is currents:api. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_API_AUDIENCE)
+  -X, --method <method>           the HTTP method; GET by default, POST when
+                                  --field, --raw-field or --input is given
+  -f, --field <key=value>         a request parameter; repeat for more. Sent in
+                                  the query string of a GET and in the JSON body
+                                  otherwise. true, false, null and numbers are
+                                  sent as JSON values; in a JSON body,
+                                  key[]=value adds the value to an array
+  -F, --raw-field <key=value>     like --field, but the value is always a string
+  --input <file>                  send the JSON in this file as the body, or the
+                                  JSON from stdin with "-"; fields then go to
+                                  the query string
+  -H, --header <key:value>        an HTTP header to send; repeat for more
+  -i, --include                   print the HTTP status line and the response
+                                  headers before the body
+  --debug                         print debug logs; keys are hidden in them
+                                  (default: false, env: CURRENTS_DEBUG)
+  -h, --help                      display help for command
 
 Examples:
   # Get a run, with the API key in CURRENTS_API_KEY
@@ -60,24 +70,32 @@ Get the data of a run from the Currents API and print it as JSON, or write it to
 both
 
 Options:
-  --api-key <api-key>    an API key from the Currents dashboard (required) (env:
-                         CURRENTS_API_KEY)
-  --debug                print debug logs; keys are hidden in them (default:
-                         false, env: CURRENTS_DEBUG)
-  --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
-                         combined with --branch or --tag. The environment
-                         variable is ignored when --branch or --tag is set (env:
-                         CURRENTS_CI_BUILD_ID)
-  -p, --project-id <id>  the project ID from the Currents dashboard (required)
-                         (env: CURRENTS_PROJECT_ID)
-  -b, --branch <branch>  find the last run of this git branch
-  -t, --tag <tag>        find the last run with these tags; comma-separated or
-                         repeated
-  -o, --output <path>    write the JSON to this file instead of stdout (env:
-                         CURRENTS_OUTPUT)
-  --pw-last-run          print only the status and the failed tests of the run,
-                         in the format of Playwright's .last-run.json
-  -h, --help             display help for command
+  --api-key <api-key>             an API key from the Currents dashboard
+                                  (required unless the CI job has an OIDC token:
+                                  id-token: write on GitHub Actions, or
+                                  CURRENTS_OIDC_API_TOKEN with the audience
+                                  currents:api) (env: CURRENTS_API_KEY)
+  --debug                         print debug logs; keys are hidden in them
+                                  (default: false, env: CURRENTS_DEBUG)
+  --ci-build-id <id>              the CI build ID the run was recorded with;
+                                  cannot be combined with --branch or --tag. The
+                                  environment variable is ignored when --branch
+                                  or --tag is set (env: CURRENTS_CI_BUILD_ID)
+  -p, --project-id <id>           the project ID from the Currents dashboard
+                                  (required) (env: CURRENTS_PROJECT_ID)
+  --oidc-api-audience <audience>  the audience of the OIDC token for an API
+                                  token; the default is currents:api. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_API_AUDIENCE)
+  -b, --branch <branch>           find the last run of this git branch
+  -t, --tag <tag>                 find the last run with these tags;
+                                  comma-separated or repeated
+  -o, --output <path>             write the JSON to this file instead of stdout
+                                  (env: CURRENTS_OUTPUT)
+  --pw-last-run                   print only the status and the failed tests of
+                                  the run, in the format of Playwright's
+                                  .last-run.json
+  -h, --help                      display help for command
 
 Examples:
   # Get the data of the run recorded under a CI build ID
@@ -735,24 +753,32 @@ Get the data of a run from the Currents API and print it as JSON, or write it to
 both
 
 Options:
-  --api-key <api-key>    an API key from the Currents dashboard (required) (env:
-                         CURRENTS_API_KEY)
-  --debug                print debug logs; keys are hidden in them (default:
-                         false, env: CURRENTS_DEBUG)
-  --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
-                         combined with --branch or --tag. The environment
-                         variable is ignored when --branch or --tag is set (env:
-                         CURRENTS_CI_BUILD_ID)
-  -p, --project-id <id>  the project ID from the Currents dashboard (required)
-                         (env: CURRENTS_PROJECT_ID)
-  -b, --branch <branch>  find the last run of this git branch
-  -t, --tag <tag>        find the last run with these tags; comma-separated or
-                         repeated
-  -o, --output <path>    write the JSON to this file instead of stdout (env:
-                         CURRENTS_OUTPUT)
-  --pw-last-run          print only the status and the failed tests of the run,
-                         in the format of Playwright's .last-run.json
-  -h, --help             display help for command
+  --api-key <api-key>             an API key from the Currents dashboard
+                                  (required unless the CI job has an OIDC token:
+                                  id-token: write on GitHub Actions, or
+                                  CURRENTS_OIDC_API_TOKEN with the audience
+                                  currents:api) (env: CURRENTS_API_KEY)
+  --debug                         print debug logs; keys are hidden in them
+                                  (default: false, env: CURRENTS_DEBUG)
+  --ci-build-id <id>              the CI build ID the run was recorded with;
+                                  cannot be combined with --branch or --tag. The
+                                  environment variable is ignored when --branch
+                                  or --tag is set (env: CURRENTS_CI_BUILD_ID)
+  -p, --project-id <id>           the project ID from the Currents dashboard
+                                  (required) (env: CURRENTS_PROJECT_ID)
+  --oidc-api-audience <audience>  the audience of the OIDC token for an API
+                                  token; the default is currents:api. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_API_AUDIENCE)
+  -b, --branch <branch>           find the last run of this git branch
+  -t, --tag <tag>                 find the last run with these tags;
+                                  comma-separated or repeated
+  -o, --output <path>             write the JSON to this file instead of stdout
+                                  (env: CURRENTS_OUTPUT)
+  --pw-last-run                   print only the status and the failed tests of
+                                  the run, in the format of Playwright's
+                                  .last-run.json
+  -h, --help                      display help for command
 
 Examples:
   # Get the data of the run recorded under a CI build ID

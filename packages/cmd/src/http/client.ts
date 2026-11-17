@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
-import { maskFormBody, maskKeys } from '../lib/credentials';
+import { maskFormBody, maskKeys, redactSecret } from '../lib/credentials';
 import { getAPIBaseUrl, getTimeout, requireRestAPIBaseUrl } from './httpConfig';
 import {
   getDelay,
@@ -107,7 +107,10 @@ export function createClient(type: ClientType): Client {
           });
         } catch (e) {
           // Messages for users name the path, not the full URL.
-          if (e instanceof HttpError) e.config.url = config.url;
+          if (e instanceof HttpError) {
+            e.config.url = config.url;
+            redactKeysInResponse(e, headers);
+          }
           if (
             !(
               retryCount < (config.maxRetries ?? retries) &&
@@ -248,4 +251,20 @@ function getPayloadDebugData(data: any) {
     }
   }
   return _.isPlainObject(data) ? maskKeys(data) : data;
+}
+
+/**
+ * A server can repeat the key of the request in its answer, and the answer
+ * of a failed request is logged and printed.
+ */
+function redactKeysInResponse(
+  error: HttpError,
+  headers: Record<string, string>
+) {
+  const keys = [headers.authorization, headers['x-currents-key']]
+    .filter(Boolean)
+    .map((value) => value.replace(/^bearer\s+/i, ''));
+  const text = JSON.stringify(error.response?.data);
+  if (!error.response || !text || keys.length === 0) return;
+  error.response.data = JSON.parse(keys.reduce(redactSecret, text));
 }

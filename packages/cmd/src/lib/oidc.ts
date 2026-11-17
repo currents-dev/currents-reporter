@@ -18,6 +18,7 @@ import {
   isRetriableError,
 } from '../http/httpRetry';
 import { HttpError, isHttpError, sendRequest } from '../http/send';
+import { redactSecret } from './credentials';
 
 const debug = _debug.extend('oidc');
 
@@ -219,9 +220,7 @@ function getServerMessage(e: unknown, secret: string) {
     [error_description, error].find(
       (value) => typeof value === 'string' && value
     ) ?? (e as Error).message;
-  return [secret, encodeURIComponent(secret)]
-    .filter(Boolean)
-    .reduce((text, value) => text.split(value).join('*****'), message);
+  return redactSecret(message, secret);
 }
 
 /**
@@ -306,14 +305,19 @@ export function getRecordKeyFromOidc(
     projectId,
     env,
   }).then((recordKey) => {
-    addExitHook(() =>
-      revokeOidcCredential(RECORD_KEY_KIND, recordKey.credential).catch((e) =>
-        debug((e as Error).message)
-      )
-    );
+    revokeOnExit(RECORD_KEY_KIND, recordKey.credential);
     return recordKey;
   });
   return recordKeyExchange;
+}
+
+/** A failed revoke does not change the exit code: the credential expires on its own. */
+export function revokeOnExit(kind: OidcCredentialKind, credential: string) {
+  addExitHook(() =>
+    revokeOidcCredential(kind, credential).catch((e) =>
+      debug((e as Error).message)
+    )
+  );
 }
 
 /** For tests. */

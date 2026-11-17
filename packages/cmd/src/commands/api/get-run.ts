@@ -6,6 +6,7 @@ import {
 } from '../../config/api';
 import { maskKeys } from '../../lib';
 import { handleGetRun } from '../../services';
+import { getApiKeyOrOidcToken } from '../../services/ciAuth';
 import { commandHandler, printLogsToStderr } from '../utils';
 
 const debug = _debug.extend('cli');
@@ -27,6 +28,13 @@ export async function getRunHandler(
     if (ciBuildIdFromEnv && (opts.branch || opts.tag)) {
       opts = { ...opts, ciBuildId: undefined };
     }
+    opts = {
+      ...opts,
+      apiKey: await getApiKeyOrOidcToken(
+        opts,
+        command.getOptionValueSource('apiKey')
+      ),
+    };
     setAPIGetRunCommandConfig(opts);
     const config = getAPIGetRunCommandConfig();
 

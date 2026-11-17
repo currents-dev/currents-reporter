@@ -43,3 +43,10 @@ export function maskFormBody(body: string) {
   found.forEach((field) => params.set(field, '*****'));
   return params.toString();
 }
+
+/** The text with the secret, plain or URL-encoded, replaced by '*****'. */
+export function redactSecret(text: string, secret: string) {
+  return [secret, encodeURIComponent(secret)]
+    .filter(Boolean)
+    .reduce((result, value) => result.split(value).join('*****'), text);
+}
