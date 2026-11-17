@@ -189,7 +189,7 @@ export async function revokeHandler(options: CiAuthOptions) {
   });
   if (revocable.length === 0) {
     throw new Error(
-      `No OIDC credential to revoke: pass one on stdin with --stdin, or set ${sharedConfigKeys.apiKey.env} or ${sharedConfigKeys.recordKey.env}`
+      `No OIDC credential to revoke: pass an ${API_TOKEN_KIND.name} (${API_TOKEN_KIND.prefix}) or ${RECORD_KEY_KIND.name} (${RECORD_KEY_KIND.prefix}) on stdin with --stdin, or in ${sharedConfigKeys.apiKey.env} or ${sharedConfigKeys.recordKey.env}`
     );
   }
   for (const { credential, kind } of revocable) {

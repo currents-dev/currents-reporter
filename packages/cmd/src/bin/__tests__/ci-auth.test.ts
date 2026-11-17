@@ -72,13 +72,8 @@ describe('currents ci auth', () => {
     requestsTo('/github-token').map((r) =>
       new URL(r.url, server.url).searchParams.get('audience')
     );
-  /**
-   * stderr without the GitHub mask commands, which hold the secrets on purpose,
-   * and without the debug line of the HTTP retry check, which prints the error
-   * body of every request as the server sent it.
-   */
-  const diagnostics = () =>
-    stderr.replace(MASK_LINE, '').replace(/^.*isRetriableError.*$/gm, '');
+  /** stderr without the GitHub mask commands, which hold the secrets on purpose. */
+  const diagnostics = () => stderr.replace(MASK_LINE, '');
   const secretsIn = (text: string) =>
     [JWT, API_TOKEN, RECORD_KEY, REQUEST_SECRET, 'configured-key']
       .flatMap((secret) => [secret, encodeURIComponent(secret)])
@@ -220,16 +215,45 @@ describe('currents ci auth', () => {
       ],
     ],
     ['a response without a token', [{ status: 200, json: { expires_in: 1 } }]],
+    ...[123, { value: API_TOKEN }, ''].map(
+      (accessToken): [string, Response[]] => [
+        `the token ${JSON.stringify(accessToken)}`,
+        [{ status: 200, json: { access_token: accessToken, expires_in: 600 } }],
+      ]
+    ),
+    [
+      'the expiry "600"',
+      [{ status: 200, json: { access_token: API_TOKEN, expires_in: '600' } }],
+    ],
     [
       'a response without an expiry',
       [{ status: 200, json: { access_token: API_TOKEN } }],
     ],
     ['a closed connection, every time', Array(5).fill({ destroy: true })],
     ['503, every time', Array(5).fill({ status: 503 })],
+    ...[307, 308].map((status): [string, Response[]] => [
+      `a ${status} redirect`,
+      [{ status, headers: { location: 'REDIRECT' }, body: '' }],
+    ]),
+  ];
+  const providerFailures: [string, Response[]][] = [
+    ['GitHub answers 500, every time', Array(5).fill({ status: 500 })],
+    ['GitHub sends no token', [{ status: 200, json: {} }]],
     [
-      'a redirect',
-      [{ status: 307, headers: { location: 'REDIRECT' }, body: '' }],
+      'GitHub answers 400 and repeats the request token',
+      [
+        {
+          status: 400,
+          json: {
+            message: `bad ${REQUEST_SECRET} ${JWT} ${encodeURIComponent(JWT)}`,
+          },
+        },
+      ],
     ],
+    ...[307, 308].map((status): [string, Response[]] => [
+      `GitHub redirects with ${status}`,
+      [{ status, headers: { location: 'REDIRECT' }, body: '' }],
+    ]),
   ];
   const withRedirectTarget = (list: Response[]) =>
     list.map((r) =>
@@ -483,23 +507,19 @@ describe('currents ci auth', () => {
       expect(server.requests).toEqual([]);
     });
 
-    it.each([
-      ['GitHub answers 500, every time', Array(5).fill({ status: 500 })],
-      ['GitHub sends no token', [{ status: 200, json: {} }]],
-      [
-        'GitHub redirects',
-        [{ status: 307, headers: { location: 'REDIRECT' }, body: '' }],
-      ],
-    ])('does not exchange when %s', async (_name, list) => {
-      setGitHubEnv();
-      responses['/github-token'] = withRedirectTarget(list);
+    it.each(providerFailures)(
+      'does not exchange when %s',
+      async (_name, list) => {
+        setGitHubEnv();
+        responses['/github-token'] = withRedirectTarget(list);
 
-      expectFailure(await run(['get-api-token']));
+        expectFailure(await run(['get-api-token', '--debug']));
 
-      expect(diagnostics()).toContain('Could not get the GitHub Actions');
-      expect(requestsTo('/oidc/api/token')).toEqual([]);
-      expect(redirectTarget.requests).toEqual([]);
-    });
+        expect(diagnostics()).toContain('Could not get the GitHub Actions');
+        expect(requestsTo('/oidc/api/token')).toEqual([]);
+        expect(redirectTarget.requests).toEqual([]);
+      }
+    );
 
     it.each(exchangeFailures)('fails on %s', async (_name, list) => {
       setGitHubEnv();
@@ -582,6 +602,58 @@ describe('currents ci auth', () => {
         token: RECORD_KEY,
         expires_at: EXPIRES_AT,
       });
+    });
+
+    it('requires the project', async () => {
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', JWT);
+      vi.stubEnv('CURRENTS_PROJECT_ID', ' ');
+
+      expectFailure(await run(['get-record-key']));
+
+      expect(diagnostics()).toContain('Project ID is required');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('says how to get a token when the job has none', async () => {
+      expectFailure(await run(['get-record-key']));
+
+      expect(diagnostics()).toContain('id-token: write');
+      expect(diagnostics()).toContain('CURRENTS_OIDC_TOKEN');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('refuses a token as an argument', async () => {
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', JWT);
+
+      expectFailure(await run(['get-record-key', 'positional-secret']));
+
+      expect(stderr).not.toContain('positional-secret');
+      expect(server.requests).toEqual([]);
+    });
+
+    it.each(providerFailures)(
+      'does not exchange when %s',
+      async (_name, list) => {
+        setGitHubEnv();
+        responses['/github-token'] = withRedirectTarget(list);
+
+        expectFailure(await run(['get-record-key', '--debug']));
+
+        expect(requestsTo('/oidc/token')).toEqual([]);
+        expect(redirectTarget.requests).toEqual([]);
+      }
+    );
+
+    it.each(exchangeFailures)('fails on %s', async (_name, list) => {
+      setGitHubEnv();
+      responses['/oidc/token'] = withRedirectTarget(list);
+
+      expectFailure(await run(['get-record-key', '--debug']));
+
+      expect(diagnostics()).toContain(
+        'Could not exchange the GitHub Actions OIDC token for a record key'
+      );
+      expect(redirectTarget.requests).toEqual([]);
     });
 
     it('exchanges on every call and never revokes', async () => {
@@ -670,9 +742,53 @@ describe('currents ci auth', () => {
       expectFailure(await run(['revoke']));
 
       expect(diagnostics()).toContain('No OIDC credential to revoke');
+      expect(diagnostics()).toContain('crnts_ciapi_');
+      expect(diagnostics()).toContain('crnts_ci_');
       expect(diagnostics()).not.toContain('crnts_other_x');
       expect(server.requests).toEqual([]);
     });
+
+    it('skips a key from the dashboard and revokes the OIDC credential next to it', async () => {
+      vi.stubEnv('CURRENTS_API_KEY', 'configured-key');
+      vi.stubEnv('CURRENTS_RECORD_KEY', RECORD_KEY);
+
+      expect(await run(['revoke'])).toBe(0);
+
+      expect(diagnostics()).toContain(
+        'CURRENTS_API_KEY is not from an OIDC exchange'
+      );
+      expect(server.requests.map((r) => r.url)).toEqual(['/oidc/revoke']);
+    });
+
+    it('revokes both OIDC credentials when both variables hold one', async () => {
+      vi.stubEnv('CURRENTS_API_KEY', API_TOKEN);
+      vi.stubEnv('CURRENTS_RECORD_KEY', RECORD_KEY);
+
+      expect(await run(['revoke'])).toBe(0);
+
+      expect(server.requests.map((r) => [r.url, formBody(r).token])).toEqual([
+        ['/oidc/api/revoke', API_TOKEN],
+        ['/oidc/revoke', RECORD_KEY],
+      ]);
+    });
+
+    it('picks the endpoint by the prefix, not by the variable', async () => {
+      vi.stubEnv('CURRENTS_RECORD_KEY', API_TOKEN);
+
+      expect(await run(['revoke'])).toBe(0);
+
+      expect(server.requests.map((r) => r.url)).toEqual(['/oidc/api/revoke']);
+    });
+
+    it('gives up after 5 seconds without an answer', async () => {
+      vi.stubEnv('CURRENTS_API_KEY', API_TOKEN);
+      responses['/oidc/api/revoke'] = [{ hang: true }];
+
+      expectFailure(await run(['revoke']));
+
+      expect(diagnostics()).toContain('timeout of 5000ms exceeded');
+      expect(requestsTo('/oidc/api/revoke')).toHaveLength(1);
+    }, 10_000);
 
     it('fails when a credential variable and --stdin are both set', async () => {
       vi.stubEnv('CURRENTS_API_KEY', API_TOKEN);
@@ -694,10 +810,10 @@ describe('currents ci auth', () => {
         ],
         ['a 500', { status: 500 } as Response],
         ['a closed connection', { destroy: true } as Response],
-        [
-          'a redirect',
-          { status: 307, headers: { location: 'REDIRECT' }, body: '' },
-        ],
+        ...[307, 308].map((status): [string, Response] => [
+          `a ${status} redirect`,
+          { status, headers: { location: 'REDIRECT' }, body: '' },
+        ]),
       ])('%s, after one attempt', async (_name, response) => {
         vi.stubEnv('CURRENTS_API_KEY', API_TOKEN);
         responses['/oidc/api/revoke'] = withRedirectTarget([response]);

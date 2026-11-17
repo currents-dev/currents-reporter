@@ -115,7 +115,10 @@ async function requestGitHubToken(url: string, requestToken: string) {
         followRedirects: false,
       });
     } catch (e) {
-      if (retryCount >= getMaxRetries() || !isRetriableError(e as Error)) {
+      if (
+        retryCount >= getMaxRetries() ||
+        !isRetriableError(e as Error, { logResponse: false })
+      ) {
         throw e;
       }
       warn(
@@ -193,6 +196,7 @@ export async function revokeOidcCredential(
       timeout: REVOKE_TIMEOUT_MS,
       maxRetries: 0,
       followRedirects: false,
+      logErrorResponse: false,
     });
     debug('Revoked the %s from OIDC', kind.name);
   } catch (e) {
@@ -260,9 +264,15 @@ export async function exchangeOidcToken({
         project_id: projectId,
       }).toString(),
       followRedirects: false,
+      logErrorResponse: false,
     });
     const { access_token, expires_in, scope } = res.data ?? {};
-    if (!access_token || !Number.isFinite(expires_in)) {
+    if (
+      typeof access_token !== 'string' ||
+      !access_token ||
+      typeof expires_in !== 'number' ||
+      !Number.isFinite(expires_in)
+    ) {
       throw new Error('the response has no access token or expiry');
     }
     return {
