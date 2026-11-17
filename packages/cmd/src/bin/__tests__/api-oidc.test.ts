@@ -340,6 +340,19 @@ describe('API commands with an API token from OIDC', () => {
       ).toEqual(['currents:api', 'env-api', 'flag api&x=1']);
     });
 
+    it('asks for CURRENTS_OIDC_API_AUDIENCE when --oidc-api-audience is blank', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+
+      expect(await run([...args, '--oidc-api-audience', '   '])).toBe(0);
+
+      expect(
+        requestsTo('/github-token').map((r) =>
+          new URL(r.url, director.url).searchParams.get('audience')
+        )
+      ).toEqual(['env-api']);
+    });
+
     it('exchanges for the --project-id over CURRENTS_PROJECT_ID', async () => {
       setGitHubEnv();
 
