@@ -19,7 +19,8 @@ import {
   Response,
   startApiServer,
 } from '../../test-utils/api-server';
-import { hideParserValues } from '../../commands/ci';
+import { Command } from '@commander-js/extra-typings';
+import { messageWithoutValues } from '../../commands/ci';
 import { getProgram } from '../program';
 
 // The retry delays are 3s to 30s.
@@ -1400,13 +1401,32 @@ describe('currents ci auth', () => {
         [['revoke', '-Tsentinel-secret'], "unknown option '-T'"],
         [
           ['exchange', '--for', 'sentinel-secret'],
-          "argument '*****' is invalid",
+          'argument is invalid. Allowed choices are api, record.',
         ],
         [
           ['get-oidc-token', '--for=sentinel-secret'],
-          "argument '*****' is invalid",
+          'argument is invalid. Allowed choices are api, record.',
         ],
-        [['sentinel-secret'], "unknown command '*****'"],
+        [['sentinel-secret'], 'error: unknown command'],
+        // Commander does not escape quotes in the value it repeats.
+        [
+          ['status', "--oidc-token='sentinel-secret"],
+          "unknown option '--oidc-token'",
+        ],
+        [
+          ['get-record-key', "--oidc-token=foo'sentinel-secret"],
+          "unknown option '--oidc-token'",
+        ],
+        [['get-api-token', "--x'sentinel-secret"], "unknown option '--x'"],
+        [['revoke', "-T'sentinel-secret"], "unknown option '-T'"],
+        [["--'sentinel-secret"], 'unknown option'],
+        [
+          ['get-oidc-token', '--for', "'sentinel-secret"],
+          'argument is invalid',
+        ],
+        [['exchange', "--for='sentinel-secret"], 'argument is invalid'],
+        [['exchange', '--for', "foo'sentinel-secret"], 'argument is invalid'],
+        [["'sentinel-secret"], 'error: unknown command'],
       ])('%j does not repeat the value', async (args, message) => {
         setEnv();
 
@@ -1419,21 +1439,56 @@ describe('currents ci auth', () => {
       });
     });
 
-    it('keeps the rest of the message', () => {
-      expect(
-        hideParserValues(
-          "error: option '--for <kind>' argument 'x' is invalid. Allowed choices are api, record."
-        )
-      ).toBe(
-        "error: option '--for <kind>' argument '*****' is invalid. Allowed choices are api, record."
-      );
-      expect(
-        hideParserValues("error: required option '--for <kind>' not specified")
-      ).toBe("error: required option '--for <kind>' not specified");
+    it('keeps the messages that hold no value', () => {
+      const command = new Command();
+      for (const [message, code] of [
+        [
+          "error: required option '--for <kind>' not specified",
+          'commander.missingMandatoryOptionValue',
+        ],
+        [
+          "error: too many arguments for 'revoke'. Expected 0 arguments but got 1.",
+          'commander.excessArguments',
+        ],
+      ]) {
+        expect(messageWithoutValues(command, message, code)).toBe(message);
+      }
     });
   });
 
   describe('blank inputs', () => {
+    it('does not warn that a blank audience flag wins over its variable', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'env-record');
+
+      await run(['get-oidc-token', '--for', 'api', '--oidc-api-audience', ' ']);
+      await run(['status', '--oidc-api-audience', ' ', '--oidc-audience', '']);
+
+      expect(stderr).not.toContain('are set to different values');
+      expect(githubAudiences()).toEqual(['env-api']);
+    });
+
+    it('still warns when an audience or key flag wins over its variable', async () => {
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+      vi.stubEnv('CURRENTS_API_KEY', 'sentinel-api-key');
+
+      await run([
+        'status',
+        '--oidc-api-audience',
+        'flag-api',
+        '--api-key',
+        'other',
+      ]);
+
+      expect(stderr).toContain(
+        '--oidc-api-audience and CURRENTS_OIDC_API_AUDIENCE are set to different values'
+      );
+      expect(stderr).toContain(
+        '--api-key and CURRENTS_API_KEY are set to different values'
+      );
+    });
+
     it('a blank API audience flag falls back to the variable, then the default', async () => {
       setGitHubEnv();
       vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');

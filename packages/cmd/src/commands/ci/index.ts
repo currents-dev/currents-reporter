@@ -1,4 +1,8 @@
-import { Command, Option } from '@commander-js/extra-typings';
+import {
+  Command,
+  CommandUnknownOpts,
+  Option,
+} from '@commander-js/extra-typings';
 import {
   CiAuthOptions,
   CredentialFor,
@@ -20,17 +24,46 @@ import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
 
+const UNKNOWN_OPTION = "error: unknown option '";
+const OPTION_NAME = /^(--[\w-]+|-\w)/;
+
 /**
  * Commander repeats the value of a rejected option, choice or command in its
- * error, which a CI log keeps. A token passed by mistake, such as
- * `--oidc-token=<jwt>`, would be printed before any GitHub mask.
+ * error, which a CI log keeps: a token passed by mistake, such as
+ * `--oidc-token=<jwt>`, would be printed before any GitHub mask. The message
+ * is rebuilt from the error code, with the option name and choices only. The
+ * value is not cut out of the text: it can hold any character.
  */
-export const hideParserValues = (message: string) =>
-  message
-    .replace(/'(--[^'=\s]+)=[^']*'/g, "'$1'")
-    .replace(/'(-[^-'\s])[^']+'/g, "'$1'")
-    .replace(/argument '[^']*' is invalid/g, "argument '*****' is invalid")
-    .replace(/unknown command '[^']*'/g, "unknown command '*****'");
+export function messageWithoutValues(
+  command: CommandUnknownOpts,
+  message: string,
+  code?: string
+) {
+  switch (code) {
+    case 'commander.unknownOption': {
+      // The flag starts the text after the fixed prefix.
+      const flag = message.startsWith(UNKNOWN_OPTION)
+        ? message.slice(UNKNOWN_OPTION.length)
+        : '';
+      const name = flag.match(OPTION_NAME)?.[0];
+      return name ? `error: unknown option '${name}'` : 'error: unknown option';
+    }
+    case 'commander.invalidArgument': {
+      const option = command.options.find((o) =>
+        message.startsWith(`error: option '${o.flags}' argument `)
+      );
+      if (!option) return 'error: an option argument is invalid';
+      const choices = option.argChoices
+        ? ` Allowed choices are ${option.argChoices.join(', ')}.`
+        : '';
+      return `error: option '${option.flags}' argument is invalid.${choices}`;
+    }
+    case 'commander.unknownCommand':
+      return 'error: unknown command';
+    default:
+      return message;
+  }
+}
 
 const forOption = (
   description = 'the credential to get: an API token or a record key'
@@ -194,10 +227,10 @@ export const getCiCommand = (name: string) => {
     .summary('Commands for CI jobs')
     .helpCommand(false)
     .addCommand(auth);
-  for (const command of [ci, auth, ...auth.commands]) {
-    command.configureOutput({
-      outputError: (message, write) => write(hideParserValues(message)),
-    });
+  for (const command of [ci, auth, ...auth.commands] as CommandUnknownOpts[]) {
+    const error = command.error.bind(command);
+    command.error = (message, options) =>
+      error(messageWithoutValues(command, message, options?.code), options);
   }
   return ci;
 };
