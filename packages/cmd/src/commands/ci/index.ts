@@ -4,19 +4,26 @@ import {
   CredentialFor,
   exchangeHandler,
   getCredentialHandler,
+  getOidcTokenHandler,
   revokeHandler,
 } from '../../services/ciAuth';
+import { statusHandler } from '../../services/ciAuth/status';
 import { formatExamples, HelpExample } from '../help';
-import { debugOption, oidcAudienceOption, projectOption } from '../options';
+import {
+  apiKeyOption,
+  debugOption,
+  oidcAudienceOption,
+  projectOption,
+  recordKeyOption,
+} from '../options';
 import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
 
-const forOption = () =>
-  new Option(
-    '--for <kind>',
-    'the credential to get: an API token or a record key'
-  )
+const forOption = (
+  description = 'the credential to get: an API token or a record key'
+) =>
+  new Option('--for <kind>', description)
     .choices(['api', 'record'] as const)
     .makeOptionMandatory();
 
@@ -53,6 +60,11 @@ export const getCiAuthExamples = (name: string): HelpExample[] => [
       `${name} api /v1/runs/<run-id>`,
       `${name} ${PARENT_NAME} revoke`,
     ],
+  },
+  {
+    comment:
+      'Say which credentials the Currents commands of this job would use',
+    commands: [`${name} ${PARENT_NAME} status`],
   },
   {
     comment:
@@ -96,6 +108,47 @@ export const getCiCommand = (name: string) => {
     .helpCommand(false)
     .addCommand(getCredentialCommand('api'))
     .addCommand(getCredentialCommand('record'))
+    .addCommand(
+      new Command()
+        .name('get-oidc-token')
+        .summary('Print the OIDC token of the CI job')
+        .description(
+          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On GitHub Actions the CLI requests it with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is.'
+        )
+        .addOption(forOption('the audience: for an API token or a record key'))
+        .addOption(oidcApiAudienceOption())
+        .addOption(oidcAudienceOption())
+        .addOption(debugOption())
+        .action(
+          ciAuthAction((options) => getOidcTokenHandler(options.for, options))
+        )
+    )
+    .addCommand(
+      new Command()
+        .name('status')
+        .summary('Say which credentials the Currents commands would use')
+        .description(
+          'Say which credential API requests and recording would use, the project, and the OIDC audiences. It names the flags and variables, not their values, and requests, exchanges or checks no token.'
+        )
+        .addOption(apiKeyOption('(its source is reported)'))
+        .addOption(recordKeyOption('(its source is reported)'))
+        .addOption(projectOption('(reported)'))
+        .addOption(oidcApiAudienceOption())
+        .addOption(oidcAudienceOption())
+        .addOption(debugOption())
+        .action((options, command) =>
+          commandHandler(async () => {
+            printLogsToStderr();
+            await statusHandler(options, {
+              apiKey: command.getOptionValueSource('apiKey'),
+              key: command.getOptionValueSource('key'),
+              projectId: command.getOptionValueSource('projectId'),
+              oidcApiAudience: command.getOptionValueSource('oidcApiAudience'),
+              oidcAudience: command.getOptionValueSource('oidcAudience'),
+            });
+          }, options)
+        )
+    )
     .addCommand(
       new Command()
         .name('exchange')

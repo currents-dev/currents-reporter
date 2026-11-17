@@ -130,6 +130,8 @@ describe('currents ci auth', () => {
       'ACTIONS_ID_TOKEN_REQUEST_URL',
       'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
       'GITHUB_ACTIONS',
+      'GITLAB_CI',
+      'CI_SERVER_NAME',
     ]) {
       vi.stubEnv(name, undefined);
     }
@@ -907,5 +909,467 @@ describe('currents ci auth', () => {
     expect(output).toBe(`${API_TOKEN}\n`);
     expect(stderr).toContain('network request');
     expect(secretsIn(diagnostics())).toEqual([]);
+  });
+
+  describe('get-oidc-token', () => {
+    const setGitLabEnv = () => vi.stubEnv('GITLAB_CI', 'true');
+
+    it.each([
+      ['api', 'currents:api'],
+      ['record', 'currents:record-key'],
+    ])(
+      '--for %s prints only the GitHub token for %s',
+      async (kind, audience) => {
+        setGitHubEnv();
+
+        expect(await run(['get-oidc-token', '--for', kind])).toBe(0);
+
+        expect(stdout).toBe(`${JWT}\n`);
+        const [githubRequest] = requestsTo('/github-token');
+        const url = new URL(githubRequest.url, server.url);
+        expect(url.searchParams.get('audience')).toBe(audience);
+        expect(url.searchParams.get('api-version')).toBe('2.0');
+        expect(githubRequest.headers.authorization).toBe(
+          `bearer ${REQUEST_SECRET}`
+        );
+        expect(server.requests).toHaveLength(1);
+        expect(diagnostics()).toBe('');
+        expect(trace.indexOf(`stderr ::add-mask::${JWT}\n`)).toBeLessThan(
+          trace.indexOf(`stdout ${JWT}\n`)
+        );
+      }
+    );
+
+    it('asks for the API audience: default, CURRENTS_OIDC_API_AUDIENCE, then the flag', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'wrong-record-audience');
+
+      await run(['get-oidc-token', '--for', 'api']);
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+      await run(['get-oidc-token', '--for', 'api']);
+      await run([
+        'get-oidc-token',
+        '--for',
+        'api',
+        '--oidc-api-audience',
+        'flag api/&=?',
+      ]);
+
+      expect(githubAudiences()).toEqual([
+        'currents:api',
+        'env-api',
+        'flag api/&=?',
+      ]);
+    });
+
+    it('asks for the record audience: default, CURRENTS_OIDC_AUDIENCE, then the flag', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'wrong-api-audience');
+
+      await run(['get-oidc-token', '--for', 'record']);
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'env-record');
+      await run(['get-oidc-token', '--for', 'record']);
+      await run([
+        'get-oidc-token',
+        '--for',
+        'record',
+        '--oidc-audience',
+        'flag-record',
+      ]);
+
+      expect(githubAudiences()).toEqual([
+        'currents:record-key',
+        'env-record',
+        'flag-record',
+      ]);
+    });
+
+    it.each([
+      ['api', 'api-jwt'],
+      ['record', 'record-jwt'],
+    ])(
+      '--for %s prints the token of its variable as it is, before GitHub',
+      async (kind, expected) => {
+        setGitHubEnv();
+        vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'api-jwt');
+        vi.stubEnv('CURRENTS_OIDC_TOKEN', 'record-jwt');
+        vi.stubEnv('CURRENTS_API_KEY', 'configured-key');
+        vi.stubEnv('CURRENTS_RECORD_KEY', 'configured-key');
+
+        expect(
+          await run([
+            'get-oidc-token',
+            '--for',
+            kind,
+            '--oidc-api-audience',
+            'other',
+            '--oidc-audience',
+            'other',
+          ])
+        ).toBe(0);
+
+        expect(stdout).toBe(`${expected}\n`);
+        expect(server.requests).toEqual([]);
+        expect(stderr).toBe(`::add-mask::${expected}\n`);
+      }
+    );
+
+    it('prints the token of the variable on another CI, with no mask command', async () => {
+      setGitLabEnv();
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', JWT);
+
+      expect(await run(['get-oidc-token', '--for', 'record'])).toBe(0);
+
+      expect(stdout).toBe(`${JWT}\n`);
+      expect(stderr).toBe('');
+    });
+
+    it.each([
+      ['no CI', () => vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT)],
+      [
+        'only CI=true',
+        () => {
+          vi.stubEnv('CI', 'true');
+          vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT);
+        },
+      ],
+      [
+        'GitHub request variables without GITHUB_ACTIONS',
+        () => {
+          vi.stubEnv(
+            'ACTIONS_ID_TOKEN_REQUEST_URL',
+            `${server.url}/github-token`
+          );
+          vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_TOKEN', REQUEST_SECRET);
+        },
+      ],
+    ])('refuses to run with %s', async (_name, setEnv) => {
+      setEnv();
+
+      expectFailure(await run(['get-oidc-token', '--for', 'api']));
+
+      expect(diagnostics()).toContain('No CI provider found');
+      expect(diagnostics()).toContain('ci auth exchange');
+      expect(server.requests).toEqual([]);
+    });
+
+    it.each([
+      ['no token on another CI', setGitLabEnv],
+      [
+        'only the record token',
+        () => {
+          setGitLabEnv();
+          vi.stubEnv('CURRENTS_OIDC_TOKEN', JWT);
+        },
+      ],
+      [
+        'GitHub Actions without the request token',
+        () => {
+          vi.stubEnv('GITHUB_ACTIONS', 'true');
+          vi.stubEnv(
+            'ACTIONS_ID_TOKEN_REQUEST_URL',
+            `${server.url}/github-token`
+          );
+        },
+      ],
+      [
+        'GitHub Actions without the request URL',
+        () => {
+          vi.stubEnv('GITHUB_ACTIONS', 'true');
+          vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_TOKEN', REQUEST_SECRET);
+        },
+      ],
+    ])('says how to get a token with %s', async (_name, setEnv) => {
+      setEnv();
+
+      expectFailure(await run(['get-oidc-token', '--for', 'api']));
+
+      expect(diagnostics()).toContain('id-token: write');
+      expect(diagnostics()).toContain('CURRENTS_OIDC_API_TOKEN');
+      expect(diagnostics()).toContain('currents:api');
+      expect(server.requests).toEqual([]);
+    });
+
+    it.each(providerFailures)('fails when %s', async (_name, list) => {
+      setGitHubEnv();
+      responses['/github-token'] = withRedirectTarget(list);
+
+      expectFailure(await run(['get-oidc-token', '--for', 'api', '--debug']));
+
+      expect(diagnostics()).toContain('Could not get the GitHub Actions');
+      expect(redirectTarget.requests).toEqual([]);
+    });
+
+    it('prints only the token after a retried 503', async () => {
+      setGitHubEnv();
+      responses['/github-token'] = [{ status: 503 }];
+
+      expect(await run(['get-oidc-token', '--for', 'api'])).toBe(0);
+
+      expect(stdout).toBe(`${JWT}\n`);
+      expect(requestsTo('/github-token')).toHaveLength(2);
+    });
+
+    it.each([
+      [[]],
+      [['--for', 'other']],
+      [['--for', 'api', 'positional-secret']],
+      [['--for', 'api', '--', 'positional-secret']],
+      [['--for', 'api', '--stdin']],
+    ])(
+      'fails before getting a token, without reading stdin: %j',
+      async (args) => {
+        setGitHubEnv();
+        const stdin = setStdin(JWT);
+
+        expectFailure(await run(['get-oidc-token', ...args]));
+
+        expect(stderr).not.toContain('positional-secret');
+        expect(server.requests).toEqual([]);
+        expect(stdin).not.toHaveBeenCalled();
+      }
+    );
+
+    it('needs no project, gets the token again on every call, and revokes nothing', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+
+      await run(['get-oidc-token', '--for', 'api']);
+      await run(['get-oidc-token', '--for', 'record']);
+
+      expect(stdout).toBe(`${JWT}\n${JWT}\n`);
+      expect(server.requests.map((r) => r.url.split('?')[0])).toEqual([
+        '/github-token',
+        '/github-token',
+      ]);
+    });
+
+    it('escapes the mask of a token from the variable', async () => {
+      vi.stubEnv('GITHUB_ACTIONS', 'true');
+      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'jwt%a\r\n::warning::b');
+
+      await run(['get-oidc-token', '--for', 'api']);
+
+      expect(stderr).toBe('::add-mask::jwt%25a%0D%0A::warning::b\n');
+    });
+  });
+
+  describe('status', () => {
+    const SENTINELS = [
+      'sentinel-api-key',
+      'sentinel-record-key',
+      'sentinel-api-jwt',
+      'sentinel-record-jwt',
+      'sentinel-request-token',
+      'sentinel-url-secret',
+    ];
+
+    const lineOf = (label: string) =>
+      stdout
+        .split('\n')
+        .find((line) => line.trim().startsWith(label))
+        ?.trim();
+    /** The line under a heading, such as "API requests:" then "Credential:". */
+    const sectionLine = (heading: string, label: string) => {
+      const lines = stdout.split('\n');
+      const start = lines.indexOf(heading);
+      return lines
+        .slice(start + 1)
+        .find((line) => line.trim().startsWith(label))
+        ?.trim();
+    };
+
+    it('reports an empty environment, exits 0 and sends nothing', async () => {
+      vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+
+      expect(await run(['status'])).toBe(0);
+
+      expect(lineOf('CI provider:')).toBe('CI provider: none');
+      expect(lineOf('Project:')).toBe('Project: not set');
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: none'
+      );
+      expect(sectionLine('API requests:', 'OIDC audience:')).toBe(
+        'OIDC audience: currents:api (default)'
+      );
+      expect(sectionLine('Recording:', 'Credential:')).toBe('Credential: none');
+      expect(sectionLine('Recording:', 'OIDC audience:')).toBe(
+        'OIDC audience: currents:record-key (default)'
+      );
+      expect(lineOf('CURRENTS_API_KEY:')).toBe('CURRENTS_API_KEY: not set');
+      expect(stderr).toBe('');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('reports GitHub Actions OIDC only with both request variables', async () => {
+      setGitHubEnv();
+      await run(['status']);
+      expect(lineOf('CI provider:')).toBe('CI provider: githubActions');
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: OIDC, GitHub Actions OIDC token'
+      );
+      expect(stdout).not.toContain('id-token: write');
+
+      stdout = '';
+      vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_TOKEN', undefined);
+      await run(['status']);
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: none'
+      );
+      expect(stdout).toContain('needs `permissions: id-token: write`');
+      expect(server.requests).toEqual([]);
+    });
+
+    it('reports the token of each kind separately on another CI', async () => {
+      vi.stubEnv('GITLAB_CI', 'true');
+      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'sentinel-api-jwt');
+
+      await run(['status']);
+
+      expect(lineOf('CI provider:')).toBe('CI provider: gitlab');
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: OIDC, token in CURRENTS_OIDC_API_TOKEN'
+      );
+      expect(sectionLine('Recording:', 'Credential:')).toBe('Credential: none');
+    });
+
+    it('reports the token of the variable over GitHub, as the exchange picks it', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'sentinel-api-jwt');
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', 'sentinel-record-jwt');
+
+      await run(['status']);
+
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: OIDC, token in CURRENTS_OIDC_API_TOKEN'
+      );
+      expect(sectionLine('Recording:', 'Credential:')).toBe(
+        'Credential: OIDC, token in CURRENTS_OIDC_TOKEN'
+      );
+    });
+
+    it('prints no value of a key, token or request variable, also with --debug', async () => {
+      setGitHubEnv();
+      vi.stubEnv(
+        'ACTIONS_ID_TOKEN_REQUEST_URL',
+        'https://x/?t=sentinel-url-secret'
+      );
+      vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'sentinel-request-token');
+      vi.stubEnv('CURRENTS_API_KEY', 'sentinel-api-key');
+      vi.stubEnv('CURRENTS_RECORD_KEY', 'sentinel-record-key');
+      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'sentinel-api-jwt');
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', 'sentinel-record-jwt');
+
+      expect(await run(['status', '--debug'])).toBe(0);
+
+      const output = stdout + stderr;
+      expect(SENTINELS.filter((value) => output.includes(value))).toEqual([]);
+      expect(output).not.toContain('::add-mask::');
+      for (const name of [
+        'CURRENTS_API_KEY',
+        'CURRENTS_RECORD_KEY',
+        'CURRENTS_OIDC_API_TOKEN',
+        'CURRENTS_OIDC_TOKEN',
+        'ACTIONS_ID_TOKEN_REQUEST_URL',
+        'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
+      ]) {
+        expect(lineOf(`${name}:`)).toBe(`${name}: set`);
+      }
+    });
+
+    it('reports the audiences: defaults, variables, then flags; a blank variable is ignored', async () => {
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', ' ');
+      await run(['status']);
+      expect(sectionLine('API requests:', 'OIDC audience:')).toBe(
+        'OIDC audience: env-api (CURRENTS_OIDC_API_AUDIENCE)'
+      );
+      expect(sectionLine('Recording:', 'OIDC audience:')).toBe(
+        'OIDC audience: currents:record-key (default)'
+      );
+      expect(lineOf('CURRENTS_OIDC_AUDIENCE:')).toBe(
+        'CURRENTS_OIDC_AUDIENCE: set (empty)'
+      );
+
+      stdout = '';
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'env-record');
+      await run([
+        'status',
+        '--oidc-api-audience',
+        'flag-api',
+        '--oidc-audience',
+        'flag-record',
+      ]);
+      expect(sectionLine('API requests:', 'OIDC audience:')).toBe(
+        'OIDC audience: flag-api (--oidc-api-audience)'
+      );
+      expect(sectionLine('Recording:', 'OIDC audience:')).toBe(
+        'OIDC audience: flag-record (--oidc-audience)'
+      );
+    });
+
+    it('reports the project and its source, the flag over the variable', async () => {
+      await run(['status']);
+      expect(lineOf('Project:')).toBe('Project: p1 (CURRENTS_PROJECT_ID)');
+
+      stdout = '';
+      await run(['status', '--project-id', 'flag-project']);
+      expect(lineOf('Project:')).toBe('Project: flag-project (--project-id)');
+    });
+
+    it('reports the keys by flag or variable, the record key first for recording', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_API_KEY', 'sentinel-api-key');
+      await run(['status']);
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: CURRENTS_API_KEY'
+      );
+      expect(sectionLine('Recording:', 'Credential:')).toBe(
+        'Credential: CURRENTS_API_KEY'
+      );
+
+      stdout = '';
+      vi.stubEnv('CURRENTS_RECORD_KEY', 'sentinel-record-key');
+      await run(['status', '--api-key', 'sentinel-api-key-flag']);
+      expect(sectionLine('API requests:', 'Credential:')).toBe(
+        'Credential: --api-key'
+      );
+      expect(sectionLine('Recording:', 'Credential:')).toBe(
+        'Credential: CURRENTS_RECORD_KEY'
+      );
+
+      stdout = '';
+      await run(['status', '--key', 'sentinel-record-key-flag']);
+      expect(sectionLine('Recording:', 'Credential:')).toBe(
+        'Credential: --key'
+      );
+      expect(stdout).not.toContain('sentinel');
+    });
+
+    it('says when an OIDC exchange would have no project', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+
+      await run(['status']);
+
+      expect(stdout).toContain(
+        'The exchange needs --project-id or CURRENTS_PROJECT_ID'
+      );
+    });
+
+    it('requests, exchanges and revokes nothing, and does not read stdin', async () => {
+      setGitHubEnv();
+      vi.stubEnv('ACTIONS_ID_TOKEN_REQUEST_URL', 'not a url');
+      vi.stubEnv('CURRENTS_OIDC_TOKEN', 'not.a.jwt');
+      vi.stubEnv('CURRENTS_API_URL', 'http://127.0.0.1:1');
+      const stdin = setStdin(JWT);
+
+      expect(
+        await run(['status', '--oidc-audience', 'currents:record-key'])
+      ).toBe(0);
+
+      expect(server.requests).toEqual([]);
+      expect(stdin).not.toHaveBeenCalled();
+    });
   });
 });

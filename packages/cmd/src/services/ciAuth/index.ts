@@ -4,6 +4,7 @@ import {
   getOidcAudience,
 } from '../../http/httpConfig';
 import { writeStdout } from '../../commands/utils';
+import { getCiProvider } from '../../env/ciProvider';
 import {
   API_TOKEN_KIND,
   exchangeOidcToken,
@@ -27,7 +28,7 @@ type CredentialSettings = {
   getAudience: (options: CiAuthOptions) => string;
 };
 
-const credentialSettings: Record<CredentialFor, CredentialSettings> = {
+export const credentialSettings: Record<CredentialFor, CredentialSettings> = {
   api: {
     kind: API_TOKEN_KIND,
     tokenEnv: 'CURRENTS_OIDC_API_TOKEN',
@@ -119,22 +120,61 @@ async function exchangeAndPrint(
   await printCredential(credentialFor, credential, options.json);
 }
 
-/** The OIDC token in the variable of the kind, or GitHub Actions. */
+/**
+ * The OIDC token in the variable of the kind, or else one the CLI gets from
+ * GitHub Actions. There is no fallback when the selected source fails.
+ */
+export function findCiTokenSource(credentialFor: CredentialFor) {
+  const { tokenEnv } = credentialSettings[credentialFor];
+  const token = process.env[tokenEnv]?.trim();
+  if (token) return providedTokenSource(token, `token in ${tokenEnv}`);
+  return getCiProvider() === 'githubActions' ? findTokenSource() : undefined;
+}
+
+function requireCiTokenSource(
+  credentialFor: CredentialFor,
+  options: CiAuthOptions
+) {
+  const source = findCiTokenSource(credentialFor);
+  if (source) return source;
+  const { kind, tokenEnv, getAudience } = credentialSettings[credentialFor];
+  throw new Error(
+    `No OIDC token for a ${kind.name}: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token with the audience ${getAudience(options)} in ${tokenEnv}`
+  );
+}
+
 export async function getCredentialHandler(
   credentialFor: CredentialFor,
   options: CiAuthOptions
 ) {
-  const { kind, tokenEnv, getAudience } = credentialSettings[credentialFor];
-  const token = process.env[tokenEnv]?.trim();
-  const source = token
-    ? providedTokenSource(token, `token in ${tokenEnv}`)
-    : findTokenSource();
-  if (!source) {
+  const source = requireCiTokenSource(credentialFor, options);
+  await exchangeAndPrint(credentialFor, source, options);
+}
+
+/**
+ * Prints the OIDC token itself. A token from the variable is printed as it
+ * is: its audience is the one the job asked for.
+ */
+export async function getOidcTokenHandler(
+  credentialFor: CredentialFor,
+  options: CiAuthOptions
+) {
+  if (!getCiProvider()) {
     throw new Error(
-      `No OIDC token to get a ${kind.name} from: set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token with the audience ${getAudience(options)} in ${tokenEnv}`
+      `No CI provider found: get-oidc-token runs in a CI job. To exchange a token you hold, use 'ci auth exchange --for ${credentialFor} --stdin'`
     );
   }
-  await exchangeAndPrint(credentialFor, source, options);
+  const source = requireCiTokenSource(credentialFor, options);
+  const audience = credentialSettings[credentialFor].getAudience(options);
+  let token: string;
+  try {
+    token = await maskedSource(source).getToken(process.env, audience);
+  } catch (e) {
+    throw new Error(
+      `Could not get the ${source.name}: ${(e as Error).message}`
+    );
+  }
+  await writeStdout(`${token}\n`);
 }
 
 /** Only the token the job gives, from its variable or stdin. */

@@ -19,6 +19,8 @@ const commands = [
   'ci auth get-record-key',
   'ci auth exchange',
   'ci auth revoke',
+  'ci auth get-oidc-token',
+  'ci auth status',
   'api',
   'docs',
   'skill',
