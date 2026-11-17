@@ -145,7 +145,7 @@ export const getCiCommand = (name: string) => {
         .name('get-oidc-token')
         .summary('Print the OIDC token of the CI job')
         .description(
-          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On GitHub Actions the CLI requests it with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is. The audience options do not change a token from those variables: the job requests it with the audience it needs.'
+          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On any CI, GitHub Actions included, it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is when that variable is set. Without it, on GitHub Actions the CLI requests a token with the audience of the kind. The audience options do not change a token from those variables: the job requests it with the audience it needs.'
         )
         .addOption(forOption('the audience: for an API token or a record key'))
         .addOption(oidcApiAudienceOption())

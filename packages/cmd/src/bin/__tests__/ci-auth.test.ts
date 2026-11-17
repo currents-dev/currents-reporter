@@ -387,7 +387,7 @@ describe('currents ci auth', () => {
         expectFailure(await run(['exchange', '--for', 'api', ...extraArgs]));
 
         expect(diagnostics()).toContain(
-          'Could not exchange the token in CURRENTS_OIDC_API_TOKEN for a API token'
+          'Could not exchange the token in CURRENTS_OIDC_API_TOKEN for an API token'
         );
         expect(redirectTarget.requests).toEqual([]);
       });
@@ -618,13 +618,19 @@ describe('currents ci auth', () => {
       expect(server.requests).toEqual([]);
     });
 
-    it('says how to get a token when the job has none', async () => {
-      expectFailure(await run(['get-record-key']));
+    it.each([
+      ['get-record-key', 'No OIDC token for a record key: '],
+      ['get-api-token', 'No OIDC token for an API token: '],
+    ])(
+      '%s says how to get a token when the job has none',
+      async (command, message) => {
+        expectFailure(await run([command]));
 
-      expect(diagnostics()).toContain('id-token: write');
-      expect(diagnostics()).toContain('CURRENTS_OIDC_TOKEN');
-      expect(server.requests).toEqual([]);
-    });
+        expect(diagnostics()).toContain(message);
+        expect(diagnostics()).toContain('id-token: write');
+        expect(server.requests).toEqual([]);
+      }
+    );
 
     it('refuses a token as an argument', async () => {
       vi.stubEnv('CURRENTS_OIDC_TOKEN', JWT);

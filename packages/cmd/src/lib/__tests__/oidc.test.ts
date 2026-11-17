@@ -32,6 +32,7 @@ vi.mock('../../http/httpRetry', async (importOriginal) => ({
 
 const TEST_KIND: OidcCredentialKind = {
   name: 'test credential',
+  article: 'a',
   tokenPath: 'test/token',
   revokePath: 'test/revoke',
   prefix: 'test_',
