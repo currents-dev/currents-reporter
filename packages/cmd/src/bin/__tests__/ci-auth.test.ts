@@ -1383,22 +1383,25 @@ describe('currents ci auth', () => {
       it.each([
         [
           ['status', '--oidc-token=sentinel-secret'],
-          "unknown option '--oidc-token'",
+          'unknown option (run with --help',
         ],
         [
           ['get-oidc-token', '--for', 'api', '--oidc-token=sentinel-secret'],
-          "unknown option '--oidc-token'",
+          'unknown option (run with --help',
         ],
         [
           ['exchange', '--for', 'api', '--stdin=sentinel-secret'],
-          "unknown option '--stdin'",
+          'unknown option (run with --help',
         ],
         [
           ['get-api-token', '--token=sentinel-secret'],
-          "unknown option '--token'",
+          'unknown option (run with --help',
         ],
-        [['get-record-key', '-Xsentinel-secret'], "unknown option '-X'"],
-        [['revoke', '-Tsentinel-secret'], "unknown option '-T'"],
+        [
+          ['get-record-key', '-Xsentinel-secret'],
+          'unknown option (run with --help',
+        ],
+        [['revoke', '-Tsentinel-secret'], 'unknown option (run with --help'],
         [
           ['exchange', '--for', 'sentinel-secret'],
           'argument is invalid. Allowed choices are api, record.',
@@ -1411,14 +1414,17 @@ describe('currents ci auth', () => {
         // Commander does not escape quotes in the value it repeats.
         [
           ['status', "--oidc-token='sentinel-secret"],
-          "unknown option '--oidc-token'",
+          'unknown option (run with --help',
         ],
         [
           ['get-record-key', "--oidc-token=foo'sentinel-secret"],
-          "unknown option '--oidc-token'",
+          'unknown option (run with --help',
         ],
-        [['get-api-token', "--x'sentinel-secret"], "unknown option '--x'"],
-        [['revoke', "-T'sentinel-secret"], "unknown option '-T'"],
+        [
+          ['get-api-token', "--x'sentinel-secret"],
+          'unknown option (run with --help',
+        ],
+        [['revoke', "-T'sentinel-secret"], 'unknown option (run with --help'],
         [["--'sentinel-secret"], 'unknown option'],
         [
           ['get-oidc-token', '--for', "'sentinel-secret"],
@@ -1427,6 +1433,10 @@ describe('currents ci auth', () => {
         [['exchange', "--for='sentinel-secret"], 'argument is invalid'],
         [['exchange', '--for', "foo'sentinel-secret"], 'argument is invalid'],
         [["'sentinel-secret"], 'error: unknown command'],
+        // An unknown option name can be the token itself.
+        [['status', '--crnts_ciapi_sentinel-secret'], 'unknown option'],
+        [['get-api-token', '--sentinel-secret'], 'unknown option'],
+        [['--sentinel-secret'], 'unknown option'],
       ])('%j does not repeat the value', async (args, message) => {
         setEnv();
 
