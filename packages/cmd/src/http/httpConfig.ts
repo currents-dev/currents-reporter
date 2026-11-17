@@ -5,6 +5,7 @@ export const getAPIBaseUrl = () =>
   process.env.CURRENTS_API_URL ?? CLOUD_API_URL;
 
 export const DEFAULT_OIDC_AUDIENCE = 'currents:record-key';
+export const DEFAULT_OIDC_API_AUDIENCE = 'currents:api';
 
 let oidcAudienceOption: string | undefined;
 

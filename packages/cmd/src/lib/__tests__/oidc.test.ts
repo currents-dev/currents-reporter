@@ -34,6 +34,7 @@ const TEST_KIND: OidcCredentialKind = {
   name: 'test credential',
   tokenPath: 'test/token',
   revokePath: 'test/revoke',
+  prefix: 'test_',
 };
 
 const formBody = (request: RecordedRequest) =>
@@ -203,13 +204,24 @@ describe('OIDC exchange', () => {
     });
   });
 
-  it('ignores a failed revocation', async () => {
+  it('makes one attempt and throws when the revocation fails', async () => {
     revokeResponse = { status: 500 };
 
     await expect(
       revokeOidcCredential(TEST_KIND, 'issued-credential')
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow('Could not revoke the test credential');
     expect(requestsTo('/test/revoke')).toHaveLength(1);
+  });
+
+  it('ignores a failed revocation of the record key on exit', async () => {
+    revokeResponse = { status: 500 };
+    await getRecordKeyFromOidc(
+      providedTokenSource('ci-jwt', 'test token'),
+      'project-1'
+    );
+
+    await expect(runExitHooks()).resolves.toBeUndefined();
+    expect(requestsTo('/oidc/revoke')).toHaveLength(1);
   });
 
   it('gets the record key once per process and revokes it on exit', async () => {

@@ -7,6 +7,7 @@ import {
   getCacheSetExamples,
 } from '../commands/cache';
 import { getCancelCommand, getCancelExamples } from '../commands/cancel';
+import { getCiCommand } from '../commands/ci';
 import { getConvertCommand } from '../commands/convert';
 import { getDocsCommand } from '../commands/docs';
 import { formatExamples } from '../commands/help';
@@ -43,6 +44,7 @@ export const getProgram = () => {
     .addCommand(getSessionCommand(NAME))
     .commandsGroup('CI utilities:')
     .addCommand(getCacheCommand(NAME))
+    .addCommand(getCiCommand(NAME))
     .commandsGroup('Other:')
     .addCommand(getApiCommand(NAME))
     .addCommand(getDocsCommand(NAME))

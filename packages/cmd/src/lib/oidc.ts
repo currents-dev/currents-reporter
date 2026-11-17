@@ -17,7 +17,6 @@ import {
   getMaxRetries,
   isRetriableError,
 } from '../http/httpRetry';
-import { makeRequest } from '../http/http';
 import { HttpError, isHttpError, sendRequest } from '../http/send';
 
 const debug = _debug.extend('oidc');
@@ -42,13 +41,29 @@ export type OidcCredentialKind = {
   name: string;
   tokenPath: string;
   revokePath: string;
+  /** The start of every credential of the kind. */
+  prefix: string;
 };
 
 export const RECORD_KEY_KIND: OidcCredentialKind = {
   name: 'record key',
   tokenPath: 'oidc/token',
   revokePath: 'oidc/revoke',
+  prefix: 'crnts_ci_',
 };
+
+export const API_TOKEN_KIND: OidcCredentialKind = {
+  name: 'API token',
+  tokenPath: 'oidc/api/token',
+  revokePath: 'oidc/api/revoke',
+  prefix: 'crnts_ciapi_',
+};
+
+/** Undefined for a credential that no OIDC exchange issues, such as a dashboard key. */
+export const getCredentialKind = (credential: string) =>
+  [RECORD_KEY_KIND, API_TOKEN_KIND].find((kind) =>
+    credential.startsWith(kind.prefix)
+  );
 
 export type OidcCredential = {
   credential: string;
@@ -66,6 +81,20 @@ export type TokenSource = {
 
 const isGitHubActions = (env: NodeJS.ProcessEnv) =>
   env.GITHUB_ACTIONS === 'true';
+
+/**
+ * GitHub hides a secret in the job log only when it knows it. The runner reads
+ * the workflow command from stderr too. The escapes are the ones of GitHub
+ * workflow commands: without them a newline would end the command early.
+ */
+export function maskInGitHubLog(secret: string, env = process.env) {
+  if (!isGitHubActions(env)) return;
+  const escaped = secret
+    .replace(/%/g, '%25')
+    .replace(/\r/g, '%0D')
+    .replace(/\n/g, '%0A');
+  process.stderr.write(`::add-mask::${escaped}\n`);
+}
 
 const isSet = (env: NodeJS.ProcessEnv, name: string) =>
   Boolean(env[name]?.trim());
@@ -146,7 +175,7 @@ export function findTokenSource(env: NodeJS.ProcessEnv = process.env) {
 
 /**
  * One attempt without the retries of the API client: the credential expires on
- * its own, so a failure only gets a debug line.
+ * its own. The server answers 200 for a credential it does not know too.
  */
 export async function revokeOidcCredential(
   kind: OidcCredentialKind,
@@ -167,23 +196,28 @@ export async function revokeOidcCredential(
     });
     debug('Revoked the %s from OIDC', kind.name);
   } catch (e) {
-    debug(
-      'Could not revoke the %s from OIDC: %s',
-      kind.name,
-      (e as Error).message
+    throw new Error(
+      `Could not revoke the ${kind.name} from OIDC: ${getServerMessage(e, credential)}`
     );
   }
 }
 
-/** `error_description` of the OAuth error, then `error`, then the HTTP error message. */
-function getServerMessage(e: unknown) {
-  if (!isHttpError(e)) return (e as Error).message;
-  const { error_description, error } = e.response?.data ?? {};
-  return (
+/**
+ * `error_description` of the OAuth error, then `error`, then the HTTP error
+ * message, with the secret replaced by '*****': a server can repeat the token
+ * it got, and the message is printed.
+ */
+function getServerMessage(e: unknown, secret: string) {
+  const { error_description, error } = isHttpError(e)
+    ? (e.response?.data ?? {})
+    : {};
+  const message: string =
     [error_description, error].find(
       (value) => typeof value === 'string' && value
-    ) ?? e.message
-  );
+    ) ?? (e as Error).message;
+  return [secret, encodeURIComponent(secret)]
+    .filter(Boolean)
+    .reduce((text, value) => text.split(value).join('*****'), message);
 }
 
 /**
@@ -213,7 +247,9 @@ export async function exchangeOidcToken({
     );
   }
   try {
-    const res = await makeRequest<TokenExchangeResponse>(ClientType.API, {
+    // Not makeRequest: its warning prints the error body, which can repeat
+    // the token.
+    const res = await getClient(ClientType.API).request<TokenExchangeResponse>({
       method: 'POST',
       url: kind.tokenPath,
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -236,7 +272,7 @@ export async function exchangeOidcToken({
     };
   } catch (e) {
     throw new Error(
-      `Could not exchange the ${source.name} for a ${kind.name}: ${getServerMessage(e)}`
+      `Could not exchange the ${source.name} for a ${kind.name}: ${getServerMessage(e, token)}`
     );
   }
 }
@@ -261,7 +297,9 @@ export function getRecordKeyFromOidc(
     env,
   }).then((recordKey) => {
     addExitHook(() =>
-      revokeOidcCredential(RECORD_KEY_KIND, recordKey.credential)
+      revokeOidcCredential(RECORD_KEY_KIND, recordKey.credential).catch((e) =>
+        debug((e as Error).message)
+      )
     );
     return recordKey;
   });
@@ -325,11 +363,7 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
       projectId
     );
     command.setOptionValueWithSource('key', recordKey, 'config');
-    // GitHub masks a secret in the log only when it knows it: a key from the
-    // exchange is not one. The runner reads the command from stderr too.
-    if (isGitHubActions(process.env)) {
-      process.stderr.write(`::add-mask::${recordKey}\n`);
-    }
+    maskInGitHubLog(recordKey);
     // stderr: `session start --json` prints JSON on stdout.
     process.stderr.write(
       `Using a record key from the ${source.name}, valid until ${expiresAt}\n`
