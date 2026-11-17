@@ -1,8 +1,5 @@
 import { sharedConfigKeys } from '../../config/keys';
-import {
-  DEFAULT_OIDC_API_AUDIENCE,
-  getOidcAudience,
-} from '../../http/httpConfig';
+import { getOidcApiAudience, getOidcAudience } from '../../http/httpConfig';
 import { writeStdout } from '../../commands/utils';
 import { getCiProvider } from '../../env/ciProvider';
 import {
@@ -32,8 +29,7 @@ export const credentialSettings: Record<CredentialFor, CredentialSettings> = {
   api: {
     kind: API_TOKEN_KIND,
     tokenEnv: 'CURRENTS_OIDC_API_TOKEN',
-    getAudience: (options) =>
-      options.oidcApiAudience?.trim() || DEFAULT_OIDC_API_AUDIENCE,
+    getAudience: (options) => getOidcApiAudience(options.oidcApiAudience),
   },
   record: {
     kind: RECORD_KEY_KIND,

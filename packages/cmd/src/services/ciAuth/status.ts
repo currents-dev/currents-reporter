@@ -1,9 +1,13 @@
 import { writeStdout } from '../../commands/utils';
 import { sharedConfigKeys } from '../../config/keys';
 import { getCiProvider } from '../../env/ciProvider';
-import { DEFAULT_OIDC_AUDIENCE } from '../../http/httpConfig';
+import {
+  DEFAULT_OIDC_API_AUDIENCE,
+  DEFAULT_OIDC_AUDIENCE,
+  OIDC_API_AUDIENCE_ENV,
+} from '../../http/httpConfig';
 import { findTokenSource } from '../../lib/oidc';
-import { credentialSettings, findCiTokenSource } from '.';
+import { findCiTokenSource } from '.';
 
 /** Where commander took an option from: 'cli', 'env', or undefined for none. */
 type OptionSource = string | undefined;
@@ -50,6 +54,20 @@ const envInputState = (name: string) => {
 };
 
 /**
+ * The audience as getOidcAudience and getOidcApiAudience resolve it, and where
+ * it came from: a blank flag or variable is skipped.
+ */
+function describeAudience(
+  option: string | undefined,
+  source: OptionSource,
+  { flag, env, fallback }: { flag: string; env: string; fallback: string }
+) {
+  if (source === 'cli' && isSet(option)) return `${option?.trim()} (${flag})`;
+  if (isEnvSet(env)) return `${process.env[env]?.trim()} (${env})`;
+  return `${fallback} (default)`;
+}
+
+/**
  * Says which credential each kind of request would use, without reading or
  * sending any token: no OIDC token request, exchange or check of a key.
  */
@@ -57,6 +75,15 @@ export async function statusHandler(
   options: StatusOptions,
   sources: StatusSources
 ) {
+  // A blank flag would hide the variable and make OIDC look like the source.
+  for (const [name, flag] of [
+    ['apiKey', '--api-key'],
+    ['key', '--key'],
+  ] as const) {
+    if (sources[name] === 'cli' && !isSet(options[name])) {
+      throw new Error(`${flag} is empty: pass a key or leave the flag out`);
+    }
+  }
   const provider = getCiProvider();
   const apiKey = nameOf(
     options.apiKey,
@@ -79,12 +106,24 @@ export async function statusHandler(
     ? 'token in CURRENTS_OIDC_TOKEN'
     : findTokenSource()?.name;
 
-  const apiAudience = isSet(options.oidcApiAudience)
-    ? `${credentialSettings.api.getAudience(options)} (${sources.oidcApiAudience === 'cli' ? '--oidc-api-audience' : 'CURRENTS_OIDC_API_AUDIENCE'})`
-    : `${credentialSettings.api.getAudience(options)} (default)`;
-  const recordAudience = isSet(options.oidcAudience)
-    ? `${options.oidcAudience?.trim()} (${sources.oidcAudience === 'cli' ? '--oidc-audience' : 'CURRENTS_OIDC_AUDIENCE'})`
-    : `${DEFAULT_OIDC_AUDIENCE} (default)`;
+  const apiAudience = describeAudience(
+    options.oidcApiAudience,
+    sources.oidcApiAudience,
+    {
+      flag: '--oidc-api-audience',
+      env: OIDC_API_AUDIENCE_ENV,
+      fallback: DEFAULT_OIDC_API_AUDIENCE,
+    }
+  );
+  const recordAudience = describeAudience(
+    options.oidcAudience,
+    sources.oidcAudience,
+    {
+      flag: '--oidc-audience',
+      env: 'CURRENTS_OIDC_AUDIENCE',
+      fallback: DEFAULT_OIDC_AUDIENCE,
+    }
+  );
 
   const oidcNote = (oidc: string | undefined, key: string | undefined) =>
     oidc && !key && !project

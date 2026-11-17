@@ -20,6 +20,18 @@ import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
 
+/**
+ * Commander repeats the value of a rejected option, choice or command in its
+ * error, which a CI log keeps. A token passed by mistake, such as
+ * `--oidc-token=<jwt>`, would be printed before any GitHub mask.
+ */
+export const hideParserValues = (message: string) =>
+  message
+    .replace(/'(--[^'=\s]+)=[^']*'/g, "'$1'")
+    .replace(/'(-[^-'\s])[^']+'/g, "'$1'")
+    .replace(/argument '[^']*' is invalid/g, "argument '*****' is invalid")
+    .replace(/unknown command '[^']*'/g, "unknown command '*****'");
+
 const forOption = (
   description = 'the credential to get: an API token or a record key'
 ) =>
@@ -113,7 +125,7 @@ export const getCiCommand = (name: string) => {
         .name('get-oidc-token')
         .summary('Print the OIDC token of the CI job')
         .description(
-          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On GitHub Actions the CLI requests it with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is.'
+          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On GitHub Actions the CLI requests it with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is. The audience options do not change a token from those variables: the job requests it with the audience it needs.'
         )
         .addOption(forOption('the audience: for an API token or a record key'))
         .addOption(oidcApiAudienceOption())
@@ -177,9 +189,15 @@ export const getCiCommand = (name: string) => {
         .action(ciAuthAction(revokeHandler))
     );
 
-  return new Command()
+  const ci = new Command()
     .name('ci')
     .summary('Commands for CI jobs')
     .helpCommand(false)
     .addCommand(auth);
+  for (const command of [ci, auth, ...auth.commands]) {
+    command.configureOutput({
+      outputError: (message, write) => write(hideParserValues(message)),
+    });
+  }
+  return ci;
 };

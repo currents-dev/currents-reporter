@@ -19,6 +19,7 @@ import {
   Response,
   startApiServer,
 } from '../../test-utils/api-server';
+import { hideParserValues } from '../../commands/ci';
 import { getProgram } from '../program';
 
 // The retry delays are 3s to 30s.
@@ -1370,6 +1371,126 @@ describe('currents ci auth', () => {
 
       expect(server.requests).toEqual([]);
       expect(stdin).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('parser errors', () => {
+    describe.each([
+      ['off GitHub Actions', () => {}],
+      ['on GitHub Actions', setGitHubEnv],
+    ])('%s', (_name, setEnv) => {
+      it.each([
+        [
+          ['status', '--oidc-token=sentinel-secret'],
+          "unknown option '--oidc-token'",
+        ],
+        [
+          ['get-oidc-token', '--for', 'api', '--oidc-token=sentinel-secret'],
+          "unknown option '--oidc-token'",
+        ],
+        [
+          ['exchange', '--for', 'api', '--stdin=sentinel-secret'],
+          "unknown option '--stdin'",
+        ],
+        [
+          ['get-api-token', '--token=sentinel-secret'],
+          "unknown option '--token'",
+        ],
+        [['get-record-key', '-Xsentinel-secret'], "unknown option '-X'"],
+        [['revoke', '-Tsentinel-secret'], "unknown option '-T'"],
+        [
+          ['exchange', '--for', 'sentinel-secret'],
+          "argument '*****' is invalid",
+        ],
+        [
+          ['get-oidc-token', '--for=sentinel-secret'],
+          "argument '*****' is invalid",
+        ],
+        [['sentinel-secret'], "unknown command '*****'"],
+      ])('%j does not repeat the value', async (args, message) => {
+        setEnv();
+
+        expect(await run(args)).toBe(1);
+
+        expect(stdout).toBe('');
+        expect(stderr).toContain(message);
+        expect(stderr).not.toContain('sentinel-secret');
+        expect(server.requests).toEqual([]);
+      });
+    });
+
+    it('keeps the rest of the message', () => {
+      expect(
+        hideParserValues(
+          "error: option '--for <kind>' argument 'x' is invalid. Allowed choices are api, record."
+        )
+      ).toBe(
+        "error: option '--for <kind>' argument '*****' is invalid. Allowed choices are api, record."
+      );
+      expect(
+        hideParserValues("error: required option '--for <kind>' not specified")
+      ).toBe("error: required option '--for <kind>' not specified");
+    });
+  });
+
+  describe('blank inputs', () => {
+    it('a blank API audience flag falls back to the variable, then the default', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+      await run(['get-api-token', '--oidc-api-audience', ' ']);
+      await run(['get-oidc-token', '--for', 'api', '--oidc-api-audience', '']);
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', ' ');
+      await run(['get-api-token', '--oidc-api-audience', ' ']);
+
+      expect(githubAudiences()).toEqual(['env-api', 'env-api', 'currents:api']);
+    });
+
+    it('a blank record audience flag falls back to the variable', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'env-record');
+
+      await run(['get-record-key', '--oidc-audience', ' ']);
+
+      expect(githubAudiences()).toEqual(['env-record']);
+    });
+
+    it('status reports the audience of the variable under a blank flag', async () => {
+      vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'env-api');
+      vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'env-record');
+
+      await run(['status', '--oidc-api-audience', ' ', '--oidc-audience', ' ']);
+
+      expect(stdout).toContain(
+        'OIDC audience: env-api (CURRENTS_OIDC_API_AUDIENCE)'
+      );
+      expect(stdout).toContain(
+        'OIDC audience: env-record (CURRENTS_OIDC_AUDIENCE)'
+      );
+    });
+
+    it.each([
+      [['--api-key', ' '], '--api-key is empty'],
+      [['--api-key='], '--api-key is empty'],
+      [['--key', ''], '--key is empty'],
+    ])('status refuses the blank key flag %j', async (args, message) => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_API_KEY', 'sentinel-api-key');
+      vi.stubEnv('CURRENTS_RECORD_KEY', 'sentinel-record-key');
+      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT);
+
+      expectFailure(await run(['status', ...args]));
+
+      expect(diagnostics()).toContain(message);
+      expect(diagnostics()).not.toContain('sentinel');
+    });
+
+    it('status reports a blank key variable as set but empty, not as a credential', async () => {
+      vi.stubEnv('CURRENTS_API_KEY', ' ');
+
+      expect(await run(['status'])).toBe(0);
+
+      expect(stdout).toContain('CURRENTS_API_KEY: set (empty)');
+      expect(stdout).toContain('Credential: none');
     });
   });
 });

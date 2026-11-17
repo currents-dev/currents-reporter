@@ -6,6 +6,16 @@ export const getAPIBaseUrl = () =>
 
 export const DEFAULT_OIDC_AUDIENCE = 'currents:record-key';
 export const DEFAULT_OIDC_API_AUDIENCE = 'currents:api';
+export const OIDC_API_AUDIENCE_ENV = 'CURRENTS_OIDC_API_AUDIENCE';
+
+/**
+ * `--oidc-api-audience`, then CURRENTS_OIDC_API_AUDIENCE, then `currents:api`.
+ * A blank value is skipped, as in `getOidcAudience`.
+ */
+export const getOidcApiAudience = (option?: string) =>
+  option?.trim() ||
+  process.env[OIDC_API_AUDIENCE_ENV]?.trim() ||
+  DEFAULT_OIDC_API_AUDIENCE;
 
 let oidcAudienceOption: string | undefined;
 
