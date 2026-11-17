@@ -3,7 +3,13 @@ import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
-import { maskFormBody, maskKeys, redactSecretsDeep } from '../lib/credentials';
+import {
+  bodyForDiagnostics,
+  collectBodyKeys,
+  maskFormBody,
+  maskKeys,
+  redactSecretsDeep,
+} from '../lib/credentials';
 import { getAPIBaseUrl, getTimeout, requireRestAPIBaseUrl } from './httpConfig';
 import {
   getDelay,
@@ -51,6 +57,13 @@ export type RequestConfig = {
    * of the debug log.
    */
   logErrorResponse?: boolean;
+  /**
+   * The keys in a body the client cannot read, such as a gzipped one, to
+   * hide in the logs and errors of the request. The list is not sent.
+   */
+  secrets?: string[];
+  /** Milliseconds for the whole request. See `HttpRequest.deadline`. */
+  deadline?: number;
 };
 
 export type Client = {
@@ -93,8 +106,10 @@ export function createClient(type: ClientType): Client {
         'x-currents-key' in headers ||
         'authorization' in headers;
 
+      const secrets = requestSecrets(config, headers);
+
       for (let retryCount = 0; ; retryCount++) {
-        logRequest(baseURL, config, headers, retryCount > 0);
+        logRequest(baseURL, config, headers, retryCount > 0, secrets);
         try {
           return await sendRequest({
             method: config.method,
@@ -102,6 +117,7 @@ export function createClient(type: ClientType): Client {
             headers,
             body,
             timeout: config.timeout ?? getTimeout(),
+            deadline: config.deadline,
             responseType: config.responseType,
             followRedirects: config.followRedirects ?? !carriesCredential,
           });
@@ -109,7 +125,7 @@ export function createClient(type: ClientType): Client {
           // Messages for users name the path, not the full URL.
           if (e instanceof HttpError) {
             e.config.url = config.url;
-            redactKeysInResponse(e, headers);
+            redactSecretsInError(e, secrets);
           }
           if (
             !(
@@ -190,7 +206,8 @@ function logRequest(
   baseURL: string,
   config: RequestConfig,
   headers: Record<string, string>,
-  isRetry: boolean
+  isRetry: boolean,
+  secrets: string[]
 ) {
   const data = {
     method: config.method.toLowerCase(),
@@ -201,10 +218,14 @@ function logRequest(
     params: config.params,
     isRetry,
   };
+  const debugData = redactSecretsDeep(
+    getNetworkRequestDebugData(data),
+    secrets
+  );
   if (!isRetry) {
-    debug('network request: %o', getNetworkRequestDebugData(data));
+    debug('network request: %o', debugData);
   } else {
-    debug('network request retry: %o', getNetworkRequestDebugData(data));
+    debug('network request retry: %o', debugData);
   }
 }
 
@@ -254,21 +275,36 @@ function getPayloadDebugData(data: any) {
 }
 
 /**
- * A server can repeat the key of the request in its answer, in the body or a
- * header, and the answer of a failed request is logged and printed.
+ * The keys of a request: in its headers, in its body, and the ones the caller
+ * names for a body the client cannot read.
  */
-function redactKeysInResponse(
-  error: HttpError,
+function requestSecrets(
+  config: RequestConfig,
   headers: Record<string, string>
 ) {
-  const keys = [headers.authorization, headers['x-currents-key']]
+  const fromHeaders = [headers.authorization, headers['x-currents-key']]
     .filter(Boolean)
-    .map((value) => value.replace(/^bearer\s+/i, ''))
-    .filter(Boolean);
-  if (!error.response || keys.length === 0) return;
-  error.response.data = redactSecretsDeep(error.response.data, keys);
+    .map((value) => value.replace(/^bearer\s+/i, ''));
+  return _.uniq(
+    [
+      ...fromHeaders,
+      ...collectBodyKeys(config.data),
+      ...(config.secrets ?? []),
+    ].filter(Boolean)
+  );
+}
+
+/**
+ * A server can repeat a key of the request in its answer, in the body or a
+ * header, and a failed request is logged and printed with its body: the
+ * error keeps neither. A request that got no response still has its body.
+ */
+function redactSecretsInError(error: HttpError, secrets: string[]) {
+  error.config.data = bodyForDiagnostics(error.config.data, secrets);
+  if (!error.response || secrets.length === 0) return;
+  error.response.data = redactSecretsDeep(error.response.data, secrets);
   error.response.headers = redactSecretsDeep(
     error.response.headers,
-    keys
+    secrets
   ) as typeof error.response.headers;
 }

@@ -198,6 +198,8 @@ export async function revokeOidcCredential(
         token_type_hint: 'access_token',
       }).toString(),
       timeout: REVOKE_TIMEOUT_MS,
+      // A body that keeps coming would hold the command open past the timeout.
+      deadline: REVOKE_TIMEOUT_MS,
       maxRetries: 0,
       followRedirects: false,
       logErrorResponse: false,

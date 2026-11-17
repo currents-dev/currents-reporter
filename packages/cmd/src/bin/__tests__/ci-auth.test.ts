@@ -796,7 +796,7 @@ describe('currents ci auth', () => {
 
       expectFailure(await run(['revoke']));
 
-      expect(diagnostics()).toContain('timeout of 5000ms exceeded');
+      expect(diagnostics()).toContain('deadline of 5000ms exceeded');
       expect(requestsTo('/oidc/api/revoke')).toHaveLength(1);
     }, 10_000);
 

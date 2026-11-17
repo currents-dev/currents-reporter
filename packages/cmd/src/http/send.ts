@@ -19,6 +19,13 @@ export type HttpRequest = {
    * then between two parts of its body. 0 is no limit.
    */
   timeout?: number;
+  /**
+   * Milliseconds for the whole request: headers, redirects and body. When it
+   * passes, the request fails with ETIMEDOUT and its body is not read on. A
+   * body that keeps coming in small parts never reaches `timeout`. 0 is no
+   * limit.
+   */
+  deadline?: number;
   /** `json` parses a body that is JSON and keeps any other as text. */
   responseType?: ResponseType;
   /**
@@ -85,7 +92,35 @@ export async function sendRequest<T = any>(
     url: req.url,
     data: req.body,
   };
-  const { res, method } = await receiveHeaders(req, failed);
+  const deadline = req.deadline ?? 0;
+  if (deadline <= 0) return send<T>(req, failed);
+
+  const controller = new AbortController();
+  let timer: NodeJS.Timeout | undefined;
+  const expired = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(
+        new HttpError(`deadline of ${deadline}ms exceeded`, 'ETIMEDOUT', failed)
+      );
+      controller.abort();
+    }, deadline);
+  });
+  const sent = send<T>(req, failed, controller.signal);
+  // After the deadline the request fails on the abort; that error is not read.
+  sent.catch(() => {});
+  try {
+    return await Promise.race([sent, expired]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function send<T>(
+  req: HttpRequest,
+  failed: FailedRequest,
+  deadlineSignal?: AbortSignal
+): Promise<HttpResponse<T>> {
+  const { res, method } = await receiveHeaders(req, failed, deadlineSignal);
   const response = await readResponse<T>(
     res,
     method,
@@ -121,10 +156,30 @@ export async function sendRequest<T = any>(
  * the longest wait for the next part of the body, as the socket timeout of
  * axios was.
  */
-async function receiveHeaders(req: HttpRequest, failed: FailedRequest) {
+async function receiveHeaders(
+  req: HttpRequest,
+  failed: FailedRequest,
+  deadlineSignal?: AbortSignal
+) {
   const timeout = req.timeout ?? 0;
   const controller = new AbortController();
-  const sent = sendFollowingRedirects(req, controller.signal, timeout);
+  const sent = sendFollowingRedirects(
+    req,
+    deadlineSignal
+      ? AbortSignal.any([controller.signal, deadlineSignal])
+      : controller.signal,
+    timeout
+  );
+  // Headers that come after the deadline: their body is not read.
+  deadlineSignal?.addEventListener(
+    'abort',
+    () =>
+      sent.then(
+        ({ res }) => res.body.destroy(),
+        () => {}
+      ),
+    { once: true }
+  );
   let timer: NodeJS.Timeout | undefined;
   // undici does not end a request on abort while it connects, to the server
   // or through a proxy tunnel, so the timeout does not wait for it.

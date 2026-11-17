@@ -101,6 +101,7 @@ export async function createRun(params: CreateRunParams) {
         'Content-Encoding': 'gzip',
       },
       data,
+      secrets: [params.recordKey],
     }).then((res) => res.data);
   } catch (err) {
     debug('Failed to create the run:', err);
