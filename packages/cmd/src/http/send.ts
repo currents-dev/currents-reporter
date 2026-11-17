@@ -170,16 +170,22 @@ async function receiveHeaders(
       : controller.signal,
     timeout
   );
-  // Headers that come after the deadline: their body is not read.
-  deadlineSignal?.addEventListener(
-    'abort',
-    () =>
-      sent.then(
-        ({ res }) => res.body.destroy(),
-        () => {}
-      ),
-    { once: true }
-  );
+  // The deadline ends the wait for the headers itself, as the timeout does:
+  // undici may not end a request aborted while it connects. Headers that come
+  // later get their body destroyed.
+  const deadlinePassed = new Promise<never>((_resolve, reject) => {
+    deadlineSignal?.addEventListener(
+      'abort',
+      () => {
+        reject(deadlineSignal.reason);
+        sent.then(
+          ({ res }) => res.body.destroy(),
+          () => {}
+        );
+      },
+      { once: true }
+    );
+  });
   let timer: NodeJS.Timeout | undefined;
   // undici does not end a request on abort while it connects, to the server
   // or through a proxy tunnel, so the timeout does not wait for it.
@@ -197,7 +203,7 @@ async function receiveHeaders(
     }, timeout);
   });
   try {
-    return await Promise.race([sent, timedOut]);
+    return await Promise.race([sent, timedOut, deadlinePassed]);
   } catch (e) {
     if (e instanceof HttpError) throw e;
     throw toNetworkError(e, failed);

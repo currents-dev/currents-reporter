@@ -595,6 +595,53 @@ describe('sendRequest', () => {
       proxy.close();
     });
 
+    it('clears the header timeout when the deadline passes while the proxy does not answer CONNECT', async () => {
+      const sockets: net.Socket[] = [];
+      const proxy = net.createServer((socket) => {
+        sockets.push(socket);
+        socket.on('error', () => {});
+      });
+      await new Promise<void>((resolve) =>
+        proxy.listen(0, '127.0.0.1', resolve)
+      );
+      vi.stubEnv(
+        'HTTPS_PROXY',
+        `http://127.0.0.1:${(proxy.address() as AddressInfo).port}`
+      );
+      vi.stubEnv('NO_PROXY', undefined);
+      vi.stubEnv('no_proxy', undefined);
+      const realSetTimeout = setTimeout;
+      let headerTimer: NodeJS.Timeout | undefined;
+      const set = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((
+        callback: () => void,
+        ms: number
+      ) => {
+        const timer = realSetTimeout(callback, ms);
+        if (ms === 1301) headerTimer = timer;
+        return timer;
+      }) as never);
+      const clear = vi.spyOn(globalThis, 'clearTimeout');
+      try {
+        await expect(
+          sendRequest({
+            method: 'GET',
+            url: 'https://api.example',
+            timeout: 1301,
+            deadline: 130,
+          })
+        ).rejects.toMatchObject({ message: 'deadline of 130ms exceeded' });
+        await sleep(30);
+
+        expect(headerTimer).toBeDefined();
+        expect(clear).toHaveBeenCalledWith(headerTimer);
+      } finally {
+        set.mockRestore();
+        clear.mockRestore();
+        sockets.forEach((socket) => socket.destroy());
+        proxy.close();
+      }
+    });
+
     it('sends the request directly to a host of NO_PROXY', async () => {
       vi.stubEnv('HTTP_PROXY', 'http://127.0.0.1:1');
       vi.stubEnv('NO_PROXY', '127.0.0.1');
