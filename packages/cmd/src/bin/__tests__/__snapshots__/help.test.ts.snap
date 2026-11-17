@@ -419,10 +419,11 @@ exports[`command surface of the built CLI > prints the help of ci auth get-oidc-
 "Usage: currents ci auth get-oidc-token [options]
 
 Print the OIDC token of the CI job for an API token (--for api) or a record key
-(--for record), without exchanging it. On GitHub Actions the CLI requests it
-with the audience of the kind; on any other CI it prints CURRENTS_OIDC_API_TOKEN
-or CURRENTS_OIDC_TOKEN as it is. The audience options do not change a token from
-those variables: the job requests it with the audience it needs.
+(--for record), without exchanging it. On any CI, GitHub Actions included, it
+prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is when that
+variable is set. Without it, on GitHub Actions the CLI requests a token with the
+audience of the kind. The audience options do not change a token from those
+variables: the job requests it with the audience it needs.
 
 Options:
   --for <kind>                    the audience: for an API token or a record key

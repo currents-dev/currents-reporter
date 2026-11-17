@@ -38,8 +38,9 @@ type TokenExchangeResponse = {
 
 /** A credential the Currents API issues for an OIDC token, and its endpoints. */
 export type OidcCredentialKind = {
-  /** Names the credential in messages: "a <name>". */
+  /** Names the credential in messages: "<article> <name>". */
   name: string;
+  article: 'a' | 'an';
   tokenPath: string;
   revokePath: string;
   /** The start of every credential of the kind. */
@@ -48,6 +49,7 @@ export type OidcCredentialKind = {
 
 export const RECORD_KEY_KIND: OidcCredentialKind = {
   name: 'record key',
+  article: 'a',
   tokenPath: 'oidc/token',
   revokePath: 'oidc/revoke',
   prefix: 'crnts_ci_',
@@ -55,6 +57,7 @@ export const RECORD_KEY_KIND: OidcCredentialKind = {
 
 export const API_TOKEN_KIND: OidcCredentialKind = {
   name: 'API token',
+  article: 'an',
   tokenPath: 'oidc/api/token',
   revokePath: 'oidc/api/revoke',
   prefix: 'crnts_ciapi_',
@@ -281,7 +284,7 @@ export async function exchangeOidcToken({
     };
   } catch (e) {
     throw new Error(
-      `Could not exchange the ${source.name} for a ${kind.name}: ${getServerMessage(e, token)}`
+      `Could not exchange the ${source.name} for ${kind.article} ${kind.name}: ${getServerMessage(e, token)}`
     );
   }
 }

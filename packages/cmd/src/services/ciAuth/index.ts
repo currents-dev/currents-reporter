@@ -143,8 +143,9 @@ function requireCiTokenSource(
 ) {
   const source = findCiTokenSource(credentialFor);
   if (source) return source;
+  const { kind } = credentialSettings[credentialFor];
   throw new Error(
-    `No OIDC token for a ${credentialSettings[credentialFor].kind.name}: ${noOidcTokenHint(credentialFor, options)}`
+    `No OIDC token for ${kind.article} ${kind.name}: ${noOidcTokenHint(credentialFor, options)}`
   );
 }
 
