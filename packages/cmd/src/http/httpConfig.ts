@@ -66,7 +66,21 @@ export const requireRestAPIBaseUrl = () => {
       `CURRENTS_API_URL is not ${CLOUD_API_URL}, so CURRENTS_REST_API_URL is required for this command: set it to the REST API of the same installation, such as your on-prem server or Currents staging. The CLI does not guess its address, because the cloud REST API would receive your keys.`
     );
   }
+  // The value is not printed: a URL can hold a user and password.
+  if (!isHttpUrl(url)) {
+    throw new Error(
+      `CURRENTS_REST_API_URL is not an http or https URL: set it to the address of the REST API, such as ${CLOUD_REST_API_URL}`
+    );
+  }
   return url;
 };
+
+function isHttpUrl(url: string) {
+  try {
+    return ['http:', 'https:'].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
 
 export const getTimeout = () => 30000;

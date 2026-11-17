@@ -867,6 +867,27 @@ describe('currents api in a process', () => {
   }, 15_000);
 
   it.each([
+    ['api', API, 'api.example.com'],
+    ['run get', RUN_GET, 'localhost:4000'],
+    ['api', API, 'ftp://example.com'],
+  ])(
+    '%s gets no token when CURRENTS_REST_API_URL is %s',
+    async (_name, args, restApiUrl) => {
+      const result = await runCli(args, {
+        cwd: dir,
+        env: { ...env(), CURRENTS_REST_API_URL: restApiUrl },
+      });
+
+      expect(result.code).toBe(1);
+      expect(result.stderr).toContain(
+        'CURRENTS_REST_API_URL is not an http or https URL'
+      );
+      expect(rest.requests).toEqual([]);
+      expect(director.requests).toEqual([]);
+    }
+  );
+
+  it.each([
     ['api', API],
     ['run get', RUN_GET],
   ])(
