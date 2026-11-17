@@ -369,6 +369,192 @@ describe('sendRequest', () => {
     });
   });
 
+  describe('deadline', () => {
+    /** The response of the last trickle: when its socket closed, how many parts it sent. */
+    let trickle: { closedAt?: number; parts: number };
+
+    /** Headers after `headerDelay`, then a part every 100 ms for `forMs`. */
+    const trickling =
+      ({ status = 200, headerDelay = 0, forMs = 3000 } = {}): Handler =>
+      async (_req, res) => {
+        trickle = { parts: 0 };
+        let interval: NodeJS.Timeout | undefined;
+        res.on('close', () => {
+          trickle.closedAt = performance.now();
+          clearInterval(interval);
+        });
+        await sleep(headerDelay);
+        if (res.destroyed) return;
+        res.writeHead(status, { 'content-type': 'text/plain' });
+        res.flushHeaders();
+        const start = performance.now();
+        interval = setInterval(() => {
+          if (performance.now() - start >= forMs) {
+            clearInterval(interval);
+            res.end();
+            return;
+          }
+          trickle.parts++;
+          res.write('x');
+        }, 100);
+      };
+
+    const timed = async (promise: Promise<unknown>) => {
+      const start = performance.now();
+      const result = await promise.then(
+        (value) => ({ value, error: undefined }),
+        (error: HttpError) => ({ value: undefined, error })
+      );
+      return { ...result, ms: performance.now() - start, start };
+    };
+
+    it.each([200, 500])(
+      'ends a body that keeps coming at the deadline, status %d',
+      async (status) => {
+        handler = trickling({ status });
+
+        const { error, ms, start } = await timed(
+          sendRequest({ method: 'GET', url: origin, deadline: 500 })
+        );
+
+        expect(error).toMatchObject({
+          message: 'deadline of 500ms exceeded',
+          code: 'ETIMEDOUT',
+        });
+        expect(ms).toBeGreaterThan(350);
+        expect(ms).toBeLessThan(1000);
+        await sleep(300);
+        expect(trickle.closedAt! - start).toBeLessThan(1100);
+        const parts = trickle.parts;
+        await sleep(300);
+        expect(trickle.parts).toBe(parts);
+      }
+    );
+
+    it('counts the wait for the headers in the deadline', async () => {
+      handler = trickling({ headerDelay: 300 });
+
+      const { error, ms } = await timed(
+        sendRequest({ method: 'GET', url: origin, deadline: 500 })
+      );
+
+      expect(error).toMatchObject({ code: 'ETIMEDOUT' });
+      expect(ms).toBeLessThan(800);
+    });
+
+    it('ends a request whose headers do not come, and ignores headers after it', async () => {
+      handler = trickling({ headerDelay: 700, forMs: 300 });
+
+      const { error, ms } = await timed(
+        sendRequest({ method: 'GET', url: origin, deadline: 300 })
+      );
+
+      expect(error).toMatchObject({
+        message: 'deadline of 300ms exceeded',
+        code: 'ETIMEDOUT',
+      });
+      expect(ms).toBeLessThan(600);
+      await sleep(1000);
+    });
+
+    it('does not change a response that ends before it, nor fail it later', async () => {
+      handler = json(200, { ok: 1 });
+      const unhandled = vi.fn();
+      process.on('unhandledRejection', unhandled);
+      try {
+        const response = await sendRequest({
+          method: 'GET',
+          url: origin,
+          deadline: 300,
+        });
+        expect(response).toMatchObject({ status: 200, data: { ok: 1 } });
+        await sleep(500);
+        expect(
+          (await sendRequest({ method: 'GET', url: origin, deadline: 300 }))
+            .data
+        ).toEqual({ ok: 1 });
+        expect(unhandled).not.toHaveBeenCalled();
+      } finally {
+        process.off('unhandledRejection', unhandled);
+      }
+    });
+
+    it('keeps the error of a request that fails before it', async () => {
+      await expect(
+        sendRequest({ method: 'GET', url: 'http://127.0.0.1:1', deadline: 500 })
+      ).rejects.toMatchObject({ code: 'ECONNREFUSED' });
+      await expect(
+        sendRequest({ method: 'GET', url: `${origin}/drop`, deadline: 500 })
+      ).rejects.toMatchObject({ code: 'ECONNRESET' });
+    });
+
+    it('is not the timeout: a body that keeps coming within the timeout ends', async () => {
+      handler = trickling({ forMs: 1500 });
+
+      const { error, value, ms } = await timed(
+        sendRequest({ method: 'GET', url: origin, timeout: 500 })
+      );
+
+      expect(error).toBeUndefined();
+      expect(value).toMatchObject({ status: 200 });
+      expect(ms).toBeGreaterThan(1400);
+    });
+
+    it('lets the timeout win when the body stops before the deadline', async () => {
+      handler = (_req, res) => {
+        res.writeHead(200, { 'content-length': '100' });
+        res.write('x');
+      };
+
+      await expect(
+        sendRequest({
+          method: 'GET',
+          url: origin,
+          timeout: 100,
+          deadline: 2000,
+        })
+      ).rejects.toMatchObject({ message: 'stream has been aborted' });
+    });
+
+    it('lets the deadline win over a longer timeout', async () => {
+      handler = trickling();
+
+      await expect(
+        sendRequest({
+          method: 'GET',
+          url: origin,
+          timeout: 2000,
+          deadline: 400,
+        })
+      ).rejects.toMatchObject({ message: 'deadline of 400ms exceeded' });
+    });
+
+    it('is no limit when it is 0', async () => {
+      handler = trickling({ forMs: 600 });
+
+      await expect(
+        sendRequest({ method: 'GET', url: origin, deadline: 0 })
+      ).resolves.toMatchObject({ status: 200 });
+    });
+
+    it('spans a redirect', async () => {
+      handler = (req, res) =>
+        req.url === '/start'
+          ? setTimeout(
+              () => res.writeHead(307, { location: '/next' }).end(),
+              300
+            )
+          : trickling()(req, res);
+
+      const { error, ms } = await timed(
+        sendRequest({ method: 'GET', url: `${origin}/start`, deadline: 500 })
+      );
+
+      expect(error).toMatchObject({ code: 'ETIMEDOUT' });
+      expect(ms).toBeLessThan(800);
+    });
+  });
+
   describe('with HTTP_PROXY', () => {
     afterEach(() => {
       vi.unstubAllEnvs();
@@ -407,6 +593,53 @@ describe('sendRequest', () => {
         code: 'ETIMEDOUT',
       });
       proxy.close();
+    });
+
+    it('clears the header timeout when the deadline passes while the proxy does not answer CONNECT', async () => {
+      const sockets: net.Socket[] = [];
+      const proxy = net.createServer((socket) => {
+        sockets.push(socket);
+        socket.on('error', () => {});
+      });
+      await new Promise<void>((resolve) =>
+        proxy.listen(0, '127.0.0.1', resolve)
+      );
+      vi.stubEnv(
+        'HTTPS_PROXY',
+        `http://127.0.0.1:${(proxy.address() as AddressInfo).port}`
+      );
+      vi.stubEnv('NO_PROXY', undefined);
+      vi.stubEnv('no_proxy', undefined);
+      const realSetTimeout = setTimeout;
+      let headerTimer: NodeJS.Timeout | undefined;
+      const set = vi.spyOn(globalThis, 'setTimeout').mockImplementation(((
+        callback: () => void,
+        ms: number
+      ) => {
+        const timer = realSetTimeout(callback, ms);
+        if (ms === 1301) headerTimer = timer;
+        return timer;
+      }) as never);
+      const clear = vi.spyOn(globalThis, 'clearTimeout');
+      try {
+        await expect(
+          sendRequest({
+            method: 'GET',
+            url: 'https://api.example',
+            timeout: 1301,
+            deadline: 130,
+          })
+        ).rejects.toMatchObject({ message: 'deadline of 130ms exceeded' });
+        await sleep(30);
+
+        expect(headerTimer).toBeDefined();
+        expect(clear).toHaveBeenCalledWith(headerTimer);
+      } finally {
+        set.mockRestore();
+        clear.mockRestore();
+        sockets.forEach((socket) => socket.destroy());
+        proxy.close();
+      }
     });
 
     it('sends the request directly to a host of NO_PROXY', async () => {

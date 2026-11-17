@@ -86,3 +86,56 @@ export function redactSecretsDeep(value: unknown, secrets: string[]): unknown {
     ])
   );
 }
+
+/**
+ * The non-empty string values of the key fields, in nested objects and arrays
+ * too: the run cancel and cache requests hold the record key in their body.
+ */
+export function collectKeyValues(payload: unknown): string[] {
+  if (Array.isArray(payload)) return payload.flatMap(collectKeyValues);
+  if (!_.isPlainObject(payload)) return [];
+  return Object.entries(payload as Record<string, unknown>).flatMap(
+    ([name, value]) =>
+      KEY_FIELDS.includes(name) && typeof value === 'string'
+        ? value
+          ? [value]
+          : []
+        : collectKeyValues(value)
+  );
+}
+
+const parseJson = (text: string): { value: unknown } | undefined => {
+  try {
+    return { value: JSON.parse(text) };
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * The keys a request body carries: from an object, a JSON string, or a form
+ * (every value of a repeated field). A Buffer is not read.
+ */
+export function collectBodyKeys(body: unknown): string[] {
+  if (typeof body !== 'string') return collectKeyValues(body);
+  const json = parseJson(body);
+  if (json) return collectKeyValues(json.value);
+  const params = new URLSearchParams(body);
+  return KEY_FIELDS.flatMap((field) => params.getAll(field)).filter(Boolean);
+}
+
+/**
+ * A request body to print: the key fields masked, and the secrets replaced
+ * wherever else they are. A Buffer, such as a gzipped body, is not printed.
+ */
+export function bodyForDiagnostics(body: unknown, secrets: string[]): unknown {
+  if (Buffer.isBuffer(body)) return '<binary body>';
+  if (typeof body === 'string') {
+    const json = parseJson(body);
+    const masked = json
+      ? JSON.stringify(maskKeys(json.value))
+      : maskFormBody(body);
+    return redactSecretsDeep(masked, secrets);
+  }
+  return redactSecretsDeep(maskKeys(body), secrets);
+}
