@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import { debug as _debug } from '../debug';
 import { reporterVersion } from '../env/versions';
-import { maskFormBody, maskKeys, redactSecret } from '../lib/credentials';
+import { maskFormBody, maskKeys, redactSecretsDeep } from '../lib/credentials';
 import { getAPIBaseUrl, getTimeout, requireRestAPIBaseUrl } from './httpConfig';
 import {
   getDelay,
@@ -254,8 +254,8 @@ function getPayloadDebugData(data: any) {
 }
 
 /**
- * A server can repeat the key of the request in its answer, and the answer
- * of a failed request is logged and printed.
+ * A server can repeat the key of the request in its answer, in the body or a
+ * header, and the answer of a failed request is logged and printed.
  */
 function redactKeysInResponse(
   error: HttpError,
@@ -263,8 +263,12 @@ function redactKeysInResponse(
 ) {
   const keys = [headers.authorization, headers['x-currents-key']]
     .filter(Boolean)
-    .map((value) => value.replace(/^bearer\s+/i, ''));
-  const text = JSON.stringify(error.response?.data);
-  if (!error.response || !text || keys.length === 0) return;
-  error.response.data = JSON.parse(keys.reduce(redactSecret, text));
+    .map((value) => value.replace(/^bearer\s+/i, ''))
+    .filter(Boolean);
+  if (!error.response || keys.length === 0) return;
+  error.response.data = redactSecretsDeep(error.response.data, keys);
+  error.response.headers = redactSecretsDeep(
+    error.response.headers,
+    keys
+  ) as typeof error.response.headers;
 }

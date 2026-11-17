@@ -396,13 +396,18 @@ describe('API commands with an API token from OIDC', () => {
       expect(authorizationOf(restPath)).toEqual([`Bearer ${API_TOKEN}`]);
     });
 
-    it('fails on a blank --api-key instead of exchanging', async () => {
-      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT);
+    it.each(['', '   '])(
+      'fails on the blank --api-key %j instead of exchanging',
+      async (key) => {
+        vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT);
+        vi.stubEnv('CURRENTS_API_KEY', CONFIGURED_KEY);
 
-      expectStopped(await run([...args, '--api-key', '']));
+        expectStopped(await run([...args, '--api-key', key]));
 
-      expect(director.requests).toEqual([]);
-    });
+        expect(director.requests).toEqual([]);
+        expect(diagnostics()).toContain('--api-key is blank');
+      }
+    );
 
     it('revokes the API token when the REST API fails, and keeps exit 1', async () => {
       setGitHubEnv();
@@ -544,6 +549,44 @@ describe('API commands with an API token from OIDC', () => {
 
         expect(redirectTarget.requests).toEqual([]);
         expect(requestsTo('/oidc/token')).toEqual([]);
+      });
+    }
+  );
+
+  describe.each(commands)(
+    '%s hides an API token the REST API repeats',
+    (_name, args, restPath) => {
+      it.each<[string, Response]>([
+        [
+          'in a header',
+          {
+            status: 400,
+            headers: { 'x-reflected-auth': `Bearer ${API_TOKEN}` },
+            json: { message: 'bad request' },
+          },
+        ],
+        [
+          'with a JSON \\u escape',
+          {
+            status: 400,
+            headers: { 'content-type': 'application/json' },
+            body: '{"message":"bad \\u0063rnts_ciapi_test"}',
+          },
+        ],
+        [
+          'percent-encoded',
+          { status: 400, json: { message: 'bad %63rnts%5Fciapi_test' } },
+        ],
+      ])('%s, with --debug', async (_how, response) => {
+        vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT);
+        responses[restPath] = [response];
+
+        expect(await run([...args, '--debug'])).toBe(1);
+
+        expect(stderr).toContain('*****');
+        expect(secretsIn(stderr)).toEqual([]);
+        expect(stderr).not.toMatch(/u0063rnts|%63rnts/i);
+        expect(requestsTo('/oidc/api/revoke')).toHaveLength(1);
       });
     }
   );

@@ -152,14 +152,18 @@ function requireCiTokenSource(
  * The API key of a command that calls the REST API: --api-key or
  * CURRENTS_API_KEY, or else an API token from the OIDC token of the CI job,
  * revoked when the command ends. A configured key is used even when the API
- * refuses it. A blank --api-key counts as configured, so that it fails
- * instead of starting an exchange.
+ * refuses it. A blank --api-key fails instead of starting an exchange.
  */
 export async function getApiKeyOrOidcToken(
   options: CiAuthOptions & { apiKey?: string },
   apiKeySource: string | undefined
 ) {
-  if (options.apiKey?.trim() || apiKeySource === 'cli') return options.apiKey;
+  if (options.apiKey?.trim()) return options.apiKey;
+  if (apiKeySource === 'cli') {
+    throw new Error(
+      `${sharedConfigKeys.apiKey.cli} is blank: pass the key, or leave the flag out`
+    );
+  }
   const source = findCiTokenSource('api');
   if (!source) {
     const { cli, env } = sharedConfigKeys.apiKey;
