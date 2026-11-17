@@ -35,13 +35,21 @@ export const getDelay = (i: number, err?: HttpError) => {
   return Math.min(Math.max(retryAfter, defaultDelay), MAX_RETRY_AFTER_MS);
 };
 
-export const isRetriableError = (err: HttpError | Error): boolean => {
+/**
+ * With `logResponse: false` the debug line leaves out the headers and body of
+ * the response: an OIDC error body can repeat the token that was sent.
+ */
+export const isRetriableError = (
+  err: HttpError | Error,
+  { logResponse = true } = {}
+): boolean => {
   debug('isRetriableError: %o', {
     message: err.message,
     code: 'code' in err ? err.code : undefined,
     status: 'response' in err ? err.response?.status : undefined,
-    headers: 'response' in err ? err.response?.headers : undefined,
-    data: 'response' in err ? err.response?.data : undefined,
+    ...(logResponse && 'response' in err
+      ? { headers: err.response?.headers, data: err.response?.data }
+      : {}),
     isHttpError: isHttpError(err),
   });
 

@@ -46,6 +46,11 @@ export type RequestConfig = {
   maxRetries?: number;
   /** Default true. See `HttpRequest.followRedirects`. */
   followRedirects?: boolean;
+  /**
+   * Default true. False leaves the headers and body of an error response out
+   * of the debug log.
+   */
+  logErrorResponse?: boolean;
 };
 
 export type Client = {
@@ -63,8 +68,10 @@ export function createClient(type: ClientType): Client {
   debug('client base url: %s', baseURL);
 
   const retries = getMaxRetries();
-  const retryCondition =
-    type === ClientType.REST_API ? isRetriableRestError : isRetriableError;
+  const retryCondition = (e: Error, logResponse: boolean) =>
+    type === ClientType.REST_API
+      ? isRetriableRestError(e)
+      : isRetriableError(e, { logResponse });
 
   return {
     async request(config) {
@@ -104,7 +111,7 @@ export function createClient(type: ClientType): Client {
           if (
             !(
               retryCount < (config.maxRetries ?? retries) &&
-              retryCondition(e as Error)
+              retryCondition(e as Error, config.logErrorResponse ?? true)
             )
           )
             throw e;

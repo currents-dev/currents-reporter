@@ -7,6 +7,8 @@ const KEY_FIELDS = [
   'subject_token',
   'token',
   'oidcToken',
+  'oidcApiToken',
+  'access_token',
 ];
 
 /**

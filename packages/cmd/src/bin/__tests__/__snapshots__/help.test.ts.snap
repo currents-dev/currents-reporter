@@ -319,6 +319,115 @@ Examples:
 "
 `;
 
+exports[`command surface of the built CLI > prints the help of ci auth 1`] = `
+"Usage: currents ci auth [options] [command]
+
+Get a Currents API token or record key from the OIDC token of the CI job,
+without a stored secret, and revoke it. The credentials are printed on stdout:
+keep them out of logs.
+
+Options:
+  -h, --help                display help for command
+
+Commands:
+  get-api-token [options]   Print an API token from the OIDC token of the CI job
+  get-record-key [options]  Print a record key from the OIDC token of the CI job
+  exchange [options]        Exchange an OIDC token from the environment or stdin
+  revoke [options]          Revoke an API token or record key from an OIDC
+                            exchange
+
+Examples:
+  # Use an API token from the OIDC token of the job for the commands after it
+  export CURRENTS_API_KEY=$(currents ci auth get-api-token \\
+      --project-id <project-id>)
+  currents api /v1/runs/<run-id>
+  currents ci auth revoke
+
+  # Exchange the GitLab id_token in CURRENTS_OIDC_TOKEN for a record key
+  currents ci auth exchange --for record --project-id <project-id>
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of ci auth exchange 1`] = `
+"Usage: currents ci auth exchange [options]
+
+Exchange the OIDC token in CURRENTS_OIDC_API_TOKEN (--for api) or
+CURRENTS_OIDC_TOKEN (--for record), or from stdin, and print the credential
+
+Options:
+  --for <kind>           the credential to get: an API token or a record key
+                         (choices: "api", "record")
+  -p, --project-id <id>  the project ID from the Currents dashboard (required)
+                         (env: CURRENTS_PROJECT_ID)
+  --stdin                read the OIDC token from stdin
+  --json                 print {"token", "expires_at"} as JSON, with "scopes"
+                         for an API token
+  --debug                print debug logs; keys are hidden in them (default:
+                         false, env: CURRENTS_DEBUG)
+  -h, --help             display help for command
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of ci auth get-api-token 1`] = `
+"Usage: currents ci auth get-api-token [options]
+
+Get the OIDC token of the CI job (GitHub Actions with id-token: write, or
+CURRENTS_OIDC_API_TOKEN on any CI), exchange it and print the API token. It
+stays valid until it expires or 'ci auth revoke' revokes it.
+
+Options:
+  -p, --project-id <id>           the project ID from the Currents dashboard
+                                  (required) (env: CURRENTS_PROJECT_ID)
+  --oidc-api-audience <audience>  the audience of the OIDC token for an API
+                                  token; the default is currents:api. A Currents
+                                  staging or on-prem install has its own (env:
+                                  CURRENTS_OIDC_API_AUDIENCE)
+  --json                          print {"token", "expires_at"} as JSON, with
+                                  "scopes" for an API token
+  --debug                         print debug logs; keys are hidden in them
+                                  (default: false, env: CURRENTS_DEBUG)
+  -h, --help                      display help for command
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of ci auth get-record-key 1`] = `
+"Usage: currents ci auth get-record-key [options]
+
+Get the OIDC token of the CI job (GitHub Actions with id-token: write, or
+CURRENTS_OIDC_TOKEN on any CI), exchange it and print the record key. It stays
+valid until it expires or 'ci auth revoke' revokes it.
+
+Options:
+  -p, --project-id <id>       the project ID from the Currents dashboard
+                              (required) (env: CURRENTS_PROJECT_ID)
+  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
+                              default is currents:record-key. A Currents staging
+                              or on-prem install has its own (env:
+                              CURRENTS_OIDC_AUDIENCE)
+  --json                      print {"token", "expires_at"} as JSON, with
+                              "scopes" for an API token
+  --debug                     print debug logs; keys are hidden in them
+                              (default: false, env: CURRENTS_DEBUG)
+  -h, --help                  display help for command
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of ci auth revoke 1`] = `
+"Usage: currents ci auth revoke [options]
+
+Revoke the credential from stdin, or the OIDC credentials in CURRENTS_API_KEY
+and CURRENTS_RECORD_KEY. The prefix tells an API token (crnts_ciapi_) from a
+record key (crnts_ci_); other keys are not revoked.
+
+Options:
+  --stdin     read the credential from stdin
+  --debug     print debug logs; keys are hidden in them (default: false, env:
+              CURRENTS_DEBUG)
+  -h, --help  display help for command
+"
+`;
+
 exports[`command surface of the built CLI > prints the help of convert 1`] = `
 "Usage: currents convert [options]
 

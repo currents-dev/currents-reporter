@@ -43,4 +43,18 @@ describe('maskKeys', () => {
       projectId: 'p',
     });
   });
+
+  it('masks the OIDC tokens and the exchange response, nested too', () => {
+    expect(
+      maskKeys({
+        oidcToken: 'o',
+        oidcApiToken: 'a',
+        response: { access_token: 't', expires_in: 600 },
+      })
+    ).toEqual({
+      oidcToken: '*****',
+      oidcApiToken: '*****',
+      response: { access_token: '*****', expires_in: 600 },
+    });
+  });
 });
