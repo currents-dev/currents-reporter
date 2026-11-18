@@ -10,6 +10,7 @@ import {
 import {
   findTokenSource,
   getGoogleMetadataHost,
+  GoogleMetadataError,
   OIDC_PROVIDER_ENV,
   OidcProvider,
   recordingKeyOption,
@@ -80,17 +81,30 @@ function describeAudience(
   return `${fallback} (default)`;
 }
 
+const SERVICE_ACCOUNT_EMAIL = /^[A-Za-z0-9._-]{1,100}@[A-Za-z0-9.-]{1,200}$/;
+
 /**
  * Asks for the email of the service account, not for a token: the answer says
  * whether the metadata server answers and has a service account for the CLI.
+ * No other text of the answer is printed.
  */
 async function describeGoogleMetadataServer() {
+  let host: string;
+  try {
+    host = getGoogleMetadataHost();
+  } catch (e) {
+    return `Google Cloud OIDC: ${(e as Error).message}`;
+  }
   try {
     const email = await requestGoogleMetadata(
       'instance/service-accounts/default/email'
     );
-    return `Google Cloud OIDC: the metadata server at ${getGoogleMetadataHost()} answers; service account ${email || 'not named'}`;
+    const account = SERVICE_ACCOUNT_EMAIL.test(email) ? email : 'not named';
+    return `Google Cloud OIDC: the metadata server at ${host} answers; service account ${account}`;
   } catch (e) {
+    if (e instanceof GoogleMetadataError && e.status !== undefined) {
+      return `Google Cloud OIDC: the metadata server at ${host} answered ${e.status} for the service account email`;
+    }
     return `Google Cloud OIDC: ${(e as Error).message}`;
   }
 }

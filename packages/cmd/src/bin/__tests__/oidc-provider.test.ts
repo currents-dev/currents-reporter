@@ -14,7 +14,7 @@ import { getCacheCommandConfig } from '../../config/cache';
 import { setOidcAudienceOption } from '../../http/httpConfig';
 import {
   findTokenSource,
-  googleMetadataRetry,
+  googleMetadataRequest,
   requestGoogleMetadata,
   resetOidcExchange,
 } from '../../lib/oidc';
@@ -107,8 +107,9 @@ describe('--oidc-provider', () => {
     stderr = '';
     resetOidcExchange();
     setOidcAudienceOption(undefined);
-    googleMetadataRetry.attempts = 3;
-    googleMetadataRetry.delayMs = 1;
+    googleMetadataRequest.attempts = 3;
+    googleMetadataRequest.delayMs = 1;
+    googleMetadataRequest.timeoutMs = 2000;
     for (const name of [
       'CURRENTS_API_KEY',
       'CURRENTS_RECORD_KEY',
@@ -384,5 +385,210 @@ describe('--oidc-provider', () => {
       );
       expect(stdout).toContain('Workload Identity');
     });
+  });
+
+  describe('GCE_METADATA_HOST', () => {
+    const TOKEN_ENDPOINTS = [
+      '/computeMetadata/v1/instance/service-accounts/default/identity?audience=currents:api&format=full#',
+      '/computeMetadata/v1/instance/service-accounts/default/token#',
+    ];
+    const invalidHosts = () => {
+      const host = new URL(server.url).host;
+      return [
+        ...TOKEN_ENDPOINTS.map((path) => `${host}${path}`),
+        `${host}?x=1`,
+        `${host}#x`,
+        `user:pass@${host}`,
+        `http://${host}`,
+        `${host} x`,
+        `${host}/`,
+      ];
+    };
+
+    it('refuses a value with more than a host and a port, and sends nothing', async () => {
+      for (const value of invalidHosts()) {
+        vi.stubEnv('GCE_METADATA_HOST', value);
+        stdout = '';
+        stderr = '';
+
+        expect(
+          await run(['ci', 'auth', 'status', '--oidc-provider', 'google'])
+        ).toBe(0);
+        expect(stdout).toContain(
+          'Google Cloud OIDC: GCE_METADATA_HOST must be a host name or IP address'
+        );
+
+        expect(
+          await run([
+            'ci',
+            'auth',
+            'get-oidc-token',
+            '--for',
+            'api',
+            '--oidc-provider',
+            'google',
+          ])
+        ).toBe(1);
+        expect(stderr).toContain('GCE_METADATA_HOST must be a host name');
+        expect(stdout).not.toContain(GOOGLE_TOKEN);
+      }
+      expect(server.requests).toEqual([]);
+    });
+
+    it('accepts a host with a port, an IPv4 address and an IPv6 address', async () => {
+      const { port } = new URL(server.url);
+      for (const host of [`localhost:${port}`, `127.0.0.1:${port}`]) {
+        vi.stubEnv('GCE_METADATA_HOST', host);
+        expect(
+          await requestGoogleMetadata('instance/service-accounts/default/email')
+        ).toBe(SA_EMAIL);
+      }
+      vi.stubEnv('GCE_METADATA_HOST', `[::1]:${closedHost.split(':').pop()}`);
+      await expect(
+        requestGoogleMetadata('instance/service-accounts/default/email')
+      ).rejects.toThrow('is unreachable');
+    });
+  });
+
+  describe('which source wins', () => {
+    it('does not fall back to GitHub when the metadata server is unreachable', async () => {
+      setGitHubEnv();
+      vi.stubEnv('GCE_METADATA_HOST', closedHost);
+
+      expect(
+        await run(['ci', 'auth', 'get-api-token', '--oidc-provider', 'google'])
+      ).toBe(1);
+      expect(await run(['cache', 'set', '--oidc-provider', 'google'])).toBe(1);
+
+      expect(server.requests).toEqual([]);
+    });
+
+    it('uses a configured key before the provider', async () => {
+      vi.stubEnv('CURRENTS_REST_API_URL', server.url);
+
+      await run([
+        'cache',
+        'set',
+        '--key',
+        'dashboard-key',
+        '--oidc-provider',
+        'google',
+      ]);
+      expect(getCacheCommandConfig().values?.recordKey).toBe('dashboard-key');
+
+      vi.stubEnv('CURRENTS_API_KEY', 'dashboard-api-key');
+      await run(['api', '/v1/runs/r1', '--oidc-provider', 'google']);
+
+      expect(requestsTo(IDENTITY_PATH)).toEqual([]);
+      expect(requestsTo('/oidc/token')).toEqual([]);
+      expect(requestsTo('/oidc/api/token')).toEqual([]);
+      expect(requestsTo('/v1/runs/r1')[0].headers.authorization).toBe(
+        'Bearer dashboard-api-key'
+      );
+    });
+
+    it('uses CURRENTS_OIDC_API_TOKEN before the provider', async () => {
+      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'job-api-token');
+
+      await run(['ci', 'auth', 'get-api-token', '--oidc-provider', 'google']);
+
+      expect(requestsTo(IDENTITY_PATH)).toEqual([]);
+      expect(subjectToken('/oidc/api/token')).toBe('job-api-token');
+    });
+
+    it('takes the flag over CURRENTS_OIDC_PROVIDER', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'github');
+
+      await run(['ci', 'auth', 'get-api-token', '--oidc-provider', 'google']);
+
+      expect(requestsTo('/github-token')).toEqual([]);
+      expect(subjectToken('/oidc/api/token')).toBe(GOOGLE_TOKEN);
+    });
+
+    it('takes the GitHub flag over CURRENTS_OIDC_PROVIDER=google', async () => {
+      setGitHubEnv();
+      vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'google');
+
+      await run(['ci', 'auth', 'get-api-token', '--oidc-provider', 'github']);
+
+      expect(requestsTo(IDENTITY_PATH)).toEqual([]);
+      expect(subjectToken('/oidc/api/token')).toBe(GITHUB_TOKEN);
+    });
+  });
+
+  it('prints the Google Cloud token with get-oidc-token outside a known CI', async () => {
+    expect(
+      await run([
+        'ci',
+        'auth',
+        'get-oidc-token',
+        '--for',
+        'record',
+        '--oidc-provider',
+        'google',
+      ])
+    ).toBe(0);
+
+    expect(stdout).toBe(`${GOOGLE_TOKEN}\n`);
+    const url = new URL(requestsTo(IDENTITY_PATH)[0].url, server.url);
+    expect(url.searchParams.get('audience')).toBe('currents:record-key');
+  });
+
+  it('stops waiting for a metadata server that does not answer', async () => {
+    googleMetadataRequest.attempts = 2;
+    googleMetadataRequest.timeoutMs = 50;
+    responses[IDENTITY_PATH] = [{ hang: true }, { hang: true }];
+
+    await expect(
+      findTokenSource('google')!.getToken(process.env, 'currents:api')
+    ).rejects.toThrow('is unreachable');
+    expect(requestsTo(IDENTITY_PATH)).toHaveLength(2);
+  });
+
+  it('keeps the token out of the debug log and of an exchange error', async () => {
+    responses['/oidc/api/token'] = [
+      {
+        status: 400,
+        json: {
+          error: 'invalid_grant',
+          error_description: `bad ${GOOGLE_TOKEN}`,
+        },
+      },
+    ];
+
+    expect(
+      await run([
+        'ci',
+        'auth',
+        'get-api-token',
+        '--oidc-provider',
+        'google',
+        '--debug',
+      ])
+    ).toBe(1);
+
+    expect(stderr).toContain('Could not exchange the Google Cloud OIDC token');
+    expect(stdout + stderr).not.toContain(GOOGLE_TOKEN);
+  });
+
+  it('does not print an answer to the email request that is not an email', async () => {
+    vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'google');
+    responses[EMAIL_PATH] = [{ status: 200, body: 'eyJ.secret-looking.body' }];
+
+    await run(['ci', 'auth', 'status']);
+
+    expect(stdout).toContain('answers; service account not named');
+    expect(stdout).not.toContain('secret-looking');
+  });
+
+  it('does not print the body of a refused email request', async () => {
+    vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'google');
+    responses[EMAIL_PATH] = [{ status: 403, body: 'secret-looking body' }];
+
+    await run(['ci', 'auth', 'status']);
+
+    expect(stdout).toContain('answered 403 for the service account email');
+    expect(stdout).not.toContain('secret-looking');
   });
 });

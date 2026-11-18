@@ -169,20 +169,49 @@ export type OidcProvider = (typeof OIDC_PROVIDERS)[number];
 export const OIDC_PROVIDER_ENV = 'CURRENTS_OIDC_PROVIDER';
 
 const GOOGLE_METADATA_HOST = 'metadata.google.internal';
-const GOOGLE_METADATA_TIMEOUT_MS = 2000;
 
 /**
  * The GKE metadata server can take a few seconds to answer after the pod
  * starts. Changed by tests.
  */
-export const googleMetadataRetry = { attempts: 5, delayMs: 1000 };
+export const googleMetadataRequest = {
+  attempts: 5,
+  delayMs: 1000,
+  timeoutMs: 2000,
+};
 
-/** GCE_METADATA_HOST is the variable the Google Cloud client libraries read. */
-export const getGoogleMetadataHost = (env: NodeJS.ProcessEnv = process.env) =>
-  env.GCE_METADATA_HOST?.trim() || GOOGLE_METADATA_HOST;
+/** A host name, an IPv4 address or an IPv6 address in brackets, and a port. */
+const HOST_AND_PORT = /^(?:[A-Za-z0-9.-]+|\[[0-9A-Fa-f:.]+\])(?::\d{1,5})?$/;
+
+/**
+ * GCE_METADATA_HOST is the variable the Google Cloud client libraries read.
+ * Only a host and a port: a path, query or fragment in it would choose
+ * another endpoint, such as the token endpoint for `ci auth status`.
+ */
+export function getGoogleMetadataHost(env: NodeJS.ProcessEnv = process.env) {
+  const host = env.GCE_METADATA_HOST?.trim();
+  if (!host) return GOOGLE_METADATA_HOST;
+  if (!HOST_AND_PORT.test(host)) {
+    throw new Error(
+      'GCE_METADATA_HOST must be a host name or IP address with an optional port, such as metadata.google.internal or 169.254.169.254:80'
+    );
+  }
+  return host;
+}
 
 const GOOGLE_UNREACHABLE_HINT =
   'the CLI gets this token only on Google Cloud. On GKE, the pod needs a Kubernetes service account bound to a Google service account with Workload Identity';
+
+/** `status` is undefined when the metadata server did not answer. */
+export class GoogleMetadataError extends Error {
+  constructor(
+    message: string,
+    public host: string,
+    public status?: number
+  ) {
+    super(message);
+  }
+}
 
 /**
  * A GET to the metadata server, as text. A network error or a 5xx is tried
@@ -190,17 +219,22 @@ const GOOGLE_UNREACHABLE_HINT =
  */
 export async function requestGoogleMetadata(
   path: string,
+  query?: URLSearchParams,
   env: NodeJS.ProcessEnv = process.env
 ) {
   const host = getGoogleMetadataHost(env);
+  const url = new URL(`http://${host}`);
+  url.pathname = `/computeMetadata/v1/${path}`;
+  url.search = query?.toString() ?? '';
+  const { attempts, delayMs, timeoutMs } = googleMetadataRequest;
   for (let attempt = 1; ; attempt++) {
     try {
       const res = await sendRequest<string>({
         method: 'GET',
-        url: `http://${host}/computeMetadata/v1/${path}`,
+        url: url.href,
         headers: { 'metadata-flavor': 'Google' },
-        timeout: GOOGLE_METADATA_TIMEOUT_MS,
-        deadline: GOOGLE_METADATA_TIMEOUT_MS,
+        timeout: timeoutMs,
+        deadline: timeoutMs,
         responseType: 'text',
         followRedirects: false,
         // The metadata server answers only inside the VM or the pod.
@@ -210,16 +244,16 @@ export async function requestGoogleMetadata(
     } catch (e) {
       const status = isHttpError(e) ? e.status : undefined;
       const retriable = status === undefined || status >= 500;
-      if (!retriable || attempt >= googleMetadataRetry.attempts) {
-        throw new Error(googleMetadataError(e, host));
+      if (!retriable || attempt >= attempts) {
+        throw googleMetadataError(e, host);
       }
       debug(
         'The Google Cloud metadata server did not answer: %s. Attempt %d of %d',
         (e as Error).message,
         attempt,
-        googleMetadataRetry.attempts
+        attempts
       );
-      await sleep(googleMetadataRetry.delayMs);
+      await sleep(delayMs);
     }
   }
 }
@@ -227,14 +261,21 @@ export async function requestGoogleMetadata(
 function googleMetadataError(e: unknown, host: string) {
   const response = isHttpError(e) ? e.response : undefined;
   if (!response) {
-    return `the Google Cloud metadata server at ${host} is unreachable (${(e as Error).message}): ${GOOGLE_UNREACHABLE_HINT}`;
+    return new GoogleMetadataError(
+      `the Google Cloud metadata server at ${host} is unreachable (${(e as Error).message}): ${GOOGLE_UNREACHABLE_HINT}`,
+      host
+    );
   }
   // The metadata server explains a refusal in plain text, such as a missing
   // service account.
   const text = String(response.data ?? '')
     .trim()
     .slice(0, 300);
-  return `the Google Cloud metadata server at ${host} answered ${response.status}${text ? `: ${text}` : ''}`;
+  return new GoogleMetadataError(
+    `the Google Cloud metadata server at ${host} answered ${response.status}${text ? `: ${text}` : ''}`,
+    host,
+    response.status
+  );
 }
 
 /**
@@ -242,9 +283,9 @@ function googleMetadataError(e: unknown, host: string) {
  * The audience does not have to be a URL.
  */
 async function getGoogleToken(env: NodeJS.ProcessEnv, audience: string) {
-  const query = new URLSearchParams({ audience, format: 'full' });
   const token = await requestGoogleMetadata(
-    `instance/service-accounts/default/identity?${query}`,
+    'instance/service-accounts/default/identity',
+    new URLSearchParams({ audience, format: 'full' }),
     env
   );
   if (!token) throw new Error('the response has no token');
