@@ -184,4 +184,29 @@ describe('ci auth status and the commands that record', () => {
       }
     );
   });
+
+  // The commands send a whitespace-only key as it is, and do not exchange.
+  describe('with a whitespace-only key and an OIDC token in the environment', () => {
+    it.each([...acceptsApiKey, ...ignoresApiKey])(
+      '%s uses CURRENTS_RECORD_KEY, and the status says so',
+      async (name, args) => {
+        vi.stubEnv('CURRENTS_RECORD_KEY', ' ');
+        await run(args);
+
+        expect(exchanges()).toBe(0);
+        expect(await recordingCredential(name)).toBe('CURRENTS_RECORD_KEY');
+      }
+    );
+
+    it.each(acceptsApiKey)(
+      '%s uses CURRENTS_API_KEY, and the status says so',
+      async (name, args) => {
+        vi.stubEnv('CURRENTS_API_KEY', ' ');
+        await run(args);
+
+        expect(exchanges()).toBe(0);
+        expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');
+      }
+    );
+  });
 });

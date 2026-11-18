@@ -9,6 +9,7 @@ import {
 } from '../../http/httpConfig';
 import {
   findTokenSource,
+  recordingKeyOption,
   recordsWithApiKey,
   recordsWithOidc,
 } from '../../lib/oidc';
@@ -115,11 +116,6 @@ export async function statusHandler(
     sources.apiKey,
     sharedConfigKeys.apiKey
   );
-  const recordKey = nameOf(
-    options.key,
-    sources.key,
-    sharedConfigKeys.recordKey
-  );
   const project = nameOf(
     options.projectId,
     sources.projectId,
@@ -155,11 +151,17 @@ export async function statusHandler(
       ? ['  The exchange needs --project-id or CURRENTS_PROJECT_ID']
       : [];
 
-  // The order of useOidcRecordKey and getAuthHeaders: record key, then the
-  // API key for the commands that have --api-key, then an OIDC token.
+  // Same choice as useOidcRecordKey: a key, else an OIDC token.
+  const recordingKeyName = (withApiKey: boolean) => {
+    const option = recordingKeyOption(withApiKey, options);
+    if (!option) return undefined;
+    const { cli, env } =
+      option === 'key' ? sharedConfigKeys.recordKey : sharedConfigKeys.apiKey;
+    return sources[option] === 'cli' ? cli : env;
+  };
   const recordingKeys = new Map<string | undefined, string[]>();
   for (const { name, withApiKey } of recordingCommands(program)) {
-    const key = recordKey ?? (withApiKey ? apiKey : undefined);
+    const key = recordingKeyName(withApiKey);
     recordingKeys.set(key, [...(recordingKeys.get(key) ?? []), name]);
   }
   const recordingCredential = (key: string | undefined) =>

@@ -345,6 +345,20 @@ export const recordsWithApiKey = (command: CommandUnknownOpts) =>
   hasOption(command, '--api-key');
 
 /**
+ * The option that holds the key a recording command uses instead of an OIDC
+ * token: the record key, or the API key of a command with `--api-key`. Any
+ * value but an empty string counts, also whitespace: getAuthHeaders sends it.
+ */
+export function recordingKeyOption(
+  withApiKey: boolean,
+  { key, apiKey }: { key?: unknown; apiKey?: unknown }
+): 'key' | 'apiKey' | undefined {
+  if (key) return 'key';
+  if (withApiKey && apiKey) return 'apiKey';
+  return undefined;
+}
+
+/**
  * A recording command that got no record key, and no API key to use instead,
  * gets one from an OIDC token: --oidc-token, CURRENTS_OIDC_TOKEN, or GitHub
  * Actions. `ci auth status` reports the same choice.
@@ -362,8 +376,7 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   }
   if (
     !recordsWithOidc(command) ||
-    command.getOptionValue('key') ||
-    (recordsWithApiKey(command) && command.getOptionValue('apiKey'))
+    recordingKeyOption(recordsWithApiKey(command), command.opts())
   ) {
     return;
   }

@@ -1568,13 +1568,22 @@ describe('currents ci auth', () => {
       expect(diagnostics()).not.toContain('sentinel');
     });
 
-    it('status reports a blank key variable as set but empty, not as a credential', async () => {
+    it('status reports a blank key variable as set but empty: no credential for API requests, the key for recording commands with --api-key', async () => {
       vi.stubEnv('CURRENTS_API_KEY', ' ');
 
       expect(await run(['status'])).toBe(0);
 
       expect(stdout).toContain('CURRENTS_API_KEY: set (empty)');
-      expect(stdout).toContain('Credential: none');
+      const credentials = stdout
+        .split('\n')
+        .filter((line) => line.trim().startsWith('Credential:'));
+      // API requests, then recording. useOidcRecordKey and getAuthHeaders take
+      // any non-empty value.
+      expect(credentials).toEqual([
+        '  Credential: none',
+        '  Credential: none (run upload, run cancel, cache set, cache get)',
+        '  Credential: CURRENTS_API_KEY (run attach, session start, session attach, session share)',
+      ]);
     });
   });
 });
