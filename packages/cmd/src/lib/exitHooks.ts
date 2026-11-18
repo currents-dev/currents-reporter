@@ -3,6 +3,7 @@ import { constants } from 'os';
 const hooks: (() => Promise<void>)[] = [];
 const signals = ['SIGINT', 'SIGTERM'] as const;
 let running: Promise<void> = Promise.resolve();
+let receivedSignal: NodeJS.Signals | undefined;
 
 /**
  * Runs once, when the command ends, before the process exits. A CI provider
@@ -36,11 +37,20 @@ function removeSignalHandlers() {
   signals.forEach((signal) => process.off(signal, onSignal));
 }
 
-// Without a handler, a second signal stops the process at once. The exit code
-// is the one a shell reports for a process stopped by the signal.
+/**
+ * The exit code for a command that ends with `commandExitCode`. A signal that
+ * arrived while the hooks ran replaces it with the code a shell reports for a
+ * process stopped by that signal.
+ */
+export function getExitCode(commandExitCode: number) {
+  return receivedSignal
+    ? 128 + constants.signals[receivedSignal]
+    : commandExitCode;
+}
+
+// Without a handler, a second signal stops the process at once.
 function onSignal(signal: NodeJS.Signals) {
   removeSignalHandlers();
-  void runExitHooks().finally(() =>
-    process.exit(128 + constants.signals[signal])
-  );
+  receivedSignal = signal;
+  void runExitHooks().finally(() => process.exit(getExitCode(0)));
 }
