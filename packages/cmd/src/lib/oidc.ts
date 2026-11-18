@@ -202,6 +202,11 @@ export function getGoogleMetadataHost(env: NodeJS.ProcessEnv = process.env) {
 const GOOGLE_UNREACHABLE_HINT =
   'the CLI gets this token only on Google Cloud. On GKE, the pod needs a Kubernetes service account bound to a Google service account with Workload Identity';
 
+const GOOGLE_STATUS_HINTS: Record<number, string> = {
+  403: 'the service account may lack permission to mint ID tokens, or Workload Identity is not set up',
+  404: 'the VM or the GKE pod may have no Google service account',
+};
+
 /** `status` is undefined when the metadata server did not answer. */
 export class GoogleMetadataError extends Error {
   constructor(
@@ -266,13 +271,11 @@ function googleMetadataError(e: unknown, host: string) {
       host
     );
   }
-  // The metadata server explains a refusal in plain text, such as a missing
-  // service account.
-  const text = String(response.data ?? '')
-    .trim()
-    .slice(0, 300);
+  // The body is not repeated: it is whatever the server at the host sent,
+  // and the message is printed.
+  const hint = GOOGLE_STATUS_HINTS[response.status];
   return new GoogleMetadataError(
-    `the Google Cloud metadata server at ${host} answered ${response.status}${text ? `: ${text}` : ''}`,
+    `the Google Cloud metadata server at ${host} answered ${response.status}${hint ? `: ${hint}` : ''}`,
     host,
     response.status
   );

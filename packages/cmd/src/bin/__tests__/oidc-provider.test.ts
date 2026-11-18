@@ -227,7 +227,9 @@ describe('--oidc-provider', () => {
 
       await expect(
         findTokenSource('google')!.getToken(process.env, 'currents:api')
-      ).rejects.toThrow('answered 404: service account not found');
+      ).rejects.toThrow(
+        'answered 404: the VM or the GKE pod may have no Google service account'
+      );
       expect(requestsTo(IDENTITY_PATH)).toHaveLength(1);
     });
 
@@ -590,5 +592,42 @@ describe('--oidc-provider', () => {
 
     expect(stdout).toContain('answered 403 for the service account email');
     expect(stdout).not.toContain('secret-looking');
+  });
+
+  describe('a refused identity request', () => {
+    const BODY = 'eyJ.sensitive-metadata-body.signature';
+
+    it.each(
+      [302, 400, 403, 404, 429, 500, 503].flatMap((status) => [
+        [status, 'get-oidc-token', false],
+        [status, 'get-oidc-token', true],
+        [status, 'get-api-token', false],
+        [status, 'get-api-token', true],
+      ]) as [number, string, boolean][]
+    )(
+      'prints the status but not the body: %d, %s, debug %s',
+      async (status, command, withDebug) => {
+        responses[IDENTITY_PATH] = Array(3).fill({
+          status,
+          body: BODY,
+          headers: status === 302 ? { location: `${server.url}/x` } : {},
+        });
+
+        expect(
+          await run([
+            'ci',
+            'auth',
+            command,
+            ...(command === 'get-oidc-token' ? ['--for', 'api'] : []),
+            '--oidc-provider',
+            'google',
+            ...(withDebug ? ['--debug'] : []),
+          ])
+        ).toBe(1);
+
+        expect(stderr).toContain(`answered ${status}`);
+        expect(stdout + stderr).not.toContain('sensitive-metadata-body');
+      }
+    );
   });
 });
