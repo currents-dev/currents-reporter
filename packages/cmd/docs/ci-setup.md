@@ -95,7 +95,7 @@ Restore the last run before the tests and save it after them:
   run: npx currents cache set --preset last-run --matrix-index ${{ matrix.shard }} --matrix-total ${{ strategy.job-total }}
 ```
 
-- `cache get` writes the Playwright options to `.currents_env` (change the path with `--preset-output`). On the first attempt they are `--shard=<index>/<total>`. When the workflow is rerun and the last run was saved, they are `--last-failed --shard=1/1`.
+- `cache get` writes the Playwright options to `.currents_env` (change the path with `--preset-output`). On the first attempt they are `--shard=<index>/<total>`. When the workflow is rerun and the last run was saved, they are `--last-failed --shard=1/1`. A last run that failed before any test ran, such as a shard that could not plan its tests, saved no test to rerun, so the job runs its shard again with `--shard=<index>/<total>`.
 - `--continue` lets the first attempt go on when there is no saved run yet.
 - `cache set` saves Playwright's `.last-run.json` from `test-results` (change it with `--pw-output-dir`).
 - `--matrix-index` starts at 1.
@@ -153,6 +153,6 @@ test:
 
 On GitLab, `.currents_env` sets three variables:
 
-- `EXTRA_PW_FLAGS`: options for `playwright test`, `--shard=<index>/<total>` from `CI_NODE_INDEX` and `CI_NODE_TOTAL`, or `--last-failed --shard=1/1` on a retried job whose last run was saved;
+- `EXTRA_PW_FLAGS`: options for `playwright test`, `--shard=<index>/<total>` from `CI_NODE_INDEX` and `CI_NODE_TOTAL`, or `--last-failed --shard=1/1` on a retried job whose last run was saved with the tests that failed;
 - `EXTRA_PWCP_FLAGS`: `--last-failed` or nothing, for `pwc`;
 - `RUN_ATTEMPT`: 1 on the first attempt, one more on each retry. Use it in `CURRENTS_CI_BUILD_ID` so that a retry records a new run.

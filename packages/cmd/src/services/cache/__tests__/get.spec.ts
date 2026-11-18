@@ -52,6 +52,8 @@ const mockedMetaFile = {
 
 const mockedBuffer = Buffer.from(JSON.stringify(mockedMetaFile));
 
+const restoredFiles = ['/restored/test-results/.last-run.json'];
+
 const mockedCacheRetrievelResponse = {
   refMetaReadUrl: 'http://meta.url',
   cacheId: 'cacheId123',
@@ -74,7 +76,7 @@ describe('handleGetCache', () => {
     vi.mocked(retrieveCache).mockResolvedValue(mockedCacheResponse);
     vi.mocked(getRefCacheMeta).mockResolvedValue(mockedCacheRetrievelResponse);
     vi.mocked(download).mockResolvedValue(mockedBuffer);
-    vi.mocked(unzipBuffer).mockResolvedValue(undefined);
+    vi.mocked(unzipBuffer).mockResolvedValue(restoredFiles);
   });
 
   const expectCacheRetrievalAndDownload = async () => {
@@ -151,12 +153,13 @@ describe('handleGetCache', () => {
     );
   });
 
-  it('should call handlePostLastRunPreset if preset is lastRun', async () => {
+  it('should call handlePostLastRunPreset with the restored files if preset is lastRun', async () => {
     await handleGetCache();
     expect(handlePostLastRunPreset).toHaveBeenCalledWith(
       mockConfig.values,
       mockCI,
-      mockedMetaFile
+      mockedMetaFile,
+      restoredFiles
     );
   });
 

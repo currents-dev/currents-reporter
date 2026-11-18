@@ -1,6 +1,7 @@
+import fs from 'fs';
 import path from 'path';
 import { globPaths } from '@lib/glob';
-import { MetaFile, warn } from './lib';
+import { warn } from './lib';
 
 export const getLastRunFilePaths = async (outputPath?: string) => {
   const prefix = path.resolve(outputPath ?? './test-results');
@@ -43,8 +44,38 @@ export function filterPaths(filePaths: string[]) {
   });
 }
 
-export function wasLastRunFileUploaded(meta: MetaFile | null): boolean {
-  return meta
-    ? meta.path.some((p) => path.basename(p) === '.last-run.json')
-    : false;
+type LastRun = { status?: string; failedTests?: string[] };
+
+/**
+ * Whether `--last-failed` can rerun what the restored `.last-run.json` files
+ * saved. Playwright saves a run that failed before it began (a shard that
+ * could not plan its tests, a config error) as failed with no tests, and
+ * `--last-failed` then runs no test and passes, so that shard has to run its
+ * share again. An unreadable file counts the same.
+ */
+export async function canRerunLastFailed(restoredFiles: string[]) {
+  const lastRunFiles = restoredFiles.filter(
+    (file) => path.basename(file) === '.last-run.json'
+  );
+  if (lastRunFiles.length === 0) {
+    return false;
+  }
+  for (const file of lastRunFiles) {
+    const lastRun = await readLastRun(file);
+    if (
+      !lastRun ||
+      (lastRun.status !== 'passed' && !lastRun.failedTests?.length)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+async function readLastRun(file: string): Promise<LastRun | null> {
+  try {
+    return JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch {
+    return null;
+  }
 }
