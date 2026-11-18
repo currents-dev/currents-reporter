@@ -84,13 +84,14 @@ export async function listZipEntries(source: string | Buffer) {
 }
 
 /**
- * Writes the entries of a zip buffer under `outputDir`. yauzl rejects entry
- * names that are absolute or contain `..`, so no entry is written outside
- * `outputDir`.
+ * Writes the entries of a zip buffer under `outputDir` and returns the paths of
+ * the files it wrote. yauzl rejects entry names that are absolute or contain
+ * `..`, so no entry is written outside `outputDir`.
  */
 export async function extractZip(buffer: Buffer, outputDir: string) {
   const zip = await openZip(buffer);
   const openReadStream = promisify(zip.openReadStream.bind(zip));
+  const files: string[] = [];
   await readEntries(zip, async (entry) => {
     const target = path.join(outputDir, entry.fileName);
     if (entry.fileName.endsWith('/')) {
@@ -99,5 +100,7 @@ export async function extractZip(buffer: Buffer, outputDir: string) {
     }
     await fs.promises.mkdir(path.dirname(target), { recursive: true });
     await pipeline(await openReadStream(entry), fs.createWriteStream(target));
+    files.push(target);
   });
+  return files;
 }

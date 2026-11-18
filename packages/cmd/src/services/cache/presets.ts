@@ -11,7 +11,7 @@ import {
 } from '../../env/types';
 import { writeFileAsync } from '../../lib';
 import { MetaFile } from './lib';
-import { wasLastRunFileUploaded } from './path';
+import { canRerunLastFailed } from './path';
 
 export async function handlePreLastRunPreset(
   config: CacheGetCommandConfig,
@@ -32,20 +32,23 @@ export async function handlePreLastRunPreset(
   }
 }
 
+/** `restoredFiles` are the paths the cache was restored to. */
 export async function handlePostLastRunPreset(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
-  meta: MetaFile
+  meta: MetaFile,
+  restoredFiles: string[]
 ) {
+  const lastFailed = await canRerunLastFailed(restoredFiles);
   switch (ci.provider) {
     case 'githubActions':
-      await dumpPWConfigForGHA(config, ci, meta);
+      await dumpPWConfigForGHA(config, ci, lastFailed);
       break;
     case 'gitlab':
-      await dumpPwConfigForGitlab(config, ci, meta);
+      await dumpPwConfigForGitlab(config, ci, meta, lastFailed);
       break;
     case 'circle':
-      await dumpPWConfigForCircle(config, ci, meta);
+      await dumpPWConfigForCircle(config, ci, meta, lastFailed);
       break;
     default:
       break;
@@ -55,7 +58,8 @@ export async function handlePostLastRunPreset(
 async function dumpPwConfigForGitlab(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
-  meta: MetaFile | null = null
+  meta: MetaFile | null = null,
+  lastFailed = false
 ) {
   const ciParams = ci.params as GitLabParams;
   const prevCiParams = meta?.ci.params as null | GitLabParams;
@@ -66,8 +70,7 @@ async function dumpPwConfigForGitlab(
   const nodeIndex = parseIntSafe(ciParams.ciNodeIndex, 1);
   const jobTotal = parseIntSafe(ciParams.ciNodeTotal, 1);
 
-  const wasPWExecuted = wasLastRunFileUploaded(meta);
-  const isLastFailed = runAttempt > 1 && wasPWExecuted;
+  const isLastFailed = runAttempt > 1 && lastFailed;
   const lastFailedOption = isLastFailed ? '--last-failed' : '';
 
   let shardOption = '';
@@ -93,14 +96,13 @@ RUN_ATTEMPT=${runAttempt}
 async function dumpPWConfigForGHA(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
-  meta: MetaFile | null = null
+  lastFailed = false
 ) {
   const { matrixIndex, matrixTotal } = config;
   const ciParams = ci.params as GithubActionsParams;
   const runAttempt = parseIntSafe(ciParams.githubRunAttempt, 1);
 
-  const wasPWExecuted = wasLastRunFileUploaded(meta);
-  const isLastFailed = runAttempt > 1 && wasPWExecuted;
+  const isLastFailed = runAttempt > 1 && lastFailed;
   const lastFailedOption = isLastFailed ? '--last-failed' : '';
 
   let shardOption = '';
@@ -121,7 +123,8 @@ async function dumpPWConfigForGHA(
 async function dumpPWConfigForCircle(
   config: CacheGetCommandConfig,
   ci: ReturnType<typeof getCI>,
-  meta: MetaFile | null = null
+  meta: MetaFile | null = null,
+  lastFailed = false
 ) {
   const ciParams = ci.params as CircleParams;
 
@@ -134,8 +137,7 @@ async function dumpPWConfigForCircle(
     prevWorkspaceId == ciParams.circleWorkflowWorkspaceId &&
     prevWorkflowId !== ciParams.circleWorkflowId;
 
-  const wasPWExecuted = wasLastRunFileUploaded(meta);
-  const isLastFailed = isRerun && wasPWExecuted;
+  const isLastFailed = isRerun && lastFailed;
   const lastFailedOption = isLastFailed ? '--last-failed' : '';
 
   let shardOption = '';

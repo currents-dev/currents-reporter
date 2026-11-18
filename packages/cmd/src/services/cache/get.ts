@@ -53,13 +53,13 @@ export async function handleGetCache() {
       cacheKey: meta.cacheKey,
     });
 
-    const destination = await handleArchiveDownload({
+    const { destination, files } = await handleArchiveDownload({
       readUrl,
       outputDir,
     });
 
     if (preset === PRESETS.lastRun) {
-      await handlePostLastRunPreset(config.values, ci, meta);
+      await handlePostLastRunPreset(config.values, ci, meta, files);
     }
 
     info(dim('- restoring cache to'), destination);
@@ -91,10 +91,10 @@ async function handleArchiveDownload({
   const buffer = await download(readUrl);
   const destination = getOutputDir(outputDir);
 
-  await unzipBuffer(buffer, destination);
+  const files = await unzipBuffer(buffer, destination);
 
   debug('Cache downloaded', { readUrl, destination });
-  return destination;
+  return { destination, files };
 }
 
 function getOutputDir(outputDir: string | undefined) {

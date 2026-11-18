@@ -129,14 +129,14 @@ describe('currents cache with the built CLI', () => {
       env: { CURRENTS_API_URL: cache.server.url, ...env },
     });
 
+  // Playwright's .last-run.json of a run with a failed test.
+  const failedRun = '{"status":"failed","failedTests":["a1b2-c3d4"]}';
+
   async function writeTestResults() {
-    await fs.outputFile(
-      join(setDir, 'test-results/.last-run.json'),
-      '{"status":"failed"}'
-    );
+    await fs.outputFile(join(setDir, 'test-results/.last-run.json'), failedRun);
     await fs.outputFile(
       join(setDir, 'test-results/a/.last-run.json'),
-      '{"status":"passed"}'
+      '{"status":"passed","failedTests":[]}'
     );
     await fs.outputFile(join(setDir, 'test-results/trace.zip'), 'trace');
     await fs.outputFile(join(setDir, 'other/file.txt'), 'other');
@@ -308,7 +308,7 @@ describe('currents cache with the built CLI', () => {
       expect(result.code).toBe(0);
       expect(
         await fs.readFile(join(getDir, 'test-results/.last-run.json'), 'utf8')
-      ).toBe('{"status":"failed"}');
+      ).toBe(failedRun);
       expect(
         await fs.pathExists(join(getDir, 'test-results/a/.last-run.json'))
       ).toBe(true);
@@ -427,6 +427,104 @@ describe('currents cache with the built CLI', () => {
         );
 
         expect(await readFlags()).toBe('--last-failed --shard=1/1');
+      });
+
+      it('uses --last-failed on a rerun when the earlier run passed', async () => {
+        await fs.outputFile(
+          join(setDir, 'test-results/.last-run.json'),
+          '{"status":"passed","failedTests":[]}'
+        );
+        await set(['--preset', 'last-run']);
+
+        await get(
+          [
+            '--preset',
+            'last-run',
+            '--matrix-index',
+            '2',
+            '--matrix-total',
+            '3',
+          ],
+          { GITHUB_ACTIONS: 'true', GITHUB_RUN_ATTEMPT: '2' }
+        );
+
+        expect(await readFlags()).toBe('--last-failed --shard=1/1');
+      });
+
+      describe('when the earlier run failed before any test ran', () => {
+        // How Playwright saves a run that stopped before it began, such as a
+        // shard that could not plan its tests: --last-failed would run no test.
+        async function setLastRunWith(
+          content: string,
+          env: Record<string, string> = {}
+        ) {
+          await fs.outputFile(
+            join(setDir, 'test-results/.last-run.json'),
+            content
+          );
+          expect((await set(['--preset', 'last-run'], env)).code).toBe(0);
+        }
+
+        it.each([
+          ['failed', '{"status":"failed","failedTests":[]}'],
+          ['was interrupted', '{"status":"interrupted","failedTests":[]}'],
+          ['saved a file that is not JSON', 'not json'],
+        ])(
+          'runs the shard of the matrix job again on a GitHub Actions rerun when the run %s',
+          async (_name, content) => {
+            await setLastRunWith(content);
+
+            await get(
+              [
+                '--preset',
+                'last-run',
+                '--matrix-index',
+                '2',
+                '--matrix-total',
+                '3',
+              ],
+              { GITHUB_ACTIONS: 'true', GITHUB_RUN_ATTEMPT: '2' }
+            );
+
+            expect(await readFlags()).toBe('--shard=2/3');
+          }
+        );
+
+        it('runs the shard again on a GitLab retry, with no --last-failed for pwc', async () => {
+          const gitlab = {
+            GITLAB_CI: 'true',
+            CI_NODE_INDEX: '2',
+            CI_NODE_TOTAL: '4',
+          };
+          await setLastRunWith('{"status":"failed","failedTests":[]}', {
+            ...gitlab,
+            RUN_ATTEMPT: '1',
+          });
+
+          await get(['--preset', 'last-run'], gitlab);
+
+          expect(await readFlags()).toBe(
+            'EXTRA_PW_FLAGS="--shard=2/4"\nEXTRA_PWCP_FLAGS=""\nRUN_ATTEMPT=2\n'
+          );
+        });
+
+        it('runs the shard again on a Circle rerun of the same workspace', async () => {
+          const circle = {
+            CIRCLECI: 'true',
+            CIRCLE_NODE_INDEX: '1',
+            CIRCLE_NODE_TOTAL: '3',
+            CIRCLE_WORKFLOW_ID: 'wf-1',
+            CIRCLE_WORKFLOW_WORKSPACE_ID: 'ws-1',
+          };
+          await setLastRunWith('{"status":"failed","failedTests":[]}', circle);
+
+          await get(['--preset', 'last-run'], {
+            ...circle,
+            CIRCLE_WORKFLOW_ID: 'wf-2',
+          });
+
+          expect(await readFlags()).toBe('--shard=2/3');
+        });
       });
 
       it('does not use --last-failed on a rerun when the earlier run saved no .last-run.json', async () => {
