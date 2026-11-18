@@ -18,7 +18,7 @@ import {
   recordsWithOidc,
   requestGoogleMetadata,
 } from '../../lib/oidc';
-import { findCiTokenSource } from '.';
+import { findApiTokenSource, OIDC_TOKEN_ENV } from '.';
 
 /** Where commander took an option from: 'cli', 'env', or undefined for none. */
 type OptionSource = string | undefined;
@@ -161,7 +161,7 @@ export async function statusHandler(
   const providerName =
     provider &&
     (sources.oidcProvider === 'cli' ? '--oidc-provider' : OIDC_PROVIDER_ENV);
-  const apiOidc = findCiTokenSource('api', provider);
+  const apiOidc = findApiTokenSource(provider);
   // The recording commands find their token as useOidcRecordKey does.
   const recordOidc = isEnvSet('CURRENTS_OIDC_TOKEN')
     ? 'token in CURRENTS_OIDC_TOKEN'
@@ -218,7 +218,7 @@ export async function statusHandler(
     `CI provider: ${ciProvider ?? 'none'}`,
     `Project: ${project ? `${options.projectId?.trim()} (${project})` : 'not set'}`,
     `OIDC provider: ${provider ? `${provider} (${providerName})` : 'not set; GitHub Actions is found by itself'}`,
-    ...((ciProvider === 'githubActions' || provider === 'github') &&
+    ...((ciProvider === 'githubActions' || provider === 'github-actions') &&
     !(
       isEnvSet('ACTIONS_ID_TOKEN_REQUEST_URL') &&
       isEnvSet('ACTIONS_ID_TOKEN_REQUEST_TOKEN')
@@ -227,7 +227,11 @@ export async function statusHandler(
           'GitHub Actions OIDC: not available; the job needs `permissions: id-token: write`',
         ]
       : []),
-    ...(provider === 'google' ? [await describeGoogleMetadataServer()] : []),
+    ...(provider === 'google-cloud'
+      ? [await describeGoogleMetadataServer()]
+      : []),
+    '',
+    `ci auth exchange: the token from --stdin, or else ${OIDC_TOKEN_ENV} (${envInputState(OIDC_TOKEN_ENV)}); its audience or --for picks the credential`,
     '',
     'API requests:',
     `  Credential: ${apiKey ?? (apiOidc ? `OIDC, ${apiOidc.name}` : 'none')}`,

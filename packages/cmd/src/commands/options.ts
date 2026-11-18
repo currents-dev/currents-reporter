@@ -9,7 +9,7 @@ import { parseCommaSeparatedList } from './utils';
 const REQUIRED = '(required)';
 
 const OIDC =
-  'the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google on Google Cloud, or --oidc-token with the audience currents:record-key';
+  'the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google-cloud on Google Cloud, or --oidc-token with the audience currents:record-key';
 
 export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
   new Option(
@@ -42,7 +42,7 @@ export const oidcApiAudienceOption = () =>
 export const oidcProviderOption = () =>
   new Option(
     '--oidc-provider <provider>',
-    'where the CLI gets the OIDC token of the CI job: github (GitHub Actions with id-token: write) or google (the Google Cloud metadata server of a VM, or of a GKE pod with Workload Identity). Without it, the CLI finds GitHub Actions by itself. A token in --oidc-token or CURRENTS_OIDC_TOKEN for a record key, or in CURRENTS_OIDC_API_TOKEN for an API token, is used before the provider'
+    'where the CLI gets the OIDC token of the CI job: github-actions (GitHub Actions with id-token: write), google-cloud (the Google Cloud metadata server of a VM, or of a GKE pod with Workload Identity), circleci or buildkite. Without it, the CLI finds GitHub Actions by itself. A token in --oidc-token or CURRENTS_OIDC_TOKEN for a record key, or in CURRENTS_OIDC_API_TOKEN for an API token, is used before the provider'
   )
     .choices(OIDC_PROVIDERS)
     .env(OIDC_PROVIDER_ENV);

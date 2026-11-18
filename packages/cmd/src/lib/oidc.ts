@@ -1,6 +1,8 @@
 import { CommandUnknownOpts } from '@commander-js/extra-typings';
 import { error, warn } from '@logger';
+import { execFile } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { promisify } from 'node:util';
 import { debug as _debug, enableDebug } from '../debug';
 import { sharedConfigKeys } from '../config/keys';
 import { printLogsToStderr } from '../commands/utils';
@@ -164,7 +166,12 @@ export const providedTokenSource = (
   getToken: async () => token,
 });
 
-export const OIDC_PROVIDERS = ['github', 'google'] as const;
+export const OIDC_PROVIDERS = [
+  'github-actions',
+  'google-cloud',
+  'circleci',
+  'buildkite',
+] as const;
 export type OidcProvider = (typeof OIDC_PROVIDERS)[number];
 export const OIDC_PROVIDER_ENV = 'CURRENTS_OIDC_PROVIDER';
 
@@ -311,9 +318,69 @@ const googleTokenSource: TokenSource = {
   getToken: getGoogleToken,
 };
 
+const execFileAsync = promisify(execFile);
+
+/**
+ * Runs the token command of the CI provider without a shell and returns its
+ * stdout. Errors name the executable and the exit status only: the output of
+ * the command can hold the token.
+ */
+export async function runTokenCommand(
+  file: string,
+  args: string[],
+  env: NodeJS.ProcessEnv
+) {
+  let stdout: string;
+  try {
+    ({ stdout } = await execFileAsync(file, args, {
+      env,
+      encoding: 'utf8',
+      windowsHide: true,
+    }));
+  } catch (e) {
+    const { code, signal } = e as { code?: number | string; signal?: string };
+    if (code === 'ENOENT') throw new Error(`${file} is not on the PATH`);
+    if (typeof code === 'number') {
+      throw new Error(`${file} exited with status ${code}`);
+    }
+    if (signal) throw new Error(`${file} was stopped by ${signal}`);
+    throw new Error(`${file} could not run`);
+  }
+  const token = stdout.trim();
+  if (!token || /\s/.test(token)) {
+    throw new Error(`${file} did not print one token`);
+  }
+  return token;
+}
+
+/** The CircleCI CLI sets the audience as a custom claim. */
+const circleciTokenSource: TokenSource = {
+  name: 'CircleCI OIDC token',
+  isAvailable: () => true,
+  getToken: (env, audience) =>
+    runTokenCommand(
+      'circleci',
+      ['run', 'oidc', 'get', '--claims', JSON.stringify({ aud: audience })],
+      env
+    ),
+};
+
+const buildkiteTokenSource: TokenSource = {
+  name: 'Buildkite OIDC token',
+  isAvailable: () => true,
+  getToken: (env, audience) =>
+    runTokenCommand(
+      'buildkite-agent',
+      ['oidc', 'request-token', '--audience', audience],
+      env
+    ),
+};
+
 const providerTokenSources: Record<OidcProvider, TokenSource> = {
-  github: githubTokenSource,
-  google: googleTokenSource,
+  'github-actions': githubTokenSource,
+  'google-cloud': googleTokenSource,
+  circleci: circleciTokenSource,
+  buildkite: buildkiteTokenSource,
 };
 
 /**
