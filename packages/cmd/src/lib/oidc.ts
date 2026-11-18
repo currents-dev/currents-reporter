@@ -330,16 +330,40 @@ export function resetOidcExchange() {
   recordKeyExchange = undefined;
 }
 
+const hasOption = (command: CommandUnknownOpts, long: string) =>
+  command.options.some((o) => o.long === long);
+
 /**
- * A command with `--key` and `--oidc-token` that got no record key, and no API
- * key to use instead, gets one from an OIDC token: --oidc-token,
- * CURRENTS_OIDC_TOKEN, or GitHub Actions. The commands that take only an API
- * key are not affected, and neither is `ci auth status`, which has `--key`
- * only to report it.
+ * Commands with `--key` and `--oidc-token` record, and can get their record
+ * key from an OIDC token. `ci auth status` has `--key` only to report it.
+ */
+export const recordsWithOidc = (command: CommandUnknownOpts) =>
+  hasOption(command, '--key') && hasOption(command, '--oidc-token');
+
+/** A recording command with `--api-key` uses the API key when it has no record key. */
+export const recordsWithApiKey = (command: CommandUnknownOpts) =>
+  hasOption(command, '--api-key');
+
+/**
+ * The option that holds the key a recording command uses instead of an OIDC
+ * token: the record key, or the API key of a command with `--api-key`. Any
+ * value but an empty string counts, also whitespace: getAuthHeaders sends it.
+ */
+export function recordingKeyOption(
+  withApiKey: boolean,
+  { key, apiKey }: { key?: unknown; apiKey?: unknown }
+): 'key' | 'apiKey' | undefined {
+  if (key) return 'key';
+  if (withApiKey && apiKey) return 'apiKey';
+  return undefined;
+}
+
+/**
+ * A recording command that got no record key, and no API key to use instead,
+ * gets one from an OIDC token: --oidc-token, CURRENTS_OIDC_TOKEN, or GitHub
+ * Actions. `ci auth status` reports the same choice.
  */
 export async function useOidcRecordKey(command: CommandUnknownOpts) {
-  const hasOption = (long: string) =>
-    command.options.some((o) => o.long === long);
   // Before any early return: the missing-key hint shows the audience too.
   setOidcAudienceOption(
     command.getOptionValue('oidcAudience') as string | undefined
@@ -347,14 +371,12 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   const oidcToken = String(command.getOptionValue('oidcToken') ?? '').trim();
   // The value is not kept in the options, which commands copy into their
   // config and print with --debug.
-  if (hasOption('--oidc-token')) {
+  if (hasOption(command, '--oidc-token')) {
     command.setOptionValueWithSource('oidcToken', undefined, 'config');
   }
   if (
-    !hasOption('--key') ||
-    !hasOption('--oidc-token') ||
-    command.getOptionValue('key') ||
-    (hasOption('--api-key') && command.getOptionValue('apiKey'))
+    !recordsWithOidc(command) ||
+    recordingKeyOption(recordsWithApiKey(command), command.opts())
   ) {
     return;
   }

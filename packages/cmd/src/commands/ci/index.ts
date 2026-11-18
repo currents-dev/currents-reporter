@@ -25,6 +25,9 @@ import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
 
+const rootOf = (command: CommandUnknownOpts): CommandUnknownOpts =>
+  command.parent ? rootOf(command.parent) : command;
+
 /**
  * Commander repeats the value of a rejected option, choice or command in its
  * error, which a CI log keeps: a token passed by mistake, such as
@@ -171,13 +174,18 @@ export const getCiCommand = (name: string) => {
         .action((options, command) =>
           commandHandler(async () => {
             printLogsToStderr();
-            await statusHandler(options, {
-              apiKey: command.getOptionValueSource('apiKey'),
-              key: command.getOptionValueSource('key'),
-              projectId: command.getOptionValueSource('projectId'),
-              oidcApiAudience: command.getOptionValueSource('oidcApiAudience'),
-              oidcAudience: command.getOptionValueSource('oidcAudience'),
-            });
+            await statusHandler(
+              options,
+              {
+                apiKey: command.getOptionValueSource('apiKey'),
+                key: command.getOptionValueSource('key'),
+                projectId: command.getOptionValueSource('projectId'),
+                oidcApiAudience:
+                  command.getOptionValueSource('oidcApiAudience'),
+                oidcAudience: command.getOptionValueSource('oidcAudience'),
+              },
+              rootOf(command)
+            );
           }, options)
         )
     )
