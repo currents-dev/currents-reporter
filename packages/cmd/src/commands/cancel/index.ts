@@ -4,6 +4,7 @@ import { cancelHandler } from './cancel';
 import {
   debugOption,
   oidcAudienceOption,
+  oidcProviderOption,
   oidcTokenOption,
   projectOption,
   recordKeyOption,
@@ -50,6 +51,7 @@ export const getCancelCommand = (
     .addOption(recordKeyOption())
     .addOption(oidcTokenOption())
     .addOption(oidcAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(projectOption())
     .addOption(ciBuildIdOption)
     .addOption(runIdOption)

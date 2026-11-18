@@ -164,21 +164,175 @@ export const providedTokenSource = (
   getToken: async () => token,
 });
 
-/** The sources the CLI finds by itself, in the order they are tried. */
-const tokenSources: TokenSource[] = [
-  {
-    name: 'GitHub Actions OIDC token',
-    // GitHub sets both variables only for a job with `id-token: write`.
-    isAvailable: (env) =>
-      isSet(env, 'ACTIONS_ID_TOKEN_REQUEST_URL') &&
-      isSet(env, 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'),
-    getToken: getGitHubToken,
-  },
-];
+export const OIDC_PROVIDERS = ['github', 'google'] as const;
+export type OidcProvider = (typeof OIDC_PROVIDERS)[number];
+export const OIDC_PROVIDER_ENV = 'CURRENTS_OIDC_PROVIDER';
 
-export function findTokenSource(env: NodeJS.ProcessEnv = process.env) {
-  return tokenSources.find((source) => source.isAvailable(env));
+const GOOGLE_METADATA_HOST = 'metadata.google.internal';
+
+/**
+ * The GKE metadata server can take a few seconds to answer after the pod
+ * starts. Changed by tests.
+ */
+export const googleMetadataRequest = {
+  attempts: 5,
+  delayMs: 1000,
+  timeoutMs: 2000,
+};
+
+/** A host name, an IPv4 address or an IPv6 address in brackets, and a port. */
+const HOST_AND_PORT = /^(?:[A-Za-z0-9.-]+|\[[0-9A-Fa-f:.]+\])(?::\d{1,5})?$/;
+
+/**
+ * GCE_METADATA_HOST is the variable the Google Cloud client libraries read.
+ * Only a host and a port: a path, query or fragment in it would choose
+ * another endpoint, such as the token endpoint for `ci auth status`.
+ */
+export function getGoogleMetadataHost(env: NodeJS.ProcessEnv = process.env) {
+  const host = env.GCE_METADATA_HOST?.trim();
+  if (!host) return GOOGLE_METADATA_HOST;
+  if (!HOST_AND_PORT.test(host)) {
+    throw new Error(
+      'GCE_METADATA_HOST must be a host name or IP address with an optional port, such as metadata.google.internal or 169.254.169.254:80'
+    );
+  }
+  return host;
 }
+
+const GOOGLE_UNREACHABLE_HINT =
+  'the CLI gets this token only on Google Cloud. On GKE, the pod needs a Kubernetes service account bound to a Google service account with Workload Identity';
+
+const GOOGLE_STATUS_HINTS: Record<number, string> = {
+  403: 'the service account may lack permission to mint ID tokens, or Workload Identity is not set up',
+  404: 'the VM or the GKE pod may have no Google service account',
+};
+
+/** `status` is undefined when the metadata server did not answer. */
+export class GoogleMetadataError extends Error {
+  constructor(
+    message: string,
+    public host: string,
+    public status?: number
+  ) {
+    super(message);
+  }
+}
+
+/**
+ * A GET to the metadata server, as text. A network error or a 5xx is tried
+ * again; the error of the last attempt says what to check.
+ */
+export async function requestGoogleMetadata(
+  path: string,
+  query?: URLSearchParams,
+  env: NodeJS.ProcessEnv = process.env
+) {
+  const host = getGoogleMetadataHost(env);
+  const url = new URL(`http://${host}`);
+  url.pathname = `/computeMetadata/v1/${path}`;
+  url.search = query?.toString() ?? '';
+  const { attempts, delayMs, timeoutMs } = googleMetadataRequest;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await sendRequest<string>({
+        method: 'GET',
+        url: url.href,
+        headers: { 'metadata-flavor': 'Google' },
+        timeout: timeoutMs,
+        deadline: timeoutMs,
+        responseType: 'text',
+        followRedirects: false,
+        // The metadata server answers only inside the VM or the pod.
+        bypassProxy: true,
+      });
+      return String(res.data ?? '').trim();
+    } catch (e) {
+      const status = isHttpError(e) ? e.status : undefined;
+      const retriable = status === undefined || status >= 500;
+      if (!retriable || attempt >= attempts) {
+        throw googleMetadataError(e, host);
+      }
+      debug(
+        'The Google Cloud metadata server did not answer: %s. Attempt %d of %d',
+        (e as Error).message,
+        attempt,
+        attempts
+      );
+      await sleep(delayMs);
+    }
+  }
+}
+
+function googleMetadataError(e: unknown, host: string) {
+  const response = isHttpError(e) ? e.response : undefined;
+  if (!response) {
+    return new GoogleMetadataError(
+      `the Google Cloud metadata server at ${host} is unreachable (${(e as Error).message}): ${GOOGLE_UNREACHABLE_HINT}`,
+      host
+    );
+  }
+  // The body is not repeated: it is whatever the server at the host sent,
+  // and the message is printed.
+  const hint = GOOGLE_STATUS_HINTS[response.status];
+  return new GoogleMetadataError(
+    `the Google Cloud metadata server at ${host} answered ${response.status}${hint ? `: ${hint}` : ''}`,
+    host,
+    response.status
+  );
+}
+
+/**
+ * `format=full` adds the claims of the VM or the GKE cluster to the token.
+ * The audience does not have to be a URL.
+ */
+async function getGoogleToken(env: NodeJS.ProcessEnv, audience: string) {
+  const token = await requestGoogleMetadata(
+    'instance/service-accounts/default/identity',
+    new URLSearchParams({ audience, format: 'full' }),
+    env
+  );
+  if (!token) throw new Error('the response has no token');
+  return token;
+}
+
+const githubTokenSource: TokenSource = {
+  name: 'GitHub Actions OIDC token',
+  // GitHub sets both variables only for a job with `id-token: write`.
+  isAvailable: (env) =>
+    isSet(env, 'ACTIONS_ID_TOKEN_REQUEST_URL') &&
+    isSet(env, 'ACTIONS_ID_TOKEN_REQUEST_TOKEN'),
+  getToken: getGitHubToken,
+};
+
+/** Nothing tells the CLI it runs on Google Cloud: the token request fails off it. */
+const googleTokenSource: TokenSource = {
+  name: 'Google Cloud OIDC token',
+  isAvailable: () => true,
+  getToken: getGoogleToken,
+};
+
+const providerTokenSources: Record<OidcProvider, TokenSource> = {
+  github: githubTokenSource,
+  google: googleTokenSource,
+};
+
+/**
+ * The source of the provider set with --oidc-provider, or else the first
+ * source the CLI finds by itself. Undefined when that source is not available.
+ */
+export function findTokenSource(
+  provider?: OidcProvider,
+  env: NodeJS.ProcessEnv = process.env
+) {
+  const sources = provider
+    ? [providerTokenSources[provider]]
+    : [githubTokenSource];
+  return sources.find((source) => source.isAvailable(env));
+}
+
+/** Only the GitHub source can be unavailable. */
+export const providerUnavailableMessage = (provider: OidcProvider) =>
+  `The OIDC provider is ${provider} (--oidc-provider or ${OIDC_PROVIDER_ENV}), but the ${providerTokenSources[provider].name} is not available: the GitHub Actions job needs \`permissions: id-token: write\``;
 
 /**
  * One attempt without the retries of the API client: the credential expires on
@@ -360,8 +514,9 @@ export function recordingKeyOption(
 
 /**
  * A recording command that got no record key, and no API key to use instead,
- * gets one from an OIDC token: --oidc-token, CURRENTS_OIDC_TOKEN, or GitHub
- * Actions. `ci auth status` reports the same choice.
+ * gets one from an OIDC token: --oidc-token or CURRENTS_OIDC_TOKEN, then the
+ * provider of --oidc-provider, then GitHub Actions. `ci auth status` reports
+ * the same choice.
  */
 export async function useOidcRecordKey(command: CommandUnknownOpts) {
   // Before any early return: the missing-key hint shows the audience too.
@@ -380,13 +535,20 @@ export async function useOidcRecordKey(command: CommandUnknownOpts) {
   ) {
     return;
   }
+  const provider = command.getOptionValue('oidcProvider') as
+    | OidcProvider
+    | undefined;
   const source = oidcToken
     ? providedTokenSource(
         oidcToken,
         'token in --oidc-token or CURRENTS_OIDC_TOKEN'
       )
-    : findTokenSource();
-  if (!source) return;
+    : findTokenSource(provider);
+  if (!source) {
+    if (!provider) return;
+    error(providerUnavailableMessage(provider));
+    process.exit(1);
+  }
   // The command handler enables debug later, after the exchange.
   if (command.getOptionValue('debug')) enableDebug();
   // The project is read only for the exchange: the key it gives is for it.

@@ -3,7 +3,7 @@ import { Readable } from 'node:stream';
 import { promisify } from 'node:util';
 import zlib from 'node:zlib';
 import { request } from 'undici';
-import { getDispatcher } from './proxy';
+import { directAgent, getDispatcher } from './proxy';
 
 export type RequestBody = string | Buffer | Readable;
 
@@ -34,6 +34,8 @@ export type HttpRequest = {
    * address it names.
    */
   followRedirects?: boolean;
+  /** True sends the request directly, also when HTTP_PROXY or HTTPS_PROXY is set. */
+  bypassProxy?: boolean;
 };
 
 export type HttpResponse<T = any> = {
@@ -228,7 +230,7 @@ async function sendFollowingRedirects(
       body,
       signal,
       bodyTimeout,
-      dispatcher: getDispatcher(url),
+      dispatcher: req.bypassProxy ? directAgent : getDispatcher(url),
       // undici closes the connection after a HEAD unless told not to.
       reset: false,
     });

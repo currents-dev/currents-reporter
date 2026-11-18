@@ -14,6 +14,7 @@ import {
   apiKeyOption,
   debugOption,
   oidcApiAudienceOption,
+  oidcProviderOption,
   projectOption,
 } from '../options';
 import {
@@ -27,7 +28,7 @@ import {
 const COMMAND_NAME = 'get';
 const PARENT_NAME = 'run';
 const API_KEY_NOTE =
-  '(required unless the CI job has an OIDC token: id-token: write on GitHub Actions, or CURRENTS_OIDC_API_TOKEN with the audience currents:api)';
+  '(required unless the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google on Google Cloud, or CURRENTS_OIDC_API_TOKEN with the audience currents:api)';
 export const getRunGetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Get the data of the run recorded under a CI build ID',
@@ -95,6 +96,7 @@ The REST API routes: https://docs.currents.dev/resources/api/api-resources`
       projectOption('(required to get an API token from an OIDC token)')
     )
     .addOption(oidcApiAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(methodOption)
     .addOption(fieldOption)
     .addOption(rawFieldOption)
@@ -130,6 +132,7 @@ export const getRunGetCommand = (name: string) => {
     .addOption(ciBuildIdOption)
     .addOption(projectOption())
     .addOption(oidcApiAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(branchOption)
     .addOption(runTagOption)
     .addOption(outputOption)

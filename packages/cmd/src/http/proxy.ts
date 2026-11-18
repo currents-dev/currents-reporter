@@ -24,7 +24,10 @@ export function getProxyForUrl(url: string) {
 // minutes. The callers set their own timeouts, as they did with Node's http.
 const NO_TIMEOUTS = { headersTimeout: 0, bodyTimeout: 0 };
 
-const directAgent = new Agent({ ...NO_TIMEOUTS, connect: { timeout: 0 } });
+export const directAgent = new Agent({
+  ...NO_TIMEOUTS,
+  connect: { timeout: 0 },
+});
 const proxyAgents = new Map<string, ProxyAgent>();
 
 /**
