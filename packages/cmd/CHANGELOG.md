@@ -1,5 +1,24 @@
 # Changelog
 
+## [3.2.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.1.0...%40currents%2Fcmd-v3.2.0) (2026-11-18)
+
+A CI job can now call the Currents API without a stored API key. `currents api` and `currents run get` exchange the job's OIDC token for an API token when no `--api-key` or `CURRENTS_API_KEY` is set, and revoke the token when the command ends. For other tools in the job, `currents ci auth get-api-token` prints an API token and `currents ci auth get-record-key` prints a record key; `currents ci auth revoke` revokes them when you are done. On GitHub Actions the CLI gets the OIDC token itself when the job has `permissions: id-token: write`; on other CI providers, pass it in `CURRENTS_OIDC_API_TOKEN` (or `CURRENTS_OIDC_TOKEN` for a record key). The exchange needs the project ID (`--project-id` or `CURRENTS_PROJECT_ID`) and a trust policy for the repository in Currents. A configured key still wins, so nothing changes for jobs that have one.
+
+`currents ci auth status` says which credential each command would use, without sending a request, and lists the commands of each group when they use different credentials. `currents ci auth get-oidc-token` prints the job's OIDC token, and `currents ci auth exchange` exchanges a token from a variable or stdin. When a request fails and the server repeats the key it got, the CLI no longer prints that key, also when the key was in the request body. The revoke at the end of a command stops after 5 seconds, even when the server keeps the response open. When the CI job is cancelled (SIGINT or SIGTERM), the CLI revokes the credential before it exits.
+
+### Features
+
+* **cmd:** add currents ci auth get-oidc-token and status [ENG-2272] ([#516](https://github.com/currents-dev/currents-reporter/issues/516)) ([ec29551](https://github.com/currents-dev/currents-reporter/commit/ec29551151d940156460ab9fa85c99002072d1ab))
+* **cmd:** add currents ci auth to get and revoke OIDC credentials [ENG-2271] ([#515](https://github.com/currents-dev/currents-reporter/issues/515)) ([3f4014d](https://github.com/currents-dev/currents-reporter/commit/3f4014d28285807cfa172ded025f1a11488a31f8))
+* **cmd:** use an API token from CI OIDC in currents api and run get ([#517](https://github.com/currents-dev/currents-reporter/issues/517)) ([aa3386f](https://github.com/currents-dev/currents-reporter/commit/aa3386fc206dba013272027d6bf053da8321359e))
+
+### Bug Fixes
+
+* **cmd:** hide body keys in HTTP errors, end the revoke at 5 s ([#519](https://github.com/currents-dev/currents-reporter/issues/519)) ([473763f](https://github.com/currents-dev/currents-reporter/commit/473763ffaf91704385d10e3f9417696afc7c4fa2))
+* **cmd:** make ci auth status report the credential each command uses ([#521](https://github.com/currents-dev/currents-reporter/issues/521)) ([9b3cff1](https://github.com/currents-dev/currents-reporter/commit/9b3cff16169232211f1c9cee418931b3a41e9454))
+* **cmd:** match the get-oidc-token help to the code, fix "a API token" ([#518](https://github.com/currents-dev/currents-reporter/issues/518)) ([253bf18](https://github.com/currents-dev/currents-reporter/commit/253bf187dfb7190772ae15d625251737361ff27b))
+* **cmd:** revoke the OIDC credential when the CLI gets SIGINT or SIGTERM ([#520](https://github.com/currents-dev/currents-reporter/issues/520)) ([a0efe1a](https://github.com/currents-dev/currents-reporter/commit/a0efe1a65f5500a4c59f23fab30623beaf1a3d4d))
+
 ## [3.1.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.0.0...%40currents%2Fcmd-v3.1.0) (2026-11-16)
 
 The CLI can record without a stored record key. When no `--key` or `CURRENTS_RECORD_KEY` is set, it exchanges an OIDC token from the CI job for a record key that expires after 6 hours, and revokes the key when the command ends. If the revoke fails, the key expires by itself. On GitHub Actions it gets the token itself when the job has `permissions: id-token: write`; on other CI providers, pass the token in `CURRENTS_OIDC_TOKEN`. The exchange needs the project ID (`--project-id` or `CURRENTS_PROJECT_ID`) and a trust policy for the repository in Currents. A configured record key still wins, so nothing changes for jobs that have one.
