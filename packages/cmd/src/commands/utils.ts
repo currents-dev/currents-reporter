@@ -5,7 +5,7 @@ import {
 import { error, warnOnStderr } from '@logger';
 import { parseBooleanEnv } from '../config/utils';
 import { enableDebug } from '../debug';
-import { runExitHooks } from '../lib/exitHooks';
+import { getExitCode, runExitHooks } from '../lib/exitHooks';
 
 export function parseCommaSeparatedList(
   value: string,
@@ -111,7 +111,7 @@ export async function commandHandler<T extends Record<string, unknown>>(
     exitCode = e instanceof CommanderError ? e.exitCode : 1;
   }
   await runExitHooks();
-  process.exit(exitCode);
+  process.exit(getExitCode(exitCode));
 }
 
 // commandHandler calls process.exit, which can cut off a write to a pipe that
