@@ -144,12 +144,13 @@ test:
     - npx currents cache get --preset last-run --continue
     - . ./.currents_env
     - export CURRENTS_CI_BUILD_ID="$CI_PIPELINE_ID-$RUN_ATTEMPT"
+    - if [ "$RUN_ATTEMPT" -gt 1 ]; then export CURRENTS_PREVIOUS_CI_BUILD_ID="$CI_PIPELINE_ID-$((RUN_ATTEMPT - 1))"; fi
     - npx playwright test $EXTRA_PW_FLAGS
   after_script:
     - . ./.currents_env && export RUN_ATTEMPT && npx currents cache set --preset last-run
 ```
 
-`after_script` runs in a new shell, so it sources `.currents_env` again. `cache set` saves `RUN_ATTEMPT` with the cache, and the next retry counts on from it.
+`after_script` runs in a new shell, so it sources `.currents_env` again. `cache set` saves `RUN_ATTEMPT` with the cache, and the next retry counts on from it. `CURRENTS_PREVIOUS_CI_BUILD_ID` links a retry to the attempt before it, so a retried job that runs its whole shard again gets the same tests as on the first attempt.
 
 On GitLab, `.currents_env` sets three variables:
 
