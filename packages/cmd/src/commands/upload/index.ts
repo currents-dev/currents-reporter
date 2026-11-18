@@ -10,6 +10,7 @@ import { formatExamples, HelpExample } from '../help';
 import {
   debugOption,
   oidcAudienceOption,
+  oidcProviderOption,
   oidcTokenOption,
   projectOption,
   recordKeyOption,
@@ -86,6 +87,7 @@ reports being converted.`
     .addOption(recordKeyOption())
     .addOption(oidcTokenOption())
     .addOption(oidcAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(projectOption())
     .addOption(runTagOption)
     .addOption(removeTagOption)

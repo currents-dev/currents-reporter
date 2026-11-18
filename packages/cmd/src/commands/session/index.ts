@@ -17,6 +17,7 @@ import {
   projectOption,
   OIDC_PROJECT_NOTE,
   oidcAudienceOption,
+  oidcProviderOption,
   oidcTokenOption,
   recordKeyOption,
 } from '../options';
@@ -77,6 +78,7 @@ const getStartCommand = (name: string) =>
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
     .addOption(oidcTokenOption())
     .addOption(oidcAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(projectOption())
     .addOption(titleOption)
@@ -109,6 +111,7 @@ const getAttachCommand = (name: string) =>
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
     .addOption(oidcTokenOption())
     .addOption(oidcAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
@@ -136,6 +139,7 @@ const getShareCommand = (name: string) =>
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
     .addOption(oidcTokenOption())
     .addOption(oidcAudienceOption())
+    .addOption(oidcProviderOption())
     .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)

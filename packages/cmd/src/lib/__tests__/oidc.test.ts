@@ -149,7 +149,7 @@ describe('OIDC exchange', () => {
       ACTIONS_ID_TOKEN_REQUEST_URL: `${server.url}/github-token?api-version=2.0`,
       ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'request-token',
     };
-    const source = findTokenSource(env);
+    const source = findTokenSource(undefined, env);
     expect(source).toBeDefined();
 
     await exchangeOidcToken({

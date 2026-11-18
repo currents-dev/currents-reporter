@@ -9,9 +9,13 @@ import {
 } from '../../http/httpConfig';
 import {
   findTokenSource,
+  getGoogleMetadataHost,
+  OIDC_PROVIDER_ENV,
+  OidcProvider,
   recordingKeyOption,
   recordsWithApiKey,
   recordsWithOidc,
+  requestGoogleMetadata,
 } from '../../lib/oidc';
 import { findCiTokenSource } from '.';
 
@@ -24,6 +28,7 @@ export type StatusOptions = {
   projectId?: string;
   oidcApiAudience?: string;
   oidcAudience?: string;
+  oidcProvider?: OidcProvider;
 };
 
 export type StatusSources = Partial<Record<keyof StatusOptions, OptionSource>>;
@@ -35,6 +40,8 @@ const STATUS_ENV_INPUTS = [
   'CURRENTS_OIDC_TOKEN',
   'ACTIONS_ID_TOKEN_REQUEST_URL',
   'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
+  OIDC_PROVIDER_ENV,
+  'GCE_METADATA_HOST',
   sharedConfigKeys.projectId.env,
   'CURRENTS_OIDC_API_AUDIENCE',
   'CURRENTS_OIDC_AUDIENCE',
@@ -71,6 +78,21 @@ function describeAudience(
   if (source === 'cli' && isSet(option)) return `${option?.trim()} (${flag})`;
   if (isEnvSet(env)) return `${process.env[env]?.trim()} (${env})`;
   return `${fallback} (default)`;
+}
+
+/**
+ * Asks for the email of the service account, not for a token: the answer says
+ * whether the metadata server answers and has a service account for the CLI.
+ */
+async function describeGoogleMetadataServer() {
+  try {
+    const email = await requestGoogleMetadata(
+      'instance/service-accounts/default/email'
+    );
+    return `Google Cloud OIDC: the metadata server at ${getGoogleMetadataHost()} answers; service account ${email || 'not named'}`;
+  } catch (e) {
+    return `Google Cloud OIDC: ${(e as Error).message}`;
+  }
 }
 
 /** The visible commands of the program that record, by full name, such as "run upload". */
@@ -110,7 +132,7 @@ export async function statusHandler(
       throw new Error(`${flag} is empty: pass a key or leave the flag out`);
     }
   }
-  const provider = getCiProvider();
+  const ciProvider = getCiProvider();
   const apiKey = nameOf(
     options.apiKey,
     sources.apiKey,
@@ -121,11 +143,15 @@ export async function statusHandler(
     sources.projectId,
     sharedConfigKeys.projectId
   );
-  const apiOidc = findCiTokenSource('api');
+  const provider = options.oidcProvider;
+  const providerName =
+    provider &&
+    (sources.oidcProvider === 'cli' ? '--oidc-provider' : OIDC_PROVIDER_ENV);
+  const apiOidc = findCiTokenSource('api', provider);
   // The recording commands find their token as useOidcRecordKey does.
   const recordOidc = isEnvSet('CURRENTS_OIDC_TOKEN')
     ? 'token in CURRENTS_OIDC_TOKEN'
-    : findTokenSource()?.name;
+    : findTokenSource(provider)?.name;
 
   const apiAudience = describeAudience(
     options.oidcApiAudience,
@@ -175,9 +201,10 @@ export async function statusHandler(
         );
 
   const lines = [
-    `CI provider: ${provider ?? 'none'}`,
+    `CI provider: ${ciProvider ?? 'none'}`,
     `Project: ${project ? `${options.projectId?.trim()} (${project})` : 'not set'}`,
-    ...(provider === 'githubActions' &&
+    `OIDC provider: ${provider ? `${provider} (${providerName})` : 'not set; GitHub Actions is found by itself'}`,
+    ...((ciProvider === 'githubActions' || provider === 'github') &&
     !(
       isEnvSet('ACTIONS_ID_TOKEN_REQUEST_URL') &&
       isEnvSet('ACTIONS_ID_TOKEN_REQUEST_TOKEN')
@@ -186,6 +213,7 @@ export async function statusHandler(
           'GitHub Actions OIDC: not available; the job needs `permissions: id-token: write`',
         ]
       : []),
+    ...(provider === 'google' ? [await describeGoogleMetadataServer()] : []),
     '',
     'API requests:',
     `  Credential: ${apiKey ?? (apiOidc ? `OIDC, ${apiOidc.name}` : 'none')}`,

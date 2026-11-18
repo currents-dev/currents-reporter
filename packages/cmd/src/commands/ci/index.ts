@@ -18,6 +18,7 @@ import {
   debugOption,
   oidcApiAudienceOption,
   oidcAudienceOption,
+  oidcProviderOption,
   projectOption,
   recordKeyOption,
 } from '../options';
@@ -119,12 +120,13 @@ const getCredentialCommand = (credentialFor: CredentialFor) => {
         : 'Print a record key from the OIDC token of the CI job'
     )
     .description(
-      `Get the OIDC token of the CI job (GitHub Actions with id-token: write, or ${credentialFor === 'api' ? 'CURRENTS_OIDC_API_TOKEN' : 'CURRENTS_OIDC_TOKEN'} on any CI), exchange it and print the ${credentialFor === 'api' ? 'API token' : 'record key'}. It stays valid until it expires or '${PARENT_NAME} revoke' revokes it.`
+      `Get the OIDC token of the CI job (GitHub Actions with id-token: write, Google Cloud with --oidc-provider google, or ${credentialFor === 'api' ? 'CURRENTS_OIDC_API_TOKEN' : 'CURRENTS_OIDC_TOKEN'} on any CI), exchange it and print the ${credentialFor === 'api' ? 'API token' : 'record key'}. It stays valid until it expires or '${PARENT_NAME} revoke' revokes it.`
     )
     .addOption(projectOption())
     .addOption(
       credentialFor === 'api' ? oidcApiAudienceOption() : oidcAudienceOption()
     )
+    .addOption(oidcProviderOption())
     .addOption(jsonOption())
     .addOption(debugOption());
   return command.action(
@@ -148,11 +150,12 @@ export const getCiCommand = (name: string) => {
         .name('get-oidc-token')
         .summary('Print the OIDC token of the CI job')
         .description(
-          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On any CI, GitHub Actions included, it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is when that variable is set. Without it, on GitHub Actions the CLI requests a token with the audience of the kind. The audience options do not change a token from those variables: the job requests it with the audience it needs.'
+          'Print the OIDC token of the CI job for an API token (--for api) or a record key (--for record), without exchanging it. On any CI, GitHub Actions included, it prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is when that variable is set. Without it, the CLI requests a token with the audience of the kind from the provider of --oidc-provider, or else from GitHub Actions. The audience options do not change a token from those variables: the job requests it with the audience it needs.'
         )
         .addOption(forOption('the audience: for an API token or a record key'))
         .addOption(oidcApiAudienceOption())
         .addOption(oidcAudienceOption())
+        .addOption(oidcProviderOption())
         .addOption(debugOption())
         .action(
           ciAuthAction((options) => getOidcTokenHandler(options.for, options))
@@ -163,13 +166,14 @@ export const getCiCommand = (name: string) => {
         .name('status')
         .summary('Say which credentials the Currents commands would use')
         .description(
-          'Say which credential API requests and recording would use, the project, and the OIDC audiences. It names the flags and variables, not their values, and requests, exchanges or checks no token.'
+          'Say which credential API requests and recording would use, the project, and the OIDC audiences. It names the flags and variables, not their values, and requests, exchanges or checks no token. With --oidc-provider google, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers.'
         )
         .addOption(apiKeyOption('(its source is reported)'))
         .addOption(recordKeyOption('(its source is reported)'))
         .addOption(projectOption('(reported)'))
         .addOption(oidcApiAudienceOption())
         .addOption(oidcAudienceOption())
+        .addOption(oidcProviderOption())
         .addOption(debugOption())
         .action((options, command) =>
           commandHandler(async () => {
@@ -183,6 +187,7 @@ export const getCiCommand = (name: string) => {
                 oidcApiAudience:
                   command.getOptionValueSource('oidcApiAudience'),
                 oidcAudience: command.getOptionValueSource('oidcAudience'),
+                oidcProvider: command.getOptionValueSource('oidcProvider'),
               },
               rootOf(command)
             );

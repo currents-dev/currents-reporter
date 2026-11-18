@@ -14,7 +14,9 @@ import {
   maskInGitHubLog,
   OidcCredential,
   OidcCredentialKind,
+  OidcProvider,
   providedTokenSource,
+  providerUnavailableMessage,
   RECORD_KEY_KIND,
   revokeOidcCredential,
   revokeOnExit,
@@ -47,6 +49,7 @@ export const credentialSettings: Record<CredentialFor, CredentialSettings> = {
 export type CiAuthOptions = {
   projectId?: string;
   oidcApiAudience?: string;
+  oidcProvider?: OidcProvider;
   json?: boolean;
   stdin?: boolean;
   debug?: boolean;
@@ -123,26 +126,34 @@ async function exchangeAndPrint(
 
 /**
  * The OIDC token in the variable of the kind, or else one the CLI gets from
- * GitHub Actions. There is no fallback when the selected source fails.
+ * the provider of --oidc-provider, or else from GitHub Actions. There is no
+ * fallback when the selected source fails.
  */
-export function findCiTokenSource(credentialFor: CredentialFor) {
+export function findCiTokenSource(
+  credentialFor: CredentialFor,
+  provider?: OidcProvider
+) {
   const { tokenEnv } = credentialSettings[credentialFor];
   const token = process.env[tokenEnv]?.trim();
   if (token) return providedTokenSource(token, `token in ${tokenEnv}`);
+  if (provider) return findTokenSource(provider);
   return getCiProvider() === 'githubActions' ? findTokenSource() : undefined;
 }
 
 function noOidcTokenHint(credentialFor: CredentialFor, options: CiAuthOptions) {
   const { tokenEnv, getAudience } = credentialSettings[credentialFor];
-  return `set \`permissions: id-token: write\` on GitHub Actions, or on any other CI put a token with the audience ${getAudience(options)} in ${tokenEnv}`;
+  return `set \`permissions: id-token: write\` on GitHub Actions, pass --oidc-provider google on Google Cloud, or on any other CI put a token with the audience ${getAudience(options)} in ${tokenEnv}`;
 }
 
 function requireCiTokenSource(
   credentialFor: CredentialFor,
   options: CiAuthOptions
 ) {
-  const source = findCiTokenSource(credentialFor);
+  const source = findCiTokenSource(credentialFor, options.oidcProvider);
   if (source) return source;
+  if (options.oidcProvider) {
+    throw new Error(providerUnavailableMessage(options.oidcProvider));
+  }
   const { kind } = credentialSettings[credentialFor];
   throw new Error(
     `No OIDC token for ${kind.article} ${kind.name}: ${noOidcTokenHint(credentialFor, options)}`
@@ -173,8 +184,11 @@ export async function getApiKeyOrOidcToken(
 ) {
   rejectBlankApiKeyFlag(options.apiKey, apiKeySource);
   if (options.apiKey?.trim()) return options.apiKey;
-  const source = findCiTokenSource('api');
+  const source = findCiTokenSource('api', options.oidcProvider);
   if (!source) {
+    if (options.oidcProvider) {
+      throw new Error(providerUnavailableMessage(options.oidcProvider));
+    }
     const { cli, env } = sharedConfigKeys.apiKey;
     throw new Error(
       `API key is required: pass ${cli} or set ${env}. Without a stored key, a CI job can use its OIDC token: ${noOidcTokenHint('api', options)}, and pass --project-id`
@@ -214,7 +228,7 @@ export async function getOidcTokenHandler(
   credentialFor: CredentialFor,
   options: CiAuthOptions
 ) {
-  if (!getCiProvider()) {
+  if (!getCiProvider() && !options.oidcProvider) {
     throw new Error(
       `No CI provider found: get-oidc-token runs in a CI job. To exchange a token you hold, use 'ci auth exchange --for ${credentialFor} --stdin'`
     );

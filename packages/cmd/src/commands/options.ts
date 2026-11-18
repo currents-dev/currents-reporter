@@ -1,5 +1,6 @@
 import { Option } from '@commander-js/extra-typings';
 import { sharedConfigKeys } from '../config/keys';
+import { OIDC_PROVIDER_ENV, OIDC_PROVIDERS } from '../lib/oidc';
 import { parseCommaSeparatedList } from './utils';
 
 // The options several commands share. A command passes the note that says
@@ -8,7 +9,7 @@ import { parseCommaSeparatedList } from './utils';
 const REQUIRED = '(required)';
 
 const OIDC =
-  'the CI job has an OIDC token: id-token: write on GitHub Actions, or --oidc-token with the audience currents:record-key';
+  'the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google on Google Cloud, or --oidc-token with the audience currents:record-key';
 
 export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
   new Option(
@@ -37,6 +38,14 @@ export const oidcApiAudienceOption = () =>
     '--oidc-api-audience <audience>',
     'the audience of the OIDC token for an API token; the default is currents:api. A Currents staging or on-prem install has its own'
   ).env('CURRENTS_OIDC_API_AUDIENCE');
+
+export const oidcProviderOption = () =>
+  new Option(
+    '--oidc-provider <provider>',
+    'where the CLI gets the OIDC token of the CI job: github (GitHub Actions with id-token: write) or google (the Google Cloud metadata server of a VM, or of a GKE pod with Workload Identity). Without it, the CLI finds GitHub Actions by itself. A token in --oidc-token or CURRENTS_OIDC_TOKEN for a record key, or in CURRENTS_OIDC_API_TOKEN for an API token, is used before the provider'
+  )
+    .choices(OIDC_PROVIDERS)
+    .env(OIDC_PROVIDER_ENV);
 
 export const apiKeyOption = (note = REQUIRED) =>
   new Option(
