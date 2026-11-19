@@ -442,6 +442,31 @@ describe('currents ci auth', () => {
       expect(secretsIn(stderr)).toEqual([]);
     });
 
+    it.each([[[]], [['--debug']]])(
+      'keeps the policy ID out of the output when the server repeats it, with %j',
+      async (args) => {
+        const pasted = 'pasted-credential';
+        vi.stubEnv('CURRENTS_OIDC_TOKEN', API_JWT);
+        responses['/oidc/api/token'] = [
+          {
+            status: 400,
+            json: {
+              error: 'invalid_grant',
+              error_description: `no trust policy ${pasted}`,
+            },
+          },
+        ];
+
+        expectFailure(
+          await run(['exchange', '--oidc-policy-id', pasted, ...args])
+        );
+
+        expect(formBody(server.requests[0]).policy_id).toBe(pasted);
+        expect(diagnostics()).toContain('no trust policy *****');
+        expect(stdout + stderr).not.toContain(pasted);
+      }
+    );
+
     it.each([
       [['--for', 'api', 'positional-secret']],
       [['--for', 'record', '--', 'positional-secret']],

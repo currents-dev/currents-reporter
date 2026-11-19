@@ -491,6 +491,9 @@ export async function exchangeOidcToken({
       }).toString(),
       followRedirects: false,
       logErrorResponse: false,
+      // A credential pasted into --oidc-policy-id would be printed when the
+      // server repeats the policy ID, or in the debug log of the request.
+      secrets: [policyId],
     });
     const { access_token, expires_in, scope } = res.data ?? {};
     if (

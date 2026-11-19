@@ -141,7 +141,7 @@ export const getCiCommand = (name: string) => {
         .name('status')
         .summary('Say which credentials the Currents commands would use')
         .description(
-          "Say which key API requests and recording would use, the project, the trust policy ID and the OIDC audiences of the 'ci auth' commands. It names the flags and variables, not their values, and requests, exchanges or checks no token. With --oidc-provider google-cloud, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers."
+          "Say which key API requests and recording would use, the project, the trust policy ID and the OIDC audiences of the 'ci auth' commands. It never prints a key or token, and requests, exchanges or checks none. With --oidc-provider google-cloud, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers."
         )
         .addOption(apiKeyOption('(its source is reported)'))
         .addOption(recordKeyOption('(its source is reported)'))
