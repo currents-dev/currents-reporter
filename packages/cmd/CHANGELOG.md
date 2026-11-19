@@ -1,5 +1,43 @@
 # Changelog
 
+## [3.3.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.2.0...%40currents%2Fcmd-v3.3.0) (2026-11-19)
+
+`currents ci auth` gets Currents credentials for a CI job from its OIDC token:
+
+* `get-oidc-token --oidc-provider <github-actions|google-cloud|circleci|buildkite> --for <api|record>` prints the job's OIDC token.
+* `exchange` exchanges a token from `--stdin` or `CURRENTS_OIDC_TOKEN` for an API token or record key, picked by the token's audience. Use it on CI providers that put the token in a variable, such as GitLab.
+* `get-record-key` and `get-api-token` do both in one command.
+* `revoke` revokes the credentials in `CURRENTS_RECORD_KEY` and `CURRENTS_API_KEY`, or from stdin.
+
+All other commands use only the record key or API key you give them. Get one with `ci auth` at the start of the job and run `ci auth revoke` at the end:
+
+```yaml
+- run: |
+    key=$(npx currents ci auth get-record-key --oidc-provider github-actions)
+    echo "CURRENTS_RECORD_KEY=$key" >> "$GITHUB_ENV"
+- run: npx currents upload
+- if: always()
+  run: npx currents ci auth revoke
+```
+
+The job needs `permissions: id-token: write`, the project ID in `CURRENTS_PROJECT_ID`, and a trust policy in Currents.
+
+`currents cache get` with the last-run preset now reruns the shard when the last run failed before any test.
+
+### Features
+
+* **cmd:** get the OIDC token from Google Cloud with --oidc-provider google-cloud ([cb3f1cd](https://github.com/currents-dev/currents-reporter/commit/cb3f1cdf5df75bcf81e510e084f95824605c477e))
+* **cmd:** low-level ci auth commands with an explicit OIDC provider ([3430597](https://github.com/currents-dev/currents-reporter/commit/3430597f67d6e534c41f4ee5eb32eccb85b37195))
+* **cmd:** remove automatic OIDC from every command except ci auth ([17b2f02](https://github.com/currents-dev/currents-reporter/commit/17b2f02c9418c0e35c9cea7d6d3a2764f569365c))
+
+### Bug Fixes
+
+* **cmd:** accept only a host and port in GCE_METADATA_HOST ([318bb80](https://github.com/currents-dev/currents-reporter/commit/318bb80155b2eae7b24450afb596a7e8c548d05f))
+* **cmd:** keep metadata server answers out of OIDC errors ([5c3cb9c](https://github.com/currents-dev/currents-reporter/commit/5c3cb9c360ed496c46639145539b8b783985d702))
+* **cmd:** keep option values out of parser errors in every command ([164187d](https://github.com/currents-dev/currents-reporter/commit/164187d7a4f9180b3b71f1f3e7e585befb6e73e5))
+* **cmd:** rerun the shard when the last run failed before any test [ENG-1904] ([#524](https://github.com/currents-dev/currents-reporter/issues/524)) ([2d49bc6](https://github.com/currents-dev/currents-reporter/commit/2d49bc603848f9735b0d0f173d5832821a3aaae2))
+* **cmd:** stop a CircleCI or Buildkite token command after 30 seconds ([413ec1c](https://github.com/currents-dev/currents-reporter/commit/413ec1c704a3c1457ca0bf6e9c8ef0623f6ad580))
+
 ## [3.2.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.1.0...%40currents%2Fcmd-v3.2.0) (2026-11-18)
 
 A CI job can now call the Currents API without a stored API key. `currents api` and `currents run get` exchange the job's OIDC token for an API token when no `--api-key` or `CURRENTS_API_KEY` is set, and revoke the token when the command ends. For other tools in the job, `currents ci auth get-api-token` prints an API token and `currents ci auth get-record-key` prints a record key; `currents ci auth revoke` revokes them when you are done. On GitHub Actions the CLI gets the OIDC token itself when the job has `permissions: id-token: write`; on other CI providers, pass it in `CURRENTS_OIDC_API_TOKEN` (or `CURRENTS_OIDC_TOKEN` for a record key). The exchange needs the project ID (`--project-id` or `CURRENTS_PROJECT_ID`) and a trust policy for the repository in Currents. A configured key still wins, so nothing changes for jobs that have one.
