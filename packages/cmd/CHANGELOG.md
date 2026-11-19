@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.4.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.3.0...%40currents%2Fcmd-v3.4.0) (2026-11-19)
+
+`currents ci auth exchange`, `get-record-key` and `get-api-token` name the trust policy by its ID, for API tokens and record keys. Copy the ID from the policy details in the Currents dashboard, and pass it with `--oidc-policy-id` or `CURRENTS_OIDC_POLICY_ID`. The commands send it to the exchange instead of the project ID and fail without it; `--project-id` is no longer an option of these commands. `ci auth status` shows the policy ID and where it came from.
+
+```yaml
+- run: |
+    key=$(npx currents ci auth get-record-key --oidc-provider github-actions)
+    echo "CURRENTS_RECORD_KEY=$key" >> "$GITHUB_ENV"
+  env:
+    CURRENTS_OIDC_POLICY_ID: ${{ vars.CURRENTS_OIDC_POLICY_ID }}
+```
+
+The policy ID is not a secret: keep it in a plain CI variable. A Currents server without the policy ID exchange refuses these requests.
+
+### Features
+
+* **cmd:** send the trust policy ID to the OIDC exchange ([a30cef6](https://github.com/currents-dev/currents-reporter/commit/a30cef610ac3d09c104621917b8bb2f7db9e4d5f))
+
+### Bug Fixes
+
+* **cmd:** hide the policy ID input in exchange errors and debug logs ([48fde9c](https://github.com/currents-dev/currents-reporter/commit/48fde9cb0435a82e64ff1d13283511cdb0e7b2ce))
+
 ## [3.3.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.2.0...%40currents%2Fcmd-v3.3.0) (2026-11-19)
 
 `currents ci auth` gets Currents credentials for a CI job from its OIDC token:
