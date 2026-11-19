@@ -20,6 +20,7 @@ import {
   googleMetadataRequest,
   requestGoogleMetadata,
   resetOidcExchange,
+  tokenCommand,
 } from '../../lib/oidc';
 import {
   ApiServer,
@@ -715,6 +716,10 @@ describe('--oidc-provider', () => {
     // Writes its arguments, one per line, then prints the token or fails.
     const fakeCommand = `#!/bin/sh
 printf '%s\\n' "$@" > "$FAKE_ARGS_FILE"
+if [ "$FAKE_SLEEP" ]; then
+  echo "${SECRET_OUTPUT}"
+  exec /bin/sleep "$FAKE_SLEEP"
+fi
 if [ "$FAKE_EXIT" ]; then
   echo "${SECRET_OUTPUT}"
   echo "${SECRET_OUTPUT}" >&2
@@ -739,6 +744,11 @@ echo "${CLI_TOKEN}"
       vi.stubEnv('PATH', binDir);
       vi.stubEnv('FAKE_ARGS_FILE', argsFile);
       vi.stubEnv('FAKE_EXIT', undefined);
+      vi.stubEnv('FAKE_SLEEP', undefined);
+    });
+
+    afterEach(() => {
+      tokenCommand.timeoutMs = 30_000;
     });
 
     const commandArgs = async () =>
@@ -823,6 +833,30 @@ echo "${CLI_TOKEN}"
         expect(stdout).toBe('');
       }
     );
+
+    it('stops a command that does not answer within the timeout', async () => {
+      tokenCommand.timeoutMs = 200;
+      vi.stubEnv('FAKE_SLEEP', '10');
+      const start = Date.now();
+
+      expect(
+        await run([
+          'ci',
+          'auth',
+          'get-oidc-token',
+          '--oidc-provider',
+          'circleci',
+          '--for',
+          'api',
+        ])
+      ).toBe(1);
+
+      expect(Date.now() - start).toBeLessThan(5000);
+      expect(stderr).toContain(
+        'Could not get the CircleCI OIDC token: circleci did not answer within 0.2 seconds'
+      );
+      expect(stdout + stderr).not.toContain(SECRET_OUTPUT);
+    });
 
     it('says when the executable is not on the PATH', async () => {
       vi.stubEnv('PATH', join(binDir, 'missing'));

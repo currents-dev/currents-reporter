@@ -320,6 +320,9 @@ const googleTokenSource: TokenSource = {
 
 const execFileAsync = promisify(execFile);
 
+/** Changed by tests. */
+export const tokenCommand = { timeoutMs: 30_000 };
+
 /**
  * Runs the token command of the CI provider without a shell and returns its
  * stdout. Errors name the executable and the exit status only: the output of
@@ -336,10 +339,21 @@ export async function runTokenCommand(
       env,
       encoding: 'utf8',
       windowsHide: true,
+      timeout: tokenCommand.timeoutMs,
+      killSignal: 'SIGKILL',
     }));
   } catch (e) {
-    const { code, signal } = e as { code?: number | string; signal?: string };
+    const { code, signal, killed } = e as {
+      code?: number | string;
+      signal?: string;
+      killed?: boolean;
+    };
     if (code === 'ENOENT') throw new Error(`${file} is not on the PATH`);
+    if (killed) {
+      throw new Error(
+        `${file} did not answer within ${tokenCommand.timeoutMs / 1000} seconds`
+      );
+    }
     if (typeof code === 'number') {
       throw new Error(`${file} exited with status ${code}`);
     }
