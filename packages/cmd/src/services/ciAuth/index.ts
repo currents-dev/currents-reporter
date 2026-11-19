@@ -4,10 +4,8 @@ import {
   DEFAULT_OIDC_AUDIENCE,
   getOidcApiAudience,
   getOidcAudience,
-  requireRestAPIBaseUrl,
 } from '../../http/httpConfig';
 import { writeStdout } from '../../commands/utils';
-import { getCiProvider } from '../../env/ciProvider';
 import {
   API_TOKEN_KIND,
   exchangeOidcToken,
@@ -21,12 +19,7 @@ import {
   providerUnavailableMessage,
   RECORD_KEY_KIND,
   revokeOidcCredential,
-  revokeOnExit,
-  TokenSource,
 } from '../../lib/oidc';
-
-/** Read only by the api command; ci auth reads CURRENTS_OIDC_TOKEN. */
-const OIDC_API_TOKEN_ENV = 'CURRENTS_OIDC_API_TOKEN';
 
 export type CredentialFor = 'api' | 'record';
 
@@ -57,23 +50,12 @@ export const credentialSettings: Record<CredentialFor, CredentialSettings> = {
 
 export type CiAuthOptions = {
   projectId?: string;
-  oidcApiAudience?: string;
   oidcProvider?: OidcProvider;
   audience?: string;
   json?: boolean;
   stdin?: boolean;
   debug?: boolean;
 };
-
-/** The CLI hides a token it reads in the GitHub log before sending it. */
-const maskedSource = (source: TokenSource): TokenSource => ({
-  ...source,
-  getToken: async (env, audience) => {
-    const token = await source.getToken(env, audience);
-    maskInGitHubLog(token);
-    return token;
-  },
-});
 
 /**
  * Reads one token or credential from stdin. A value with whitespace inside is
@@ -198,71 +180,6 @@ export function credentialForToken(token: string): CredentialFor {
       ? `The audience of the OIDC token is not ${api.defaultAudience} or ${record.defaultAudience}: pass --for api or --for record`
       : `The OIDC token has the audiences of both an API token and a record key: pass --for api or --for record`
   );
-}
-
-/**
- * The token for an API token in CURRENTS_OIDC_API_TOKEN, or else one the CLI
- * gets from the provider of --oidc-provider, or else from GitHub Actions. There
- * is no fallback when the selected source fails.
- */
-export function findApiTokenSource(provider?: OidcProvider) {
-  const token = process.env[OIDC_API_TOKEN_ENV]?.trim();
-  if (token)
-    return providedTokenSource(token, `token in ${OIDC_API_TOKEN_ENV}`);
-  if (provider) return findTokenSource(provider);
-  return getCiProvider() === 'githubActions' ? findTokenSource() : undefined;
-}
-
-/** A blank --api-key fails: it is not sent, and starts no exchange. */
-export function rejectBlankApiKeyFlag(
-  apiKey: string | undefined,
-  apiKeySource: string | undefined
-) {
-  if (apiKeySource === 'cli' && !apiKey?.trim()) {
-    throw new Error(
-      `${sharedConfigKeys.apiKey.cli} is blank: pass the key, or leave the flag out`
-    );
-  }
-}
-
-/**
- * The API key of a command that calls the REST API: --api-key or
- * CURRENTS_API_KEY, or else an API token from the OIDC token of the CI job,
- * revoked when the command ends. A configured key is used even when the API
- * refuses it.
- */
-export async function getApiKeyOrOidcToken(
-  options: CiAuthOptions & { apiKey?: string },
-  apiKeySource: string | undefined
-) {
-  rejectBlankApiKeyFlag(options.apiKey, apiKeySource);
-  if (options.apiKey?.trim()) return options.apiKey;
-  const source = findApiTokenSource(options.oidcProvider);
-  if (!source) {
-    if (options.oidcProvider) {
-      throw new Error(providerUnavailableMessage(options.oidcProvider));
-    }
-    const { cli, env } = sharedConfigKeys.apiKey;
-    throw new Error(
-      `API key is required: pass ${cli} or set ${env}. Without a stored key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, pass --oidc-provider google-cloud on Google Cloud, or on any other CI put a token with the audience ${getOidcApiAudience(options.oidcApiAudience)} in ${OIDC_API_TOKEN_ENV}, and pass --project-id`
-    );
-  }
-  // Checked before the exchange: a token is not issued for a request that
-  // cannot be sent.
-  const projectId = requireProjectId(options);
-  requireRestAPIBaseUrl();
-  const { credential, expiresAt } = await exchangeOidcToken({
-    kind: API_TOKEN_KIND,
-    source: maskedSource(source),
-    audience: getOidcApiAudience(options.oidcApiAudience),
-    projectId,
-  });
-  maskInGitHubLog(credential);
-  revokeOnExit(API_TOKEN_KIND, credential);
-  process.stderr.write(
-    `Using an API token from the ${source.name}, valid until ${expiresAt}\n`
-  );
-  return credential;
 }
 
 /** get-oidc-token, then exchange, in one process. */

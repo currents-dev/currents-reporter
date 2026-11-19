@@ -5,7 +5,6 @@ import {
 import { error, warnOnStderr } from '@logger';
 import { parseBooleanEnv } from '../config/utils';
 import { enableDebug } from '../debug';
-import { getExitCode, runExitHooks } from '../lib/exitHooks';
 
 export function parseCommaSeparatedList(
   value: string,
@@ -60,12 +59,6 @@ function sameListOrValue(value: unknown, envValue: string) {
   return items(value.map(String)) === items(envValue.split(','));
 }
 
-/**
- * A blank value of these options falls back to the variable: see
- * getOidcAudience and getOidcApiAudience.
- */
-const BLANK_FALLS_BACK_TO_ENV = ['--oidc-audience', '--oidc-api-audience'];
-
 export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
   for (const option of command.options) {
     const name = option.attributeName();
@@ -73,8 +66,6 @@ export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
     const value = command.getOptionValue(name);
     if (
       !envValue ||
-      (BLANK_FALLS_BACK_TO_ENV.includes(option.long ?? '') &&
-        !String(value ?? '').trim()) ||
       option.isBoolean() ||
       command.getOptionValueSource(name) !== 'cli' ||
       sameListOrValue(value, envValue)
@@ -85,6 +76,49 @@ export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
       `${option.long} and ${option.envVar} are set to different values; using ${option.long}`
     );
   }
+}
+
+/**
+ * Commander repeats the value of a rejected option, choice or command in its
+ * error, which a CI log keeps: a token passed by mistake, such as
+ * `--oidc-token=<jwt>` from a job written for an older CLI, would be printed
+ * before any GitHub mask. The message is rebuilt from the error code and the
+ * command's own options. Nothing is cut out of the text: an unknown option
+ * name can be the token itself, and a value can hold any character.
+ */
+export function messageWithoutValues(
+  command: CommandUnknownOpts,
+  message: string,
+  code?: string
+) {
+  switch (code) {
+    case 'commander.unknownOption':
+      return 'error: unknown option (run with --help to see the options)';
+    case 'commander.invalidArgument': {
+      const option = command.options.find((o) =>
+        message.startsWith(`error: option '${o.flags}' argument `)
+      );
+      if (!option) return 'error: an option argument is invalid';
+      // Commander writes "argument '<value>' is invalid. <reason>". The
+      // reasons of the choices and of the CLI's parsers do not hold the value,
+      // so the text after the last "is invalid." is the reason.
+      const marker = "' is invalid.";
+      const reason = message.slice(message.lastIndexOf(marker) + marker.length);
+      return `error: option '${option.flags}' argument is invalid.${reason}`;
+    }
+    case 'commander.unknownCommand':
+      return 'error: unknown command';
+    default:
+      return message;
+  }
+}
+
+/** Applies messageWithoutValues to the command and every command under it. */
+export function hideValuesInErrors(command: CommandUnknownOpts) {
+  const error = command.error.bind(command);
+  command.error = (message, options) =>
+    error(messageWithoutValues(command, message, options?.code), options);
+  command.commands.forEach(hideValuesInErrors);
 }
 
 /**
@@ -110,8 +144,7 @@ export async function commandHandler<T extends Record<string, unknown>>(
     error((e as Error).message);
     exitCode = e instanceof CommanderError ? e.exitCode : 1;
   }
-  await runExitHooks();
-  process.exit(getExitCode(exitCode));
+  process.exit(exitCode);
 }
 
 // commandHandler calls process.exit, which can cut off a write to a pipe that

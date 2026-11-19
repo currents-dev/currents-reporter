@@ -9,31 +9,22 @@ export const DEFAULT_OIDC_API_AUDIENCE = 'currents:api';
 export const OIDC_API_AUDIENCE_ENV = 'CURRENTS_OIDC_API_AUDIENCE';
 
 /**
- * `--oidc-api-audience`, then CURRENTS_OIDC_API_AUDIENCE, then `currents:api`.
- * A blank value is skipped, as in `getOidcAudience`.
+ * `--audience`, then CURRENTS_OIDC_API_AUDIENCE, then `currents:api`. A blank
+ * value is skipped, as in `getOidcAudience`.
  */
 export const getOidcApiAudience = (option?: string) =>
   option?.trim() ||
   process.env[OIDC_API_AUDIENCE_ENV]?.trim() ||
   DEFAULT_OIDC_API_AUDIENCE;
 
-let oidcAudienceOption: string | undefined;
-
-/** Set from `--oidc-audience`. The environment variable is read by `getOidcAudience`. */
-export const setOidcAudienceOption = (audience?: string) => {
-  oidcAudienceOption = audience;
-};
-
 /**
- * The audience of the OIDC tokens: `--oidc-audience`, then
- * CURRENTS_OIDC_AUDIENCE, then `currents:record-key`. A fixed string, not
- * derived from the API URL. Currents staging and on-prem installs use their
- * own value, and the server compares it exactly.
+ * The audience of the OIDC tokens for a record key: CURRENTS_OIDC_AUDIENCE,
+ * then `currents:record-key`. A fixed string, not derived from the API URL.
+ * Currents staging and on-prem installs use their own value, and the server
+ * compares it exactly.
  */
 export const getOidcAudience = () =>
-  oidcAudienceOption?.trim() ||
-  process.env.CURRENTS_OIDC_AUDIENCE?.trim() ||
-  DEFAULT_OIDC_AUDIENCE;
+  process.env.CURRENTS_OIDC_AUDIENCE?.trim() || DEFAULT_OIDC_AUDIENCE;
 
 /**
  * The REST API, for the requests the director does not serve.

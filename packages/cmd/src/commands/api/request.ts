@@ -3,10 +3,7 @@ import {
   InvalidArgumentError,
   Option,
 } from '@commander-js/extra-typings';
-import {
-  getApiKeyOrOidcToken,
-  rejectBlankApiKeyFlag,
-} from '../../services/ciAuth';
+import { sharedConfigKeys } from '../../config/keys';
 import {
   ApiRequestOptions,
   Field,
@@ -93,6 +90,22 @@ export const includeOption = new Option(
   'print the HTTP status line and the response headers before the body'
 );
 
+/**
+ * A blank --api-key fails: it would hide CURRENTS_API_KEY. A blank key from
+ * the variable counts as no key, so the error for a missing key names it.
+ */
+export function getConfiguredApiKey(
+  apiKey: string | undefined,
+  apiKeySource: string | undefined
+) {
+  if (apiKeySource === 'cli' && !apiKey?.trim()) {
+    throw new Error(
+      `${sharedConfigKeys.apiKey.cli} is blank: pass the key, or leave the flag out`
+    );
+  }
+  return apiKey?.trim() ? apiKey : undefined;
+}
+
 export async function apiRequestHandler(
   path: string,
   options: ApiRequestOptions,
@@ -100,15 +113,10 @@ export async function apiRequestHandler(
 ) {
   await commandHandler(async (opts) => {
     printLogsToStderr();
-    const apiKeySource = command.getOptionValueSource('apiKey');
-    rejectBlankApiKeyFlag(opts.apiKey, apiKeySource);
-    // The header replaces the one the API key would set.
-    const hasAuthorization = opts.header?.some(
-      ([name]) => name.toLowerCase() === 'authorization'
+    const apiKey = getConfiguredApiKey(
+      opts.apiKey,
+      command.getOptionValueSource('apiKey')
     );
-    const apiKey = hasAuthorization
-      ? opts.apiKey
-      : await getApiKeyOrOidcToken(opts, apiKeySource);
     await handleApiRequest(path, { ...opts, apiKey });
   }, options);
 }

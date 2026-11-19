@@ -1,6 +1,6 @@
 import { debug as _debug } from '@debug';
 import { maskKeys, ValidationError } from '@lib';
-import { getOidcHint } from '../keys';
+import { ciAuthHints } from '../keys';
 import { getValidatedConfig } from '../utils';
 import { configKeys } from './env';
 
@@ -132,6 +132,6 @@ function requireApiKey(config: Credentials) {
 function requireCredentials(config: Credentials) {
   if (config.recordKey || config.apiKey) return;
   throw new ValidationError(
-    `${configKeys.recordKey.name} or ${configKeys.apiKey.name} is required. Set ${configKeys.recordKey.env} or ${configKeys.apiKey.env}, or pass ${configKeys.recordKey.cli} or ${configKeys.apiKey.cli}. ${getOidcHint()}`
+    `${configKeys.recordKey.name} or ${configKeys.apiKey.name} is required: pass ${configKeys.recordKey.cli} or ${configKeys.apiKey.cli}, or set ${configKeys.recordKey.env} or ${configKeys.apiKey.env}; ${ciAuthHints.recordKey}`
   );
 }

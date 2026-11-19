@@ -186,13 +186,13 @@ describe('exit codes and error output of the built CLI', () => {
     };
 
     it('exits with 1 for an unknown command', async () => {
-      expectFailure(await run(['unknown']), "unknown command 'unknown'");
+      expectFailure(await run(['unknown']), 'error: unknown command');
     });
 
     it('exits with 1 for a preset that does not exist', async () => {
       expectFailure(
         await run(['cache', 'get', '--key', 'k', '--preset', 'nothing']),
-        "argument 'nothing' is invalid"
+        'argument is invalid. Allowed choices are last-run.'
       );
     });
 

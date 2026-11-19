@@ -174,7 +174,7 @@ describe('the REST API address', () => {
   });
 });
 
-describe('the built CLI after the OIDC exchange', () => {
+describe('the built CLI with a record key from ci auth', () => {
   let origin: ApiServer;
   let elsewhere: ApiServer;
   let workDir: string;
@@ -183,24 +183,10 @@ describe('the built CLI after the OIDC exchange', () => {
   beforeAll(async () => {
     issuedKey = 'crnts_ci_sentinelissuedkeyABCDEFGHIJKLMNO';
     elsewhere = await startApiServer(() => ({ status: 200, json: {} }));
-    origin = await startApiServer((request) => {
-      if (request.url === '/oidc/token') {
-        return {
-          status: 200,
-          json: {
-            access_token: issuedKey,
-            issued_token_type: 'urn:ietf:params:oauth:token-type:access_token',
-            token_type: 'Bearer',
-            expires_in: 21600,
-          },
-        };
-      }
-      if (request.url === '/oidc/revoke') return { status: 200 };
-      return {
-        status: 307,
-        headers: { location: `${elsewhere.url}/stolen` },
-      };
-    });
+    origin = await startApiServer(() => ({
+      status: 307,
+      headers: { location: `${elsewhere.url}/stolen` },
+    }));
     workDir = await fs.mkdtemp(join(os.tmpdir(), 'currents-redirect-'));
   });
 
@@ -217,7 +203,7 @@ describe('the built CLI after the OIDC exchange', () => {
         cwd: workDir,
         env: {
           CURRENTS_API_URL: origin.url,
-          CURRENTS_OIDC_TOKEN: 'a.ci.token',
+          CURRENTS_RECORD_KEY: issuedKey,
         },
       }
     );
