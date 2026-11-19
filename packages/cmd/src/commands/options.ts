@@ -1,6 +1,5 @@
 import { Option } from '@commander-js/extra-typings';
 import { sharedConfigKeys } from '../config/keys';
-import { OIDC_PROVIDER_ENV, OIDC_PROVIDERS } from '../lib/oidc';
 import { parseCommaSeparatedList } from './utils';
 
 // The options several commands share. A command passes the note that says
@@ -8,49 +7,16 @@ import { parseCommaSeparatedList } from './utils';
 
 const REQUIRED = '(required)';
 
-const OIDC =
-  'the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google-cloud on Google Cloud, or --oidc-token with the audience currents:record-key';
-
-export const recordKeyOption = (note = `(required unless ${OIDC})`) =>
+export const recordKeyOption = (note = REQUIRED) =>
   new Option(
     '-k, --key <record-key>',
-    `the record key from the Currents dashboard ${note}`
+    `the record key from the Currents dashboard, or from \`currents ci auth get-record-key\` ${note}`
   ).env(sharedConfigKeys.recordKey.env);
-
-/** For the commands that need the project only to get a record key from OIDC. */
-export const OIDC_PROJECT_NOTE =
-  '(required to get a record key from an OIDC token)';
-
-export const oidcTokenOption = () =>
-  new Option(
-    '--oidc-token <token>',
-    'an OIDC token of the CI job, to get a record key without a stored secret; its audience is currents:record-key unless --oidc-audience is set. Used when no record key is set. Prefer the environment variable: a flag is visible in the process list and in logs that echo commands'
-  ).env('CURRENTS_OIDC_TOKEN');
-
-export const oidcAudienceOption = () =>
-  new Option(
-    '--oidc-audience <audience>',
-    'the audience of the OIDC token of the CI job; the default is currents:record-key. A Currents staging or on-prem install has its own'
-  ).env('CURRENTS_OIDC_AUDIENCE');
-
-export const oidcApiAudienceOption = () =>
-  new Option(
-    '--oidc-api-audience <audience>',
-    'the audience of the OIDC token for an API token; the default is currents:api. A Currents staging or on-prem install has its own'
-  ).env('CURRENTS_OIDC_API_AUDIENCE');
-
-export const oidcProviderOption = () =>
-  new Option(
-    '--oidc-provider <provider>',
-    'where the CLI gets the OIDC token of the CI job: github-actions (GitHub Actions with id-token: write), google-cloud (the Google Cloud metadata server of a VM, or of a GKE pod with Workload Identity), circleci or buildkite. Without it, the CLI finds GitHub Actions by itself. A token in --oidc-token or CURRENTS_OIDC_TOKEN for a record key, or in CURRENTS_OIDC_API_TOKEN for an API token, is used before the provider'
-  )
-    .choices(OIDC_PROVIDERS)
-    .env(OIDC_PROVIDER_ENV);
 
 export const apiKeyOption = (note = REQUIRED) =>
   new Option(
     '--api-key <api-key>',
-    `an API key from the Currents dashboard ${note}`
+    `an API key from the Currents dashboard, or an API token from \`currents ci auth get-api-token\` ${note}`
   ).env(sharedConfigKeys.apiKey.env);
 
 export const projectOption = (note = REQUIRED) =>

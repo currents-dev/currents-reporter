@@ -14,14 +14,11 @@ import {
   Response,
   startApiServer,
 } from '../../test-utils/api-server';
-import { runExitHooks } from '../exitHooks';
 import {
   exchangeOidcToken,
   findTokenSource,
-  getRecordKeyFromOidc,
   OidcCredentialKind,
   providedTokenSource,
-  resetOidcExchange,
   revokeOidcCredential,
 } from '../oidc';
 
@@ -55,10 +52,10 @@ describe('OIDC exchange', () => {
       if (path === '/github-token') {
         return { status: 200, json: { value: 'github-id-token' } };
       }
-      if (path === '/test/token' || path === '/oidc/token') {
+      if (path === '/test/token') {
         return tokenResponse;
       }
-      if (path === '/test/revoke' || path === '/oidc/revoke') {
+      if (path === '/test/revoke') {
         return revokeResponse;
       }
       return { status: 404 };
@@ -74,7 +71,6 @@ describe('OIDC exchange', () => {
 
   beforeEach(() => {
     server.requests.length = 0;
-    resetOidcExchange();
     tokenResponse = {
       status: 200,
       json: {
@@ -88,8 +84,7 @@ describe('OIDC exchange', () => {
     vi.spyOn(console, 'warn').mockReturnValue();
   });
 
-  afterEach(async () => {
-    await runExitHooks();
+  afterEach(() => {
     vi.restoreAllMocks();
   });
 
@@ -135,10 +130,9 @@ describe('OIDC exchange', () => {
     expect(await exchange()).not.toHaveProperty('scope');
   });
 
-  it('exchanges again on every call and does not revoke on exit', async () => {
+  it('exchanges again on every call and does not revoke', async () => {
     await exchange();
     await exchange();
-    await runExitHooks();
 
     expect(requestsTo('/test/token')).toHaveLength(2);
     expect(requestsTo('/test/revoke')).toEqual([]);
@@ -149,7 +143,7 @@ describe('OIDC exchange', () => {
       ACTIONS_ID_TOKEN_REQUEST_URL: `${server.url}/github-token?api-version=2.0`,
       ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'request-token',
     };
-    const source = findTokenSource(undefined, env);
+    const source = findTokenSource('github-actions', env);
     expect(source).toBeDefined();
 
     await exchangeOidcToken({
@@ -212,32 +206,5 @@ describe('OIDC exchange', () => {
       revokeOidcCredential(TEST_KIND, 'issued-credential')
     ).rejects.toThrow('Could not revoke the test credential');
     expect(requestsTo('/test/revoke')).toHaveLength(1);
-  });
-
-  it('ignores a failed revocation of the record key on exit', async () => {
-    revokeResponse = { status: 500 };
-    await getRecordKeyFromOidc(
-      providedTokenSource('ci-jwt', 'test token'),
-      'project-1'
-    );
-
-    await expect(runExitHooks()).resolves.toBeUndefined();
-    expect(requestsTo('/oidc/revoke')).toHaveLength(1);
-  });
-
-  it('gets the record key once per process and revokes it on exit', async () => {
-    const source = providedTokenSource('ci-jwt', 'test token');
-
-    const first = await getRecordKeyFromOidc(source, 'project-1');
-    const second = await getRecordKeyFromOidc(source, 'project-1');
-    await exchange();
-    await runExitHooks();
-
-    expect(second).toBe(first);
-    expect(requestsTo('/oidc/token')).toHaveLength(1);
-    expect(requestsTo('/test/token')).toHaveLength(1);
-    expect(requestsTo('/oidc/revoke').map(formBody)).toEqual([
-      { token: 'issued-credential', token_type_hint: 'access_token' },
-    ]);
   });
 });

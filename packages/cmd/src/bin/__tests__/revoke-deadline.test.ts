@@ -9,14 +9,11 @@ import { cliPath, runCli } from '../../test-utils/cli';
 const API_TOKEN = 'crnts_ciapi_deadline';
 const RECORD_KEY = 'crnts_ci_deadline';
 
-type Failing = 'none' | 'command';
-
 /**
- * A director and REST API in one server. The revoke endpoints send their
- * headers at once, then a byte every 100 ms for 10 s: the revoke ends only by
- * its deadline.
+ * The revoke endpoints send their headers at once, then a byte every 100 ms
+ * for 10 s: the revoke ends only by its deadline.
  */
-async function startServer(failing: Failing) {
+async function startServer() {
   const revokes: { path: string; at: number; body: string }[] = [];
   const server = http.createServer((req, res) => {
     const chunks: Buffer[] = [];
@@ -24,17 +21,6 @@ async function startServer(failing: Failing) {
     req.on('end', () => {
       const body = Buffer.concat(chunks).toString();
       const path = req.url?.split('?')[0];
-      const json = (status: number, data: unknown) =>
-        res
-          .writeHead(status, { 'content-type': 'application/json' })
-          .end(JSON.stringify(data));
-      if (path === '/github-token') return json(200, { value: 'github-jwt' });
-      if (path === '/oidc/token') {
-        return json(200, { access_token: RECORD_KEY, expires_in: 600 });
-      }
-      if (path === '/oidc/api/token') {
-        return json(200, { access_token: API_TOKEN, expires_in: 600 });
-      }
       if (path === '/oidc/revoke' || path === '/oidc/api/revoke') {
         revokes.push({ path, at: Date.now(), body });
         res.writeHead(200, { 'content-type': 'text/plain' });
@@ -50,20 +36,7 @@ async function startServer(failing: Failing) {
         });
         return;
       }
-      if (failing === 'command') return json(404, { message: 'not found' });
-      if (path === '/cache/upload') {
-        return json(200, {
-          cacheId: 'cache-1',
-          orgId: 'org',
-          uploadUrl: `${url}/put/archive`,
-          metaUploadUrl: `${url}/put/meta`,
-          refMetaUploadUrl: `${url}/put/ref-meta`,
-          cacheKey: 'k',
-          metaCacheKey: 'm',
-        });
-      }
-      if (path === '/v1/runs/r1') return json(200, { data: { runId: 'r1' } });
-      return json(200, {});
+      res.writeHead(404).end();
     });
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -78,14 +51,8 @@ async function startServer(failing: Failing) {
   };
 }
 
-const githubEnv = (url: string) => ({
-  ACTIONS_ID_TOKEN_REQUEST_URL: `${url}/github-token`,
-  ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'request-token',
-});
-
 type Case = {
   name: string;
-  failing: Failing;
   args: string[];
   env: (url: string) => Record<string, string>;
   code: number;
@@ -95,40 +62,12 @@ type Case = {
 };
 
 const cases: Case[] = [
-  ...(['none', 'command'] as const).map(
-    (failing): Case => ({
-      name: `recording, the command ${failing === 'none' ? 'succeeds' : 'fails'}`,
-      failing,
-      args: ['cache', 'set', '--id', 'cache-1', '--path', 'cached.txt'],
-      env: (url) => ({ ...githubEnv(url), CURRENTS_PROJECT_ID: 'p1' }),
-      code: failing === 'none' ? 0 : 1,
-      revokePath: '/oidc/revoke',
-      token: RECORD_KEY,
-    })
-  ),
-  ...(['none', 'command'] as const).map(
-    (failing): Case => ({
-      name: `API fallback, the request ${failing === 'none' ? 'succeeds' : 'fails'}`,
-      failing,
-      args: ['api', '/v1/runs/r1', '--project-id', 'p1'],
-      env: (url) => ({
-        ...githubEnv(url),
-        GITHUB_ACTIONS: 'true',
-        CURRENTS_REST_API_URL: url,
-      }),
-      code: failing === 'none' ? 0 : 1,
-      revokePath: '/oidc/api/revoke',
-      token: API_TOKEN,
-      stdout: failing === 'none' ? '{"data":{"runId":"r1"}}' : undefined,
-    })
-  ),
   ...[
     ['CURRENTS_RECORD_KEY', RECORD_KEY, '/oidc/revoke'],
     ['CURRENTS_API_KEY', API_TOKEN, '/oidc/api/revoke'],
   ].map(
     ([env, token, revokePath]): Case => ({
       name: `ci auth revoke of ${env}`,
-      failing: 'none',
       args: ['ci', 'auth', 'revoke'],
       env: () => ({ [env]: token }),
       code: 1,
@@ -147,7 +86,6 @@ describe.concurrent('a revoke that never ends', () => {
       throw new Error(`Build the CLI first: ${cliPath} is missing`);
     }
     dir = await fs.mkdtemp(join(os.tmpdir(), 'currents-revoke-'));
-    await fs.writeFile(join(dir, 'cached.txt'), 'cached');
   });
 
   afterAll(async () => {
@@ -158,7 +96,7 @@ describe.concurrent('a revoke that never ends', () => {
     it.each(cases)(
       '$name: ends 5 s after the revoke starts, with its exit code',
       async (c) => {
-        const server = await startServer(c.failing);
+        const server = await startServer();
         try {
           const result = await runCli([...c.args, ...extraArgs], {
             cwd: dir,

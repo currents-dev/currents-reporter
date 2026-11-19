@@ -1,14 +1,13 @@
 import { debug as _debug } from '@debug';
 import { getRunGetCommand } from '.';
 import {
-  apiGetRunCustomValidation,
   getAPIGetRunCommandConfig,
   setAPIGetRunCommandConfig,
 } from '../../config/api';
 import { maskKeys } from '../../lib';
 import { handleGetRun } from '../../services';
-import { getApiKeyOrOidcToken } from '../../services/ciAuth';
 import { commandHandler, printLogsToStderr } from '../utils';
+import { getConfiguredApiKey } from './request';
 
 const debug = _debug.extend('cli');
 
@@ -29,12 +28,10 @@ export async function getRunHandler(
     if (ciBuildIdFromEnv && (opts.branch || opts.tag)) {
       opts = { ...opts, ciBuildId: undefined };
     }
-    // Before getApiKeyOrOidcToken, which can issue a token.
-    apiGetRunCustomValidation(opts);
     opts = {
       ...opts,
-      apiKey: await getApiKeyOrOidcToken(
-        opts,
+      apiKey: getConfiguredApiKey(
+        opts.apiKey,
         command.getOptionValueSource('apiKey')
       ),
     };

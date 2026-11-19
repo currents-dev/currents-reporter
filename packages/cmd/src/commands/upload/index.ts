@@ -7,14 +7,7 @@ import {
   outputDirOption,
 } from '../convert/options';
 import { formatExamples, HelpExample } from '../help';
-import {
-  debugOption,
-  oidcAudienceOption,
-  oidcProviderOption,
-  oidcTokenOption,
-  projectOption,
-  recordKeyOption,
-} from '../options';
+import { debugOption, projectOption, recordKeyOption } from '../options';
 import {
   ciBuildIdOption,
   disableTitleTagsOption,
@@ -85,9 +78,6 @@ reports being converted.`
     .addHelpText('after', formatExamples(getUploadExamples(name)))
     .addOption(ciBuildIdOption)
     .addOption(recordKeyOption())
-    .addOption(oidcTokenOption())
-    .addOption(oidcAudienceOption())
-    .addOption(oidcProviderOption())
     .addOption(projectOption())
     .addOption(runTagOption)
     .addOption(removeTagOption)

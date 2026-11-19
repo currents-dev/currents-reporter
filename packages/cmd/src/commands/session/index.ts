@@ -15,10 +15,6 @@ import {
   apiKeyOption,
   debugOption,
   projectOption,
-  OIDC_PROJECT_NOTE,
-  oidcAudienceOption,
-  oidcProviderOption,
-  oidcTokenOption,
   recordKeyOption,
 } from '../options';
 import {
@@ -76,9 +72,6 @@ const getStartCommand = (name: string) =>
       'Create a session and save its ID to .currents-session/session.json in the current folder, where "attach" and "share" read it'
     )
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
-    .addOption(oidcTokenOption())
-    .addOption(oidcAudienceOption())
-    .addOption(oidcProviderOption())
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(projectOption())
     .addOption(titleOption)
@@ -109,10 +102,6 @@ const getAttachCommand = (name: string) =>
     )
     .argument('<paths...>', PATHS_DESCRIPTION)
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
-    .addOption(oidcTokenOption())
-    .addOption(oidcAudienceOption())
-    .addOption(oidcProviderOption())
-    .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
     .addOption(sessionTypeOption)
@@ -120,7 +109,7 @@ const getAttachCommand = (name: string) =>
     .addOption(metaOption)
     .addOption(debugOption())
     .action(async (paths, options) => {
-      await commandHandler(async ({ key, projectId, ...opts }) => {
+      await commandHandler(async ({ key, ...opts }) => {
         await handleSessionAttach(
           getSessionAttachConfig({ ...opts, recordKey: key }),
           paths
@@ -137,16 +126,12 @@ const getShareCommand = (name: string) =>
       'Create a public link to the session page and print it. The second line, "Markdown: <url>", is the address of the same content as Markdown, for agents'
     )
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
-    .addOption(oidcTokenOption())
-    .addOption(oidcAudienceOption())
-    .addOption(oidcProviderOption())
-    .addOption(projectOption(OIDC_PROJECT_NOTE))
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(sessionIdOption)
     .addOption(expiresInDaysOption)
     .addOption(debugOption())
     .action(async (options) => {
-      await commandHandler(async ({ key, projectId, ...opts }) => {
+      await commandHandler(async ({ key, ...opts }) => {
         await handleSessionShare(
           getSessionShareConfig({ ...opts, recordKey: key })
         );

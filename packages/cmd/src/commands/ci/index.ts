@@ -17,18 +17,12 @@ import { OIDC_PROVIDER_ENV, OIDC_PROVIDERS } from '../../lib/oidc';
 import {
   apiKeyOption,
   debugOption,
-  oidcApiAudienceOption,
-  oidcAudienceOption,
-  oidcProviderOption,
   projectOption,
   recordKeyOption,
 } from '../options';
 import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
-
-const rootOf = (command: CommandUnknownOpts): CommandUnknownOpts =>
-  command.parent ? rootOf(command.parent) : command;
 
 /**
  * Commander repeats the value of a rejected option, choice or command in its
@@ -66,14 +60,15 @@ export function messageWithoutValues(
 const forOption = (description: string) =>
   new Option('--for <kind>', description).choices(['api', 'record'] as const);
 
-const providerOption = () =>
+const optionalProviderOption = () =>
   new Option(
     '--oidc-provider <provider>',
     'the CI provider that issues the OIDC token: github-actions (needs `permissions: id-token: write`), google-cloud (the metadata server of a VM, or of a GKE pod with Workload Identity), circleci (runs `circleci run oidc get`) or buildkite (runs `buildkite-agent oidc request-token`)'
   )
     .choices(OIDC_PROVIDERS)
-    .env(OIDC_PROVIDER_ENV)
-    .makeOptionMandatory();
+    .env(OIDC_PROVIDER_ENV);
+
+const providerOption = () => optionalProviderOption().makeOptionMandatory();
 
 const audienceOption = () =>
   new Option(
@@ -182,14 +177,12 @@ export const getCiCommand = (name: string) => {
         .name('status')
         .summary('Say which credentials the Currents commands would use')
         .description(
-          'Say which credential API requests and recording would use, the project, and the OIDC audiences. It names the flags and variables, not their values, and requests, exchanges or checks no token. With --oidc-provider google-cloud, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers.'
+          "Say which key API requests and recording would use, the project, and the OIDC audiences of the 'ci auth' commands. It names the flags and variables, not their values, and requests, exchanges or checks no token. With --oidc-provider google-cloud, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers."
         )
         .addOption(apiKeyOption('(its source is reported)'))
         .addOption(recordKeyOption('(its source is reported)'))
         .addOption(projectOption('(reported)'))
-        .addOption(oidcApiAudienceOption())
-        .addOption(oidcAudienceOption())
-        .addOption(oidcProviderOption())
+        .addOption(optionalProviderOption())
         .addOption(debugOption())
         .action((options, command) =>
           commandHandler(async () => {
@@ -200,12 +193,9 @@ export const getCiCommand = (name: string) => {
                 apiKey: command.getOptionValueSource('apiKey'),
                 key: command.getOptionValueSource('key'),
                 projectId: command.getOptionValueSource('projectId'),
-                oidcApiAudience:
-                  command.getOptionValueSource('oidcApiAudience'),
-                oidcAudience: command.getOptionValueSource('oidcAudience'),
                 oidcProvider: command.getOptionValueSource('oidcProvider'),
               },
-              rootOf(command)
+              command
             );
           }, options)
         )

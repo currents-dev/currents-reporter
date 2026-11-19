@@ -1,18 +1,10 @@
-import { CommandUnknownOpts } from '@commander-js/extra-typings';
-import { error, warn } from '@logger';
+import { warn } from '@logger';
 import { execFile } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { promisify } from 'node:util';
-import { debug as _debug, enableDebug } from '../debug';
-import { sharedConfigKeys } from '../config/keys';
-import { printLogsToStderr } from '../commands/utils';
-import { addExitHook } from './exitHooks';
+import { debug as _debug } from '../debug';
 import { ClientType, getClient } from '../http/client';
-import {
-  getOidcAudience,
-  getTimeout,
-  setOidcAudienceOption,
-} from '../http/httpConfig';
+import { getTimeout } from '../http/httpConfig';
 import {
   formatDuration,
   getDelay,
@@ -397,18 +389,13 @@ const providerTokenSources: Record<OidcProvider, TokenSource> = {
   buildkite: buildkiteTokenSource,
 };
 
-/**
- * The source of the provider set with --oidc-provider, or else the first
- * source the CLI finds by itself. Undefined when that source is not available.
- */
+/** The source of the provider. Undefined when that source is not available. */
 export function findTokenSource(
-  provider?: OidcProvider,
+  provider: OidcProvider,
   env: NodeJS.ProcessEnv = process.env
 ) {
-  const sources = provider
-    ? [providerTokenSources[provider]]
-    : [githubTokenSource];
-  return sources.find((source) => source.isAvailable(env));
+  const source = providerTokenSources[provider];
+  return source.isAvailable(env) ? source : undefined;
 }
 
 /** Only the GitHub source can be unavailable. */
@@ -523,139 +510,5 @@ export async function exchangeOidcToken({
     throw new Error(
       `Could not exchange the ${source.name} for ${kind.article} ${kind.name}: ${getServerMessage(e, token)}`
     );
-  }
-}
-
-/**
- * The record key for the commands that record. The exchange runs once per
- * process: later calls get the same key. The key is revoked when the command
- * ends.
- */
-let recordKeyExchange: Promise<OidcCredential> | undefined;
-
-export function getRecordKeyFromOidc(
-  source: TokenSource,
-  projectId: string,
-  env: NodeJS.ProcessEnv = process.env
-) {
-  recordKeyExchange ??= exchangeOidcToken({
-    kind: RECORD_KEY_KIND,
-    source,
-    audience: getOidcAudience(),
-    projectId,
-    env,
-  }).then((recordKey) => {
-    revokeOnExit(RECORD_KEY_KIND, recordKey.credential);
-    return recordKey;
-  });
-  return recordKeyExchange;
-}
-
-/** A failed revoke does not change the exit code: the credential expires on its own. */
-export function revokeOnExit(kind: OidcCredentialKind, credential: string) {
-  addExitHook(() =>
-    revokeOidcCredential(kind, credential).catch((e) =>
-      debug((e as Error).message)
-    )
-  );
-}
-
-/** For tests. */
-export function resetOidcExchange() {
-  recordKeyExchange = undefined;
-}
-
-const hasOption = (command: CommandUnknownOpts, long: string) =>
-  command.options.some((o) => o.long === long);
-
-/**
- * Commands with `--key` and `--oidc-token` record, and can get their record
- * key from an OIDC token. `ci auth status` has `--key` only to report it.
- */
-export const recordsWithOidc = (command: CommandUnknownOpts) =>
-  hasOption(command, '--key') && hasOption(command, '--oidc-token');
-
-/** A recording command with `--api-key` uses the API key when it has no record key. */
-export const recordsWithApiKey = (command: CommandUnknownOpts) =>
-  hasOption(command, '--api-key');
-
-/**
- * The option that holds the key a recording command uses instead of an OIDC
- * token: the record key, or the API key of a command with `--api-key`. Any
- * value but an empty string counts, also whitespace: getAuthHeaders sends it.
- */
-export function recordingKeyOption(
-  withApiKey: boolean,
-  { key, apiKey }: { key?: unknown; apiKey?: unknown }
-): 'key' | 'apiKey' | undefined {
-  if (key) return 'key';
-  if (withApiKey && apiKey) return 'apiKey';
-  return undefined;
-}
-
-/**
- * A recording command that got no record key, and no API key to use instead,
- * gets one from an OIDC token: --oidc-token or CURRENTS_OIDC_TOKEN, then the
- * provider of --oidc-provider, then GitHub Actions. `ci auth status` reports
- * the same choice.
- */
-export async function useOidcRecordKey(command: CommandUnknownOpts) {
-  // Before any early return: the missing-key hint shows the audience too.
-  setOidcAudienceOption(
-    command.getOptionValue('oidcAudience') as string | undefined
-  );
-  const oidcToken = String(command.getOptionValue('oidcToken') ?? '').trim();
-  // The value is not kept in the options, which commands copy into their
-  // config and print with --debug.
-  if (hasOption(command, '--oidc-token')) {
-    command.setOptionValueWithSource('oidcToken', undefined, 'config');
-  }
-  if (
-    !recordsWithOidc(command) ||
-    recordingKeyOption(recordsWithApiKey(command), command.opts())
-  ) {
-    return;
-  }
-  const provider = command.getOptionValue('oidcProvider') as
-    | OidcProvider
-    | undefined;
-  const source = oidcToken
-    ? providedTokenSource(
-        oidcToken,
-        'token in --oidc-token or CURRENTS_OIDC_TOKEN'
-      )
-    : findTokenSource(provider);
-  if (!source) {
-    if (!provider) return;
-    error(providerUnavailableMessage(provider));
-    process.exit(1);
-  }
-  // The command handler enables debug later, after the exchange.
-  if (command.getOptionValue('debug')) enableDebug();
-  // The project is read only for the exchange: the key it gives is for it.
-  const projectId = String(command.getOptionValue('projectId') ?? '').trim();
-  if (!projectId) {
-    const { cli, env } = sharedConfigKeys.projectId;
-    error(
-      `Project ID is required to get a record key from an OIDC token: pass ${cli} or set ${env}`
-    );
-    process.exit(1);
-  }
-  // The retry warnings of the exchange would come before the JSON output.
-  if (command.getOptionValue('json')) printLogsToStderr();
-  try {
-    const { credential: recordKey, expiresAt } = await getRecordKeyFromOidc(
-      source,
-      projectId
-    );
-    command.setOptionValueWithSource('key', recordKey, 'config');
-    maskInGitHubLog(recordKey);
-    // stderr: `session start --json` prints JSON on stdout.
-    process.stderr.write(
-      `Using a record key from the ${source.name}, valid until ${expiresAt}\n`
-    );
-  } catch (e) {
-    error((e as Error).message);
-    process.exit(1);
   }
 }

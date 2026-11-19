@@ -9,9 +9,6 @@ import {
   apiKeyOption,
   debugOption,
   projectOption,
-  oidcAudienceOption,
-  oidcProviderOption,
-  oidcTokenOption,
   recordKeyOption,
 } from '../options';
 import {
@@ -60,9 +57,6 @@ const getAttachCommand = (name: string) =>
     .description('Upload files to a run recorded in CI')
     .argument('<paths...>', PATHS_DESCRIPTION)
     .addOption(recordKeyOption(RECORD_KEY_NOTE))
-    .addOption(oidcTokenOption())
-    .addOption(oidcAudienceOption())
-    .addOption(oidcProviderOption())
     .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(projectOption())
     .addOption(ciBuildIdOption)

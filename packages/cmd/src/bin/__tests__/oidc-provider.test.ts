@@ -13,13 +13,10 @@ import {
 } from 'vitest';
 // @ts-ignore
 import { disable as disableDebug } from 'debug';
-import { getCacheCommandConfig } from '../../config/cache';
-import { setOidcAudienceOption } from '../../http/httpConfig';
 import {
   findTokenSource,
   googleMetadataRequest,
   requestGoogleMetadata,
-  resetOidcExchange,
   tokenCommand,
 } from '../../lib/oidc';
 import {
@@ -109,8 +106,6 @@ describe('--oidc-provider', () => {
     responses = {};
     stdout = '';
     stderr = '';
-    resetOidcExchange();
-    setOidcAudienceOption(undefined);
     googleMetadataRequest.attempts = 3;
     googleMetadataRequest.delayMs = 1;
     googleMetadataRequest.timeoutMs = 2000;
@@ -279,40 +274,32 @@ describe('--oidc-provider', () => {
     );
   });
 
-  it('gets the record key of a recording command from CURRENTS_OIDC_PROVIDER, with the record key audience', async () => {
+  it('gets a record key from CURRENTS_OIDC_PROVIDER, with the record key audience', async () => {
     vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'google-cloud');
     vi.stubEnv('CURRENTS_OIDC_AUDIENCE', 'staging:record-key');
 
-    await run(['cache', 'set']);
+    expect(await run(['ci', 'auth', 'get-record-key'])).toBe(0);
 
-    expect(getCacheCommandConfig().values?.recordKey).toBe('crnts_ci_t');
+    expect(stdout).toBe('crnts_ci_t\n');
     const url = new URL(requestsTo(IDENTITY_PATH)[0].url, server.url);
     expect(url.searchParams.get('audience')).toBe('staging:record-key');
     expect(subjectToken('/oidc/token')).toBe(GOOGLE_TOKEN);
-    expect(stderr).toContain(
-      'Using a record key from the Google Cloud OIDC token'
-    );
     expect(stderr).not.toContain(GOOGLE_TOKEN);
   });
 
   it('uses the API audience variable for an API token', async () => {
     vi.stubEnv('CURRENTS_OIDC_API_AUDIENCE', 'staging:api');
 
-    vi.stubEnv('CURRENTS_REST_API_URL', server.url);
-
-    await run(['api', '/v1/runs/r1', '--oidc-provider', 'google-cloud']);
+    await run([
+      'ci',
+      'auth',
+      'get-api-token',
+      '--oidc-provider',
+      'google-cloud',
+    ]);
 
     const url = new URL(requestsTo(IDENTITY_PATH)[0].url, server.url);
     expect(url.searchParams.get('audience')).toBe('staging:api');
-  });
-
-  it('uses a token in CURRENTS_OIDC_TOKEN before the provider', async () => {
-    vi.stubEnv('CURRENTS_OIDC_TOKEN', 'job-token');
-
-    await run(['cache', 'set', '--oidc-provider', 'google-cloud']);
-
-    expect(requestsTo(IDENTITY_PATH)).toEqual([]);
-    expect(subjectToken('/oidc/token')).toBe('job-token');
   });
 
   it('fails with a clear message when the metadata server is unreachable', async () => {
@@ -337,7 +324,13 @@ describe('--oidc-provider', () => {
 
   it('fails when the GitHub provider is selected outside a job with id-token: write', async () => {
     expect(
-      await run(['cache', 'set', '--oidc-provider', 'github-actions'])
+      await run([
+        'ci',
+        'auth',
+        'get-record-key',
+        '--oidc-provider',
+        'github-actions',
+      ])
     ).toBe(1);
 
     expect(stderr).toContain(
@@ -349,11 +342,10 @@ describe('--oidc-provider', () => {
   it('refuses a provider it does not know', async () => {
     vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'aws');
 
-    expect(await run(['cache', 'set'])).toBe(1);
+    expect(await run(['ci', 'auth', 'status'])).toBe(1);
 
-    expect(stderr).toContain(
-      'Allowed choices are github-actions, google-cloud, circleci, buildkite'
-    );
+    // ci auth does not repeat the value: it could be a token.
+    expect(stderr).toContain('error: an option argument is invalid');
     expect(server.requests).toEqual([]);
   });
 
@@ -363,19 +355,7 @@ describe('--oidc-provider', () => {
       await run(['ci', 'auth', 'status']);
 
       expect(server.requests).toEqual([]);
-      expect(stdout).toContain(
-        'OIDC provider: not set; GitHub Actions is found by itself'
-      );
-    });
-
-    it('still finds GitHub Actions by itself for the api command', async () => {
-      setGitHubEnv();
-      vi.stubEnv('CURRENTS_REST_API_URL', server.url);
-
-      await run(['api', '/v1/runs/r1']);
-
-      expect(requestsTo(IDENTITY_PATH)).toEqual([]);
-      expect(subjectToken('/oidc/api/token')).toBe(GITHUB_TOKEN);
+      expect(stdout).toContain('OIDC provider: not set\n');
     });
 
     it.each(['get-api-token', 'get-record-key', 'get-oidc-token'])(
@@ -410,7 +390,6 @@ describe('--oidc-provider', () => {
       expect(stdout).toContain(
         `Google Cloud OIDC: the metadata server at ${new URL(server.url).host} answers; service account ${SA_EMAIL}`
       );
-      expect(stdout).toContain('Credential: OIDC, Google Cloud OIDC token');
       expect(requestsTo(IDENTITY_PATH)).toEqual([]);
     });
 
@@ -507,44 +486,16 @@ describe('--oidc-provider', () => {
         ])
       ).toBe(1);
       expect(
-        await run(['cache', 'set', '--oidc-provider', 'google-cloud'])
+        await run([
+          'ci',
+          'auth',
+          'get-record-key',
+          '--oidc-provider',
+          'google-cloud',
+        ])
       ).toBe(1);
 
       expect(server.requests).toEqual([]);
-    });
-
-    it('uses a configured key before the provider', async () => {
-      vi.stubEnv('CURRENTS_REST_API_URL', server.url);
-
-      await run([
-        'cache',
-        'set',
-        '--key',
-        'dashboard-key',
-        '--oidc-provider',
-        'google-cloud',
-      ]);
-      expect(getCacheCommandConfig().values?.recordKey).toBe('dashboard-key');
-
-      vi.stubEnv('CURRENTS_API_KEY', 'dashboard-api-key');
-      await run(['api', '/v1/runs/r1', '--oidc-provider', 'google-cloud']);
-
-      expect(requestsTo(IDENTITY_PATH)).toEqual([]);
-      expect(requestsTo('/oidc/token')).toEqual([]);
-      expect(requestsTo('/oidc/api/token')).toEqual([]);
-      expect(requestsTo('/v1/runs/r1')[0].headers.authorization).toBe(
-        'Bearer dashboard-api-key'
-      );
-    });
-
-    it('uses CURRENTS_OIDC_API_TOKEN before the provider in the api command', async () => {
-      vi.stubEnv('CURRENTS_OIDC_API_TOKEN', 'job-api-token');
-      vi.stubEnv('CURRENTS_REST_API_URL', server.url);
-
-      await run(['api', '/v1/runs/r1', '--oidc-provider', 'google-cloud']);
-
-      expect(requestsTo(IDENTITY_PATH)).toEqual([]);
-      expect(subjectToken('/oidc/api/token')).toBe('job-api-token');
     });
 
     it('ci auth get-api-token gets the token from the provider, not from the variables', async () => {

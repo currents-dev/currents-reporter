@@ -11,51 +11,29 @@ on stderr and exits with 1.
 The REST API routes: https://docs.currents.dev/resources/api/api-resources
 
 Arguments:
-  path                            the REST API route, such as /v1/runs/<run-id>
+  path                         the REST API route, such as /v1/runs/<run-id>
 
 Options:
-  --api-key <api-key>             an API key from the Currents dashboard
-                                  (required unless the CI job has an OIDC token:
-                                  id-token: write on GitHub Actions,
-                                  --oidc-provider google-cloud on Google Cloud,
-                                  or CURRENTS_OIDC_API_TOKEN with the audience
-                                  currents:api) (env: CURRENTS_API_KEY)
-  -p, --project-id <id>           the project ID from the Currents dashboard
-                                  (required to get an API token from an OIDC
-                                  token) (env: CURRENTS_PROJECT_ID)
-  --oidc-api-audience <audience>  the audience of the OIDC token for an API
-                                  token; the default is currents:api. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_API_AUDIENCE)
-  --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github-actions (GitHub Actions with
-                                  id-token: write), google-cloud (the Google
-                                  Cloud metadata server of a VM, or of a GKE pod
-                                  with Workload Identity), circleci or
-                                  buildkite. Without it, the CLI finds GitHub
-                                  Actions by itself. A token in --oidc-token or
-                                  CURRENTS_OIDC_TOKEN for a record key, or in
-                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices:
-                                  "github-actions", "google-cloud", "circleci",
-                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -X, --method <method>           the HTTP method; GET by default, POST when
-                                  --field, --raw-field or --input is given
-  -f, --field <key=value>         a request parameter; repeat for more. Sent in
-                                  the query string of a GET and in the JSON body
-                                  otherwise. true, false, null and numbers are
-                                  sent as JSON values; in a JSON body,
-                                  key[]=value adds the value to an array
-  -F, --raw-field <key=value>     like --field, but the value is always a string
-  --input <file>                  send the JSON in this file as the body, or the
-                                  JSON from stdin with "-"; fields then go to
-                                  the query string
-  -H, --header <key:value>        an HTTP header to send; repeat for more
-  -i, --include                   print the HTTP status line and the response
-                                  headers before the body
-  --debug                         print debug logs; keys are hidden in them
-                                  (default: false, env: CURRENTS_DEBUG)
-  -h, --help                      display help for command
+  --api-key <api-key>          an API key from the Currents dashboard, or an API
+                               token from \`currents ci auth get-api-token\`
+                               (required) (env: CURRENTS_API_KEY)
+  -X, --method <method>        the HTTP method; GET by default, POST when
+                               --field, --raw-field or --input is given
+  -f, --field <key=value>      a request parameter; repeat for more. Sent in the
+                               query string of a GET and in the JSON body
+                               otherwise. true, false, null and numbers are sent
+                               as JSON values; in a JSON body, key[]=value adds
+                               the value to an array
+  -F, --raw-field <key=value>  like --field, but the value is always a string
+  --input <file>               send the JSON in this file as the body, or the
+                               JSON from stdin with "-"; fields then go to the
+                               query string
+  -H, --header <key:value>     an HTTP header to send; repeat for more
+  -i, --include                print the HTTP status line and the response
+                               headers before the body
+  --debug                      print debug logs; keys are hidden in them
+                               (default: false, env: CURRENTS_DEBUG)
+  -h, --help                   display help for command
 
 Examples:
   # Get a run, with the API key in CURRENTS_API_KEY
@@ -83,45 +61,25 @@ Get the data of a run from the Currents API and print it as JSON, or write it to
 both
 
 Options:
-  --api-key <api-key>             an API key from the Currents dashboard
-                                  (required unless the CI job has an OIDC token:
-                                  id-token: write on GitHub Actions,
-                                  --oidc-provider google-cloud on Google Cloud,
-                                  or CURRENTS_OIDC_API_TOKEN with the audience
-                                  currents:api) (env: CURRENTS_API_KEY)
-  --debug                         print debug logs; keys are hidden in them
-                                  (default: false, env: CURRENTS_DEBUG)
-  --ci-build-id <id>              the CI build ID the run was recorded with;
-                                  cannot be combined with --branch or --tag. The
-                                  environment variable is ignored when --branch
-                                  or --tag is set (env: CURRENTS_CI_BUILD_ID)
-  -p, --project-id <id>           the project ID from the Currents dashboard
-                                  (required) (env: CURRENTS_PROJECT_ID)
-  --oidc-api-audience <audience>  the audience of the OIDC token for an API
-                                  token; the default is currents:api. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_API_AUDIENCE)
-  --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github-actions (GitHub Actions with
-                                  id-token: write), google-cloud (the Google
-                                  Cloud metadata server of a VM, or of a GKE pod
-                                  with Workload Identity), circleci or
-                                  buildkite. Without it, the CLI finds GitHub
-                                  Actions by itself. A token in --oidc-token or
-                                  CURRENTS_OIDC_TOKEN for a record key, or in
-                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices:
-                                  "github-actions", "google-cloud", "circleci",
-                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -b, --branch <branch>           find the last run of this git branch
-  -t, --tag <tag>                 find the last run with these tags;
-                                  comma-separated or repeated
-  -o, --output <path>             write the JSON to this file instead of stdout
-                                  (env: CURRENTS_OUTPUT)
-  --pw-last-run                   print only the status and the failed tests of
-                                  the run, in the format of Playwright's
-                                  .last-run.json
-  -h, --help                      display help for command
+  --api-key <api-key>    an API key from the Currents dashboard, or an API token
+                         from \`currents ci auth get-api-token\` (required) (env:
+                         CURRENTS_API_KEY)
+  --debug                print debug logs; keys are hidden in them (default:
+                         false, env: CURRENTS_DEBUG)
+  --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
+                         combined with --branch or --tag. The environment
+                         variable is ignored when --branch or --tag is set (env:
+                         CURRENTS_CI_BUILD_ID)
+  -p, --project-id <id>  the project ID from the Currents dashboard (required)
+                         (env: CURRENTS_PROJECT_ID)
+  -b, --branch <branch>  find the last run of this git branch
+  -t, --tag <tag>        find the last run with these tags; comma-separated or
+                         repeated
+  -o, --output <path>    write the JSON to this file instead of stdout (env:
+                         CURRENTS_OUTPUT)
+  --pw-last-run          print only the status and the failed tests of the run,
+                         in the format of Playwright's .last-run.json
+  -h, --help             display help for command
 
 Examples:
   # Get the data of the run recorded under a CI build ID
@@ -182,68 +140,39 @@ exports[`command surface of the built CLI > prints the help of cache get 1`] = `
 Restore files from the cache
 
 Options:
-  -k, --key <record-key>      the record key from the Currents dashboard
-                              (required unless the CI job has an OIDC token:
-                              id-token: write on GitHub Actions, --oidc-provider
-                              google-cloud on Google Cloud, or --oidc-token with
-                              the audience currents:record-key) (env:
-                              CURRENTS_RECORD_KEY)
-  --oidc-token <token>        an OIDC token of the CI job, to get a record key
-                              without a stored secret; its audience is
-                              currents:record-key unless --oidc-audience is set.
-                              Used when no record key is set. Prefer the
-                              environment variable: a flag is visible in the
-                              process list and in logs that echo commands (env:
-                              CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
-                              default is currents:record-key. A Currents staging
-                              or on-prem install has its own (env:
-                              CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github-actions (GitHub Actions with id-token:
-                              write), google-cloud (the Google Cloud metadata
-                              server of a VM, or of a GKE pod with Workload
-                              Identity), circleci or buildkite. Without it, the
-                              CLI finds GitHub Actions by itself. A token in
-                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
-                              key, or in CURRENTS_OIDC_API_TOKEN for an API
-                              token, is used before the provider (choices:
-                              "github-actions", "google-cloud", "circleci",
-                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required to get a record key from an OIDC token)
-                              (env: CURRENTS_PROJECT_ID)
-  --id <id>                   the ID the files were saved under. Without it the
-                              ID comes from the CI job: on GitHub Actions the
-                              repository, the run ID and --matrix-index; on
-                              GitLab the pipeline ID and the job name; on other
-                              CI the variables that identify the pipeline and
-                              the job, and --matrix-index. When no CI job is
-                              detected the ID is random, so pass --id
-  --preset <preset-name>      "last-run" restores the saved .last-run.json files
-                              and writes the Playwright options for the rerun to
-                              --preset-output (choices: "last-run")
-  --output-dir <folder>       the folder to restore the files to; by default the
-                              current folder
-  --preset-output <path>      the file the "last-run" preset writes, relative to
-                              the current folder. On GitHub Actions and CircleCI
-                              it holds options for "playwright test"; on GitLab
-                              the shell variables EXTRA_PW_FLAGS,
-                              EXTRA_PWCP_FLAGS and RUN_ATTEMPT, to source.
-                              Nothing is written on other CI (default:
-                              ".currents_env")
-  --debug                     print debug logs; keys are hidden in them
-                              (default: false, env: CURRENTS_DEBUG)
-  --matrix-index <number>     the index of this job among parallel jobs, from 1;
-                              each job has its own cache. Pass it when the CI
-                              does not tell the jobs apart, as in a GitHub
-                              Actions matrix (default: 1)
-  --matrix-total <number>     GitHub Actions only: the number of jobs in the
-                              matrix, for the shards that the last-run preset
-                              writes (default: 1)
-  --continue                  exit with 0 when the cache is not found (default:
-                              false)
-  -h, --help                  display help for command
+  -k, --key <record-key>   the record key from the Currents dashboard, or from
+                           \`currents ci auth get-record-key\` (required) (env:
+                           CURRENTS_RECORD_KEY)
+  --id <id>                the ID the files were saved under. Without it the ID
+                           comes from the CI job: on GitHub Actions the
+                           repository, the run ID and --matrix-index; on GitLab
+                           the pipeline ID and the job name; on other CI the
+                           variables that identify the pipeline and the job, and
+                           --matrix-index. When no CI job is detected the ID is
+                           random, so pass --id
+  --preset <preset-name>   "last-run" restores the saved .last-run.json files
+                           and writes the Playwright options for the rerun to
+                           --preset-output (choices: "last-run")
+  --output-dir <folder>    the folder to restore the files to; by default the
+                           current folder
+  --preset-output <path>   the file the "last-run" preset writes, relative to
+                           the current folder. On GitHub Actions and CircleCI it
+                           holds options for "playwright test"; on GitLab the
+                           shell variables EXTRA_PW_FLAGS, EXTRA_PWCP_FLAGS and
+                           RUN_ATTEMPT, to source. Nothing is written on other
+                           CI (default: ".currents_env")
+  --debug                  print debug logs; keys are hidden in them (default:
+                           false, env: CURRENTS_DEBUG)
+  --matrix-index <number>  the index of this job among parallel jobs, from 1;
+                           each job has its own cache. Pass it when the CI does
+                           not tell the jobs apart, as in a GitHub Actions
+                           matrix (default: 1)
+  --matrix-total <number>  GitHub Actions only: the number of jobs in the
+                           matrix, for the shards that the last-run preset
+                           writes (default: 1)
+  --continue               exit with 0 when the cache is not found (default:
+                           false)
+  -h, --help               display help for command
 
 Examples:
   # Restore the files saved in the cache under an ID
@@ -266,64 +195,36 @@ exports[`command surface of the built CLI > prints the help of cache set 1`] = `
 Save files to the cache
 
 Options:
-  -k, --key <record-key>      the record key from the Currents dashboard
-                              (required unless the CI job has an OIDC token:
-                              id-token: write on GitHub Actions, --oidc-provider
-                              google-cloud on Google Cloud, or --oidc-token with
-                              the audience currents:record-key) (env:
-                              CURRENTS_RECORD_KEY)
-  --oidc-token <token>        an OIDC token of the CI job, to get a record key
-                              without a stored secret; its audience is
-                              currents:record-key unless --oidc-audience is set.
-                              Used when no record key is set. Prefer the
-                              environment variable: a flag is visible in the
-                              process list and in logs that echo commands (env:
-                              CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
-                              default is currents:record-key. A Currents staging
-                              or on-prem install has its own (env:
-                              CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github-actions (GitHub Actions with id-token:
-                              write), google-cloud (the Google Cloud metadata
-                              server of a VM, or of a GKE pod with Workload
-                              Identity), circleci or buildkite. Without it, the
-                              CLI finds GitHub Actions by itself. A token in
-                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
-                              key, or in CURRENTS_OIDC_API_TOKEN for an API
-                              token, is used before the provider (choices:
-                              "github-actions", "google-cloud", "circleci",
-                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required to get a record key from an OIDC token)
-                              (env: CURRENTS_PROJECT_ID)
-  --id <id>                   the ID to save the files under. Without it the ID
-                              comes from the CI job: on GitHub Actions the
-                              repository, the run ID and --matrix-index; on
-                              GitLab the pipeline ID and the job name; on other
-                              CI the variables that identify the pipeline and
-                              the job, and --matrix-index. When no CI job is
-                              detected the ID is random, so pass --id
-  --preset <preset-name>      "last-run" saves the Playwright .last-run.json
-                              files of --pw-output-dir, to rerun only the failed
-                              tests (choices: "last-run")
-  --path <path>               comma-separated paths or glob patterns of the
-                              files to save, inside the current folder; quote
-                              globs, e.g. "dist/**/*". At most 50 MB zipped
-  --debug                     print debug logs; keys are hidden in them
-                              (default: false, env: CURRENTS_DEBUG)
-  --pw-output-dir <folder>    the Playwright output folder that holds
-                              .last-run.json (default: "test-results")
-  --matrix-index <number>     the index of this job among parallel jobs, from 1;
-                              each job has its own cache. Pass it when the CI
-                              does not tell the jobs apart, as in a GitHub
-                              Actions matrix (default: 1)
-  --matrix-total <number>     GitHub Actions only: the number of jobs in the
-                              matrix, for the shards that the last-run preset
-                              writes (default: 1)
-  --continue                  exit with 0 when no files are found, and save the
-                              cache without files (default: false)
-  -h, --help                  display help for command
+  -k, --key <record-key>    the record key from the Currents dashboard, or from
+                            \`currents ci auth get-record-key\` (required) (env:
+                            CURRENTS_RECORD_KEY)
+  --id <id>                 the ID to save the files under. Without it the ID
+                            comes from the CI job: on GitHub Actions the
+                            repository, the run ID and --matrix-index; on GitLab
+                            the pipeline ID and the job name; on other CI the
+                            variables that identify the pipeline and the job,
+                            and --matrix-index. When no CI job is detected the
+                            ID is random, so pass --id
+  --preset <preset-name>    "last-run" saves the Playwright .last-run.json files
+                            of --pw-output-dir, to rerun only the failed tests
+                            (choices: "last-run")
+  --path <path>             comma-separated paths or glob patterns of the files
+                            to save, inside the current folder; quote globs,
+                            e.g. "dist/**/*". At most 50 MB zipped
+  --debug                   print debug logs; keys are hidden in them (default:
+                            false, env: CURRENTS_DEBUG)
+  --pw-output-dir <folder>  the Playwright output folder that holds
+                            .last-run.json (default: "test-results")
+  --matrix-index <number>   the index of this job among parallel jobs, from 1;
+                            each job has its own cache. Pass it when the CI does
+                            not tell the jobs apart, as in a GitHub Actions
+                            matrix (default: 1)
+  --matrix-total <number>   GitHub Actions only: the number of jobs in the
+                            matrix, for the shards that the last-run preset
+                            writes (default: 1)
+  --continue                exit with 0 when no files are found, and save the
+                            cache without files (default: false)
+  -h, --help                display help for command
 
 Examples:
   # Save files to the cache under an ID
@@ -342,45 +243,19 @@ exports[`command surface of the built CLI > prints the help of cancel 1`] = `
 Cancel a run in progress, e.g. when the CI job it belongs to is cancelled
 
 Options:
-  -k, --key <record-key>      the record key from the Currents dashboard
-                              (required unless the CI job has an OIDC token:
-                              id-token: write on GitHub Actions, --oidc-provider
-                              google-cloud on Google Cloud, or --oidc-token with
-                              the audience currents:record-key) (env:
-                              CURRENTS_RECORD_KEY)
-  --oidc-token <token>        an OIDC token of the CI job, to get a record key
-                              without a stored secret; its audience is
-                              currents:record-key unless --oidc-audience is set.
-                              Used when no record key is set. Prefer the
-                              environment variable: a flag is visible in the
-                              process list and in logs that echo commands (env:
-                              CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
-                              default is currents:record-key. A Currents staging
-                              or on-prem install has its own (env:
-                              CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github-actions (GitHub Actions with id-token:
-                              write), google-cloud (the Google Cloud metadata
-                              server of a VM, or of a GKE pod with Workload
-                              Identity), circleci or buildkite. Without it, the
-                              CLI finds GitHub Actions by itself. A token in
-                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
-                              key, or in CURRENTS_OIDC_API_TOKEN for an API
-                              token, is used before the provider (choices:
-                              "github-actions", "google-cloud", "circleci",
-                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required) (env: CURRENTS_PROJECT_ID)
-  --ci-build-id <id>          the CI build ID the run was recorded with
-                              (required unless --run-id is set) (env:
-                              CURRENTS_CI_BUILD_ID)
-  --run-id <id>               the ID of the run to cancel, as printed when the
-                              run was created; wins over --ci-build-id (env:
-                              CURRENTS_RUN_ID)
-  --debug                     print debug logs; keys are hidden in them
-                              (default: false, env: CURRENTS_DEBUG)
-  -h, --help                  display help for command
+  -k, --key <record-key>  the record key from the Currents dashboard, or from
+                          \`currents ci auth get-record-key\` (required) (env:
+                          CURRENTS_RECORD_KEY)
+  -p, --project-id <id>   the project ID from the Currents dashboard (required)
+                          (env: CURRENTS_PROJECT_ID)
+  --ci-build-id <id>      the CI build ID the run was recorded with (required
+                          unless --run-id is set) (env: CURRENTS_CI_BUILD_ID)
+  --run-id <id>           the ID of the run to cancel, as printed when the run
+                          was created; wins over --ci-build-id (env:
+                          CURRENTS_RUN_ID)
+  --debug                 print debug logs; keys are hidden in them (default:
+                          false, env: CURRENTS_DEBUG)
+  -h, --help              display help for command
 
 Examples:
   # Cancel the run recorded under a CI build ID
@@ -580,43 +455,33 @@ Options:
 exports[`command surface of the built CLI > prints the help of ci auth status 1`] = `
 "Usage: currents ci auth status [options]
 
-Say which credential API requests and recording would use, the project, and the
-OIDC audiences. It names the flags and variables, not their values, and
-requests, exchanges or checks no token. With --oidc-provider google-cloud, it
-asks the Google Cloud metadata server for the email of its service account, to
-say whether the server answers.
+Say which key API requests and recording would use, the project, and the OIDC
+audiences of the 'ci auth' commands. It names the flags and variables, not their
+values, and requests, exchanges or checks no token. With --oidc-provider
+google-cloud, it asks the Google Cloud metadata server for the email of its
+service account, to say whether the server answers.
 
 Options:
-  --api-key <api-key>             an API key from the Currents dashboard (its
-                                  source is reported) (env: CURRENTS_API_KEY)
-  -k, --key <record-key>          the record key from the Currents dashboard
-                                  (its source is reported) (env:
-                                  CURRENTS_RECORD_KEY)
-  -p, --project-id <id>           the project ID from the Currents dashboard
-                                  (reported) (env: CURRENTS_PROJECT_ID)
-  --oidc-api-audience <audience>  the audience of the OIDC token for an API
-                                  token; the default is currents:api. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_API_AUDIENCE)
-  --oidc-audience <audience>      the audience of the OIDC token of the CI job;
-                                  the default is currents:record-key. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github-actions (GitHub Actions with
-                                  id-token: write), google-cloud (the Google
-                                  Cloud metadata server of a VM, or of a GKE pod
-                                  with Workload Identity), circleci or
-                                  buildkite. Without it, the CLI finds GitHub
-                                  Actions by itself. A token in --oidc-token or
-                                  CURRENTS_OIDC_TOKEN for a record key, or in
-                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices:
-                                  "github-actions", "google-cloud", "circleci",
-                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  --debug                         print debug logs; keys are hidden in them
-                                  (default: false, env: CURRENTS_DEBUG)
-  -h, --help                      display help for command
+  --api-key <api-key>         an API key from the Currents dashboard, or an API
+                              token from \`currents ci auth get-api-token\` (its
+                              source is reported) (env: CURRENTS_API_KEY)
+  -k, --key <record-key>      the record key from the Currents dashboard, or
+                              from \`currents ci auth get-record-key\` (its source
+                              is reported) (env: CURRENTS_RECORD_KEY)
+  -p, --project-id <id>       the project ID from the Currents dashboard
+                              (reported) (env: CURRENTS_PROJECT_ID)
+  --oidc-provider <provider>  the CI provider that issues the OIDC token:
+                              github-actions (needs \`permissions: id-token:
+                              write\`), google-cloud (the metadata server of a
+                              VM, or of a GKE pod with Workload Identity),
+                              circleci (runs \`circleci run oidc get\`) or
+                              buildkite (runs \`buildkite-agent oidc
+                              request-token\`) (choices: "github-actions",
+                              "google-cloud", "circleci", "buildkite", env:
+                              CURRENTS_OIDC_PROVIDER)
+  --debug                     print debug logs; keys are hidden in them
+                              (default: false, env: CURRENTS_DEBUG)
+  -h, --help                  display help for command
 "
 `;
 
@@ -728,82 +593,55 @@ exports[`command surface of the built CLI > prints the help of run attach 1`] = 
 Upload files to a run recorded in CI
 
 Arguments:
-  paths                       files or folders to attach. A folder adds every
-                              file under it, named by its path in the folder,
-                              such as login-chromium/trace.zip, so a Playwright
-                              test-results folder attaches in one go; hidden
-                              files and folders, links and empty files in it are
-                              skipped. A folder of Playwright MCP trace-*.trace
-                              files, at the top or inside, is packed into one
-                              trace and nothing else in it is attached. At most
-                              200 files, each at most 1 GiB; files named .env or
-                              .env.* are refused
+  paths                   files or folders to attach. A folder adds every file
+                          under it, named by its path in the folder, such as
+                          login-chromium/trace.zip, so a Playwright test-results
+                          folder attaches in one go; hidden files and folders,
+                          links and empty files in it are skipped. A folder of
+                          Playwright MCP trace-*.trace files, at the top or
+                          inside, is packed into one trace and nothing else in
+                          it is attached. At most 200 files, each at most 1 GiB;
+                          files named .env or .env.* are refused
 
 Options:
-  -k, --key <record-key>      the record key from the Currents dashboard
-                              (required unless --api-key is set or the CI job
-                              has an OIDC token: id-token: write on GitHub
-                              Actions, or --oidc-token with the audience
-                              currents:record-key) (env: CURRENTS_RECORD_KEY)
-  --oidc-token <token>        an OIDC token of the CI job, to get a record key
-                              without a stored secret; its audience is
-                              currents:record-key unless --oidc-audience is set.
-                              Used when no record key is set. Prefer the
-                              environment variable: a flag is visible in the
-                              process list and in logs that echo commands (env:
-                              CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
-                              default is currents:record-key. A Currents staging
-                              or on-prem install has its own (env:
-                              CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github-actions (GitHub Actions with id-token:
-                              write), google-cloud (the Google Cloud metadata
-                              server of a VM, or of a GKE pod with Workload
-                              Identity), circleci or buildkite. Without it, the
-                              CLI finds GitHub Actions by itself. A token in
-                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
-                              key, or in CURRENTS_OIDC_API_TOKEN for an API
-                              token, is used before the provider (choices:
-                              "github-actions", "google-cloud", "circleci",
-                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  --api-key <api-key>         an API key from the Currents dashboard (used when
-                              --key is not set; needs write access) (env:
-                              CURRENTS_API_KEY)
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required) (env: CURRENTS_PROJECT_ID)
-  --ci-build-id <id>          the CI build ID the run was recorded with. Leave
-                              it out only if the run was recorded without one,
-                              on a CI the reporters recognize (env:
-                              CURRENTS_CI_BUILD_ID)
-  --machine-id <id>           the CI machine the files come from; run-level
-                              files are listed by machine when it is set (env:
-                              CURRENTS_MACHINE_ID)
-  --spec <spec>               attach to this spec file of the run
-  --group <id>                the group of the spec file; a spec that runs once
-                              per Playwright project matches more than once
-                              without it
-  --test-title <title>        attach to this test of --spec: the full title
-                              joined with " > ", or its last part
-  --attempt <n>               attach to this attempt of the test; the first
-                              attempt is 0
-  --type <type>               the type of every file; by default taken from the
-                              file: a .zip holding trace.trace is a trace; .png,
-                              .jpg, .jpeg, .webp and .gif are screenshots; .webm
-                              and .mp4 are videos; anything else is an
-                              attachment. The whole run and a test take
-                              attachments only, a spec file also takes
-                              screenshots and videos, and an attempt (--attempt)
-                              takes all four types, including traces. A file of
-                              a type its target does not take is attached as an
-                              attachment, and a --type the target does not take
-                              is an error (choices: "trace", "screenshot",
-                              "video", "attachment")
-  --caption <text>            a short description shown with each file
-  --meta <key=value>          a label for each file; repeat for more
-  --debug                     print debug logs; keys are hidden in them
-                              (default: false, env: CURRENTS_DEBUG)
-  -h, --help                  display help for command
+  -k, --key <record-key>  the record key from the Currents dashboard, or from
+                          \`currents ci auth get-record-key\` (required unless
+                          --api-key is set) (env: CURRENTS_RECORD_KEY)
+  --api-key <api-key>     an API key from the Currents dashboard, or an API
+                          token from \`currents ci auth get-api-token\` (used when
+                          --key is not set; needs write access) (env:
+                          CURRENTS_API_KEY)
+  -p, --project-id <id>   the project ID from the Currents dashboard (required)
+                          (env: CURRENTS_PROJECT_ID)
+  --ci-build-id <id>      the CI build ID the run was recorded with. Leave it
+                          out only if the run was recorded without one, on a CI
+                          the reporters recognize (env: CURRENTS_CI_BUILD_ID)
+  --machine-id <id>       the CI machine the files come from; run-level files
+                          are listed by machine when it is set (env:
+                          CURRENTS_MACHINE_ID)
+  --spec <spec>           attach to this spec file of the run
+  --group <id>            the group of the spec file; a spec that runs once per
+                          Playwright project matches more than once without it
+  --test-title <title>    attach to this test of --spec: the full title joined
+                          with " > ", or its last part
+  --attempt <n>           attach to this attempt of the test; the first attempt
+                          is 0
+  --type <type>           the type of every file; by default taken from the
+                          file: a .zip holding trace.trace is a trace; .png,
+                          .jpg, .jpeg, .webp and .gif are screenshots; .webm and
+                          .mp4 are videos; anything else is an attachment. The
+                          whole run and a test take attachments only, a spec
+                          file also takes screenshots and videos, and an attempt
+                          (--attempt) takes all four types, including traces. A
+                          file of a type its target does not take is attached as
+                          an attachment, and a --type the target does not take
+                          is an error (choices: "trace", "screenshot", "video",
+                          "attachment")
+  --caption <text>        a short description shown with each file
+  --meta <key=value>      a label for each file; repeat for more
+  --debug                 print debug logs; keys are hidden in them (default:
+                          false, env: CURRENTS_DEBUG)
+  -h, --help              display help for command
 
 Examples:
   # Attach the Docker logs of a CI machine to the run, after the tests finished
@@ -824,45 +662,19 @@ exports[`command surface of the built CLI > prints the help of run cancel 1`] = 
 Cancel a run in progress, e.g. when the CI job it belongs to is cancelled
 
 Options:
-  -k, --key <record-key>      the record key from the Currents dashboard
-                              (required unless the CI job has an OIDC token:
-                              id-token: write on GitHub Actions, --oidc-provider
-                              google-cloud on Google Cloud, or --oidc-token with
-                              the audience currents:record-key) (env:
-                              CURRENTS_RECORD_KEY)
-  --oidc-token <token>        an OIDC token of the CI job, to get a record key
-                              without a stored secret; its audience is
-                              currents:record-key unless --oidc-audience is set.
-                              Used when no record key is set. Prefer the
-                              environment variable: a flag is visible in the
-                              process list and in logs that echo commands (env:
-                              CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
-                              default is currents:record-key. A Currents staging
-                              or on-prem install has its own (env:
-                              CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github-actions (GitHub Actions with id-token:
-                              write), google-cloud (the Google Cloud metadata
-                              server of a VM, or of a GKE pod with Workload
-                              Identity), circleci or buildkite. Without it, the
-                              CLI finds GitHub Actions by itself. A token in
-                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
-                              key, or in CURRENTS_OIDC_API_TOKEN for an API
-                              token, is used before the provider (choices:
-                              "github-actions", "google-cloud", "circleci",
-                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required) (env: CURRENTS_PROJECT_ID)
-  --ci-build-id <id>          the CI build ID the run was recorded with
-                              (required unless --run-id is set) (env:
-                              CURRENTS_CI_BUILD_ID)
-  --run-id <id>               the ID of the run to cancel, as printed when the
-                              run was created; wins over --ci-build-id (env:
-                              CURRENTS_RUN_ID)
-  --debug                     print debug logs; keys are hidden in them
-                              (default: false, env: CURRENTS_DEBUG)
-  -h, --help                  display help for command
+  -k, --key <record-key>  the record key from the Currents dashboard, or from
+                          \`currents ci auth get-record-key\` (required) (env:
+                          CURRENTS_RECORD_KEY)
+  -p, --project-id <id>   the project ID from the Currents dashboard (required)
+                          (env: CURRENTS_PROJECT_ID)
+  --ci-build-id <id>      the CI build ID the run was recorded with (required
+                          unless --run-id is set) (env: CURRENTS_CI_BUILD_ID)
+  --run-id <id>           the ID of the run to cancel, as printed when the run
+                          was created; wins over --ci-build-id (env:
+                          CURRENTS_RUN_ID)
+  --debug                 print debug logs; keys are hidden in them (default:
+                          false, env: CURRENTS_DEBUG)
+  -h, --help              display help for command
 
 Examples:
   # Cancel the run recorded under a CI build ID
@@ -889,45 +701,25 @@ Get the data of a run from the Currents API and print it as JSON, or write it to
 both
 
 Options:
-  --api-key <api-key>             an API key from the Currents dashboard
-                                  (required unless the CI job has an OIDC token:
-                                  id-token: write on GitHub Actions,
-                                  --oidc-provider google-cloud on Google Cloud,
-                                  or CURRENTS_OIDC_API_TOKEN with the audience
-                                  currents:api) (env: CURRENTS_API_KEY)
-  --debug                         print debug logs; keys are hidden in them
-                                  (default: false, env: CURRENTS_DEBUG)
-  --ci-build-id <id>              the CI build ID the run was recorded with;
-                                  cannot be combined with --branch or --tag. The
-                                  environment variable is ignored when --branch
-                                  or --tag is set (env: CURRENTS_CI_BUILD_ID)
-  -p, --project-id <id>           the project ID from the Currents dashboard
-                                  (required) (env: CURRENTS_PROJECT_ID)
-  --oidc-api-audience <audience>  the audience of the OIDC token for an API
-                                  token; the default is currents:api. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_API_AUDIENCE)
-  --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github-actions (GitHub Actions with
-                                  id-token: write), google-cloud (the Google
-                                  Cloud metadata server of a VM, or of a GKE pod
-                                  with Workload Identity), circleci or
-                                  buildkite. Without it, the CLI finds GitHub
-                                  Actions by itself. A token in --oidc-token or
-                                  CURRENTS_OIDC_TOKEN for a record key, or in
-                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices:
-                                  "github-actions", "google-cloud", "circleci",
-                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
-  -b, --branch <branch>           find the last run of this git branch
-  -t, --tag <tag>                 find the last run with these tags;
-                                  comma-separated or repeated
-  -o, --output <path>             write the JSON to this file instead of stdout
-                                  (env: CURRENTS_OUTPUT)
-  --pw-last-run                   print only the status and the failed tests of
-                                  the run, in the format of Playwright's
-                                  .last-run.json
-  -h, --help                      display help for command
+  --api-key <api-key>    an API key from the Currents dashboard, or an API token
+                         from \`currents ci auth get-api-token\` (required) (env:
+                         CURRENTS_API_KEY)
+  --debug                print debug logs; keys are hidden in them (default:
+                         false, env: CURRENTS_DEBUG)
+  --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
+                         combined with --branch or --tag. The environment
+                         variable is ignored when --branch or --tag is set (env:
+                         CURRENTS_CI_BUILD_ID)
+  -p, --project-id <id>  the project ID from the Currents dashboard (required)
+                         (env: CURRENTS_PROJECT_ID)
+  -b, --branch <branch>  find the last run of this git branch
+  -t, --tag <tag>        find the last run with these tags; comma-separated or
+                         repeated
+  -o, --output <path>    write the JSON to this file instead of stdout (env:
+                         CURRENTS_OUTPUT)
+  --pw-last-run          print only the status and the failed tests of the run,
+                         in the format of Playwright's .last-run.json
+  -h, --help             display help for command
 
 Examples:
   # Get the data of the run recorded under a CI build ID
@@ -968,8 +760,10 @@ Options:
                             tests (choices: "report", "fix", default: "report")
   --expires-in-days <days>  the number of days the link works; by default 7 for
                             report and 1 for fix (choices: "1", "3", "7")
-  --api-key <api-key>       an API key from the Currents dashboard (required;
-                            needs write access) (env: CURRENTS_API_KEY)
+  --api-key <api-key>       an API key from the Currents dashboard, or an API
+                            token from \`currents ci auth get-api-token\`
+                            (required; needs write access) (env:
+                            CURRENTS_API_KEY)
   --debug                   print debug logs; keys are hidden in them (default:
                             false, env: CURRENTS_DEBUG)
   -h, --help                display help for command
@@ -1009,35 +803,9 @@ Options:
   --ci-build-id <id>             the CI build ID to record the run with; by
                                  default taken from the CI environment, or a
                                  random value (env: CURRENTS_CI_BUILD_ID)
-  -k, --key <record-key>         the record key from the Currents dashboard
-                                 (required unless the CI job has an OIDC token:
-                                 id-token: write on GitHub Actions,
-                                 --oidc-provider google-cloud on Google Cloud,
-                                 or --oidc-token with the audience
-                                 currents:record-key) (env: CURRENTS_RECORD_KEY)
-  --oidc-token <token>           an OIDC token of the CI job, to get a record
-                                 key without a stored secret; its audience is
-                                 currents:record-key unless --oidc-audience is
-                                 set. Used when no record key is set. Prefer the
-                                 environment variable: a flag is visible in the
-                                 process list and in logs that echo commands
-                                 (env: CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>     the audience of the OIDC token of the CI job;
-                                 the default is currents:record-key. A Currents
-                                 staging or on-prem install has its own (env:
-                                 CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>     where the CLI gets the OIDC token of the CI
-                                 job: github-actions (GitHub Actions with
-                                 id-token: write), google-cloud (the Google
-                                 Cloud metadata server of a VM, or of a GKE pod
-                                 with Workload Identity), circleci or buildkite.
-                                 Without it, the CLI finds GitHub Actions by
-                                 itself. A token in --oidc-token or
-                                 CURRENTS_OIDC_TOKEN for a record key, or in
-                                 CURRENTS_OIDC_API_TOKEN for an API token, is
-                                 used before the provider (choices:
-                                 "github-actions", "google-cloud", "circleci",
-                                 "buildkite", env: CURRENTS_OIDC_PROVIDER)
+  -k, --key <record-key>         the record key from the Currents dashboard, or
+                                 from \`currents ci auth get-record-key\`
+                                 (required) (env: CURRENTS_RECORD_KEY)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or
@@ -1151,35 +919,9 @@ Options:
   --ci-build-id <id>             the CI build ID to record the run with; by
                                  default taken from the CI environment, or a
                                  random value (env: CURRENTS_CI_BUILD_ID)
-  -k, --key <record-key>         the record key from the Currents dashboard
-                                 (required unless the CI job has an OIDC token:
-                                 id-token: write on GitHub Actions,
-                                 --oidc-provider google-cloud on Google Cloud,
-                                 or --oidc-token with the audience
-                                 currents:record-key) (env: CURRENTS_RECORD_KEY)
-  --oidc-token <token>           an OIDC token of the CI job, to get a record
-                                 key without a stored secret; its audience is
-                                 currents:record-key unless --oidc-audience is
-                                 set. Used when no record key is set. Prefer the
-                                 environment variable: a flag is visible in the
-                                 process list and in logs that echo commands
-                                 (env: CURRENTS_OIDC_TOKEN)
-  --oidc-audience <audience>     the audience of the OIDC token of the CI job;
-                                 the default is currents:record-key. A Currents
-                                 staging or on-prem install has its own (env:
-                                 CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>     where the CLI gets the OIDC token of the CI
-                                 job: github-actions (GitHub Actions with
-                                 id-token: write), google-cloud (the Google
-                                 Cloud metadata server of a VM, or of a GKE pod
-                                 with Workload Identity), circleci or buildkite.
-                                 Without it, the CLI finds GitHub Actions by
-                                 itself. A token in --oidc-token or
-                                 CURRENTS_OIDC_TOKEN for a record key, or in
-                                 CURRENTS_OIDC_API_TOKEN for an API token, is
-                                 used before the provider (choices:
-                                 "github-actions", "google-cloud", "circleci",
-                                 "buildkite", env: CURRENTS_OIDC_PROVIDER)
+  -k, --key <record-key>         the record key from the Currents dashboard, or
+                                 from \`currents ci auth get-record-key\`
+                                 (required) (env: CURRENTS_RECORD_KEY)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or

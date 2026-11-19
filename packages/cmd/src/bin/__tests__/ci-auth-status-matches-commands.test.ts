@@ -1,37 +1,5 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-// @ts-ignore
-import { disable as disableDebug } from 'debug';
-import { setOidcAudienceOption } from '../../http/httpConfig';
-import { resetOidcExchange } from '../../lib/oidc';
-import {
-  ApiServer,
-  RecordedRequest,
-  startApiServer,
-} from '../../test-utils/api-server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getProgram } from '../program';
-
-vi.mock('../../services', () => ({
-  handleCurrentsReport: vi.fn(),
-  handleGetCache: vi.fn(),
-  handleSetCache: vi.fn(),
-  handleCancelRun: vi.fn(),
-  handleGetRun: vi.fn(),
-}));
-vi.mock('../../services/session', () => ({
-  handleRunAttach: vi.fn(),
-  handleSessionAttach: vi.fn(),
-  handleSessionShare: vi.fn(),
-  handleSessionStart: vi.fn(),
-}));
 
 class ExitError extends Error {
   constructor(public code: number | undefined) {
@@ -39,74 +7,31 @@ class ExitError extends Error {
   }
 }
 
-const OIDC_JWT = 'provider-jwt';
 const API_KEY = 'dashboard-api-key';
 
 /**
- * Every command that records, and what the program gives it: `--api-key` is an
- * option of the commands in `acceptsApiKey`, and only they use CURRENTS_API_KEY
- * where a record key is missing (useOidcRecordKey).
+ * Every command that records: `--api-key` is an option of the commands in
+ * `acceptsApiKey`, and only they use CURRENTS_API_KEY where a record key is
+ * missing.
  */
-const acceptsApiKey: [string, string[]][] = [
-  ['run attach', ['run', 'attach', 'x.txt']],
-  ['session start', ['session', 'start']],
-  ['session attach', ['session', 'attach', 'x.txt']],
-  ['session share', ['session', 'share']],
+const acceptsApiKey = [
+  'run attach',
+  'session start',
+  'session attach',
+  'session share',
 ];
-const ignoresApiKey: [string, string[]][] = [
-  ['run upload', ['run', 'upload']],
-  ['run cancel', ['run', 'cancel', '--ci-build-id', 'b1']],
-  ['cache set', ['cache', 'set', '--id', 'c1', '--path', 'x']],
-  ['cache get', ['cache', 'get', '--id', 'c1']],
-];
+const ignoresApiKey = ['run upload', 'run cancel', 'cache set', 'cache get'];
 
 describe('ci auth status and the commands that record', () => {
-  let server: ApiServer;
   let stdout: string;
 
-  const exchanges = () =>
-    server.requests.filter(
-      (r: RecordedRequest) => r.url.split('?')[0] === '/oidc/token'
-    ).length;
-
-  beforeAll(async () => {
-    server = await startApiServer((request) => {
-      if (request.url.split('?')[0] === '/oidc/token') {
-        return {
-          status: 200,
-          json: { access_token: 'crnts_ci_status', expires_in: 600 },
-        };
-      }
-      return { status: 200 };
-    });
-    // The HTTP client reads the base URL once, when it is first used.
-    process.env.CURRENTS_API_URL = server.url;
-  });
-
-  afterAll(async () => {
-    delete process.env.CURRENTS_API_URL;
-    await server.close();
-  });
-
   beforeEach(() => {
-    server.requests.length = 0;
     stdout = '';
-    resetOidcExchange();
-    setOidcAudienceOption(undefined);
-    for (const name of [
-      'CURRENTS_RECORD_KEY',
-      'CURRENTS_DEBUG',
-      'ACTIONS_ID_TOKEN_REQUEST_URL',
-      'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
-      'CURRENTS_OIDC_API_TOKEN',
-      'GITHUB_ACTIONS',
-      'GITLAB_CI',
-    ]) {
+    for (const name of ['CURRENTS_RECORD_KEY', 'CURRENTS_DEBUG']) {
       vi.stubEnv(name, undefined);
     }
-    vi.stubEnv('CURRENTS_PROJECT_ID', 'p1');
     vi.stubEnv('CURRENTS_API_KEY', API_KEY);
-    vi.stubEnv('CURRENTS_OIDC_TOKEN', OIDC_JWT);
+    vi.stubEnv('CURRENTS_OIDC_TOKEN', 'provider-jwt');
     vi.spyOn(process.stdout, 'write').mockImplementation(((
       chunk: unknown,
       ...rest: unknown[]
@@ -118,14 +43,12 @@ describe('ci auth status and the commands that record', () => {
     vi.spyOn(process.stderr, 'write').mockReturnValue(true);
     vi.spyOn(console, 'log').mockReturnValue();
     vi.spyOn(console, 'error').mockReturnValue();
-    vi.spyOn(console, 'warn').mockReturnValue();
     vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
       throw new ExitError(code);
     }) as never);
   });
 
   afterEach(() => {
-    disableDebug();
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
   });
@@ -160,53 +83,30 @@ describe('ci auth status and the commands that record', () => {
   }
 
   describe('with CURRENTS_API_KEY and an OIDC token in the environment', () => {
-    it.each(acceptsApiKey)(
-      '%s uses the API key, and the status says so',
-      async (name, args) => {
-        await run(args);
+    it.each(acceptsApiKey)('%s uses the API key', async (name) => {
+      expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');
+    });
 
-        expect(exchanges()).toBe(0);
-        expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');
-      }
-    );
-
-    // These commands have no --api-key option, so useOidcRecordKey exchanges
-    // the OIDC token for a record key and the API key is not used.
-    it.each(ignoresApiKey)(
-      '%s exchanges the OIDC token, and the status says OIDC',
-      async (name, args) => {
-        await run(args);
-
-        expect(exchanges()).toBe(1);
-        expect(await recordingCredential(name)).toBe(
-          'OIDC, token in CURRENTS_OIDC_TOKEN'
-        );
-      }
-    );
+    it.each(ignoresApiKey)('%s has no key', async (name) => {
+      expect(await recordingCredential(name)).toBe('none');
+    });
   });
 
-  // The commands send a whitespace-only key as it is, and do not exchange.
-  describe('with a whitespace-only key and an OIDC token in the environment', () => {
+  // The commands send a whitespace-only key as it is.
+  describe('with a whitespace-only key', () => {
     it.each([...acceptsApiKey, ...ignoresApiKey])(
-      '%s uses CURRENTS_RECORD_KEY, and the status says so',
-      async (name, args) => {
+      '%s uses CURRENTS_RECORD_KEY',
+      async (name) => {
         vi.stubEnv('CURRENTS_RECORD_KEY', ' ');
-        await run(args);
 
-        expect(exchanges()).toBe(0);
         expect(await recordingCredential(name)).toBe('CURRENTS_RECORD_KEY');
       }
     );
 
-    it.each(acceptsApiKey)(
-      '%s uses CURRENTS_API_KEY, and the status says so',
-      async (name, args) => {
-        vi.stubEnv('CURRENTS_API_KEY', ' ');
-        await run(args);
+    it.each(acceptsApiKey)('%s uses CURRENTS_API_KEY', async (name) => {
+      vi.stubEnv('CURRENTS_API_KEY', ' ');
 
-        expect(exchanges()).toBe(0);
-        expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');
-      }
-    );
+      expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');
+    });
   });
 });

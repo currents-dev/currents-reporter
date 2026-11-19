@@ -8,17 +8,13 @@ import {
   OIDC_API_AUDIENCE_ENV,
 } from '../../http/httpConfig';
 import {
-  findTokenSource,
   getGoogleMetadataHost,
   GoogleMetadataError,
   OIDC_PROVIDER_ENV,
   OidcProvider,
-  recordingKeyOption,
-  recordsWithApiKey,
-  recordsWithOidc,
   requestGoogleMetadata,
 } from '../../lib/oidc';
-import { findApiTokenSource, OIDC_TOKEN_ENV } from '.';
+import { OIDC_TOKEN_ENV } from '.';
 
 /** Where commander took an option from: 'cli', 'env', or undefined for none. */
 type OptionSource = string | undefined;
@@ -27,8 +23,6 @@ export type StatusOptions = {
   apiKey?: string;
   key?: string;
   projectId?: string;
-  oidcApiAudience?: string;
-  oidcAudience?: string;
   oidcProvider?: OidcProvider;
 };
 
@@ -37,8 +31,7 @@ export type StatusSources = Partial<Record<keyof StatusOptions, OptionSource>>;
 const STATUS_ENV_INPUTS = [
   sharedConfigKeys.apiKey.env,
   sharedConfigKeys.recordKey.env,
-  'CURRENTS_OIDC_API_TOKEN',
-  'CURRENTS_OIDC_TOKEN',
+  OIDC_TOKEN_ENV,
   'ACTIONS_ID_TOKEN_REQUEST_URL',
   'ACTIONS_ID_TOKEN_REQUEST_TOKEN',
   OIDC_PROVIDER_ENV,
@@ -68,18 +61,13 @@ const envInputState = (name: string) => {
 };
 
 /**
- * The audience as getOidcAudience and getOidcApiAudience resolve it, and where
- * it came from: a blank flag or variable is skipped.
+ * The default audience of the 'ci auth' commands, as getOidcAudience and
+ * getOidcApiAudience resolve it, and where it came from.
  */
-function describeAudience(
-  option: string | undefined,
-  source: OptionSource,
-  { flag, env, fallback }: { flag: string; env: string; fallback: string }
-) {
-  if (source === 'cli' && isSet(option)) return `${option?.trim()} (${flag})`;
-  if (isEnvSet(env)) return `${process.env[env]?.trim()} (${env})`;
-  return `${fallback} (default)`;
-}
+const describeAudience = (env: string, fallback: string) =>
+  isEnvSet(env)
+    ? `${process.env[env]?.trim()} (${env})`
+    : `${fallback} (default)`;
 
 const SERVICE_ACCOUNT_EMAIL = /^[A-Za-z0-9._-]{1,100}@[A-Za-z0-9.-]{1,200}$/;
 
@@ -109,8 +97,18 @@ async function describeGoogleMetadataServer() {
   }
 }
 
-/** The visible commands of the program that record, by full name, such as "run upload". */
-function recordingCommands(program: CommandUnknownOpts) {
+const hasOption = (command: CommandUnknownOpts, long: string) =>
+  command.options.some((o) => o.long === long);
+
+const rootOf = (command: CommandUnknownOpts): CommandUnknownOpts =>
+  command.parent ? rootOf(command.parent) : command;
+
+/**
+ * The visible commands with `--key`, by full name, such as "run upload".
+ * The status command has `--key` only to report it.
+ */
+function recordingCommands(statusCommand: CommandUnknownOpts) {
+  const program = rootOf(statusCommand);
   const help = program.createHelp();
   const walk = (
     command: CommandUnknownOpts,
@@ -119,8 +117,8 @@ function recordingCommands(program: CommandUnknownOpts) {
     help.visibleCommands(command).flatMap((sub) => {
       const path = [...prefix, sub.name()];
       return [
-        ...(recordsWithOidc(sub)
-          ? [{ name: path.join(' '), withApiKey: recordsWithApiKey(sub) }]
+        ...(sub !== statusCommand && hasOption(sub, '--key')
+          ? [{ name: path.join(' '), withApiKey: hasOption(sub, '--api-key') }]
           : []),
         ...walk(sub, path),
       ];
@@ -129,15 +127,29 @@ function recordingCommands(program: CommandUnknownOpts) {
 }
 
 /**
- * Says which credential each kind of request would use, without reading or
- * sending any token: no OIDC token request, exchange or check of a key.
+ * The option that holds the key of a recording command: the record key, or
+ * the API key of a command with `--api-key`. Any value but an empty string
+ * counts, also whitespace: getAuthHeaders sends it.
+ */
+function recordingKeyOption(
+  withApiKey: boolean,
+  { key, apiKey }: StatusOptions
+): 'key' | 'apiKey' | undefined {
+  if (key) return 'key';
+  if (withApiKey && apiKey) return 'apiKey';
+  return undefined;
+}
+
+/**
+ * Says which key each kind of request would use, without reading or sending
+ * any token: no OIDC token request, exchange or check of a key.
  */
 export async function statusHandler(
   options: StatusOptions,
   sources: StatusSources,
-  program: CommandUnknownOpts
+  statusCommand: CommandUnknownOpts
 ) {
-  // A blank flag would hide the variable and make OIDC look like the source.
+  // A blank flag would hide the variable.
   for (const [name, flag] of [
     ['apiKey', '--api-key'],
     ['key', '--key'],
@@ -161,37 +173,6 @@ export async function statusHandler(
   const providerName =
     provider &&
     (sources.oidcProvider === 'cli' ? '--oidc-provider' : OIDC_PROVIDER_ENV);
-  const apiOidc = findApiTokenSource(provider);
-  // The recording commands find their token as useOidcRecordKey does.
-  const recordOidc = isEnvSet('CURRENTS_OIDC_TOKEN')
-    ? 'token in CURRENTS_OIDC_TOKEN'
-    : findTokenSource(provider)?.name;
-
-  const apiAudience = describeAudience(
-    options.oidcApiAudience,
-    sources.oidcApiAudience,
-    {
-      flag: '--oidc-api-audience',
-      env: OIDC_API_AUDIENCE_ENV,
-      fallback: DEFAULT_OIDC_API_AUDIENCE,
-    }
-  );
-  const recordAudience = describeAudience(
-    options.oidcAudience,
-    sources.oidcAudience,
-    {
-      flag: '--oidc-audience',
-      env: 'CURRENTS_OIDC_AUDIENCE',
-      fallback: DEFAULT_OIDC_AUDIENCE,
-    }
-  );
-
-  const oidcNote = (oidc: string | undefined, key: string | undefined) =>
-    oidc && !key && !project
-      ? ['  The exchange needs --project-id or CURRENTS_PROJECT_ID']
-      : [];
-
-  // Same choice as useOidcRecordKey: a key, else an OIDC token.
   const recordingKeyName = (withApiKey: boolean) => {
     const option = recordingKeyOption(withApiKey, options);
     if (!option) return undefined;
@@ -200,24 +181,22 @@ export async function statusHandler(
     return sources[option] === 'cli' ? cli : env;
   };
   const recordingKeys = new Map<string | undefined, string[]>();
-  for (const { name, withApiKey } of recordingCommands(program)) {
+  for (const { name, withApiKey } of recordingCommands(statusCommand)) {
     const key = recordingKeyName(withApiKey);
     recordingKeys.set(key, [...(recordingKeys.get(key) ?? []), name]);
   }
-  const recordingCredential = (key: string | undefined) =>
-    key ?? (recordOidc ? `OIDC, ${recordOidc}` : 'none');
   const recordingCredentialLines =
     recordingKeys.size === 1
-      ? [`  Credential: ${recordingCredential([...recordingKeys.keys()][0])}`]
+      ? [`  Credential: ${[...recordingKeys.keys()][0] ?? 'none'}`]
       : [...recordingKeys].map(
           ([key, names]) =>
-            `  Credential: ${recordingCredential(key)} (${names.join(', ')})`
+            `  Credential: ${key ?? 'none'} (${names.join(', ')})`
         );
 
   const lines = [
     `CI provider: ${ciProvider ?? 'none'}`,
     `Project: ${project ? `${options.projectId?.trim()} (${project})` : 'not set'}`,
-    `OIDC provider: ${provider ? `${provider} (${providerName})` : 'not set; GitHub Actions is found by itself'}`,
+    `OIDC provider: ${provider ? `${provider} (${providerName})` : 'not set'}`,
     ...((ciProvider === 'githubActions' || provider === 'github-actions') &&
     !(
       isEnvSet('ACTIONS_ID_TOKEN_REQUEST_URL') &&
@@ -234,15 +213,12 @@ export async function statusHandler(
     `ci auth exchange: the token from --stdin, or else ${OIDC_TOKEN_ENV} (${envInputState(OIDC_TOKEN_ENV)}); its audience or --for picks the credential`,
     '',
     'API requests:',
-    `  Credential: ${apiKey ?? (apiOidc ? `OIDC, ${apiOidc.name}` : 'none')}`,
-    `  OIDC audience: ${apiAudience}`,
-    ...oidcNote(apiOidc?.name, apiKey),
+    `  Credential: ${apiKey ?? 'none'}`,
+    `  OIDC audience: ${describeAudience(OIDC_API_AUDIENCE_ENV, DEFAULT_OIDC_API_AUDIENCE)}`,
     '',
     'Recording:',
     ...recordingCredentialLines,
-    `  OIDC audience: ${recordAudience}`,
-    // Commands without a key exchange the OIDC token.
-    ...(recordingKeys.has(undefined) ? oidcNote(recordOidc, undefined) : []),
+    `  OIDC audience: ${describeAudience('CURRENTS_OIDC_AUDIENCE', DEFAULT_OIDC_AUDIENCE)}`,
     '',
     'Environment:',
     ...STATUS_ENV_INPUTS.map((name) => `  ${name}: ${envInputState(name)}`),

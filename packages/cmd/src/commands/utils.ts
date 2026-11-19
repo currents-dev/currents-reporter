@@ -5,7 +5,6 @@ import {
 import { error, warnOnStderr } from '@logger';
 import { parseBooleanEnv } from '../config/utils';
 import { enableDebug } from '../debug';
-import { getExitCode, runExitHooks } from '../lib/exitHooks';
 
 export function parseCommaSeparatedList(
   value: string,
@@ -60,12 +59,6 @@ function sameListOrValue(value: unknown, envValue: string) {
   return items(value.map(String)) === items(envValue.split(','));
 }
 
-/**
- * A blank value of these options falls back to the variable: see
- * getOidcAudience and getOidcApiAudience.
- */
-const BLANK_FALLS_BACK_TO_ENV = ['--oidc-audience', '--oidc-api-audience'];
-
 export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
   for (const option of command.options) {
     const name = option.attributeName();
@@ -73,8 +66,6 @@ export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
     const value = command.getOptionValue(name);
     if (
       !envValue ||
-      (BLANK_FALLS_BACK_TO_ENV.includes(option.long ?? '') &&
-        !String(value ?? '').trim()) ||
       option.isBoolean() ||
       command.getOptionValueSource(name) !== 'cli' ||
       sameListOrValue(value, envValue)
@@ -110,8 +101,7 @@ export async function commandHandler<T extends Record<string, unknown>>(
     error((e as Error).message);
     exitCode = e instanceof CommanderError ? e.exitCode : 1;
   }
-  await runExitHooks();
-  process.exit(getExitCode(exitCode));
+  process.exit(exitCode);
 }
 
 // commandHandler calls process.exit, which can cut off a write to a pipe that

@@ -1,5 +1,3 @@
-import { getOidcAudience } from '../http/httpConfig';
-
 /** The options that several commands share, with their environment variables. */
 export const sharedConfigKeys = {
   apiKey: {
@@ -38,8 +36,8 @@ export const sharedConfigKeys = {
   },
 } as const;
 
-/** Added to the error for a missing record key. */
-export const getOidcHint = () => {
-  const audience = getOidcAudience();
-  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, pass --oidc-provider google-cloud on Google Cloud, or on any other CI put a token in --oidc-token or CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`). Staging and on-prem installs use their own audience: set CURRENTS_OIDC_AUDIENCE to its value. https://docs.currents.dev`;
+/** Added to the error for a missing key: how a CI job gets one without a stored secret. */
+export const ciAuthHints = {
+  recordKey: `in CI, run \`currents ci auth get-record-key\` and set ${sharedConfigKeys.recordKey.env} to its output`,
+  apiKey: `in CI, run \`currents ci auth get-api-token\` and set ${sharedConfigKeys.apiKey.env} to its output`,
 };

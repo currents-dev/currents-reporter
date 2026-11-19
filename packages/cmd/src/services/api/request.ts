@@ -13,8 +13,6 @@ export type Field = [key: string, value: unknown];
 
 export type ApiRequestOptions = {
   apiKey?: string;
-  projectId?: string;
-  oidcApiAudience?: string;
   method?: string;
   field?: Field[];
   rawField?: Field[];
