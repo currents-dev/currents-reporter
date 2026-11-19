@@ -23,6 +23,7 @@ export type StatusOptions = {
   apiKey?: string;
   key?: string;
   projectId?: string;
+  oidcPolicyId?: string;
   oidcProvider?: OidcProvider;
 };
 
@@ -37,6 +38,7 @@ const STATUS_ENV_INPUTS = [
   OIDC_PROVIDER_ENV,
   'GCE_METADATA_HOST',
   sharedConfigKeys.projectId.env,
+  sharedConfigKeys.oidcPolicyId.env,
   'CURRENTS_OIDC_API_AUDIENCE',
   'CURRENTS_OIDC_AUDIENCE',
 ];
@@ -169,6 +171,11 @@ export async function statusHandler(
     sources.projectId,
     sharedConfigKeys.projectId
   );
+  const policy = nameOf(
+    options.oidcPolicyId,
+    sources.oidcPolicyId,
+    sharedConfigKeys.oidcPolicyId
+  );
   const provider = options.oidcProvider;
   const providerName =
     provider &&
@@ -211,6 +218,7 @@ export async function statusHandler(
       : []),
     '',
     `ci auth exchange: the token from --stdin, or else ${OIDC_TOKEN_ENV} (${envInputState(OIDC_TOKEN_ENV)}); its audience or --for picks the credential`,
+    `OIDC policy: ${policy ? `${options.oidcPolicyId?.trim()} (${policy})` : 'not set'}`,
     '',
     'API requests:',
     `  Credential: ${apiKey ?? 'none'}`,

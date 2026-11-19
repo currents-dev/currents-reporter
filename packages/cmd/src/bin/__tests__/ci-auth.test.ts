@@ -41,6 +41,7 @@ const JWT = 'provider/jwt+1=';
 const API_TOKEN = 'crnts_ciapi_test';
 const RECORD_KEY = 'crnts_ci_test';
 const REQUEST_SECRET = 'request-secret';
+const POLICY_ID = '6745a1b2c3d4e5f60718293a';
 
 const exchangeResponse = (credential: string, scope?: string): Response => ({
   status: 200,
@@ -142,6 +143,7 @@ describe('currents ci auth', () => {
       'CURRENTS_API_KEY',
       'CURRENTS_RECORD_KEY',
       'CURRENTS_PROJECT_ID',
+      'CURRENTS_OIDC_POLICY_ID',
       'CURRENTS_DEBUG',
       'CURRENTS_OIDC_TOKEN',
       'CURRENTS_OIDC_API_TOKEN',
@@ -155,7 +157,9 @@ describe('currents ci auth', () => {
     ]) {
       vi.stubEnv(name, undefined);
     }
+    // The exchange does not send the project.
     vi.stubEnv('CURRENTS_PROJECT_ID', 'p1');
+    vi.stubEnv('CURRENTS_OIDC_POLICY_ID', POLICY_ID);
     vi.spyOn(process.stdout, 'write').mockImplementation(((
       chunk: unknown,
       ...rest: unknown[]
@@ -307,7 +311,7 @@ describe('currents ci auth', () => {
           grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
           subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
           subject_token: token,
-          project_id: 'p1',
+          policy_id: POLICY_ID,
         });
         expect(requestsTo(otherPath)).toEqual([]);
         expect(requestsTo('/github-token')).toEqual([]);
@@ -420,18 +424,21 @@ describe('currents ci auth', () => {
       expect(server.requests).toEqual([]);
     });
 
-    it('requires the project, and --project-id wins over the variable', async () => {
+    it('requires the policy ID, also with a project ID, and --oidc-policy-id wins over the variable', async () => {
       vi.stubEnv('CURRENTS_OIDC_TOKEN', API_JWT);
-      vi.stubEnv('CURRENTS_PROJECT_ID', ' ');
+      vi.stubEnv('CURRENTS_OIDC_POLICY_ID', ' ');
 
       expectFailure(await run(['exchange']));
-      expect(diagnostics()).toContain('Project ID is required');
+      expect(diagnostics()).toContain(
+        'The ID of the trust policy is required: pass --oidc-policy-id or set CURRENTS_OIDC_POLICY_ID'
+      );
       expect(server.requests).toEqual([]);
 
-      vi.stubEnv('CURRENTS_PROJECT_ID', 'p1');
+      vi.stubEnv('CURRENTS_OIDC_POLICY_ID', POLICY_ID);
       stderr = '';
-      await run(['exchange', '--project-id', 'flag-project']);
-      expect(formBody(server.requests[0]).project_id).toBe('flag-project');
+      await run(['exchange', '--oidc-policy-id', 'flag-policy']);
+      expect(formBody(server.requests[0]).policy_id).toBe('flag-policy');
+      expect(formBody(server.requests[0])).not.toHaveProperty('project_id');
       expect(secretsIn(stderr)).toEqual([]);
     });
 
@@ -671,15 +678,38 @@ describe('currents ci auth', () => {
       });
     });
 
-    it('requires the project before it requests a token', async () => {
-      setGitHubEnv();
-      vi.stubEnv('CURRENTS_PROJECT_ID', ' ');
+    it.each(['get-record-key', 'get-api-token'])(
+      '%s requires the policy ID before it requests a token',
+      async (command) => {
+        setGitHubEnv();
+        vi.stubEnv('CURRENTS_OIDC_POLICY_ID', undefined);
 
-      expectFailure(await run(['get-record-key', ...GITHUB]));
+        expectFailure(await run([command, ...GITHUB]));
 
-      expect(diagnostics()).toContain('Project ID is required');
-      expect(server.requests).toEqual([]);
-    });
+        expect(diagnostics()).toContain(
+          'pass --oidc-policy-id or set CURRENTS_OIDC_POLICY_ID'
+        );
+        expect(server.requests).toEqual([]);
+      }
+    );
+
+    it.each([
+      ['get-record-key', '/oidc/token'],
+      ['get-api-token', '/oidc/api/token'],
+    ])(
+      '%s sends the policy ID of --oidc-policy-id and no project ID',
+      async (command, path) => {
+        setGitHubEnv();
+
+        expect(
+          await run([command, ...GITHUB, '--oidc-policy-id', 'flag-policy'])
+        ).toBe(0);
+
+        const body = formBody(requestsTo(path)[0]);
+        expect(body.policy_id).toBe('flag-policy');
+        expect(body).not.toHaveProperty('project_id');
+      }
+    );
 
     it.each([
       ['get-record-key', 'the GitHub Actions OIDC token is not available'],
@@ -1160,9 +1190,9 @@ describe('currents ci auth', () => {
       }
     );
 
-    it('needs no project, gets the token again on every call, and revokes nothing', async () => {
+    it('needs no policy ID, gets the token again on every call, and revokes nothing', async () => {
       setGitHubEnv();
-      vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+      vi.stubEnv('CURRENTS_OIDC_POLICY_ID', undefined);
 
       await run(['get-oidc-token', ...GITHUB, '--for', 'api']);
       await run(['get-oidc-token', ...GITHUB, '--for', 'record']);
@@ -1223,11 +1253,13 @@ describe('currents ci auth', () => {
 
     it('reports an empty environment, exits 0 and sends nothing', async () => {
       vi.stubEnv('CURRENTS_PROJECT_ID', undefined);
+      vi.stubEnv('CURRENTS_OIDC_POLICY_ID', undefined);
 
       expect(await run(['status'])).toBe(0);
 
       expect(lineOf('CI provider:')).toBe('CI provider: none');
       expect(lineOf('Project:')).toBe('Project: not set');
+      expect(lineOf('OIDC policy:')).toBe('OIDC policy: not set');
       expect(sectionLine('API requests:', 'Credential:')).toBe(
         'Credential: none'
       );
@@ -1332,6 +1364,22 @@ describe('currents ci auth', () => {
       stdout = '';
       await run(['status', '--project-id', 'flag-project']);
       expect(lineOf('Project:')).toBe('Project: flag-project (--project-id)');
+    });
+
+    it('reports the policy ID and its source, the flag over the variable', async () => {
+      await run(['status']);
+      expect(lineOf('OIDC policy:')).toBe(
+        `OIDC policy: ${POLICY_ID} (CURRENTS_OIDC_POLICY_ID)`
+      );
+      expect(lineOf('CURRENTS_OIDC_POLICY_ID:')).toBe(
+        'CURRENTS_OIDC_POLICY_ID: set'
+      );
+
+      stdout = '';
+      await run(['status', '--oidc-policy-id', 'flag-policy']);
+      expect(lineOf('OIDC policy:')).toBe(
+        'OIDC policy: flag-policy (--oidc-policy-id)'
+      );
     });
 
     it('reports the keys by flag or variable, the record key first for recording, and the API key only for the recording commands with --api-key', async () => {

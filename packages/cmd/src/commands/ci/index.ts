@@ -13,6 +13,7 @@ import { OIDC_PROVIDER_ENV, OIDC_PROVIDERS } from '../../lib/oidc';
 import {
   apiKeyOption,
   debugOption,
+  oidcPolicyOption,
   projectOption,
   recordKeyOption,
 } from '../options';
@@ -62,7 +63,7 @@ export const getCiAuthExamples = (name: string): HelpExample[] => [
     comment:
       'Use an API token from the OIDC token of a GitHub Actions job for the commands after it',
     commands: [
-      `export CURRENTS_API_KEY=$(${name} ${PARENT_NAME} get-api-token --oidc-provider github-actions --project-id <project-id>)`,
+      `export CURRENTS_API_KEY=$(${name} ${PARENT_NAME} get-api-token --oidc-provider github-actions --oidc-policy-id <policy-id>)`,
       `${name} api /v1/runs/<run-id>`,
       `${name} ${PARENT_NAME} revoke`,
     ],
@@ -70,13 +71,13 @@ export const getCiAuthExamples = (name: string): HelpExample[] => [
   {
     comment: 'Get the OIDC token and exchange it in two steps',
     commands: [
-      `${name} ${PARENT_NAME} get-oidc-token --oidc-provider circleci --for record | ${name} ${PARENT_NAME} exchange --stdin --project-id <project-id>`,
+      `${name} ${PARENT_NAME} get-oidc-token --oidc-provider circleci --for record | ${name} ${PARENT_NAME} exchange --stdin --oidc-policy-id <policy-id>`,
     ],
   },
   {
     comment:
       'Exchange the GitLab id_token in CURRENTS_OIDC_TOKEN; its audience picks the credential',
-    commands: [`${name} ${PARENT_NAME} exchange --project-id <project-id>`],
+    commands: [`${name} ${PARENT_NAME} exchange --oidc-policy-id <policy-id>`],
   },
   {
     comment:
@@ -97,7 +98,7 @@ const getCredentialCommand = (credentialFor: CredentialFor) => {
     )
     .addOption(providerOption())
     .addOption(audienceOption())
-    .addOption(projectOption())
+    .addOption(oidcPolicyOption())
     .addOption(jsonOption())
     .addOption(debugOption());
   return command.action(
@@ -140,11 +141,12 @@ export const getCiCommand = (name: string) => {
         .name('status')
         .summary('Say which credentials the Currents commands would use')
         .description(
-          "Say which key API requests and recording would use, the project, and the OIDC audiences of the 'ci auth' commands. It names the flags and variables, not their values, and requests, exchanges or checks no token. With --oidc-provider google-cloud, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers."
+          "Say which key API requests and recording would use, the project, the trust policy ID and the OIDC audiences of the 'ci auth' commands. It names the flags and variables, not their values, and requests, exchanges or checks no token. With --oidc-provider google-cloud, it asks the Google Cloud metadata server for the email of its service account, to say whether the server answers."
         )
         .addOption(apiKeyOption('(its source is reported)'))
         .addOption(recordKeyOption('(its source is reported)'))
         .addOption(projectOption('(reported)'))
+        .addOption(oidcPolicyOption('(reported)'))
         .addOption(optionalProviderOption())
         .addOption(debugOption())
         .action((options, command) =>
@@ -156,6 +158,7 @@ export const getCiCommand = (name: string) => {
                 apiKey: command.getOptionValueSource('apiKey'),
                 key: command.getOptionValueSource('key'),
                 projectId: command.getOptionValueSource('projectId'),
+                oidcPolicyId: command.getOptionValueSource('oidcPolicyId'),
                 oidcProvider: command.getOptionValueSource('oidcProvider'),
               },
               command
@@ -173,7 +176,7 @@ export const getCiCommand = (name: string) => {
         .addOption(
           forOption('the credential to get, whatever the audience of the token')
         )
-        .addOption(projectOption())
+        .addOption(oidcPolicyOption())
         .addOption(stdinOption('OIDC token'))
         .addOption(jsonOption())
         .addOption(debugOption())
