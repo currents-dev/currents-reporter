@@ -25,6 +25,12 @@ export const projectOption = (note = REQUIRED) =>
     `the project ID from the Currents dashboard ${note}`
   ).env(sharedConfigKeys.projectId.env);
 
+export const oidcPolicyOption = (note = REQUIRED) =>
+  new Option(
+    '--oidc-policy-id <id>',
+    `the ID of the trust policy from the Currents dashboard ${note}`
+  ).env(sharedConfigKeys.oidcPolicyId.env);
+
 /** For the commands that find a run recorded earlier. */
 export const recordedCiBuildIdOption = (note: string) =>
   new Option(

@@ -459,13 +459,13 @@ export async function exchangeOidcToken({
   kind,
   source,
   audience,
-  projectId,
+  policyId,
   env = process.env,
 }: {
   kind: OidcCredentialKind;
   source: TokenSource;
   audience: string;
-  projectId: string;
+  policyId: string;
   env?: NodeJS.ProcessEnv;
 }): Promise<OidcCredential> {
   let token: string;
@@ -487,10 +487,13 @@ export async function exchangeOidcToken({
         grant_type: GRANT_TYPE,
         subject_token: token,
         subject_token_type: SUBJECT_TOKEN_TYPE,
-        project_id: projectId,
+        policy_id: policyId,
       }).toString(),
       followRedirects: false,
       logErrorResponse: false,
+      // A credential pasted into --oidc-policy-id would be printed when the
+      // server repeats the policy ID, or in the debug log of the request.
+      secrets: [policyId],
     });
     const { access_token, expires_in, scope } = res.data ?? {};
     if (

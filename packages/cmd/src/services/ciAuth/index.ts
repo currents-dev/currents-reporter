@@ -49,7 +49,7 @@ export const credentialSettings: Record<CredentialFor, CredentialSettings> = {
 };
 
 export type CiAuthOptions = {
-  projectId?: string;
+  oidcPolicyId?: string;
   oidcProvider?: OidcProvider;
   audience?: string;
   json?: boolean;
@@ -72,13 +72,15 @@ async function readStdin(name: string) {
   return value;
 }
 
-function requireProjectId(options: CiAuthOptions) {
-  const projectId = options.projectId?.trim();
-  if (!projectId) {
-    const { cli, env } = sharedConfigKeys.projectId;
-    throw new Error(`Project ID is required: pass ${cli} or set ${env}`);
+function requirePolicyId(options: CiAuthOptions) {
+  const policyId = options.oidcPolicyId?.trim();
+  if (!policyId) {
+    const { cli, env } = sharedConfigKeys.oidcPolicyId;
+    throw new Error(
+      `The ID of the trust policy is required: pass ${cli} or set ${env}`
+    );
   }
-  return projectId;
+  return policyId;
 }
 
 /** stdout gets only the credential, or the JSON, so that a script can read it. */
@@ -109,14 +111,14 @@ async function exchangeAndPrint(
   options: CiAuthOptions
 ) {
   const { kind } = credentialSettings[credentialFor];
-  const projectId = requireProjectId(options);
+  const policyId = requirePolicyId(options);
   maskInGitHubLog(token);
   const credential = await exchangeOidcToken({
     kind,
     source: providedTokenSource(token, name),
     // A held token keeps the audience it was issued with.
     audience: '',
-    projectId,
+    policyId,
   });
   // Nothing revokes it on exit: the credential is for the commands after this one.
   await printCredential(credentialFor, credential, options.json);
@@ -188,7 +190,7 @@ export async function getCredentialHandler(
   options: ProviderOptions
 ) {
   // No token is requested for an exchange that cannot be sent.
-  requireProjectId(options);
+  requirePolicyId(options);
   const token = await requestProviderToken(credentialFor, options);
   await exchangeAndPrint(credentialFor, token, options);
 }

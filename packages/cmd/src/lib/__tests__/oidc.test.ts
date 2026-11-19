@@ -93,7 +93,7 @@ describe('OIDC exchange', () => {
       kind: TEST_KIND,
       source: providedTokenSource('ci-jwt', 'test token'),
       audience: 'test:audience',
-      projectId: 'project-1',
+      policyId: 'policy-1',
     });
 
   it('posts the token exchange form to the path of the kind', async () => {
@@ -117,7 +117,7 @@ describe('OIDC exchange', () => {
       grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
       subject_token: 'ci-jwt',
       subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
-      project_id: 'project-1',
+      policy_id: 'policy-1',
     });
   });
 
@@ -150,7 +150,7 @@ describe('OIDC exchange', () => {
       kind: TEST_KIND,
       source: source!,
       audience: 'currents:api',
-      projectId: 'project-1',
+      policyId: 'policy-1',
       env,
     });
 
@@ -184,7 +184,7 @@ describe('OIDC exchange', () => {
         kind: TEST_KIND,
         source,
         audience: 'a',
-        projectId: 'p',
+        policyId: 'p',
       })
     ).rejects.toThrow('Could not get the failing token: boom');
     expect(server.requests).toEqual([]);

@@ -131,7 +131,7 @@ describe('--oidc-provider', () => {
     ]) {
       vi.stubEnv(name, undefined);
     }
-    vi.stubEnv('CURRENTS_PROJECT_ID', 'p1');
+    vi.stubEnv('CURRENTS_OIDC_POLICY_ID', '6745a1b2c3d4e5f60718293a');
     vi.stubEnv('GCE_METADATA_HOST', new URL(server.url).host);
     vi.spyOn(process.stdout, 'write').mockImplementation(((
       chunk: unknown,

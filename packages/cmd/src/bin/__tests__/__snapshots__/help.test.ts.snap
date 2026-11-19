@@ -299,17 +299,17 @@ Examples:
   # Use an API token from the OIDC token of a GitHub Actions job for the
   # commands after it
   export CURRENTS_API_KEY=$(currents ci auth get-api-token \\
-      --oidc-provider github-actions --project-id <project-id>)
+      --oidc-provider github-actions --oidc-policy-id <policy-id>)
   currents api /v1/runs/<run-id>
   currents ci auth revoke
 
   # Get the OIDC token and exchange it in two steps
   currents ci auth get-oidc-token --oidc-provider circleci --for record | \\
-      currents ci auth exchange --stdin --project-id <project-id>
+      currents ci auth exchange --stdin --oidc-policy-id <policy-id>
 
   # Exchange the GitLab id_token in CURRENTS_OIDC_TOKEN; its audience picks the
   # credential
-  currents ci auth exchange --project-id <project-id>
+  currents ci auth exchange --oidc-policy-id <policy-id>
 
   # Say which credentials the Currents commands of this job would use
   currents ci auth status
@@ -329,8 +329,8 @@ decoded, not verified. Pass --for when the audience is another, or holds both.
 Options:
   --for <kind>           the credential to get, whatever the audience of the
                          token (choices: "api", "record")
-  -p, --project-id <id>  the project ID from the Currents dashboard (required)
-                         (env: CURRENTS_PROJECT_ID)
+  --oidc-policy-id <id>  the ID of the trust policy from the Currents dashboard
+                         (required) (env: CURRENTS_OIDC_POLICY_ID)
   --stdin                read the OIDC token from stdin
   --json                 print {"token", "expires_at"} as JSON, with "scopes"
                          for an API token
@@ -362,8 +362,9 @@ Options:
                               API token, CURRENTS_OIDC_AUDIENCE or
                               currents:record-key for a record key. A Currents
                               staging or on-prem install has its own
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required) (env: CURRENTS_PROJECT_ID)
+  --oidc-policy-id <id>       the ID of the trust policy from the Currents
+                              dashboard (required) (env:
+                              CURRENTS_OIDC_POLICY_ID)
   --json                      print {"token", "expires_at"} as JSON, with
                               "scopes" for an API token
   --debug                     print debug logs; keys are hidden in them
@@ -426,8 +427,9 @@ Options:
                               API token, CURRENTS_OIDC_AUDIENCE or
                               currents:record-key for a record key. A Currents
                               staging or on-prem install has its own
-  -p, --project-id <id>       the project ID from the Currents dashboard
-                              (required) (env: CURRENTS_PROJECT_ID)
+  --oidc-policy-id <id>       the ID of the trust policy from the Currents
+                              dashboard (required) (env:
+                              CURRENTS_OIDC_POLICY_ID)
   --json                      print {"token", "expires_at"} as JSON, with
                               "scopes" for an API token
   --debug                     print debug logs; keys are hidden in them
@@ -455,9 +457,9 @@ Options:
 exports[`command surface of the built CLI > prints the help of ci auth status 1`] = `
 "Usage: currents ci auth status [options]
 
-Say which key API requests and recording would use, the project, and the OIDC
-audiences of the 'ci auth' commands. It names the flags and variables, not their
-values, and requests, exchanges or checks no token. With --oidc-provider
+Say which key API requests and recording would use, the project, the trust
+policy ID and the OIDC audiences of the 'ci auth' commands. It never prints a
+key or token, and requests, exchanges or checks none. With --oidc-provider
 google-cloud, it asks the Google Cloud metadata server for the email of its
 service account, to say whether the server answers.
 
@@ -470,6 +472,9 @@ Options:
                               is reported) (env: CURRENTS_RECORD_KEY)
   -p, --project-id <id>       the project ID from the Currents dashboard
                               (reported) (env: CURRENTS_PROJECT_ID)
+  --oidc-policy-id <id>       the ID of the trust policy from the Currents
+                              dashboard (reported) (env:
+                              CURRENTS_OIDC_POLICY_ID)
   --oidc-provider <provider>  the CI provider that issues the OIDC token:
                               github-actions (needs \`permissions: id-token:
                               write\`), google-cloud (the metadata server of a

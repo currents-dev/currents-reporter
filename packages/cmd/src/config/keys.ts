@@ -15,6 +15,11 @@ export const sharedConfigKeys = {
     env: 'CURRENTS_PROJECT_ID',
     cli: '--project-id',
   },
+  oidcPolicyId: {
+    name: 'OIDC policy ID',
+    env: 'CURRENTS_OIDC_POLICY_ID',
+    cli: '--oidc-policy-id',
+  },
   ciBuildId: {
     name: 'CI build ID',
     env: 'CURRENTS_CI_BUILD_ID',
