@@ -17,8 +17,8 @@ Options:
   --api-key <api-key>             an API key from the Currents dashboard
                                   (required unless the CI job has an OIDC token:
                                   id-token: write on GitHub Actions,
-                                  --oidc-provider google on Google Cloud, or
-                                  CURRENTS_OIDC_API_TOKEN with the audience
+                                  --oidc-provider google-cloud on Google Cloud,
+                                  or CURRENTS_OIDC_API_TOKEN with the audience
                                   currents:api) (env: CURRENTS_API_KEY)
   -p, --project-id <id>           the project ID from the Currents dashboard
                                   (required to get an API token from an OIDC
@@ -28,15 +28,17 @@ Options:
                                   staging or on-prem install has its own (env:
                                   CURRENTS_OIDC_API_AUDIENCE)
   --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github (GitHub Actions with id-token:
-                                  write) or google (the Google Cloud metadata
-                                  server of a VM, or of a GKE pod with Workload
-                                  Identity). Without it, the CLI finds GitHub
+                                  job: github-actions (GitHub Actions with
+                                  id-token: write), google-cloud (the Google
+                                  Cloud metadata server of a VM, or of a GKE pod
+                                  with Workload Identity), circleci or
+                                  buildkite. Without it, the CLI finds GitHub
                                   Actions by itself. A token in --oidc-token or
                                   CURRENTS_OIDC_TOKEN for a record key, or in
                                   CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices: "github",
-                                  "google", env: CURRENTS_OIDC_PROVIDER)
+                                  used before the provider (choices:
+                                  "github-actions", "google-cloud", "circleci",
+                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -X, --method <method>           the HTTP method; GET by default, POST when
                                   --field, --raw-field or --input is given
   -f, --field <key=value>         a request parameter; repeat for more. Sent in
@@ -84,8 +86,8 @@ Options:
   --api-key <api-key>             an API key from the Currents dashboard
                                   (required unless the CI job has an OIDC token:
                                   id-token: write on GitHub Actions,
-                                  --oidc-provider google on Google Cloud, or
-                                  CURRENTS_OIDC_API_TOKEN with the audience
+                                  --oidc-provider google-cloud on Google Cloud,
+                                  or CURRENTS_OIDC_API_TOKEN with the audience
                                   currents:api) (env: CURRENTS_API_KEY)
   --debug                         print debug logs; keys are hidden in them
                                   (default: false, env: CURRENTS_DEBUG)
@@ -100,15 +102,17 @@ Options:
                                   staging or on-prem install has its own (env:
                                   CURRENTS_OIDC_API_AUDIENCE)
   --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github (GitHub Actions with id-token:
-                                  write) or google (the Google Cloud metadata
-                                  server of a VM, or of a GKE pod with Workload
-                                  Identity). Without it, the CLI finds GitHub
+                                  job: github-actions (GitHub Actions with
+                                  id-token: write), google-cloud (the Google
+                                  Cloud metadata server of a VM, or of a GKE pod
+                                  with Workload Identity), circleci or
+                                  buildkite. Without it, the CLI finds GitHub
                                   Actions by itself. A token in --oidc-token or
                                   CURRENTS_OIDC_TOKEN for a record key, or in
                                   CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices: "github",
-                                  "google", env: CURRENTS_OIDC_PROVIDER)
+                                  used before the provider (choices:
+                                  "github-actions", "google-cloud", "circleci",
+                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -b, --branch <branch>           find the last run of this git branch
   -t, --tag <tag>                 find the last run with these tags;
                                   comma-separated or repeated
@@ -181,8 +185,8 @@ Options:
   -k, --key <record-key>      the record key from the Currents dashboard
                               (required unless the CI job has an OIDC token:
                               id-token: write on GitHub Actions, --oidc-provider
-                              google on Google Cloud, or --oidc-token with the
-                              audience currents:record-key) (env:
+                              google-cloud on Google Cloud, or --oidc-token with
+                              the audience currents:record-key) (env:
                               CURRENTS_RECORD_KEY)
   --oidc-token <token>        an OIDC token of the CI job, to get a record key
                               without a stored secret; its audience is
@@ -196,14 +200,16 @@ Options:
                               or on-prem install has its own (env:
                               CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github (GitHub Actions with id-token: write) or
-                              google (the Google Cloud metadata server of a VM,
-                              or of a GKE pod with Workload Identity). Without
-                              it, the CLI finds GitHub Actions by itself. A
-                              token in --oidc-token or CURRENTS_OIDC_TOKEN for a
-                              record key, or in CURRENTS_OIDC_API_TOKEN for an
-                              API token, is used before the provider (choices:
-                              "github", "google", env: CURRENTS_OIDC_PROVIDER)
+                              github-actions (GitHub Actions with id-token:
+                              write), google-cloud (the Google Cloud metadata
+                              server of a VM, or of a GKE pod with Workload
+                              Identity), circleci or buildkite. Without it, the
+                              CLI finds GitHub Actions by itself. A token in
+                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
+                              key, or in CURRENTS_OIDC_API_TOKEN for an API
+                              token, is used before the provider (choices:
+                              "github-actions", "google-cloud", "circleci",
+                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -p, --project-id <id>       the project ID from the Currents dashboard
                               (required to get a record key from an OIDC token)
                               (env: CURRENTS_PROJECT_ID)
@@ -263,8 +269,8 @@ Options:
   -k, --key <record-key>      the record key from the Currents dashboard
                               (required unless the CI job has an OIDC token:
                               id-token: write on GitHub Actions, --oidc-provider
-                              google on Google Cloud, or --oidc-token with the
-                              audience currents:record-key) (env:
+                              google-cloud on Google Cloud, or --oidc-token with
+                              the audience currents:record-key) (env:
                               CURRENTS_RECORD_KEY)
   --oidc-token <token>        an OIDC token of the CI job, to get a record key
                               without a stored secret; its audience is
@@ -278,14 +284,16 @@ Options:
                               or on-prem install has its own (env:
                               CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github (GitHub Actions with id-token: write) or
-                              google (the Google Cloud metadata server of a VM,
-                              or of a GKE pod with Workload Identity). Without
-                              it, the CLI finds GitHub Actions by itself. A
-                              token in --oidc-token or CURRENTS_OIDC_TOKEN for a
-                              record key, or in CURRENTS_OIDC_API_TOKEN for an
-                              API token, is used before the provider (choices:
-                              "github", "google", env: CURRENTS_OIDC_PROVIDER)
+                              github-actions (GitHub Actions with id-token:
+                              write), google-cloud (the Google Cloud metadata
+                              server of a VM, or of a GKE pod with Workload
+                              Identity), circleci or buildkite. Without it, the
+                              CLI finds GitHub Actions by itself. A token in
+                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
+                              key, or in CURRENTS_OIDC_API_TOKEN for an API
+                              token, is used before the provider (choices:
+                              "github-actions", "google-cloud", "circleci",
+                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -p, --project-id <id>       the project ID from the Currents dashboard
                               (required to get a record key from an OIDC token)
                               (env: CURRENTS_PROJECT_ID)
@@ -337,8 +345,8 @@ Options:
   -k, --key <record-key>      the record key from the Currents dashboard
                               (required unless the CI job has an OIDC token:
                               id-token: write on GitHub Actions, --oidc-provider
-                              google on Google Cloud, or --oidc-token with the
-                              audience currents:record-key) (env:
+                              google-cloud on Google Cloud, or --oidc-token with
+                              the audience currents:record-key) (env:
                               CURRENTS_RECORD_KEY)
   --oidc-token <token>        an OIDC token of the CI job, to get a record key
                               without a stored secret; its audience is
@@ -352,14 +360,16 @@ Options:
                               or on-prem install has its own (env:
                               CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github (GitHub Actions with id-token: write) or
-                              google (the Google Cloud metadata server of a VM,
-                              or of a GKE pod with Workload Identity). Without
-                              it, the CLI finds GitHub Actions by itself. A
-                              token in --oidc-token or CURRENTS_OIDC_TOKEN for a
-                              record key, or in CURRENTS_OIDC_API_TOKEN for an
-                              API token, is used before the provider (choices:
-                              "github", "google", env: CURRENTS_OIDC_PROVIDER)
+                              github-actions (GitHub Actions with id-token:
+                              write), google-cloud (the Google Cloud metadata
+                              server of a VM, or of a GKE pod with Workload
+                              Identity), circleci or buildkite. Without it, the
+                              CLI finds GitHub Actions by itself. A token in
+                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
+                              key, or in CURRENTS_OIDC_API_TOKEN for an API
+                              token, is used before the provider (choices:
+                              "github-actions", "google-cloud", "circleci",
+                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -p, --project-id <id>       the project ID from the Currents dashboard
                               (required) (env: CURRENTS_PROJECT_ID)
   --ci-build-id <id>          the CI build ID the run was recorded with
@@ -405,22 +415,29 @@ Commands:
   get-oidc-token [options]  Print the OIDC token of the CI job
   status [options]          Say which credentials the Currents commands would
                             use
-  exchange [options]        Exchange an OIDC token from the environment or stdin
+  exchange [options]        Exchange an OIDC token from stdin or
+                            CURRENTS_OIDC_TOKEN
   revoke [options]          Revoke an API token or record key from an OIDC
                             exchange
 
 Examples:
-  # Use an API token from the OIDC token of the job for the commands after it
+  # Use an API token from the OIDC token of a GitHub Actions job for the
+  # commands after it
   export CURRENTS_API_KEY=$(currents ci auth get-api-token \\
-      --project-id <project-id>)
+      --oidc-provider github-actions --project-id <project-id>)
   currents api /v1/runs/<run-id>
   currents ci auth revoke
 
+  # Get the OIDC token and exchange it in two steps
+  currents ci auth get-oidc-token --oidc-provider circleci --for record | \\
+      currents ci auth exchange --stdin --project-id <project-id>
+
+  # Exchange the GitLab id_token in CURRENTS_OIDC_TOKEN; its audience picks the
+  # credential
+  currents ci auth exchange --project-id <project-id>
+
   # Say which credentials the Currents commands of this job would use
   currents ci auth status
-
-  # Exchange the GitLab id_token in CURRENTS_OIDC_TOKEN for a record key
-  currents ci auth exchange --for record --project-id <project-id>
 
 "
 `;
@@ -428,12 +445,15 @@ Examples:
 exports[`command surface of the built CLI > prints the help of ci auth exchange 1`] = `
 "Usage: currents ci auth exchange [options]
 
-Exchange the OIDC token in CURRENTS_OIDC_API_TOKEN (--for api) or
-CURRENTS_OIDC_TOKEN (--for record), or from stdin, and print the credential
+Exchange the OIDC token from stdin (--stdin), or else from CURRENTS_OIDC_TOKEN,
+and print the credential. The audience of the token picks it: currents:api, or
+one that starts with currents:api:, for an API token; currents:record-key, or
+one that starts with currents:record-key:, for a record key. The token is
+decoded, not verified. Pass --for when the audience is another, or holds both.
 
 Options:
-  --for <kind>           the credential to get: an API token or a record key
-                         (choices: "api", "record")
+  --for <kind>           the credential to get, whatever the audience of the
+                         token (choices: "api", "record")
   -p, --project-id <id>  the project ID from the Currents dashboard (required)
                          (env: CURRENTS_PROJECT_ID)
   --stdin                read the OIDC token from stdin
@@ -448,98 +468,91 @@ Options:
 exports[`command surface of the built CLI > prints the help of ci auth get-api-token 1`] = `
 "Usage: currents ci auth get-api-token [options]
 
-Get the OIDC token of the CI job (GitHub Actions with id-token: write, Google
-Cloud with --oidc-provider google, or CURRENTS_OIDC_API_TOKEN on any CI),
-exchange it and print the API token. It stays valid until it expires or 'ci auth
-revoke' revokes it.
+Get the OIDC token of the CI job from the provider of --oidc-provider, exchange
+it and print the API token: 'get-oidc-token --for api' and 'exchange --for api'
+in one command. It stays valid until it expires or 'ci auth revoke' revokes it.
 
 Options:
-  -p, --project-id <id>           the project ID from the Currents dashboard
-                                  (required) (env: CURRENTS_PROJECT_ID)
-  --oidc-api-audience <audience>  the audience of the OIDC token for an API
-                                  token; the default is currents:api. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_API_AUDIENCE)
-  --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github (GitHub Actions with id-token:
-                                  write) or google (the Google Cloud metadata
-                                  server of a VM, or of a GKE pod with Workload
-                                  Identity). Without it, the CLI finds GitHub
-                                  Actions by itself. A token in --oidc-token or
-                                  CURRENTS_OIDC_TOKEN for a record key, or in
-                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices: "github",
-                                  "google", env: CURRENTS_OIDC_PROVIDER)
-  --json                          print {"token", "expires_at"} as JSON, with
-                                  "scopes" for an API token
-  --debug                         print debug logs; keys are hidden in them
-                                  (default: false, env: CURRENTS_DEBUG)
-  -h, --help                      display help for command
+  --oidc-provider <provider>  the CI provider that issues the OIDC token:
+                              github-actions (needs \`permissions: id-token:
+                              write\`), google-cloud (the metadata server of a
+                              VM, or of a GKE pod with Workload Identity),
+                              circleci (runs \`circleci run oidc get\`) or
+                              buildkite (runs \`buildkite-agent oidc
+                              request-token\`) (choices: "github-actions",
+                              "google-cloud", "circleci", "buildkite", env:
+                              CURRENTS_OIDC_PROVIDER)
+  --audience <audience>       the audience of the OIDC token; the default is
+                              CURRENTS_OIDC_API_AUDIENCE or currents:api for an
+                              API token, CURRENTS_OIDC_AUDIENCE or
+                              currents:record-key for a record key. A Currents
+                              staging or on-prem install has its own
+  -p, --project-id <id>       the project ID from the Currents dashboard
+                              (required) (env: CURRENTS_PROJECT_ID)
+  --json                      print {"token", "expires_at"} as JSON, with
+                              "scopes" for an API token
+  --debug                     print debug logs; keys are hidden in them
+                              (default: false, env: CURRENTS_DEBUG)
+  -h, --help                  display help for command
 "
 `;
 
 exports[`command surface of the built CLI > prints the help of ci auth get-oidc-token 1`] = `
 "Usage: currents ci auth get-oidc-token [options]
 
-Print the OIDC token of the CI job for an API token (--for api) or a record key
-(--for record), without exchanging it. On any CI, GitHub Actions included, it
-prints CURRENTS_OIDC_API_TOKEN or CURRENTS_OIDC_TOKEN as it is when that
-variable is set. Without it, the CLI requests a token with the audience of the
-kind from the provider of --oidc-provider, or else from GitHub Actions. The
-audience options do not change a token from those variables: the job requests it
-with the audience it needs.
+Request an OIDC token from the provider of --oidc-provider, with the audience of
+an API token (--for api) or a record key (--for record), and print it without
+exchanging it. It does not read CURRENTS_OIDC_TOKEN: to exchange a token you
+hold, use 'exchange'.
 
 Options:
-  --for <kind>                    the audience: for an API token or a record key
-                                  (choices: "api", "record")
-  --oidc-api-audience <audience>  the audience of the OIDC token for an API
-                                  token; the default is currents:api. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_API_AUDIENCE)
-  --oidc-audience <audience>      the audience of the OIDC token of the CI job;
-                                  the default is currents:record-key. A Currents
-                                  staging or on-prem install has its own (env:
-                                  CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github (GitHub Actions with id-token:
-                                  write) or google (the Google Cloud metadata
-                                  server of a VM, or of a GKE pod with Workload
-                                  Identity). Without it, the CLI finds GitHub
-                                  Actions by itself. A token in --oidc-token or
-                                  CURRENTS_OIDC_TOKEN for a record key, or in
-                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices: "github",
-                                  "google", env: CURRENTS_OIDC_PROVIDER)
-  --debug                         print debug logs; keys are hidden in them
-                                  (default: false, env: CURRENTS_DEBUG)
-  -h, --help                      display help for command
+  --oidc-provider <provider>  the CI provider that issues the OIDC token:
+                              github-actions (needs \`permissions: id-token:
+                              write\`), google-cloud (the metadata server of a
+                              VM, or of a GKE pod with Workload Identity),
+                              circleci (runs \`circleci run oidc get\`) or
+                              buildkite (runs \`buildkite-agent oidc
+                              request-token\`) (choices: "github-actions",
+                              "google-cloud", "circleci", "buildkite", env:
+                              CURRENTS_OIDC_PROVIDER)
+  --for <kind>                the audience: for an API token or a record key
+                              (choices: "api", "record")
+  --audience <audience>       the audience of the OIDC token; the default is
+                              CURRENTS_OIDC_API_AUDIENCE or currents:api for an
+                              API token, CURRENTS_OIDC_AUDIENCE or
+                              currents:record-key for a record key. A Currents
+                              staging or on-prem install has its own
+  --debug                     print debug logs; keys are hidden in them
+                              (default: false, env: CURRENTS_DEBUG)
+  -h, --help                  display help for command
 "
 `;
 
 exports[`command surface of the built CLI > prints the help of ci auth get-record-key 1`] = `
 "Usage: currents ci auth get-record-key [options]
 
-Get the OIDC token of the CI job (GitHub Actions with id-token: write, Google
-Cloud with --oidc-provider google, or CURRENTS_OIDC_TOKEN on any CI), exchange
-it and print the record key. It stays valid until it expires or 'ci auth revoke'
+Get the OIDC token of the CI job from the provider of --oidc-provider, exchange
+it and print the record key: 'get-oidc-token --for record' and 'exchange --for
+record' in one command. It stays valid until it expires or 'ci auth revoke'
 revokes it.
 
 Options:
+  --oidc-provider <provider>  the CI provider that issues the OIDC token:
+                              github-actions (needs \`permissions: id-token:
+                              write\`), google-cloud (the metadata server of a
+                              VM, or of a GKE pod with Workload Identity),
+                              circleci (runs \`circleci run oidc get\`) or
+                              buildkite (runs \`buildkite-agent oidc
+                              request-token\`) (choices: "github-actions",
+                              "google-cloud", "circleci", "buildkite", env:
+                              CURRENTS_OIDC_PROVIDER)
+  --audience <audience>       the audience of the OIDC token; the default is
+                              CURRENTS_OIDC_API_AUDIENCE or currents:api for an
+                              API token, CURRENTS_OIDC_AUDIENCE or
+                              currents:record-key for a record key. A Currents
+                              staging or on-prem install has its own
   -p, --project-id <id>       the project ID from the Currents dashboard
                               (required) (env: CURRENTS_PROJECT_ID)
-  --oidc-audience <audience>  the audience of the OIDC token of the CI job; the
-                              default is currents:record-key. A Currents staging
-                              or on-prem install has its own (env:
-                              CURRENTS_OIDC_AUDIENCE)
-  --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github (GitHub Actions with id-token: write) or
-                              google (the Google Cloud metadata server of a VM,
-                              or of a GKE pod with Workload Identity). Without
-                              it, the CLI finds GitHub Actions by itself. A
-                              token in --oidc-token or CURRENTS_OIDC_TOKEN for a
-                              record key, or in CURRENTS_OIDC_API_TOKEN for an
-                              API token, is used before the provider (choices:
-                              "github", "google", env: CURRENTS_OIDC_PROVIDER)
   --json                      print {"token", "expires_at"} as JSON, with
                               "scopes" for an API token
   --debug                     print debug logs; keys are hidden in them
@@ -551,9 +564,10 @@ Options:
 exports[`command surface of the built CLI > prints the help of ci auth revoke 1`] = `
 "Usage: currents ci auth revoke [options]
 
-Revoke the credential from stdin, or the OIDC credentials in CURRENTS_API_KEY
-and CURRENTS_RECORD_KEY. The prefix tells an API token (crnts_ciapi_) from a
-record key (crnts_ci_); other keys are not revoked.
+Revoke the credential from stdin (--stdin), or else the OIDC credentials in
+CURRENTS_API_KEY and CURRENTS_RECORD_KEY. The prefix tells an API token
+(crnts_ciapi_) from a record key (crnts_ci_); other keys are not revoked. Every
+credential is tried; the command fails if one was not revoked.
 
 Options:
   --stdin     read the credential from stdin
@@ -568,9 +582,9 @@ exports[`command surface of the built CLI > prints the help of ci auth status 1`
 
 Say which credential API requests and recording would use, the project, and the
 OIDC audiences. It names the flags and variables, not their values, and
-requests, exchanges or checks no token. With --oidc-provider google, it asks the
-Google Cloud metadata server for the email of its service account, to say
-whether the server answers.
+requests, exchanges or checks no token. With --oidc-provider google-cloud, it
+asks the Google Cloud metadata server for the email of its service account, to
+say whether the server answers.
 
 Options:
   --api-key <api-key>             an API key from the Currents dashboard (its
@@ -589,15 +603,17 @@ Options:
                                   staging or on-prem install has its own (env:
                                   CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github (GitHub Actions with id-token:
-                                  write) or google (the Google Cloud metadata
-                                  server of a VM, or of a GKE pod with Workload
-                                  Identity). Without it, the CLI finds GitHub
+                                  job: github-actions (GitHub Actions with
+                                  id-token: write), google-cloud (the Google
+                                  Cloud metadata server of a VM, or of a GKE pod
+                                  with Workload Identity), circleci or
+                                  buildkite. Without it, the CLI finds GitHub
                                   Actions by itself. A token in --oidc-token or
                                   CURRENTS_OIDC_TOKEN for a record key, or in
                                   CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices: "github",
-                                  "google", env: CURRENTS_OIDC_PROVIDER)
+                                  used before the provider (choices:
+                                  "github-actions", "google-cloud", "circleci",
+                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
   --debug                         print debug logs; keys are hidden in them
                                   (default: false, env: CURRENTS_DEBUG)
   -h, --help                      display help for command
@@ -741,14 +757,16 @@ Options:
                               or on-prem install has its own (env:
                               CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github (GitHub Actions with id-token: write) or
-                              google (the Google Cloud metadata server of a VM,
-                              or of a GKE pod with Workload Identity). Without
-                              it, the CLI finds GitHub Actions by itself. A
-                              token in --oidc-token or CURRENTS_OIDC_TOKEN for a
-                              record key, or in CURRENTS_OIDC_API_TOKEN for an
-                              API token, is used before the provider (choices:
-                              "github", "google", env: CURRENTS_OIDC_PROVIDER)
+                              github-actions (GitHub Actions with id-token:
+                              write), google-cloud (the Google Cloud metadata
+                              server of a VM, or of a GKE pod with Workload
+                              Identity), circleci or buildkite. Without it, the
+                              CLI finds GitHub Actions by itself. A token in
+                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
+                              key, or in CURRENTS_OIDC_API_TOKEN for an API
+                              token, is used before the provider (choices:
+                              "github-actions", "google-cloud", "circleci",
+                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
   --api-key <api-key>         an API key from the Currents dashboard (used when
                               --key is not set; needs write access) (env:
                               CURRENTS_API_KEY)
@@ -809,8 +827,8 @@ Options:
   -k, --key <record-key>      the record key from the Currents dashboard
                               (required unless the CI job has an OIDC token:
                               id-token: write on GitHub Actions, --oidc-provider
-                              google on Google Cloud, or --oidc-token with the
-                              audience currents:record-key) (env:
+                              google-cloud on Google Cloud, or --oidc-token with
+                              the audience currents:record-key) (env:
                               CURRENTS_RECORD_KEY)
   --oidc-token <token>        an OIDC token of the CI job, to get a record key
                               without a stored secret; its audience is
@@ -824,14 +842,16 @@ Options:
                               or on-prem install has its own (env:
                               CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>  where the CLI gets the OIDC token of the CI job:
-                              github (GitHub Actions with id-token: write) or
-                              google (the Google Cloud metadata server of a VM,
-                              or of a GKE pod with Workload Identity). Without
-                              it, the CLI finds GitHub Actions by itself. A
-                              token in --oidc-token or CURRENTS_OIDC_TOKEN for a
-                              record key, or in CURRENTS_OIDC_API_TOKEN for an
-                              API token, is used before the provider (choices:
-                              "github", "google", env: CURRENTS_OIDC_PROVIDER)
+                              github-actions (GitHub Actions with id-token:
+                              write), google-cloud (the Google Cloud metadata
+                              server of a VM, or of a GKE pod with Workload
+                              Identity), circleci or buildkite. Without it, the
+                              CLI finds GitHub Actions by itself. A token in
+                              --oidc-token or CURRENTS_OIDC_TOKEN for a record
+                              key, or in CURRENTS_OIDC_API_TOKEN for an API
+                              token, is used before the provider (choices:
+                              "github-actions", "google-cloud", "circleci",
+                              "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -p, --project-id <id>       the project ID from the Currents dashboard
                               (required) (env: CURRENTS_PROJECT_ID)
   --ci-build-id <id>          the CI build ID the run was recorded with
@@ -872,8 +892,8 @@ Options:
   --api-key <api-key>             an API key from the Currents dashboard
                                   (required unless the CI job has an OIDC token:
                                   id-token: write on GitHub Actions,
-                                  --oidc-provider google on Google Cloud, or
-                                  CURRENTS_OIDC_API_TOKEN with the audience
+                                  --oidc-provider google-cloud on Google Cloud,
+                                  or CURRENTS_OIDC_API_TOKEN with the audience
                                   currents:api) (env: CURRENTS_API_KEY)
   --debug                         print debug logs; keys are hidden in them
                                   (default: false, env: CURRENTS_DEBUG)
@@ -888,15 +908,17 @@ Options:
                                   staging or on-prem install has its own (env:
                                   CURRENTS_OIDC_API_AUDIENCE)
   --oidc-provider <provider>      where the CLI gets the OIDC token of the CI
-                                  job: github (GitHub Actions with id-token:
-                                  write) or google (the Google Cloud metadata
-                                  server of a VM, or of a GKE pod with Workload
-                                  Identity). Without it, the CLI finds GitHub
+                                  job: github-actions (GitHub Actions with
+                                  id-token: write), google-cloud (the Google
+                                  Cloud metadata server of a VM, or of a GKE pod
+                                  with Workload Identity), circleci or
+                                  buildkite. Without it, the CLI finds GitHub
                                   Actions by itself. A token in --oidc-token or
                                   CURRENTS_OIDC_TOKEN for a record key, or in
                                   CURRENTS_OIDC_API_TOKEN for an API token, is
-                                  used before the provider (choices: "github",
-                                  "google", env: CURRENTS_OIDC_PROVIDER)
+                                  used before the provider (choices:
+                                  "github-actions", "google-cloud", "circleci",
+                                  "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -b, --branch <branch>           find the last run of this git branch
   -t, --tag <tag>                 find the last run with these tags;
                                   comma-separated or repeated
@@ -990,8 +1012,8 @@ Options:
   -k, --key <record-key>         the record key from the Currents dashboard
                                  (required unless the CI job has an OIDC token:
                                  id-token: write on GitHub Actions,
-                                 --oidc-provider google on Google Cloud, or
-                                 --oidc-token with the audience
+                                 --oidc-provider google-cloud on Google Cloud,
+                                 or --oidc-token with the audience
                                  currents:record-key) (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>           an OIDC token of the CI job, to get a record
                                  key without a stored secret; its audience is
@@ -1005,15 +1027,17 @@ Options:
                                  staging or on-prem install has its own (env:
                                  CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>     where the CLI gets the OIDC token of the CI
-                                 job: github (GitHub Actions with id-token:
-                                 write) or google (the Google Cloud metadata
-                                 server of a VM, or of a GKE pod with Workload
-                                 Identity). Without it, the CLI finds GitHub
-                                 Actions by itself. A token in --oidc-token or
+                                 job: github-actions (GitHub Actions with
+                                 id-token: write), google-cloud (the Google
+                                 Cloud metadata server of a VM, or of a GKE pod
+                                 with Workload Identity), circleci or buildkite.
+                                 Without it, the CLI finds GitHub Actions by
+                                 itself. A token in --oidc-token or
                                  CURRENTS_OIDC_TOKEN for a record key, or in
                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                 used before the provider (choices: "github",
-                                 "google", env: CURRENTS_OIDC_PROVIDER)
+                                 used before the provider (choices:
+                                 "github-actions", "google-cloud", "circleci",
+                                 "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or
@@ -1130,8 +1154,8 @@ Options:
   -k, --key <record-key>         the record key from the Currents dashboard
                                  (required unless the CI job has an OIDC token:
                                  id-token: write on GitHub Actions,
-                                 --oidc-provider google on Google Cloud, or
-                                 --oidc-token with the audience
+                                 --oidc-provider google-cloud on Google Cloud,
+                                 or --oidc-token with the audience
                                  currents:record-key) (env: CURRENTS_RECORD_KEY)
   --oidc-token <token>           an OIDC token of the CI job, to get a record
                                  key without a stored secret; its audience is
@@ -1145,15 +1169,17 @@ Options:
                                  staging or on-prem install has its own (env:
                                  CURRENTS_OIDC_AUDIENCE)
   --oidc-provider <provider>     where the CLI gets the OIDC token of the CI
-                                 job: github (GitHub Actions with id-token:
-                                 write) or google (the Google Cloud metadata
-                                 server of a VM, or of a GKE pod with Workload
-                                 Identity). Without it, the CLI finds GitHub
-                                 Actions by itself. A token in --oidc-token or
+                                 job: github-actions (GitHub Actions with
+                                 id-token: write), google-cloud (the Google
+                                 Cloud metadata server of a VM, or of a GKE pod
+                                 with Workload Identity), circleci or buildkite.
+                                 Without it, the CLI finds GitHub Actions by
+                                 itself. A token in --oidc-token or
                                  CURRENTS_OIDC_TOKEN for a record key, or in
                                  CURRENTS_OIDC_API_TOKEN for an API token, is
-                                 used before the provider (choices: "github",
-                                 "google", env: CURRENTS_OIDC_PROVIDER)
+                                 used before the provider (choices:
+                                 "github-actions", "google-cloud", "circleci",
+                                 "buildkite", env: CURRENTS_OIDC_PROVIDER)
   -p, --project-id <id>          the project ID from the Currents dashboard
                                  (required) (env: CURRENTS_PROJECT_ID)
   -t, --tag <tag>                tags to add to the run; comma-separated or

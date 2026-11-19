@@ -28,7 +28,7 @@ import {
 const COMMAND_NAME = 'get';
 const PARENT_NAME = 'run';
 const API_KEY_NOTE =
-  '(required unless the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google on Google Cloud, or CURRENTS_OIDC_API_TOKEN with the audience currents:api)';
+  '(required unless the CI job has an OIDC token: id-token: write on GitHub Actions, --oidc-provider google-cloud on Google Cloud, or CURRENTS_OIDC_API_TOKEN with the audience currents:api)';
 export const getRunGetExamples = (name: string): HelpExample[] => [
   {
     comment: 'Get the data of the run recorded under a CI build ID',

@@ -41,5 +41,5 @@ export const sharedConfigKeys = {
 /** Added to the error for a missing record key. */
 export const getOidcHint = () => {
   const audience = getOidcAudience();
-  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, pass --oidc-provider google on Google Cloud, or on any other CI put a token in --oidc-token or CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`). Staging and on-prem installs use their own audience: set CURRENTS_OIDC_AUDIENCE to its value. https://docs.currents.dev`;
+  return `Without a stored record key, a CI job can use its OIDC token: set \`permissions: id-token: write\` on GitHub Actions, pass --oidc-provider google-cloud on Google Cloud, or on any other CI put a token in --oidc-token or CURRENTS_OIDC_TOKEN with ${audience} as its audience (for GitLab \`id_tokens\`: \`aud: ${audience}\`). Staging and on-prem installs use their own audience: set CURRENTS_OIDC_AUDIENCE to its value. https://docs.currents.dev`;
 };
