@@ -15,7 +15,11 @@ import { getRunAttachExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
 import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
-import { parseFlagsFromEnv, warnOnOverriddenEnv } from '../commands/utils';
+import {
+  hideValuesInErrors,
+  parseFlagsFromEnv,
+  warnOnOverriddenEnv,
+} from '../commands/utils';
 
 const NAME = 'currents';
 export const getProgram = () => {
@@ -93,5 +97,6 @@ Support:       support@currents.dev
       : ''
   );
 
+  hideValuesInErrors(program);
   return program;
 };

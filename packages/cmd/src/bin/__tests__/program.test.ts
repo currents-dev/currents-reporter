@@ -107,13 +107,15 @@ describe('currents program', () => {
   it('refuses a number of days a share link cannot have', async () => {
     expect(await run(['session', 'share', '--expires-in-days', '5'])).toBe(1);
 
-    expect(stderr).toContain("argument '5' is invalid");
+    expect(stderr).toContain(
+      "option '--expires-in-days <days>' argument is invalid. Allowed choices are 1, 3, 7."
+    );
   });
 
   it('fails with the usual error for another unknown option', async () => {
     expect(await run(['--nope'])).toBe(1);
 
-    expect(stderr).toContain("error: unknown option '--nope'");
+    expect(stderr).toContain('error: unknown option (run with --help');
     expect(stderr).not.toContain('upload is no longer the default command');
   });
 

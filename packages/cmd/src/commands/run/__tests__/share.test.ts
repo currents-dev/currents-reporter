@@ -233,7 +233,9 @@ describe('run share with the built CLI', () => {
     const result = await share(['run1', '--expires-in-days', '5']);
 
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain("argument '5' is invalid");
+    expect(result.stderr).toContain(
+      'argument is invalid. Allowed choices are 1, 3, 7.'
+    );
     expect(api.requests).toHaveLength(0);
   });
 });

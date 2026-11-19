@@ -10,9 +10,8 @@ class ExitError extends Error {
 const API_KEY = 'dashboard-api-key';
 
 /**
- * Every command that records: `--api-key` is an option of the commands in
- * `acceptsApiKey`, and only they use CURRENTS_API_KEY where a record key is
- * missing.
+ * The visible commands with `--key`, split by whether they also have
+ * `--api-key`. The tests run only `ci auth status`, not these commands.
  */
 const acceptsApiKey = [
   'run attach',
@@ -22,7 +21,7 @@ const acceptsApiKey = [
 ];
 const ignoresApiKey = ['run upload', 'run cancel', 'cache set', 'cache get'];
 
-describe('ci auth status and the commands that record', () => {
+describe('the key ci auth status names for each recording command', () => {
   let stdout: string;
 
   beforeEach(() => {
@@ -83,19 +82,19 @@ describe('ci auth status and the commands that record', () => {
   }
 
   describe('with CURRENTS_API_KEY and an OIDC token in the environment', () => {
-    it.each(acceptsApiKey)('%s uses the API key', async (name) => {
+    it.each(acceptsApiKey)('%s: CURRENTS_API_KEY', async (name) => {
       expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');
     });
 
-    it.each(ignoresApiKey)('%s has no key', async (name) => {
+    it.each(ignoresApiKey)('%s: none', async (name) => {
       expect(await recordingCredential(name)).toBe('none');
     });
   });
 
-  // The commands send a whitespace-only key as it is.
+  // getAuthHeaders sends a whitespace-only key as it is, so status names it.
   describe('with a whitespace-only key', () => {
     it.each([...acceptsApiKey, ...ignoresApiKey])(
-      '%s uses CURRENTS_RECORD_KEY',
+      '%s: CURRENTS_RECORD_KEY',
       async (name) => {
         vi.stubEnv('CURRENTS_RECORD_KEY', ' ');
 
@@ -103,7 +102,7 @@ describe('ci auth status and the commands that record', () => {
       }
     );
 
-    it.each(acceptsApiKey)('%s uses CURRENTS_API_KEY', async (name) => {
+    it.each(acceptsApiKey)('%s: CURRENTS_API_KEY', async (name) => {
       vi.stubEnv('CURRENTS_API_KEY', ' ');
 
       expect(await recordingCredential(name)).toBe('CURRENTS_API_KEY');

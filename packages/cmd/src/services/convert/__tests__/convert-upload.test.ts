@@ -364,7 +364,9 @@ describe('currents run upload --input-format, with the built CLI', () => {
     const result = await convertAndUpload('mocha', ['vitest.xml']);
 
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain("argument 'mocha' is invalid");
+    expect(result.stderr).toContain(
+      "option '--framework <framework>' argument is invalid."
+    );
     expect(api.requests).toEqual([]);
   });
 });

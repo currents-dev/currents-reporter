@@ -19,7 +19,7 @@ import {
   startApiServer,
 } from '../../test-utils/api-server';
 import { Command } from '@commander-js/extra-typings';
-import { messageWithoutValues } from '../../commands/ci';
+import { messageWithoutValues } from '../../commands/utils';
 import { getProgram } from '../program';
 
 // The retry delays are 3s to 30s.

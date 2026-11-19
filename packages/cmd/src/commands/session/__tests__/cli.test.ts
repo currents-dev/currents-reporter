@@ -259,7 +259,7 @@ describe('session and run attach with the built CLI', () => {
           '--status',
           'broken',
         ],
-        "argument 'broken' is invalid",
+        'argument is invalid. Allowed choices are passed, failed.',
       ],
     ])(
       'exits with 1 and sends nothing with %s',
@@ -445,7 +445,9 @@ describe('session and run attach with the built CLI', () => {
       const result = await share('--expires-in-days', '5');
 
       expect(result.code).toBe(1);
-      expect(result.stderr).toContain("argument '5' is invalid");
+      expect(result.stderr).toContain(
+        'argument is invalid. Allowed choices are 1, 3, 7.'
+      );
     });
 
     it('exits with 1 when there is no session', async () => {

@@ -18,6 +18,7 @@ class ExitError extends Error {
 }
 
 const JWT = 'provider-jwt';
+const SENTINEL = 'sentinel-oidc-token';
 const ANSI = /\x1b\[[0-9;]*m/g;
 
 const RECORD_KEY_ERROR =
@@ -43,6 +44,8 @@ describe('commands other than ci auth with OIDC in the environment', () => {
   // The director, the REST API and GitHub.
   let server: ApiServer;
   let stderr: string;
+  // stdout and stderr.
+  let output: string;
 
   beforeAll(async () => {
     server = await startApiServer((request) =>
@@ -64,6 +67,7 @@ describe('commands other than ci auth with OIDC in the environment', () => {
   beforeEach(() => {
     server.requests.length = 0;
     stderr = '';
+    output = '';
     for (const name of [
       'CURRENTS_API_KEY',
       'CURRENTS_RECORD_KEY',
@@ -79,14 +83,19 @@ describe('commands other than ci auth with OIDC in the environment', () => {
     vi.stubEnv('CURRENTS_OIDC_TOKEN', JWT);
     vi.stubEnv('CURRENTS_OIDC_API_TOKEN', JWT);
     vi.stubEnv('CURRENTS_OIDC_PROVIDER', 'github-actions');
-    vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    vi.spyOn(process.stdout, 'write').mockImplementation((chunk) => {
+      output += String(chunk);
+      return true;
+    });
     vi.spyOn(process.stderr, 'write').mockImplementation((chunk) => {
       stderr += String(chunk);
+      output += String(chunk);
       return true;
     });
     for (const method of ['log', 'error', 'warn'] as const) {
       vi.spyOn(console, method).mockImplementation((...args) => {
         stderr += `${args.join(' ')}\n`;
+        output += `${args.join(' ')}\n`;
       });
     }
     vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
@@ -120,12 +129,16 @@ describe('commands other than ci auth with OIDC in the environment', () => {
     }
   );
 
-  // A command that allows unknown options takes the flag and its value as
-  // arguments it does not expect.
-  it.each(commands)('%j has no --oidc-token option', async (args) => {
-    expect(await run([...args, '--oidc-token', JWT])).toBe(1);
+  // A job written for an older CLI can still pass the token in the flag.
+  it.each(
+    [[] as string[], ...commands.map(([args]) => args)].flatMap((args) => [
+      [[...args, `--oidc-token=${SENTINEL}`]],
+      [[...args, '--oidc-token', SENTINEL]],
+    ])
+  )('%j fails without printing the token', async (args) => {
+    expect(await run(args)).toBe(1);
 
-    expect(stderr).toMatch(/unknown option '--oidc-token'|too many arguments/);
+    expect(output).not.toContain(SENTINEL);
     expect(server.requests).toEqual([]);
   });
 

@@ -1,8 +1,4 @@
-import {
-  Command,
-  CommandUnknownOpts,
-  Option,
-} from '@commander-js/extra-typings';
+import { Command, Option } from '@commander-js/extra-typings';
 import {
   CiAuthOptions,
   CredentialFor,
@@ -23,39 +19,6 @@ import {
 import { commandHandler, printLogsToStderr } from '../utils';
 
 const PARENT_NAME = 'ci auth';
-
-/**
- * Commander repeats the value of a rejected option, choice or command in its
- * error, which a CI log keeps: a token passed by mistake, such as
- * `--oidc-token=<jwt>`, would be printed before any GitHub mask. The message
- * is rebuilt from the error code and the command's own options. Nothing is
- * cut out of the text: an unknown option name can be the token itself, and a
- * value can hold any character.
- */
-export function messageWithoutValues(
-  command: CommandUnknownOpts,
-  message: string,
-  code?: string
-) {
-  switch (code) {
-    case 'commander.unknownOption':
-      return 'error: unknown option (run with --help to see the options)';
-    case 'commander.invalidArgument': {
-      const option = command.options.find((o) =>
-        message.startsWith(`error: option '${o.flags}' argument `)
-      );
-      if (!option) return 'error: an option argument is invalid';
-      const choices = option.argChoices
-        ? ` Allowed choices are ${option.argChoices.join(', ')}.`
-        : '';
-      return `error: option '${option.flags}' argument is invalid.${choices}`;
-    }
-    case 'commander.unknownCommand':
-      return 'error: unknown command';
-    default:
-      return message;
-  }
-}
 
 const forOption = (description: string) =>
   new Option('--for <kind>', description).choices(['api', 'record'] as const);
@@ -233,10 +196,5 @@ export const getCiCommand = (name: string) => {
     .summary('Commands for CI jobs')
     .helpCommand(false)
     .addCommand(auth);
-  for (const command of [ci, auth, ...auth.commands] as CommandUnknownOpts[]) {
-    const error = command.error.bind(command);
-    command.error = (message, options) =>
-      error(messageWithoutValues(command, message, options?.code), options);
-  }
   return ci;
 };

@@ -79,6 +79,49 @@ export function warnOnOverriddenEnv(command: CommandUnknownOpts) {
 }
 
 /**
+ * Commander repeats the value of a rejected option, choice or command in its
+ * error, which a CI log keeps: a token passed by mistake, such as
+ * `--oidc-token=<jwt>` from a job written for an older CLI, would be printed
+ * before any GitHub mask. The message is rebuilt from the error code and the
+ * command's own options. Nothing is cut out of the text: an unknown option
+ * name can be the token itself, and a value can hold any character.
+ */
+export function messageWithoutValues(
+  command: CommandUnknownOpts,
+  message: string,
+  code?: string
+) {
+  switch (code) {
+    case 'commander.unknownOption':
+      return 'error: unknown option (run with --help to see the options)';
+    case 'commander.invalidArgument': {
+      const option = command.options.find((o) =>
+        message.startsWith(`error: option '${o.flags}' argument `)
+      );
+      if (!option) return 'error: an option argument is invalid';
+      // Commander writes "argument '<value>' is invalid. <reason>". The
+      // reasons of the choices and of the CLI's parsers do not hold the value,
+      // so the text after the last "is invalid." is the reason.
+      const marker = "' is invalid.";
+      const reason = message.slice(message.lastIndexOf(marker) + marker.length);
+      return `error: option '${option.flags}' argument is invalid.${reason}`;
+    }
+    case 'commander.unknownCommand':
+      return 'error: unknown command';
+    default:
+      return message;
+  }
+}
+
+/** Applies messageWithoutValues to the command and every command under it. */
+export function hideValuesInErrors(command: CommandUnknownOpts) {
+  const error = command.error.bind(command);
+  command.error = (message, options) =>
+    error(messageWithoutValues(command, message, options?.code), options);
+  command.commands.forEach(hideValuesInErrors);
+}
+
+/**
  * The logger prints to stdout. A command that prints JSON on stdout calls this
  * first, so that warnings such as a retried request go to stderr and the JSON
  * can be piped.
