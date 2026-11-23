@@ -65,3 +65,17 @@ it('removes credentials from the URLs in the CI params', () => {
     ciProjectUrl: 'https://gitlab.com/org/repo',
   });
 });
+
+it('extracts the GitLab job retry count and matrix information', () => {
+  vi.stubEnv('GITHUB_ACTIONS', '');
+  vi.stubEnv('GITLAB_CI', 'true');
+  vi.stubEnv('CI_JOB_RETRY_COUNT', '1');
+  vi.stubEnv('CI_NODE_INDEX', '2');
+  vi.stubEnv('CI_NODE_TOTAL', '4');
+
+  expect(getCI(undefined).params).toMatchObject({
+    ciJobRetryCount: '1',
+    ciNodeIndex: '2',
+    ciNodeTotal: '4',
+  });
+});
