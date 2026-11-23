@@ -491,6 +491,7 @@ const _providerCiParams = (): ProviderCiParamsRes => {
       'CI_JOB_ID',
       'CI_JOB_URL',
       'CI_JOB_NAME',
+      'CI_JOB_RETRY_COUNT', // GitLab 19.3+
       // matrix information
       'CI_NODE_INDEX',
       'CI_NODE_TOTAL',
