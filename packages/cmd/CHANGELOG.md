@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.4.0...%40currents%2Fcmd-v3.5.0) (2026-11-24)
+
+On GitLab, `currents` sends the job's `CI_JOB_RETRY_COUNT` with the run, so Currents can tell a retried job from its first run. GitLab sets the variable from version 19.3; on older versions nothing changes. `semver` is updated to 7.8.6.
+
+### Features
+
+* **cmd:** send CI_JOB_RETRY_COUNT from GitLab jobs [ENG-2353] ([#530](https://github.com/currents-dev/currents-reporter/issues/530)) ([65f87f3](https://github.com/currents-dev/currents-reporter/commit/65f87f3394a1e714991f2a4872b5eb974975d19e))
+
 ## [3.4.0](https://github.com/currents-dev/currents-reporter/compare/%40currents%2Fcmd-v3.3.0...%40currents%2Fcmd-v3.4.0) (2026-11-19)
 
 `currents ci auth exchange`, `get-record-key` and `get-api-token` name the trust policy by its ID, for API tokens and record keys. Copy the ID from the policy details in the Currents dashboard, and pass it with `--oidc-policy-id` or `CURRENTS_OIDC_POLICY_ID`. The commands send it to the exchange instead of the project ID and fail without it; `--project-id` is no longer an option of these commands. `ci auth status` shows the policy ID and where it came from.
