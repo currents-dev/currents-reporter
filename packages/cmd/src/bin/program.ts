@@ -15,6 +15,7 @@ import { getRunAttachExamples, getRunFilesCommand } from '../commands/run';
 import { getSessionCommand, getSessionExamples } from '../commands/session';
 import { getSkillCommand } from '../commands/skill';
 import { getUploadCommand, getUploadExamples } from '../commands/upload';
+import { getWatchCommand } from '../commands/watch';
 import {
   hideValuesInErrors,
   parseFlagsFromEnv,
@@ -42,6 +43,7 @@ export const getProgram = () => {
     .addCommand(getCancelCommand(NAME, { deprecated: true }), { hidden: true })
     .commandsGroup('Test runs:')
     .addCommand(getRunFilesCommand(NAME))
+    .addCommand(getWatchCommand(), { hidden: true })
     .commandsGroup('Evidence:')
     .addCommand(getSessionCommand(NAME))
     .commandsGroup('CI utilities:')
