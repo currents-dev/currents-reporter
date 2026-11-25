@@ -62,11 +62,10 @@ describe('getRunWrapped', () => {
       ],
     });
     vi.mocked(graphqlQuery).mockResolvedValue({ testRecordList: list });
-    const card = await getRunWrapped('key', 'run1');
+    const card = await getRunWrapped('key', 'run1', { requireEnded: true });
     expect(getAttemptSteps).toHaveBeenCalledTimes(3);
     expect(card.facts.steps?.total).toBe(3);
     expect(card.stepsNote).toBeUndefined();
-    expect(card.ended).toBe(true);
     expect(card.runUrl).toBe('https://app-staging.currents.dev/run/run1');
   });
 
@@ -74,7 +73,7 @@ describe('getRunWrapped', () => {
     vi.mocked(graphqlQuery).mockResolvedValue({
       testRecordList: records(MAX_STEP_READS + 1),
     });
-    const card = await getRunWrapped('key', 'run1');
+    const card = await getRunWrapped('key', 'run1', { requireEnded: true });
     expect(getAttemptSteps).not.toHaveBeenCalled();
     expect(card.facts.steps).toBeUndefined();
     expect(card.stepsNote).toBe('Steps not read: 201 attempts, more than 200');
@@ -83,15 +82,24 @@ describe('getRunWrapped', () => {
   it('leaves the step facts out when a read fails', async () => {
     vi.mocked(graphqlQuery).mockResolvedValue({ testRecordList: records(3) });
     vi.mocked(getAttemptSteps).mockRejectedValueOnce(new Error('boom'));
-    const card = await getRunWrapped('key', 'run1');
+    const card = await getRunWrapped('key', 'run1', { requireEnded: true });
     expect(card.facts.steps).toBeUndefined();
     expect(card.stepsNote).toBe('Steps not read: the request failed');
   });
 
-  it('reports a run in progress', async () => {
+  it('stops before reading records of a run in progress when it must have ended', async () => {
     request.mockResolvedValue(restRun('IN_PROGRESS'));
-    vi.mocked(graphqlQuery).mockResolvedValue({ testRecordList: [] });
-    expect((await getRunWrapped('key', 'run1')).ended).toBe(false);
+    await expect(
+      getRunWrapped('key', 'run1', { requireEnded: true })
+    ).rejects.toThrow('Run run1 has not ended');
+    expect(graphqlQuery).not.toHaveBeenCalled();
+  });
+
+  it('shows the tests that finished so far of a run in progress', async () => {
+    request.mockResolvedValue(restRun('IN_PROGRESS'));
+    vi.mocked(graphqlQuery).mockResolvedValue({ testRecordList: records(2) });
+    const card = await getRunWrapped('key', 'run1', { requireEnded: false });
+    expect(card.facts.tests.total).toBe(2);
   });
 });
 
@@ -103,6 +111,7 @@ describe('dashboardRunUrl', () => {
       'https://app-staging.currents.dev/run/r1',
     ],
     ['https://currents.example.com', undefined],
+    ['https://apiary.example.com', undefined],
   ])('%s gives %s', (rest, url) => {
     vi.stubEnv('CURRENTS_REST_API_URL', rest);
     expect(dashboardRunUrl('r1')).toBe(url);

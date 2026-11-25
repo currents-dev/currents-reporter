@@ -40,7 +40,7 @@ export type RunFacts = {
   };
   busiestWorker?: {
     name: string;
-    attempts: number;
+    tests: number;
     timeMs: number;
     /** Of the time of all tests, from 0 to 1. */
     share: number;
@@ -52,7 +52,10 @@ export type RunFacts = {
   /** Undefined when the steps were not read. */
   steps?: {
     total: number;
-    /** Leaves out setup steps (hooks and fixtures) and the steps inside them. */
+    /**
+     * Leaves out setup steps (hooks and fixtures) and the steps inside them.
+     * `runs` counts the steps with the same title.
+     */
     slowest?: { title: string; durationMs: number; runs: number };
   };
 };
@@ -124,7 +127,7 @@ function parallelFacts(
   const machines = new Set(ran.map(({ record }) => record.machineId));
   const workers = new Map<
     string,
-    { name: string; attempts: number; timeMs: number }
+    { name: string; tests: Set<string>; timeMs: number }
   >();
   let testTimeMs = 0;
   for (const { record, attempt } of ran) {
@@ -135,10 +138,10 @@ function parallelFacts(
         machines.size > 1
           ? `Worker ${attempt.parallelIndex} on machine ${record.machineId}`
           : `Worker ${attempt.parallelIndex}`,
-      attempts: 0,
+      tests: new Set<string>(),
       timeMs: 0,
     };
-    worker.attempts += 1;
+    worker.tests.add(record.recordId);
     worker.timeMs += attempt.duration;
     workers.set(key, worker);
   }
@@ -151,7 +154,12 @@ function parallelFacts(
       wallMs,
       savedMs: testTimeMs - wallMs,
     },
-    busiestWorker: { ...busiest, share: busiest.timeMs / testTimeMs },
+    busiestWorker: {
+      name: busiest.name,
+      tests: busiest.tests.size,
+      timeMs: busiest.timeMs,
+      share: busiest.timeMs / testTimeMs,
+    },
   };
 }
 
@@ -204,17 +212,13 @@ function stepFacts(attemptSteps: AttemptStep[][]): RunFacts['steps'] {
   let total = 0;
   const runs = new Map<string, number>();
   let slowest: AttemptStep | undefined;
-  const key = (step: AttemptStep) =>
-    step.location
-      ? `${step.title}@${step.location.file}:${step.location.line}`
-      : step.title;
 
   const walk = (steps: AttemptStep[], setup: boolean) => {
     for (const step of steps) {
       total += 1;
       const inSetup = setup || SETUP_CATEGORIES.has(step.category ?? '');
       if (!inSetup) {
-        runs.set(key(step), (runs.get(key(step)) ?? 0) + 1);
+        runs.set(step.title, (runs.get(step.title) ?? 0) + 1);
         if (!slowest || step.duration > slowest.duration) slowest = step;
       }
       walk(step.steps, inSetup);
@@ -227,7 +231,7 @@ function stepFacts(attemptSteps: AttemptStep[][]): RunFacts['steps'] {
     slowest: slowest && {
       title: slowest.title,
       durationMs: slowest.duration,
-      runs: runs.get(key(slowest)) ?? 1,
+      runs: runs.get(slowest.title) ?? 1,
     },
   };
 }

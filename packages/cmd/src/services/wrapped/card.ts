@@ -53,11 +53,11 @@ export function cardRows({ facts, runUrl, stepsNote }: CardInput): CardRow[] {
     );
   }
   if (facts.busiestWorker) {
-    const { name, attempts, timeMs, share } = facts.busiestWorker;
+    const { name, tests, timeMs, share } = facts.busiestWorker;
     fact(
       'Hardest-working worker',
       `${name}: ${formatShare(share)} of all test time`,
-      `${plural(attempts, 'test')} in ${formatDuration(timeMs)}`
+      `${plural(tests, 'test')} in ${formatDuration(timeMs)}`
     );
   }
   if (facts.longestTest) {
@@ -87,7 +87,7 @@ export function cardRows({ facts, runUrl, stepsNote }: CardInput): CardRow[] {
     fact(
       'Slowest step',
       title,
-      `${formatDuration(durationMs)}, and it ran ${plural(runs, 'time')}`
+      `${formatDuration(durationMs)}. Steps with this title ran ${plural(runs, 'time')}`
     );
   }
   if (facts.steps) {

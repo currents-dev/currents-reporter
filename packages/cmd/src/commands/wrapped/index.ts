@@ -59,13 +59,7 @@ export async function printRunWrapped(
   runId: string,
   { svgPath, requireEnded }: { svgPath?: string; requireEnded: boolean }
 ) {
-  const { ended, ...card } = await getRunWrapped(apiKey, runId);
-  if (requireEnded && !ended) {
-    throw new Error(
-      `Run ${runId} has not ended: run \`currents watch ${runId} --wrapped\` to see the card when it ends`
-    );
-  }
-  const rows = cardRows(card);
+  const rows = cardRows(await getRunWrapped(apiKey, runId, { requireEnded }));
   await writeStdout(`${renderCard(rows).join('\n')}\n`);
   if (svgPath) {
     await fs.writeFile(svgPath, renderCardSvg(rows));

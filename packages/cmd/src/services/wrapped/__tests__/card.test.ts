@@ -17,7 +17,7 @@ const facts: RunFacts = {
   },
   busiestWorker: {
     name: 'Worker 20',
-    attempts: 5,
+    tests: 5,
     timeMs: 156_000,
     share: 0.039,
   },
@@ -30,7 +30,7 @@ const facts: RunFacts = {
   firstFailure: { title: 'billing <scenario> #4', afterMs: 25_700 },
   steps: {
     total: 2119,
-    slowest: { title: 'run the scenario', durationMs: 14_841, runs: 12 },
+    slowest: { title: 'run the scenario', durationMs: 14_841, runs: 124 },
   },
 };
 
@@ -70,7 +70,7 @@ describe('the card', () => {
       'Failed 25.7 s into the run',
       'Slowest step',
       'run the scenario',
-      '14.8 s, and it ran 12 times',
+      '14.8 s. Steps with this title ran 124 times',
       'Steps',
       '2,119 steps ran',
       'https://app.currents.dev/run/r1',

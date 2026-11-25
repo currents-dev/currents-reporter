@@ -837,6 +837,289 @@ exports[`currents run upload --input-format, with the built CLI > postman > send
 ]
 `;
 
+exports[`currents run upload --input-format, with the built CLI > postman > sends the converted results to the API 2`] = `
+[
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "failOnFailures": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "postman",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [
+        {
+          "name": "Shop API",
+          "tags": [],
+          "tests": [
+            {
+              "spec": "List products",
+              "tags": [],
+              "testId": "346eaec1ecfde6a1",
+              "title": [
+                "List products",
+                "Status code is 200",
+              ],
+            },
+            {
+              "spec": "List products",
+              "tags": [],
+              "testId": "30fd3532fd0253f1",
+              "title": [
+                "List products",
+                "Response has items",
+              ],
+            },
+            {
+              "spec": "Create order",
+              "tags": [],
+              "testId": "dfc775a3c25a91a0",
+              "title": [
+                "Create order",
+                "Status code is 201",
+              ],
+            },
+          ],
+        },
+      ],
+      "group": "Shop API",
+      "instances": [],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+  {
+    "body": {
+      "ci": {
+        "ciBuildId": {
+          "source": "user",
+          "value": "build",
+        },
+        "params": {},
+        "provider": null,
+      },
+      "ciBuildId": "build",
+      "commit": "<commit>",
+      "config": {
+        "currents": {
+          "ciBuildId": "build",
+          "debug": false,
+          "disableTitleTags": false,
+          "failOnFailures": false,
+          "projectId": "project",
+          "recordKey": "record-key",
+          "removeTitleTags": false,
+          "reportDir": "<report dir>",
+        },
+      },
+      "framework": {
+        "clientVersion": "<version>",
+        "frameworkConfig": {
+          "originFramework": "postman",
+        },
+        "type": "junit",
+        "version": null,
+      },
+      "fullTestSuite": [],
+      "group": "Shop API",
+      "instances": [
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "Shop API",
+          "results": {
+            "stats": {
+              "failures": 1,
+              "flaky": 0,
+              "passes": 0,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 1,
+              "wallClockDuration": 800,
+              "wallClockEndedAt": "2025-01-11T09:30:01.800Z",
+              "wallClockStartedAt": "2025-01-11T09:30:01.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736587801000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "failed",
+                    "attempt": 0,
+                    "duration": 800,
+                    "error": {
+                      "message": "expected response to have status code 201 but got 500",
+                      "stack": "expected response to have status code 201 but got 500",
+                      "value": "AssertionFailure",
+                    },
+                    "errors": [
+                      {
+                        "message": "expected response to have status code 201 but got 500",
+                        "stack": "expected response to have status code 201 but got 500",
+                        "value": "AssertionFailure",
+                      },
+                    ],
+                    "startTime": "2025-01-11T09:30:01.800Z",
+                    "status": "failed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 1,
+                "state": "failed",
+                "testId": "dfc775a3c25a91a0",
+                "timeout": 0,
+                "title": [
+                  "Create order",
+                  "Status code is 201",
+                ],
+              },
+            ],
+          },
+          "spec": "Create order",
+          "startTime": "2025-01-11T09:30:01.000Z",
+        },
+        {
+          "_stdout": "",
+          "artifacts": [],
+          "groupId": "Shop API",
+          "results": {
+            "stats": {
+              "failures": 0,
+              "flaky": 0,
+              "passes": 2,
+              "pending": 0,
+              "skipped": 0,
+              "suites": 1,
+              "tests": 2,
+              "wallClockDuration": 400,
+              "wallClockEndedAt": "2025-01-11T09:30:00.400Z",
+              "wallClockStartedAt": "2025-01-11T09:30:00.000Z",
+            },
+            "tests": [
+              {
+                "_t": 1736587800000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 100,
+                    "errors": [],
+                    "startTime": "2025-01-11T09:30:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "346eaec1ecfde6a1",
+                "timeout": 0,
+                "title": [
+                  "List products",
+                  "Status code is 200",
+                ],
+              },
+              {
+                "_t": 1736587800000,
+                "artifacts": [],
+                "attempts": [
+                  {
+                    "_s": "passed",
+                    "artifacts": [],
+                    "attempt": 0,
+                    "duration": 300,
+                    "errors": [],
+                    "startTime": "2025-01-11T09:30:00.000Z",
+                    "status": "passed",
+                    "stderr": [],
+                    "stdout": [],
+                    "steps": [],
+                  },
+                ],
+                "expectedStatus": "passed",
+                "isFlaky": false,
+                "location": {
+                  "column": 1,
+                  "file": "",
+                  "line": 1,
+                },
+                "retries": 0,
+                "state": "passed",
+                "testId": "30fd3532fd0253f1",
+                "timeout": 0,
+                "title": [
+                  "List products",
+                  "Response has items",
+                ],
+              },
+            ],
+          },
+          "spec": "List products",
+          "startTime": "2025-01-11T09:30:00.000Z",
+        },
+      ],
+      "machineId": "<machine id>",
+      "platform": "<platform>",
+      "projectId": "project",
+      "recordKey": "record-key",
+      "tags": [],
+    },
+    "method": "POST",
+    "url": "/v1/runs",
+  },
+]
+`;
+
 exports[`currents run upload --input-format, with the built CLI > vitest > sends the converted results to the API 1`] = `
 [
   {

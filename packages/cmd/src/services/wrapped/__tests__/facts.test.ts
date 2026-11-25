@@ -82,9 +82,25 @@ describe('computeRunFacts', () => {
     });
     expect(facts.busiestWorker).toEqual({
       name: 'Worker 1',
-      attempts: 2,
+      tests: 2,
       timeMs: 34_000,
       share: 34 / 54,
+    });
+  });
+
+  it('counts a retry on the same worker as one test', () => {
+    const facts = computeRunFacts({ records, createdAt: T0, wallMs: 20_000 });
+    // Worker 0 ran `a` and both attempts of `c`.
+    expect(facts.busiestWorker).toMatchObject({ name: 'Worker 1', tests: 2 });
+    const worker0 = computeRunFacts({
+      records: [records[0], records[2], record('x', [attempt(1, 0, 1)])],
+      createdAt: T0,
+      wallMs: 5_000,
+    }).busiestWorker;
+    expect(worker0).toMatchObject({
+      name: 'Worker 0',
+      tests: 2,
+      timeMs: 20_000,
     });
   });
 
@@ -194,7 +210,7 @@ describe('computeRunFacts', () => {
     });
   });
 
-  it('counts steps with the same title at other lines apart', () => {
+  it('counts steps with the same title together, at any line', () => {
     const facts = computeRunFacts({
       records,
       createdAt: T0,
@@ -203,6 +219,6 @@ describe('computeRunFacts', () => {
         [step('open', 2, [], { location: { file: 'b.ts', line: 1 } })],
       ],
     });
-    expect(facts.steps?.slowest?.runs).toBe(1);
+    expect(facts.steps?.slowest?.runs).toBe(2);
   });
 });

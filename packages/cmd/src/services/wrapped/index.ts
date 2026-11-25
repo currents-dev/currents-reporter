@@ -29,14 +29,20 @@ type RestRun = {
 };
 
 /**
- * What the card shows. `ended` is false while the API reports the run in
- * progress; the facts then cover the tests that finished so far.
+ * What the card shows. With `requireEnded` it throws for a run in progress;
+ * without, the facts cover the tests that finished so far.
  */
 export async function getRunWrapped(
   apiKey: string,
-  runId: string
-): Promise<CardInput & { ended: boolean }> {
+  runId: string,
+  { requireEnded }: { requireEnded: boolean }
+): Promise<CardInput> {
   const run = await getRestRun(apiKey, runId);
+  if (requireEnded && run.completionState === 'IN_PROGRESS') {
+    throw new Error(
+      `Run ${runId} has not ended: run \`currents watch ${runId} --wrapped\` to see the card when it ends`
+    );
+  }
   const { testRecordList: records } = await graphqlQuery<{
     testRecordList: WrappedRecord[];
   }>(
@@ -54,7 +60,6 @@ export async function getRunWrapped(
   const attemptSteps = readSteps ? await readAllSteps(apiKey, ran) : undefined;
 
   return {
-    ended: run.completionState !== 'IN_PROGRESS',
     facts: computeRunFacts({
       records,
       createdAt: Date.parse(run.createdAt),
@@ -113,7 +118,7 @@ async function readAllSteps(
 export function dashboardRunUrl(runId: string) {
   try {
     const url = new URL(requireRestAPIBaseUrl());
-    if (!url.hostname.startsWith('api')) return undefined;
+    if (!/^api[.-]/.test(url.hostname)) return undefined;
     url.hostname = `app${url.hostname.slice('api'.length)}`;
     url.pathname = `/run/${encodeURIComponent(runId)}`;
     url.search = '';
