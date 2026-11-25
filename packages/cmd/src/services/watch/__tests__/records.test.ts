@@ -90,6 +90,9 @@ describe('RecordEvents', () => {
         durationMs: 1200,
         retry: 0,
         error: undefined,
+        title: ['auth', 'logs in'],
+        file: 'login.spec.ts',
+        project: 'chromium',
       },
     ]);
     expect(
@@ -134,6 +137,9 @@ describe('RecordEvents', () => {
         durationMs: 1200,
         retry: 1,
         error: undefined,
+        title: ['auth', 'logs in'],
+        file: 'login.spec.ts',
+        project: 'chromium',
       },
     ]);
   });

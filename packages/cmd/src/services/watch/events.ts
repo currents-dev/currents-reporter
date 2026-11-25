@@ -41,6 +41,10 @@ export type TerminalRunEvent =
       error?: string;
       errorDetail?: TerminalErrorDetail;
       testUrl?: string;
+      /** The same as in the test's testBegin, so that a testEnd can be read alone. */
+      title?: string[];
+      file?: string;
+      project?: string;
     }
   | { type: 'runEnd'; status: RunEndStatus };
 

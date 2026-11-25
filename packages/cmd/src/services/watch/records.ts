@@ -146,14 +146,14 @@ export class RecordEvents {
         seen.ended.add(retry);
         const flaky = record._d && record._f && attempt === last;
         seen.flakyEnded ||= flaky;
-        events.push(testEnd(testId, attempt, flaky));
+        events.push(testEnd(record, attempt, flaky));
       }
     }
 
     // The record can be marked flaky after its last attempt was reported.
     if (record._d && record._f && last?._d && !seen.flakyEnded) {
       seen.flakyEnded = true;
-      events.push(testEnd(testId, last, true));
+      events.push(testEnd(record, last, true));
     }
     return events;
   }
@@ -243,13 +243,16 @@ function errorDetail(
 }
 
 function testEnd(
-  testId: string,
+  record: TestRecord,
   attempt: TestRecordAttempt,
   flaky: boolean
 ): TerminalRunEvent {
   return {
     type: 'testEnd',
-    testId,
+    testId: record.recordId,
+    title: record.title,
+    file: record.spec,
+    project: record.groupId || undefined,
     status: flaky ? 'flaky' : toTestEndStatus(attempt.status),
     durationMs: attempt.duration,
     retry: attempt.attempt,
