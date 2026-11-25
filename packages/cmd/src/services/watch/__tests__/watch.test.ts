@@ -1,58 +1,80 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getClient } from '../../../http/client';
 import type { TerminalRunEvent } from '../events';
-import { graphqlQuery, openSubscriptions, type Subscription } from '../graphql';
 import { runEndStatus, watchRun } from '../index';
 import type { TestRecord } from '../records';
+import {
+  readRunStream,
+  RunStreamRefused,
+  type RunStreamEvent,
+} from '../stream';
 
-vi.mock('../graphql', () => ({
-  graphqlQuery: vi.fn(),
-  openSubscriptions: vi.fn(),
+vi.mock('../stream', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../stream')>()),
+  readRunStream: vi.fn(),
 }));
 vi.mock('../../../http/client', () => ({
   ClientType: { REST_API: 'restApi' },
   getClient: vi.fn(),
 }));
 
-const restRun = (completionState: string, status = 'RUNNING') => ({
+const restRun = {
   data: {
     data: {
-      projectId: 'p1',
       createdAt: '2026-11-25T00:00:00.000Z',
-      status,
-      completionState,
       groups: [{ tests: { total: 2 } }, { tests: { total: 1 } }],
     },
   },
-});
+};
 
 const record = (recordId: string, done: boolean): TestRecord => ({
   recordId,
   machineId: 'm',
-  groupId: '',
+  project: null,
   spec: 'a.spec.ts',
   title: [recordId],
-  _d: done,
-  _f: false,
+  done,
+  flaky: false,
   attempts: [
-    { attempt: 0, parallelIndex: 0, status: 'passed', duration: 1, _d: done },
+    { attempt: 0, parallelIndex: 0, status: 'passed', duration: 1, done },
   ],
 });
 
+const running = { status: 'RUNNING', completionState: 'IN_PROGRESS' };
+
+/** Each call of `readRunStream` sends the next list of events, then closes. */
+const streams = (...connections: (RunStreamEvent[] | Error)[]) =>
+  vi.mocked(readRunStream).mockImplementation(async (_key, _run, onEvent) => {
+    const next = connections.shift();
+    if (!next) throw new Error('no more connections');
+    if (next instanceof Error) throw next;
+    next.forEach(onEvent);
+  });
+
 const request = vi.fn();
-const query = vi.mocked(graphqlQuery);
+const noSleep = () => Promise.resolve();
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getClient).mockReturnValue({ request } as any);
+  request.mockResolvedValue(restRun);
 });
 
 describe('watchRun', () => {
-  it('reads a finished run once, without subscribing', async () => {
-    request.mockResolvedValue(restRun('COMPLETE', 'FAILED'));
-    query.mockResolvedValue({ testRecordList: [record('a', true)] });
+  it('reports the records of a run and ends with its status', async () => {
+    streams([
+      {
+        event: 'snapshot',
+        data: { ...running, records: [record('a', false)] },
+      },
+      { event: 'records', data: { records: [record('a', true)] } },
+      {
+        event: 'runEnd',
+        data: { status: 'FAILED', completionState: 'COMPLETE' },
+      },
+    ]);
     const events: TerminalRunEvent[] = [];
-    await watchRun('key', 'run1', (e) => events.push(e));
+    await watchRun('key', 'run1', (e) => events.push(e), noSleep);
     expect(events.map((e) => e.type)).toEqual([
       'runBegin',
       'testBegin',
@@ -65,42 +87,35 @@ describe('watchRun', () => {
       url: 'v1/runs/run1',
       params: { include_specs: false },
     });
-    expect(query.mock.calls[0][2]).toEqual({ runId: 'run1' });
-    expect(openSubscriptions).not.toHaveBeenCalled();
+    expect(vi.mocked(readRunStream).mock.calls[0].slice(0, 2)).toEqual([
+      'key',
+      'run1',
+    ]);
   });
 
-  it('fetches changed records and ends when the run is cancelled', async () => {
-    request.mockResolvedValue(restRun('IN_PROGRESS'));
-    let subscriptions: Subscription[] = [];
-    let closeConnection = () => {};
-    vi.mocked(openSubscriptions).mockImplementation((_key, subs) => {
-      subscriptions = subs;
-      return {
-        ready: Promise.resolve(),
-        closed: new Promise<void>((resolve) => (closeConnection = resolve)),
-        close: () => closeConnection(),
-      };
-    });
-    query.mockImplementation(async (_key, text) =>
-      text.includes('testRecordList')
-        ? { testRecordList: [record('a', true), record('b', true)] }
-        : { testRecords: [record('b', true)] }
+  it('reconnects when the server closes the stream, and reports nothing twice', async () => {
+    streams(
+      [
+        {
+          event: 'snapshot',
+          data: { ...running, records: [record('a', true)] },
+        },
+      ],
+      new Error('socket hang up'),
+      [
+        {
+          event: 'snapshot',
+          data: { ...running, records: [record('a', true), record('b', true)] },
+        },
+        {
+          event: 'runEnd',
+          data: { status: 'FAILED', completionState: 'CANCELED' },
+        },
+      ]
     );
     const events: TerminalRunEvent[] = [];
-    const watching = watchRun('key', 'run1', (e) => events.push(e));
-    await vi.waitFor(() => expect(subscriptions).toHaveLength(2));
-    expect(subscriptions[1].variables).toEqual({ projectId: 'p1' });
-    subscriptions[0].onNext({ runTestRecordsChanged: { recordIds: ['b'] } });
-    subscriptions[1].onNext({
-      runChanged: { runId: 'other', event: 'CANCELLED' },
-    });
-    subscriptions[1].onNext({
-      runChanged: { runId: 'run1', event: 'CANCELLED' },
-    });
-    await watching;
-    expect(
-      query.mock.calls.some(([, , vars]) => (vars as any).ids?.[0] === 'b')
-    ).toBe(true);
+    await watchRun('key', 'run1', (e) => events.push(e), noSleep);
+    expect(readRunStream).toHaveBeenCalledTimes(3);
     expect(events.filter((e) => e.type === 'testEnd')).toHaveLength(2);
     expect(events[events.length - 1]).toEqual({
       type: 'runEnd',
@@ -108,27 +123,33 @@ describe('watchRun', () => {
     });
   });
 
-  it('fails when the connection closes', async () => {
-    request.mockResolvedValue(restRun('IN_PROGRESS'));
-    vi.mocked(openSubscriptions).mockReturnValue({
-      ready: new Promise(() => {}),
-      closed: Promise.reject(
-        new Error('The connection to Currents closed (4403: Forbidden)')
-      ),
-      close: () => {},
-    });
-    await expect(watchRun('key', 'run1', () => {})).rejects.toThrow('4403');
+  it('gives up after failed connections in a row', async () => {
+    vi.mocked(readRunStream).mockRejectedValue(new Error('ECONNREFUSED'));
+    await expect(watchRun('key', 'run1', () => {}, noSleep)).rejects.toThrow(
+      'ECONNREFUSED'
+    );
+    expect(readRunStream).toHaveBeenCalledTimes(5);
+  });
+
+  it('stops right away when the server refuses the stream', async () => {
+    vi.mocked(readRunStream).mockRejectedValue(
+      new RunStreamRefused('Currents answered 404 to the run stream')
+    );
+    await expect(watchRun('key', 'run1', () => {}, noSleep)).rejects.toThrow(
+      '404'
+    );
+    expect(readRunStream).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('runEndStatus', () => {
   it.each([
-    ['IN_PROGRESS', 'FAILING', undefined],
     ['COMPLETE', 'PASSED', 'passed'],
     ['COMPLETE', 'FAILED', 'failed'],
     ['CANCELED', 'FAILED', 'cancelled'],
     ['TIMEOUT', 'RUNNING', 'timedOut'],
+    [null, null, 'failed'],
   ])('%s %s', (completionState, status, expected) => {
-    expect(runEndStatus({ completionState, status } as any)).toBe(expected);
+    expect(runEndStatus({ completionState, status })).toBe(expected);
   });
 });

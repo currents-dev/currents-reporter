@@ -1,43 +1,33 @@
 import { debug as _debug } from '@debug';
-import { chunk } from 'lodash';
 import { getAuthHeaders } from '../../api/auth';
 import { ClientType, getClient } from '../../http/client';
 import type { RunEndStatus, TerminalRunEvent } from './events';
-import { graphqlQuery, openSubscriptions } from './graphql';
-import {
-  ATTEMPT_STEP_FIELDS,
-  RecordEvents,
-  TEST_RECORD_FIELDS,
-  type AttemptStep,
-  type TestRecord,
-} from './records';
+import { RecordEvents } from './records';
+import { readRunStream, RunStreamRefused, type StreamRun } from './stream';
 
 const debug = _debug.extend('watch');
 
-/** How often the run status is read: no subscription reports a finished run. */
-const RUN_STATUS_INTERVAL_MS = 10_000;
-/** The most record IDs the `testRecords` query takes. */
-const RECORDS_PER_QUERY = 200;
-/** How many attempts' steps are read at once. */
-const STEP_READS_AT_ONCE = 5;
+/** Failed connections in a row before `watch` gives up. */
+const MAX_FAILED_CONNECTIONS = 5;
+/** The wait before reconnecting after the n-th failed connection in a row. */
+const reconnectDelayMs = (failures: number) =>
+  Math.min(1_000 * 2 ** failures, 15_000);
 
 type RestRun = {
-  projectId: string;
   createdAt: string;
-  status: 'RUNNING' | 'FAILING' | 'PASSED' | 'FAILED';
-  completionState: 'IN_PROGRESS' | 'COMPLETE' | 'CANCELED' | 'TIMEOUT';
   groups: { tests: { total: number } }[];
 };
 
 /**
- * Follows a run until it ends and passes its events to `emit`. The org of the
- * records comes from the credential: the API fills `orgId` in for API keys and
- * personal access tokens.
+ * Follows a run until it ends and passes its events to `emit`. The server
+ * closes a stream after a few minutes; each new connection starts with a
+ * snapshot of every record, of which `RecordEvents` reports only what changed.
  */
 export async function watchRun(
   apiKey: string,
   runId: string,
-  emit: (event: TerminalRunEvent) => void
+  emit: (event: TerminalRunEvent) => void,
+  sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 ) {
   const run = await getRestRun(apiKey, runId);
   emit({
@@ -47,83 +37,35 @@ export async function watchRun(
   });
 
   const records = new RecordEvents();
-  const apply = async (list: TestRecord[]) => {
-    const steps = await readSteps(apiKey, list, records);
-    list.forEach((record) =>
-      records.next(record, steps.get(record.recordId)).forEach(emit)
-    );
-  };
-  // Fetches run one after another, so that the events of a record keep their
-  // order. The first failure stops the watch and is thrown at the end.
-  let queue = Promise.resolve();
-  let failure: unknown;
-  let stop = () => {};
-  const enqueue = (fetch: () => Promise<TestRecord[]>) =>
-    (queue = queue
-      .then(() => (failure ? [] : fetch()))
-      .then(apply)
-      .catch((e) => {
-        failure ??= e;
-        stop();
-      }));
-
-  let endStatus = runEndStatus(run);
-  if (endStatus) {
-    await enqueue(() => listRecords(apiKey, runId));
-    if (failure) throw failure;
-    return emit({ type: 'runEnd', status: endStatus });
-  }
-
-  let resolveEnd: (status: RunEndStatus) => void;
-  const ended = new Promise<RunEndStatus>((resolve) => (resolveEnd = resolve));
-  const connection = openSubscriptions(apiKey, [
-    {
-      query: `subscription ($runId: String!) { runTestRecordsChanged(runId: $runId) { recordIds } }`,
-      variables: { runId },
-      onNext: (data) =>
-        enqueue(() =>
-          getRecords(apiKey, runId, data.runTestRecordsChanged.recordIds)
-        ),
-    },
-    {
-      query: `subscription ($projectId: String!) { runChanged(projectId: $projectId) { runId event } }`,
-      variables: { projectId: run.projectId },
-      onNext: (data) => {
-        if (
-          data.runChanged.runId === runId &&
-          data.runChanged.event === 'CANCELLED'
-        ) {
-          resolveEnd('cancelled');
-        }
-      },
-    },
-  ]);
-  stop = connection.close;
-  const timer = setInterval(async () => {
+  let endStatus: RunEndStatus | undefined;
+  let failures = 0;
+  while (!endStatus) {
+    let connected = false;
     try {
-      const status = runEndStatus(await getRestRun(apiKey, runId));
-      if (status) resolveEnd(status);
+      await readRunStream(apiKey, runId, (message) => {
+        connected = true;
+        if (message.event === 'runEnd') {
+          endStatus = runEndStatus(message.data);
+        } else if (
+          message.event === 'snapshot' ||
+          message.event === 'records'
+        ) {
+          message.data.records.forEach((record) =>
+            records.next(record).forEach(emit)
+          );
+        }
+      });
+      failures = 0;
     } catch (e) {
-      debug('Could not read the run status: %o', e);
+      if (e instanceof RunStreamRefused) throw e;
+      // A stream that delivered events before failing starts the count again.
+      failures = connected ? 1 : failures + 1;
+      if (failures >= MAX_FAILED_CONNECTIONS) throw e;
+      debug('Run stream failed, reconnecting: %o', e);
+      await sleep(reconnectDelayMs(failures));
     }
-  }, RUN_STATUS_INTERVAL_MS);
-
-  try {
-    await Promise.race([connection.ready, connection.closed]);
-    // After subscribing, so that a change between the two is not missed.
-    enqueue(() => listRecords(apiKey, runId));
-    endStatus = await Promise.race([
-      ended,
-      connection.closed.then(() => undefined),
-    ]);
-  } finally {
-    clearInterval(timer);
-    connection.close();
   }
-  // The last batch of changes can arrive after the run ended.
-  await enqueue(() => listRecords(apiKey, runId));
-  if (failure) throw failure;
-  emit({ type: 'runEnd', status: endStatus ?? 'cancelled' });
+  emit({ type: 'runEnd', status: endStatus });
 }
 
 async function getRestRun(apiKey: string, runId: string) {
@@ -136,90 +78,17 @@ async function getRestRun(apiKey: string, runId: string) {
   return res.data.data;
 }
 
-export function runEndStatus(run: RestRun): RunEndStatus | undefined {
+/**
+ * The status `runEnd` reports. The API also sends `runEnd` for a run with no
+ * stored status: one recorded before the API stored it, which has ended.
+ */
+export function runEndStatus(run: StreamRun): RunEndStatus {
   switch (run.completionState) {
     case 'CANCELED':
       return 'cancelled';
     case 'TIMEOUT':
       return 'timedOut';
-    case 'COMPLETE':
+    default:
       return run.status === 'PASSED' ? 'passed' : 'failed';
   }
-}
-
-async function listRecords(apiKey: string, runId: string) {
-  const data = await graphqlQuery<{ testRecordList: TestRecord[] }>(
-    apiKey,
-    `query ($runId: String!) { testRecordList(input: { runId: $runId }) { ${TEST_RECORD_FIELDS} } }`,
-    { runId }
-  );
-  return data.testRecordList;
-}
-
-async function getRecords(apiKey: string, runId: string, recordIds: string[]) {
-  const pages = await Promise.all(
-    chunk(recordIds, RECORDS_PER_QUERY).map((ids) =>
-      graphqlQuery<{ testRecords: TestRecord[] }>(
-        apiKey,
-        `query ($runId: String!, $ids: [ID!]!) { testRecords(input: { runId: $runId, recordIds: $ids }) { ${TEST_RECORD_FIELDS} } }`,
-        { runId, ids }
-      )
-    )
-  );
-  return pages.flatMap((page) => page.testRecords);
-}
-
-/**
- * The steps of the attempts that `records` wants them for, by record ID and
- * attempt. An attempt whose steps cannot be read is left out: `RecordEvents`
- * then follows its latest step only.
- */
-async function readSteps(
-  apiKey: string,
-  list: TestRecord[],
-  records: RecordEvents
-) {
-  const reads = list.flatMap((record) =>
-    records
-      .attemptsNeedingSteps(record)
-      .map((attempt) => ({ recordId: record.recordId, attempt }))
-  );
-  const steps = new Map<string, Map<number, AttemptStep[]>>();
-  for (const batch of chunk(reads, STEP_READS_AT_ONCE)) {
-    await Promise.all(
-      batch.map(async ({ recordId, attempt }) => {
-        try {
-          const attemptSteps = await getAttemptSteps(apiKey, recordId, attempt);
-          if (!attemptSteps) return;
-          if (!steps.has(recordId)) steps.set(recordId, new Map());
-          steps.get(recordId)!.set(attempt, attemptSteps);
-        } catch (e) {
-          debug('Could not read the steps of %s/%d: %o', recordId, attempt, e);
-        }
-      })
-    );
-  }
-  return steps;
-}
-
-type SerializedStep = Omit<AttemptStep, 'steps'> & { steps: string };
-
-async function getAttemptSteps(
-  apiKey: string,
-  recordId: string,
-  attempt: number
-): Promise<AttemptStep[] | null> {
-  const data = await graphqlQuery<{
-    testAttempt: { steps: SerializedStep[] } | null;
-  }>(
-    apiKey,
-    `query ($recordId: String!, $attempt: Int!) { testAttempt(input: { recordId: $recordId, attempt: $attempt }) { steps { ${ATTEMPT_STEP_FIELDS} } } }`,
-    { recordId, attempt }
-  );
-  return (
-    data.testAttempt?.steps.map((step) => ({
-      ...step,
-      steps: JSON.parse(step.steps) as AttemptStep[],
-    })) ?? null
-  );
 }

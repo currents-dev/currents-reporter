@@ -8,8 +8,8 @@ import { commandHandler } from '../utils';
 
 /**
  * Beta: registered hidden until the terminal view is ready. Takes a personal
- * access token or an organization API key, and needs an API that accepts them
- * on GraphQL and takes the organization of the records from the credential.
+ * access token or an organization API key, and needs an API that serves
+ * `GET /stream/runs/:runId`.
  */
 export const getWatchCommand = () => {
   const command = new Command()
