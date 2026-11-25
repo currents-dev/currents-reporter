@@ -1,5 +1,5 @@
-import type { WorkerStatsTracker } from './workerStats';
-import { workerTableLines } from './workerText';
+/** The lines of one frame, cut to the terminal size. */
+export type FrameLines = (size: { columns: number; rows: number }) => string[];
 
 const REDRAW_INTERVAL_MS = 250;
 
@@ -10,19 +10,16 @@ const CLEAR_TO_END = '\x1b[J';
 const linesUp = (n: number) => (n > 0 ? `\x1b[${n}F` : '\r');
 
 /**
- * Redraws the worker table in place on a terminal until `stop()`. The table
- * is cut to the terminal size: moving the cursor up cannot reach lines that
+ * Redraws the lines of `frame` in place on a terminal until `stop()`. A frame
+ * must fit the size it is given: moving the cursor up cannot reach lines that
  * scrolled off the screen or wrapped.
  */
-export function createWorkersView(
-  stats: WorkerStatsTracker,
-  out: NodeJS.WriteStream
-) {
+export function createRedrawView(frame: FrameLines, out: NodeJS.WriteStream) {
   let drawnLines = 0;
   let timer: NodeJS.Timeout | undefined;
 
   const draw = () => {
-    const lines = workerTableLines(stats.read(), {
+    const lines = frame({
       columns: out.columns || 80,
       // The last row stays empty for the cursor.
       rows: (out.rows || 24) - 1,

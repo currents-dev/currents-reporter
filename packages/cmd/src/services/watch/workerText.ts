@@ -152,7 +152,7 @@ export function formatDuration(ms: number) {
   return `${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}m`;
 }
 
-function fit(text: string, columns: number) {
+export function fit(text: string, columns: number) {
   return text.length > columns
     ? `${text.slice(0, Math.max(0, columns - 1))}…`
     : text;

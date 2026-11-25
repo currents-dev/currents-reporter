@@ -3,8 +3,17 @@ import { sharedConfigKeys } from '../../config/keys';
 import { watchRun } from '../../services/watch';
 import type { TerminalRunEvent } from '../../services/watch/events';
 import { createLinePrinter } from '../../services/watch/print';
-import { WorkerStatsTracker } from '../../services/watch/workerStats';
-import { createWorkersView } from '../../services/watch/workersView';
+import { MachineStatsTracker } from '../../services/watch/machineStats';
+import {
+  heartbeatLines,
+  machineMapLines,
+  machineSummaryLines,
+  raceLines,
+} from '../../services/watch/machineText';
+import {
+  createRedrawView,
+  type FrameLines,
+} from '../../services/watch/redrawView';
 import {
   workerSummaryLines,
   workerTableLines,
@@ -12,6 +21,9 @@ import {
 import { getConfiguredApiKey } from '../api/request';
 import { apiKeyOption, debugOption } from '../options';
 import { commandHandler } from '../utils';
+
+/** The width the machine views are drawn at when the output is not a terminal. */
+const OFF_TERMINAL_COLUMNS = 100;
 
 /**
  * Beta: registered hidden until the terminal view is ready. Takes a personal
@@ -29,9 +41,9 @@ export const getWatchCommand = () => {
     .addOption(
       new Option(
         '--view <view>',
-        'lines: print each test and step; workers: show how busy each worker is, redrawn in place on a terminal'
+        'lines: print each test and step. The others are redrawn in place on a terminal: workers: how busy each worker is; heartbeat: one cell per machine, colored by its state; race: how far each machine got through its tests; machines: tests, speed, failures and current test of each machine'
       )
-        .choices(['lines', 'workers'] as const)
+        .choices(['lines', 'workers', 'heartbeat', 'race', 'machines'] as const)
         .default('lines' as const)
     )
     .addOption(apiKeyOption())
@@ -47,15 +59,22 @@ export const getWatchCommand = () => {
             `An API key is required: pass ${sharedConfigKeys.apiKey.cli} or set ${sharedConfigKeys.apiKey.env}`
           );
         }
-        const stats = new WorkerStatsTracker();
+        const machines = new MachineStatsTracker();
+        const frames: Partial<Record<typeof opts.view, FrameLines>> = {
+          workers: (size) => workerTableLines(machines.workers.read(), size),
+          heartbeat: (size) => heartbeatLines(machines.read(), size),
+          race: (size) => raceLines(machines.read(), size),
+          machines: (size) => machineMapLines(machines.read(), size),
+        };
+        const frame = frames[opts.view];
         const printLine =
           opts.view === 'lines' ? createLinePrinter(console.log) : undefined;
         const view =
-          opts.view === 'workers' && process.stdout.isTTY
-            ? createWorkersView(stats, process.stdout)
+          frame && process.stdout.isTTY
+            ? createRedrawView(frame, process.stdout)
             : undefined;
         const emit = (event: TerminalRunEvent) => {
-          stats.add(event);
+          machines.add(event);
           printLine?.(event);
         };
         try {
@@ -64,15 +83,19 @@ export const getWatchCommand = () => {
         } finally {
           view?.stop();
         }
-        // Off a terminal, the workers view prints its table once, at the end.
-        if (opts.view === 'workers' && !view) {
-          workerTableLines(stats.read(), {
-            columns: Infinity,
+        // Off a terminal, a redrawn view prints its last frame once, at the end.
+        if (frame && !view) {
+          frame({
+            columns: opts.view === 'workers' ? Infinity : OFF_TERMINAL_COLUMNS,
             rows: Infinity,
           }).forEach((line) => console.log(line));
         }
         console.log('');
-        workerSummaryLines(stats.read()).forEach((line) => console.log(line));
+        const summary =
+          opts.view === 'lines' || opts.view === 'workers'
+            ? workerSummaryLines(machines.workers.read())
+            : machineSummaryLines(machines.read());
+        summary.forEach((line) => console.log(line));
       }, options)
     );
   return command;
