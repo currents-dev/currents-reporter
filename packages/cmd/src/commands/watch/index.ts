@@ -3,6 +3,11 @@ import { sharedConfigKeys } from '../../config/keys';
 import { watchRun } from '../../services/watch';
 import type { TerminalRunEvent } from '../../services/watch/events';
 import { createLinePrinter } from '../../services/watch/print';
+import {
+  createRunChecks,
+  type RunCheckEvent,
+} from '../../services/watch/runChecks';
+import { runCheckLines } from '../../services/watch/runChecksText';
 import { WorkerStatsTracker } from '../../services/watch/workerStats';
 import { createWorkersView } from '../../services/watch/workersView';
 import {
@@ -54,9 +59,18 @@ export const getWatchCommand = () => {
           opts.view === 'workers' && process.stdout.isTTY
             ? createWorkersView(stats, process.stdout)
             : undefined;
+        const runChecks = createRunChecks();
+        // The workers view redraws the screen, so it prints the checks at the end.
+        const laterChecks: RunCheckEvent[] = [];
         const emit = (event: TerminalRunEvent) => {
           stats.add(event);
           printLine?.(event);
+          const checks = runChecks(event);
+          if (printLine) {
+            checks.flatMap(runCheckLines).forEach((line) => console.log(line));
+          } else {
+            laterChecks.push(...checks);
+          }
         };
         try {
           view?.start();
@@ -71,6 +85,7 @@ export const getWatchCommand = () => {
             rows: Infinity,
           }).forEach((line) => console.log(line));
         }
+        laterChecks.flatMap(runCheckLines).forEach((line) => console.log(line));
         console.log('');
         workerSummaryLines(stats.read()).forEach((line) => console.log(line));
       }, options)

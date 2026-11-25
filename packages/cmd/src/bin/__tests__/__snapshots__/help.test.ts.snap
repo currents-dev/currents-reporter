@@ -490,6 +490,42 @@ Options:
 "
 `;
 
+exports[`command surface of the built CLI > prints the help of ci auth status 2`] = `
+"Usage: currents ci auth status [options]
+
+Say which key API requests and recording would use, the project, the trust
+policy ID and the OIDC audiences of the 'ci auth' commands. It never prints a
+key or token, and requests, exchanges or checks none. With --oidc-provider
+google-cloud, it asks the Google Cloud metadata server for the email of its
+service account, to say whether the server answers.
+
+Options:
+  --api-key <api-key>         an API key from the Currents dashboard, or an API
+                              token from \`currents ci auth get-api-token\` (its
+                              source is reported) (env: CURRENTS_API_KEY)
+  -k, --key <record-key>      the record key from the Currents dashboard, or
+                              from \`currents ci auth get-record-key\` (its source
+                              is reported) (env: CURRENTS_RECORD_KEY)
+  -p, --project-id <id>       the project ID from the Currents dashboard
+                              (reported) (env: CURRENTS_PROJECT_ID)
+  --oidc-policy-id <id>       the ID of the trust policy from the Currents
+                              dashboard (reported) (env:
+                              CURRENTS_OIDC_POLICY_ID)
+  --oidc-provider <provider>  the CI provider that issues the OIDC token:
+                              github-actions (needs \`permissions: id-token:
+                              write\`), google-cloud (the metadata server of a
+                              VM, or of a GKE pod with Workload Identity),
+                              circleci (runs \`circleci run oidc get\`) or
+                              buildkite (runs \`buildkite-agent oidc
+                              request-token\`) (choices: "github-actions",
+                              "google-cloud", "circleci", "buildkite", env:
+                              CURRENTS_OIDC_PROVIDER)
+  --debug                     print debug logs; keys are hidden in them
+                              (default: false, env: CURRENTS_DEBUG)
+  -h, --help                  display help for command
+"
+`;
+
 exports[`command surface of the built CLI > prints the help of convert 1`] = `
 "Usage: currents convert [options]
 
