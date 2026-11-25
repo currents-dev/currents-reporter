@@ -21,6 +21,8 @@ export type TerminalRunEvent =
       title: string;
       category?: string;
       location?: { file: string; line: number };
+      /** The step this one runs inside; none for a step at the top of the test. */
+      parentStepId?: string;
     }
   | {
       type: 'stepEnd';
@@ -28,6 +30,7 @@ export type TerminalRunEvent =
       stepId: string;
       durationMs: number;
       error?: string;
+      errorDetail?: TerminalErrorDetail;
     }
   | {
       type: 'testEnd';
@@ -36,9 +39,16 @@ export type TerminalRunEvent =
       durationMs: number;
       retry: number;
       error?: string;
+      errorDetail?: TerminalErrorDetail;
       testUrl?: string;
     }
   | { type: 'runEnd'; status: RunEndStatus };
+
+/** Where an error was thrown, and the code around it as the reporter formatted it. */
+export type TerminalErrorDetail = {
+  location?: { file: string; line: number };
+  snippet?: string;
+};
 
 export type TestEndStatus =
   | 'passed'

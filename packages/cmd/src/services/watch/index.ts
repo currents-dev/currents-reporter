@@ -4,7 +4,13 @@ import { getAuthHeaders } from '../../api/auth';
 import { ClientType, getClient } from '../../http/client';
 import type { RunEndStatus, TerminalRunEvent } from './events';
 import { graphqlQuery, openSubscriptions } from './graphql';
-import { RecordEvents, TEST_RECORD_FIELDS, type TestRecord } from './records';
+import {
+  ATTEMPT_STEP_FIELDS,
+  RecordEvents,
+  TEST_RECORD_FIELDS,
+  type AttemptStep,
+  type TestRecord,
+} from './records';
 
 const debug = _debug.extend('watch');
 
@@ -12,6 +18,8 @@ const debug = _debug.extend('watch');
 const RUN_STATUS_INTERVAL_MS = 10_000;
 /** The most record IDs the `testRecords` query takes. */
 const RECORDS_PER_QUERY = 200;
+/** How many attempts' steps are read at once. */
+const STEP_READS_AT_ONCE = 5;
 
 type RestRun = {
   projectId: string;
@@ -39,8 +47,12 @@ export async function watchRun(
   });
 
   const records = new RecordEvents();
-  const apply = (list: TestRecord[]) =>
-    list.forEach((record) => records.next(record).forEach(emit));
+  const apply = async (list: TestRecord[]) => {
+    const steps = await readSteps(apiKey, list, records);
+    list.forEach((record) =>
+      records.next(record, steps.get(record.recordId)).forEach(emit)
+    );
+  };
   // Fetches run one after another, so that the events of a record keep their
   // order. The first failure stops the watch and is thrown at the end.
   let queue = Promise.resolve();
@@ -155,4 +167,59 @@ async function getRecords(apiKey: string, runId: string, recordIds: string[]) {
     )
   );
   return pages.flatMap((page) => page.testRecords);
+}
+
+/**
+ * The steps of the attempts that `records` wants them for, by record ID and
+ * attempt. An attempt whose steps cannot be read is left out: `RecordEvents`
+ * then follows its latest step only.
+ */
+async function readSteps(
+  apiKey: string,
+  list: TestRecord[],
+  records: RecordEvents
+) {
+  const reads = list.flatMap((record) =>
+    records
+      .attemptsNeedingSteps(record)
+      .map((attempt) => ({ recordId: record.recordId, attempt }))
+  );
+  const steps = new Map<string, Map<number, AttemptStep[]>>();
+  for (const batch of chunk(reads, STEP_READS_AT_ONCE)) {
+    await Promise.all(
+      batch.map(async ({ recordId, attempt }) => {
+        try {
+          const attemptSteps = await getAttemptSteps(apiKey, recordId, attempt);
+          if (!attemptSteps) return;
+          if (!steps.has(recordId)) steps.set(recordId, new Map());
+          steps.get(recordId)!.set(attempt, attemptSteps);
+        } catch (e) {
+          debug('Could not read the steps of %s/%d: %o', recordId, attempt, e);
+        }
+      })
+    );
+  }
+  return steps;
+}
+
+type SerializedStep = Omit<AttemptStep, 'steps'> & { steps: string };
+
+async function getAttemptSteps(
+  apiKey: string,
+  recordId: string,
+  attempt: number
+): Promise<AttemptStep[] | null> {
+  const data = await graphqlQuery<{
+    testAttempt: { steps: SerializedStep[] } | null;
+  }>(
+    apiKey,
+    `query ($recordId: String!, $attempt: Int!) { testAttempt(input: { recordId: $recordId, attempt: $attempt }) { steps { ${ATTEMPT_STEP_FIELDS} } } }`,
+    { recordId, attempt }
+  );
+  return (
+    data.testAttempt?.steps.map((step) => ({
+      ...step,
+      steps: JSON.parse(step.steps) as AttemptStep[],
+    })) ?? null
+  );
 }

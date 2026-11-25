@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   RecordEvents,
+  type AttemptStep,
   type TestRecord,
   type TestRecordAttempt,
 } from '../records';
@@ -142,5 +143,70 @@ describe('RecordEvents', () => {
       record({ attempts: [attempt({ _d: true, status: 'interrupted' })] })
     );
     expect(out[1]).toMatchObject({ status: 'failed', error: 'Interrupted' });
+  });
+
+  it('reports each step from the attempt steps, nested steps inside their parent', () => {
+    const events = new RecordEvents();
+    const s = (
+      id: string,
+      duration: number,
+      steps: AttemptStep[] = [],
+      error?: AttemptStep['error']
+    ): AttemptStep => ({
+      id,
+      title: `step ${id}`,
+      category: 'test.step',
+      duration,
+      steps,
+      error,
+    });
+    const running = record({ attempts: [attempt({ lastStep: step('x') })] });
+    expect(events.attemptsNeedingSteps(running)).toEqual([0]);
+    expect(
+      events
+        .next(running, new Map([[0, [s('p', -1, [s('c1', 10)])]]]))
+        .map((e) => [e.type, 'stepId' in e ? e.stepId : undefined])
+    ).toEqual([
+      ['testBegin', undefined],
+      ['stepBegin', 'p'],
+      ['stepBegin', 'c1'],
+      ['stepEnd', 'c1'],
+    ]);
+
+    const error = {
+      message: 'Expected 2',
+      snippet: '> 4 | expect',
+      location: { file: 'a.spec.ts', line: 4 },
+    };
+    const done = record({
+      attempts: [attempt({ _d: true, status: 'failed', error })],
+    });
+    expect(events.attemptsNeedingSteps(done)).toEqual([0]);
+    const out = events.next(
+      done,
+      new Map([[0, [s('p', 30, [s('c1', 10), s('c2', 5, [], error)], error)]]])
+    );
+    expect(
+      out.map((e) => [e.type, 'stepId' in e ? e.stepId : undefined])
+    ).toEqual([
+      ['stepBegin', 'c2'],
+      ['stepEnd', 'c2'],
+      ['stepEnd', 'p'],
+      ['testEnd', undefined],
+    ]);
+    expect(out[1]).toMatchObject({
+      error: 'Expected 2',
+      errorDetail: { location: { file: 'a.spec.ts', line: 4 } },
+    });
+    expect(out[0]).toMatchObject({ parentStepId: 'p' });
+    expect(out[3]).toMatchObject({ errorDetail: { snippet: '> 4 | expect' } });
+    expect(events.attemptsNeedingSteps(done)).toEqual([]);
+  });
+
+  it('reads no steps for a passed attempt first seen finished', () => {
+    const events = new RecordEvents();
+    expect(
+      events.attemptsNeedingSteps(record({ attempts: [attempt({ _d: true })] }))
+    ).toEqual([]);
   });
 });
