@@ -22,6 +22,7 @@ on:
           - '@currents/jest'
           - '@currents/node-test-reporter'
           - '@currents/rules'
+          - '@currents/terminal-reporter'
 
 permissions:
   id-token: write  # Required for OIDC
@@ -33,7 +34,8 @@ env:
       "@currents/cmd": "cmd",
       "@currents/jest": "jest",
       "@currents/node-test-reporter": "node-test-reporter",
-      "@currents/rules": "rules"
+      "@currents/rules": "rules",
+      "@currents/terminal-reporter": "terminal-reporter"
     }
 
 jobs:
@@ -85,7 +87,7 @@ jobs:
             node-test-reporter)
               echo "key=LINEAR_ACCESS_KEY_NODE_TEST_REPORTER" >> $GITHUB_OUTPUT
               ;;
-            rules)
+            rules|terminal-reporter)
               # No Linear release pipeline
               ;;
             *)

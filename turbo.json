@@ -47,7 +47,7 @@
 
     "lint": {
       "outputs": [],
-      "env": ["CURRENTS_DISCOVERY_PATH"]
+      "env": ["CURRENTS_DISCOVERY_PATH", "NO_COLOR"]
     },
     "dev": {
       "cache": false

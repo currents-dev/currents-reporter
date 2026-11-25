@@ -1,0 +1,92 @@
+{
+  "name": "@currents/terminal-reporter",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "author": {
+    "name": "Currents Software Inc",
+    "email": "hello@currents.dev"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/currents-dev/currents-reporter",
+    "directory": "packages/terminal-reporter"
+  },
+  "description": "Live terminal view of a test run, shared by the Currents reporters and CLI",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "test": "vitest --run",
+    "rm": "rimraf dist",
+    "lint": "TIMING=1 eslint \"**/*.ts*\"",
+    "types": "tsc --noEmit",
+    "build": "tsup-node --minify --dts",
+    "dev": "tsup-node --watch --dts",
+    "release": "release-it",
+    "publish:npm": "npm run rm  && npm run build && ./publish.js"
+  },
+  "files": [
+    "dist",
+    "!**/*.map",
+    "!**/*/*.map",
+    "LICENSE.md",
+    "README.md"
+  ],
+  "keywords": [
+    "currents",
+    "terminal",
+    "reporter"
+  ],
+  "devDependencies": {
+    "@release-it/conventional-changelog": "^12.0.0",
+    "@types/node": "^25.5.0",
+    "commander": "^14.0.0",
+    "release-it": "^21.0.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "release-it": {
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": true,
+      "releaseName": "${npm.name} v${version}"
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": {
+          "name": "conventionalcommits"
+        },
+        "header": "# Changelog",
+        "ignoreVersion": true,
+        "infile": "./CHANGELOG.md",
+        "gitRawCommitsOpts": {
+          "path": "."
+        },
+        "commitsOpts": {
+          "path": "."
+        }
+      }
+    },
+    "git": {
+      "commitMessage": "chore: release ${npm.name} v${version}",
+      "tagName": "@currents/terminal-reporter-v${version}"
+    },
+    "hooks": {
+      "after:bump": "node ../../scripts/set-lockfile-version.js ${version}"
+    }
+  }
+}

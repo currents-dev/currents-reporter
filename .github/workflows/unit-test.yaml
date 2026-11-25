@@ -46,6 +46,11 @@ jobs:
         run: |
           npm run test
 
+      - name: Run Terminal Reporter Tests
+        working-directory: ./packages/terminal-reporter
+        run: |
+          npm run test
+
       - name: Run Tests
         working-directory: ./packages/cmd
         env:
