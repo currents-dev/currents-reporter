@@ -35,6 +35,16 @@ export type RunWorkerStats = {
   runStatus?: RunEndStatus;
 };
 
+/** An attempt that ran on a worker and ended. */
+export type EndedAttempt = {
+  testId: string;
+  file: string;
+  project?: string;
+  machineId: string;
+  parallelIndex: number;
+  durationMs: number;
+};
+
 type Attempt = {
   testId: string;
   title: string[];
@@ -105,6 +115,25 @@ export class WorkerStatsTracker {
         this.runEnd = { status: event.status, at: receivedAt };
         break;
     }
+  }
+
+  /** Skipped attempts and attempts that ran on no worker are left out. */
+  endedAttempts(): EndedAttempt[] {
+    return [...this.attempts.values()].flatMap((attempt) => {
+      const { machineId, parallelIndex } = parseWorker(attempt.worker);
+      if (!attempt.end || attempt.end.status === 'skipped' || parallelIndex < 0)
+        return [];
+      return [
+        {
+          testId: attempt.testId,
+          file: attempt.file,
+          project: attempt.project,
+          machineId,
+          parallelIndex,
+          durationMs: attempt.end.durationMs,
+        },
+      ];
+    });
   }
 
   read(now = Date.now()): RunWorkerStats {

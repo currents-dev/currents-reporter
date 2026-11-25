@@ -16,17 +16,24 @@ const linesUp = (n: number) => (n > 0 ? `\x1b[${n}F` : '\r');
  */
 export function createWorkersView(
   stats: WorkerStatsTracker,
-  out: NodeJS.WriteStream
+  out: NodeJS.WriteStream,
+  /** Lines drawn under the table. */
+  footerLines: () => string[] = () => []
 ) {
   let drawnLines = 0;
   let timer: NodeJS.Timeout | undefined;
 
   const draw = () => {
-    const lines = workerTableLines(stats.read(), {
-      columns: out.columns || 80,
-      // The last row stays empty for the cursor.
-      rows: (out.rows || 24) - 1,
-    });
+    const columns = out.columns || 80;
+    const footer = footerLines().map((line) => line.slice(0, columns));
+    const lines = [
+      ...workerTableLines(stats.read(), {
+        columns,
+        // The last row stays empty for the cursor.
+        rows: (out.rows || 24) - 1 - footer.length,
+      }),
+      ...footer,
+    ];
     out.write(
       `${drawnLines ? linesUp(drawnLines) : ''}${CLEAR_TO_END}${lines.join('\n')}\n`
     );
