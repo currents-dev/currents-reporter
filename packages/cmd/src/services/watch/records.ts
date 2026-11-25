@@ -8,7 +8,7 @@ const ERROR_FIELDS = 'message snippet location { file line }';
 
 /** The fields of a GraphQL `TestRecord` that `watch` reads. */
 export const TEST_RECORD_FIELDS = `recordId machineId groupId spec title _d _f
-  attempts { attempt parallelIndex status duration _d error { ${ERROR_FIELDS} }
+  attempts { attempt parallelIndex startTime status duration _d error { ${ERROR_FIELDS} }
     lastStep { id _d title category duration } }`;
 
 /**
@@ -38,6 +38,7 @@ export type AttemptStep = {
 export type TestRecordAttempt = {
   attempt: number;
   parallelIndex: number;
+  startTime?: string | null;
   status: 'passed' | 'failed' | 'timedOut' | 'skipped' | 'interrupted';
   duration: number;
   _d: boolean;
@@ -131,6 +132,9 @@ export class RecordEvents {
           project: record.groupId || undefined,
           worker: `${record.machineId}/${attempt.parallelIndex}`,
           retry,
+          startedAt: attempt.startTime
+            ? Date.parse(attempt.startTime)
+            : undefined,
         });
       }
       if (seen.ended.has(retry)) continue;

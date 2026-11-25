@@ -13,6 +13,8 @@ export type TerminalRunEvent =
       project?: string;
       worker: string;
       retry: number;
+      /** When the attempt started, in ms since the epoch, by the clock of the machine that ran it. */
+      startedAt?: number;
     }
   | {
       type: 'stepBegin';
