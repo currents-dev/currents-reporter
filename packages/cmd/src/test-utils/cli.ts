@@ -10,7 +10,7 @@ export const cliPath =
 export type CliResult = { code: number; stdout: string; stderr: string };
 
 /**
- * Runs the built CLI. Only PATH and HOME are passed on from the current
+ * Runs the built CLI. Only PATH, HOME and CURRENTS_CONFIG_DIR are passed on from the current
  * environment, so CI variables and CURRENTS_* variables of the machine running
  * the tests do not change the result.
  *
@@ -38,7 +38,7 @@ export function runCli(
       {
         cwd: options.cwd,
         env: {
-          ...pick(process.env, ['PATH', 'HOME']),
+          ...pick(process.env, ['PATH', 'HOME', 'CURRENTS_CONFIG_DIR']),
           ...options.env,
         },
       },

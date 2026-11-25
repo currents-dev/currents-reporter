@@ -14,7 +14,7 @@ import {
 import { getProgram } from '../../../bin/program';
 import { resolveApiKey } from '../../../commands/api/request';
 import { ApiServer, startApiServer } from '../../../test-utils/api-server';
-import { getLoginCredentials, handleLogout } from '..';
+import { getLoginCredentials, handleLogout, handleWhoami } from '..';
 import {
   deleteCredentials,
   getCredentialsPath,
@@ -63,6 +63,20 @@ beforeAll(async () => {
         : { status: tokenStatus, json: { error: 'invalid_grant' } };
     }
     if (request.url === '/revoke') return { status: 200, body: '' };
+    if (request.url === '/v1/me/organizations') {
+      return request.headers.authorization === 'Bearer revoked-at'
+        ? { status: 401, json: { status: 'FAILED', error: 'Unauthorized' } }
+        : {
+            status: 200,
+            json: {
+              status: 'OK',
+              data: [
+                { orgId: 'o2', name: 'Other', role: 'member', current: false },
+                { orgId: 'o1', name: 'Acme', role: 'admin', current: true },
+              ],
+            },
+          };
+    }
     return { status: 200, json: { status: 'OK', data: {} } };
   });
   // The REST client reads the base URL once, when it is first used.
@@ -258,5 +272,25 @@ describe('commands with the stored login', () => {
     );
     expect(await fs.pathExists(getCredentialsPath())).toBe(false);
     expect(output).not.toContain('stored-rt');
+  });
+
+  it('currents whoami shows the organization of the login', async () => {
+    await login();
+
+    await handleWhoami();
+
+    expect(output).toContain('Organization: Acme (o1), admin');
+    expect(output).toContain(
+      'Scopes:       openid offline_access projects:read results:read'
+    );
+    expect(output).not.toContain('stored-at');
+  });
+
+  it('currents whoami asks to log in again when the API refuses the token', async () => {
+    await login({ accessToken: 'revoked-at' });
+
+    await expect(handleWhoami()).rejects.toThrow(
+      /refused the stored login.*currents login/
+    );
   });
 });
