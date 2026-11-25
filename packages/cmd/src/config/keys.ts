@@ -44,5 +44,5 @@ export const sharedConfigKeys = {
 /** Added to the error for a missing key: how a CI job gets one without a stored secret. */
 export const ciAuthHints = {
   recordKey: `in CI, run \`currents ci auth get-record-key\` and set ${sharedConfigKeys.recordKey.env} to its output`,
-  apiKey: `in CI, run \`currents ci auth get-api-token\` and set ${sharedConfigKeys.apiKey.env} to its output`,
+  apiKey: `on your machine, run \`currents login\`; in CI, run \`currents ci auth get-api-token\` and set ${sharedConfigKeys.apiKey.env} to its output`,
 };

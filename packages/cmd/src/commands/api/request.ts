@@ -4,6 +4,7 @@ import {
   Option,
 } from '@commander-js/extra-typings';
 import { sharedConfigKeys } from '../../config/keys';
+import { getLoginCredentials } from '../../services/auth';
 import {
   ApiRequestOptions,
   Field,
@@ -106,6 +107,17 @@ export function getConfiguredApiKey(
   return apiKey?.trim() ? apiKey : undefined;
 }
 
+/** --api-key, then CURRENTS_API_KEY, then the access token of `currents login`. */
+export async function resolveApiKey(
+  apiKey: string | undefined,
+  apiKeySource: string | undefined
+) {
+  return (
+    getConfiguredApiKey(apiKey, apiKeySource) ??
+    (await getLoginCredentials())?.accessToken
+  );
+}
+
 export async function apiRequestHandler(
   path: string,
   options: ApiRequestOptions,
@@ -113,7 +125,7 @@ export async function apiRequestHandler(
 ) {
   await commandHandler(async (opts) => {
     printLogsToStderr();
-    const apiKey = getConfiguredApiKey(
+    const apiKey = await resolveApiKey(
       opts.apiKey,
       command.getOptionValueSource('apiKey')
     );

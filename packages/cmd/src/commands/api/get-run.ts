@@ -7,7 +7,7 @@ import {
 import { maskKeys } from '../../lib';
 import { handleGetRun } from '../../services';
 import { commandHandler, printLogsToStderr } from '../utils';
-import { getConfiguredApiKey } from './request';
+import { resolveApiKey } from './request';
 
 const debug = _debug.extend('cli');
 
@@ -30,7 +30,7 @@ export async function getRunHandler(
     }
     opts = {
       ...opts,
-      apiKey: getConfiguredApiKey(
+      apiKey: await resolveApiKey(
         opts.apiKey,
         command.getOptionValueSource('apiKey')
       ),

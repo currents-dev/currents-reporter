@@ -170,7 +170,7 @@ describe('currents program', () => {
     expect(await run(['--help'])).toBe(0);
 
     expect(stdout).toMatch(
-      /Test runs:\n\s+run\b[^\n]*\n\nEvidence:\n\s+session\b[^\n]*\n\nCI utilities:\n\s+cache\b[^\n]*\n\s+ci\b[^\n]*\n\nOther:\n/
+      /Test runs:\n\s+run\b[^\n]*\n\nEvidence:\n\s+session\b[^\n]*\n\nCI utilities:\n\s+cache\b[^\n]*\n\s+ci\b[^\n]*\n\nAccount:\n\s+login\b[^\n]*\n\s+logout\b[^\n]*\n\s+whoami\b[^\n]*\n\nOther:\n/
     );
     expect(stdout).toMatch(
       /Other:\n\s+api \[options\] <path>\s+Make an authenticated request to the Currents REST API\n/

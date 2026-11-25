@@ -2,6 +2,11 @@ import { Command } from '@commander-js/extra-typings';
 import { reporterVersion } from '@env/versions';
 import { getApiCommand } from '../commands/api';
 import {
+  getLoginCommand,
+  getLogoutCommand,
+  getWhoamiCommand,
+} from '../commands/auth';
+import {
   getCacheCommand,
   getCacheGetExamples,
   getCacheSetExamples,
@@ -47,6 +52,10 @@ export const getProgram = () => {
     .commandsGroup('CI utilities:')
     .addCommand(getCacheCommand(NAME))
     .addCommand(getCiCommand(NAME))
+    .commandsGroup('Account:')
+    .addCommand(getLoginCommand(NAME))
+    .addCommand(getLogoutCommand())
+    .addCommand(getWhoamiCommand())
     .commandsGroup('Other:')
     .addCommand(getApiCommand(NAME))
     .addCommand(getDocsCommand(NAME))

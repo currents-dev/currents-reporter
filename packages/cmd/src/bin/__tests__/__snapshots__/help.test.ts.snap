@@ -16,7 +16,8 @@ Arguments:
 Options:
   --api-key <api-key>          an API key from the Currents dashboard, or an API
                                token from \`currents ci auth get-api-token\`
-                               (required) (env: CURRENTS_API_KEY)
+                               (required without \`currents login\`) (env:
+                               CURRENTS_API_KEY)
   -X, --method <method>        the HTTP method; GET by default, POST when
                                --field, --raw-field or --input is given
   -f, --field <key=value>      a request parameter; repeat for more. Sent in the
@@ -62,8 +63,8 @@ both
 
 Options:
   --api-key <api-key>    an API key from the Currents dashboard, or an API token
-                         from \`currents ci auth get-api-token\` (required) (env:
-                         CURRENTS_API_KEY)
+                         from \`currents ci auth get-api-token\` (required without
+                         \`currents login\`) (env: CURRENTS_API_KEY)
   --debug                print debug logs; keys are hidden in them (default:
                          false, env: CURRENTS_DEBUG)
   --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
@@ -545,6 +546,44 @@ Examples:
 "
 `;
 
+exports[`command surface of the built CLI > prints the help of login 1`] = `
+"Usage: currents login [options]
+
+Log in to Currents in the browser and store the login in
+~/.config/currents/credentials.json, or in credentials.json in
+CURRENTS_CONFIG_DIR. \`currents api\` and \`currents run get\` use it when neither
+--api-key nor CURRENTS_API_KEY is set. The login can read runs and projects.
+
+Options:
+  --no-browser         print the link without opening a browser
+  --timeout <seconds>  stop waiting for the approval in the browser after this
+                       many seconds (default: 600)
+  --debug              print debug logs; keys are hidden in them (default:
+                       false, env: CURRENTS_DEBUG)
+  -h, --help           display help for command
+
+Examples:
+  # Open the browser to log in
+  currents login
+
+  # Print the link only, e.g. on a machine without a browser
+  currents login --no-browser
+
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of logout 1`] = `
+"Usage: currents logout [options]
+
+Revoke the stored login on the server and delete it from this machine
+
+Options:
+  --debug     print debug logs; keys are hidden in them (default: false, env:
+              CURRENTS_DEBUG)
+  -h, --help  display help for command
+"
+`;
+
 exports[`command surface of the built CLI > prints the help of run 1`] = `
 "Usage: currents run [options] [command]
 
@@ -707,8 +746,8 @@ both
 
 Options:
   --api-key <api-key>    an API key from the Currents dashboard, or an API token
-                         from \`currents ci auth get-api-token\` (required) (env:
-                         CURRENTS_API_KEY)
+                         from \`currents ci auth get-api-token\` (required without
+                         \`currents login\`) (env: CURRENTS_API_KEY)
   --debug                print debug logs; keys are hidden in them (default:
                          false, env: CURRENTS_DEBUG)
   --ci-build-id <id>     the CI build ID the run was recorded with; cannot be
@@ -993,5 +1032,17 @@ Examples:
   currents run upload --key <record-key> --project-id <id> \\
       --ci-build-id <build-id> --report-dir <report-dir>
 
+"
+`;
+
+exports[`command surface of the built CLI > prints the help of whoami 1`] = `
+"Usage: currents whoami [options]
+
+Show the REST API, organization, role and scopes of the stored login
+
+Options:
+  --debug     print debug logs; keys are hidden in them (default: false, env:
+              CURRENTS_DEBUG)
+  -h, --help  display help for command
 "
 `;
