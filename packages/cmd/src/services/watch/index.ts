@@ -204,7 +204,7 @@ async function readSteps(
 
 type SerializedStep = Omit<AttemptStep, 'steps'> & { steps: string };
 
-async function getAttemptSteps(
+export async function getAttemptSteps(
   apiKey: string,
   recordId: string,
   attempt: number

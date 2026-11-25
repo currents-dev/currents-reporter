@@ -5,6 +5,7 @@ import { createLinePrinter } from '../../services/watch/print';
 import { getConfiguredApiKey } from '../api/request';
 import { apiKeyOption, debugOption } from '../options';
 import { commandHandler } from '../utils';
+import { printRunWrapped, svgOption } from '../wrapped';
 
 /**
  * Beta: registered hidden until the terminal view is ready. Takes a personal
@@ -19,6 +20,8 @@ export const getWatchCommand = () => {
       'Print the tests of a run as they finish, from any machine, until the run ends'
     )
     .argument('<run-id>', 'the ID of the run')
+    .option('--wrapped', 'print a card with highlights of the run when it ends')
+    .addOption(svgOption('--wrapped-svg <file>').implies({ wrapped: true }))
     .addOption(apiKeyOption())
     .addOption(debugOption())
     .action((runId, options) =>
@@ -33,6 +36,13 @@ export const getWatchCommand = () => {
           );
         }
         await watchRun(apiKey, runId, createLinePrinter(console.log));
+        if (opts.wrapped) {
+          console.log('');
+          await printRunWrapped(apiKey, runId, {
+            svgPath: opts.wrappedSvg,
+            requireEnded: false,
+          });
+        }
       }, options)
     );
   return command;
