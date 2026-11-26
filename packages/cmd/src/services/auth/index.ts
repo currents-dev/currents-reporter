@@ -29,6 +29,20 @@ const REFRESH_MARGIN_MS = 60 * 1000;
 
 const getApiUrl = () => requireRestAPIBaseUrl().replace(/\/+$/, '');
 
+const REFUSED_LOGIN =
+  'The API refused the stored login: it was revoked or has expired. Run "currents login" again.';
+
+/**
+ * For an error of a request made with the stored login. A 401 before the
+ * access token expires means the login was revoked on the server, for example
+ * from the dashboard or by `currents logout` on another machine.
+ */
+export function explainRefusedLogin(e: unknown) {
+  return (e as { status?: unknown } | null)?.status === 401
+    ? new Error(REFUSED_LOGIN)
+    : e;
+}
+
 /**
  * The stored login for the REST API in use, refreshed when its access token
  * expires within a minute. Null when there is no login for that API: the
@@ -82,9 +96,17 @@ export async function handleLogin({
         `${openBrowser ? 'Opened' : 'Open'} this link to log in to Currents:\n\n  ${printable(url)}\n\nWaiting for approval in the browser…`
       ),
   });
+  const previous = await readCredentials();
   await writeCredentials(credentials);
   success(`Logged in to ${apiUrl}`);
   info(`Credentials saved to ${getCredentialsPath()}`);
+  if (previous) {
+    // The replaced login would otherwise stay valid until its refresh token
+    // expires.
+    await revoke(previous).catch((e) =>
+      debug('Could not revoke the replaced login: %s', (e as Error).message)
+    );
+  }
 }
 
 export async function handleLogout() {
@@ -131,12 +153,9 @@ export async function handleWhoami() {
     });
     organizations = res.data.data;
   } catch (e) {
-    if (isHttpError(e) && e.status === 401) {
-      throw new Error(
-        'The API refused the stored login: it was revoked or has expired. Run "currents login" again.'
-      );
-    }
-    throw toApiError(e);
+    throw isHttpError(e) && e.status === 401
+      ? explainRefusedLogin(e)
+      : toApiError(e);
   }
   const org = organizations.find((o) => o.current);
   const lines = [

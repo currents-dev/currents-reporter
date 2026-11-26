@@ -180,8 +180,11 @@ export async function handleApiRequest(
     if (options.include) process.stderr.write(statusAndHeaders(response));
     const body = formatBody(response, !!process.stderr.isTTY);
     if (body) process.stderr.write(body.endsWith('\n') ? body : `${body}\n`);
-    throw new Error(
-      `${request.method} ${request.url.split('?')[0]} failed: the REST API answered ${response.status} ${response.statusText}`
+    throw Object.assign(
+      new Error(
+        `${request.method} ${request.url.split('?')[0]} failed: the REST API answered ${response.status} ${response.statusText}`
+      ),
+      { status: response.status }
     );
   }
 }

@@ -4,7 +4,7 @@ import {
   Option,
 } from '@commander-js/extra-typings';
 import { sharedConfigKeys } from '../../config/keys';
-import { getLoginCredentials } from '../../services/auth';
+import { explainRefusedLogin, getLoginCredentials } from '../../services/auth';
 import {
   ApiRequestOptions,
   Field,
@@ -111,11 +111,25 @@ export function getConfiguredApiKey(
 export async function resolveApiKey(
   apiKey: string | undefined,
   apiKeySource: string | undefined
+): Promise<{ apiKey?: string; fromLogin: boolean }> {
+  const configured = getConfiguredApiKey(apiKey, apiKeySource);
+  if (configured) return { apiKey: configured, fromLogin: false };
+  const login = await getLoginCredentials();
+  return { apiKey: login?.accessToken, fromLogin: !!login };
+}
+
+/** Runs `fn` with the resolved key, and says when the stored login was refused. */
+export async function withResolvedApiKey<T>(
+  apiKey: string | undefined,
+  apiKeySource: string | undefined,
+  fn: (apiKey: string | undefined) => Promise<T>
 ) {
-  return (
-    getConfiguredApiKey(apiKey, apiKeySource) ??
-    (await getLoginCredentials())?.accessToken
-  );
+  const resolved = await resolveApiKey(apiKey, apiKeySource);
+  try {
+    return await fn(resolved.apiKey);
+  } catch (e) {
+    throw resolved.fromLogin ? explainRefusedLogin(e) : e;
+  }
 }
 
 export async function apiRequestHandler(
@@ -125,10 +139,10 @@ export async function apiRequestHandler(
 ) {
   await commandHandler(async (opts) => {
     printLogsToStderr();
-    const apiKey = await resolveApiKey(
+    await withResolvedApiKey(
       opts.apiKey,
-      command.getOptionValueSource('apiKey')
+      command.getOptionValueSource('apiKey'),
+      (apiKey) => handleApiRequest(path, { ...opts, apiKey })
     );
-    await handleApiRequest(path, { ...opts, apiKey });
   }, options);
 }

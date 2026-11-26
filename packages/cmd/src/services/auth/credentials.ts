@@ -1,4 +1,5 @@
-import { chmod, mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { randomBytes } from 'crypto';
+import { chmod, mkdir, readFile, rename, rm, writeFile } from 'fs/promises';
 import os from 'os';
 import path from 'path';
 
@@ -15,10 +16,15 @@ export type OAuthCredentials = {
 
 type CredentialsFile = { login?: OAuthCredentials };
 
+/** The XDG Base Directory spec ignores a relative XDG_CONFIG_HOME. */
+const getConfigHome = () => {
+  const xdg = process.env.XDG_CONFIG_HOME;
+  return xdg && path.isAbsolute(xdg) ? xdg : path.join(os.homedir(), '.config');
+};
+
 export const getCredentialsPath = () =>
   path.join(
-    process.env.CURRENTS_CONFIG_DIR ??
-      path.join(os.homedir(), '.config', 'currents'),
+    process.env.CURRENTS_CONFIG_DIR ?? path.join(getConfigHome(), 'currents'),
     'credentials.json'
   );
 
@@ -33,13 +39,29 @@ export async function readCredentials(): Promise<OAuthCredentials | null> {
   }
 }
 
+/**
+ * Written to a temporary file and renamed over the old one, so a command
+ * reading the file at the same time sees the old login or the new one, never
+ * part of either.
+ */
 export async function writeCredentials(login: OAuthCredentials) {
   const file = getCredentialsPath();
-  await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
+  const dir = path.dirname(file);
+  await mkdir(dir, { recursive: true, mode: 0o700 });
+  // `mode` applies only to the directories `mkdir` creates.
+  await chmod(dir, 0o700);
   const content: CredentialsFile = { login };
-  await writeFile(file, JSON.stringify(content, null, 2), { mode: 0o600 });
-  // `mode` applies only when the file is created.
-  await chmod(file, 0o600);
+  const tmp = `${file}.${randomBytes(6).toString('hex')}.tmp`;
+  try {
+    await writeFile(tmp, JSON.stringify(content, null, 2), {
+      mode: 0o600,
+      flag: 'wx',
+    });
+    await rename(tmp, file);
+  } catch (e) {
+    await rm(tmp, { force: true });
+    throw e;
+  }
 }
 
 export async function deleteCredentials() {
