@@ -7,7 +7,7 @@ import {
 import { maskKeys } from '../../lib';
 import { handleGetRun } from '../../services';
 import { commandHandler, printLogsToStderr } from '../utils';
-import { getConfiguredApiKey } from './request';
+import { withResolvedApiKey } from './request';
 
 const debug = _debug.extend('cli');
 
@@ -28,17 +28,14 @@ export async function getRunHandler(
     if (ciBuildIdFromEnv && (opts.branch || opts.tag)) {
       opts = { ...opts, ciBuildId: undefined };
     }
-    opts = {
-      ...opts,
-      apiKey: getConfiguredApiKey(
-        opts.apiKey,
-        command.getOptionValueSource('apiKey')
-      ),
-    };
-    setAPIGetRunCommandConfig(opts);
-    const config = getAPIGetRunCommandConfig();
-
-    debug('Config: %o', maskKeys(config));
-    await handleGetRun();
+    await withResolvedApiKey(
+      opts.apiKey,
+      command.getOptionValueSource('apiKey'),
+      async (apiKey) => {
+        setAPIGetRunCommandConfig({ ...opts, apiKey });
+        debug('Config: %o', maskKeys(getAPIGetRunCommandConfig()));
+        await handleGetRun();
+      }
+    );
   }, options);
 }

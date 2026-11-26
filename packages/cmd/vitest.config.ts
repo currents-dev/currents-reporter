@@ -1,3 +1,4 @@
+import os from 'os';
 import path from 'path';
 
 // Set in CI, where the JUnit report is converted and uploaded to Currents. The
@@ -7,6 +8,14 @@ const junitFile = process.env.CURRENTS_JUNIT_FILE;
 const config = {
   test: {
     globalSetup: ['./vitest.global-setup.ts'],
+    // A directory without credentials.json, so that no test sends the login
+    // of the person running the tests.
+    env: {
+      CURRENTS_CONFIG_DIR: path.join(
+        os.tmpdir(),
+        'currents-cmd-tests-no-login'
+      ),
+    },
     ...(junitFile
       ? {
           reporters: ['default', ['junit', { suiteName: 'cmd' }]],

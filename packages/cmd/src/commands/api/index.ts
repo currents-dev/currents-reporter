@@ -67,6 +67,8 @@ export const getApiExamples = (name: string): HelpExample[] => [
   },
 ];
 
+const API_KEY_NOTE = '(required without `currents login`)';
+
 // `currents api get-run` is the hidden path of `currents run get`. Options
 // are positional so that the options of get-run, such as --api-key, reach it
 // instead of api.
@@ -83,7 +85,7 @@ The REST API routes: https://docs.currents.dev/resources/api/api-resources`
     .argument('<path>', 'the REST API route, such as /v1/runs/<run-id>')
     .enablePositionalOptions()
     .helpCommand(false)
-    .addOption(apiKeyOption())
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(methodOption)
     .addOption(fieldOption)
     .addOption(rawFieldOption)
@@ -114,7 +116,7 @@ export const getRunGetCommand = (name: string) => {
     )
     .addHelpText('after', formatExamples(getRunGetExamples(name)))
     .allowUnknownOption()
-    .addOption(apiKeyOption())
+    .addOption(apiKeyOption(API_KEY_NOTE))
     .addOption(debugOption())
     .addOption(ciBuildIdOption)
     .addOption(projectOption())

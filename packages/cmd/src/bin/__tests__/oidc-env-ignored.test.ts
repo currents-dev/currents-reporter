@@ -24,7 +24,7 @@ const ANSI = /\x1b\[[0-9;]*m/g;
 const RECORD_KEY_ERROR =
   'Record key is required: pass --key or set CURRENTS_RECORD_KEY; in CI, run `currents ci auth get-record-key` and set CURRENTS_RECORD_KEY to its output';
 const API_KEY_ERROR =
-  'API key is required: pass --api-key or set CURRENTS_API_KEY; in CI, run `currents ci auth get-api-token` and set CURRENTS_API_KEY to its output';
+  'API key is required: pass --api-key or set CURRENTS_API_KEY; on your machine, run `currents login`; in CI, run `currents ci auth get-api-token` and set CURRENTS_API_KEY to its output';
 const SESSION_KEY_ERROR =
   'Record key or API key is required: pass --key or --api-key, or set CURRENTS_RECORD_KEY or CURRENTS_API_KEY; in CI, run `currents ci auth get-record-key` and set CURRENTS_RECORD_KEY to its output';
 
